@@ -47,7 +47,28 @@ app.get('/api/history/:id', (req, res) => {
     'SELECT * FROM sprites WHERE generation_id = ? ORDER BY cell_index'
   ).all(req.params.id);
 
-  res.json({ ...gen, sprites });
+  res.json({
+    id: gen.id,
+    character: {
+      name: gen.character_name || '',
+      description: gen.character_description || '',
+      equipment: '',
+      colorNotes: '',
+      styleNotes: '',
+      rowGuidance: '',
+    },
+    filledGridImage: gen.filled_grid_image,
+    filledGridMimeType: 'image/png',
+    geminiText: gen.prompt || '',
+    sprites: sprites.map(s => ({
+      cellIndex: s.cell_index,
+      label: s.pose_name,
+      imageData: s.image_data,
+      mimeType: s.mime_type,
+      width: 0,
+      height: 0,
+    })),
+  });
 });
 
 app.post('/api/history', (req, res) => {
@@ -102,10 +123,26 @@ app.get('/api/gallery', (req, res) => {
             (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id ORDER BY s.cell_index LIMIT 1) as thumb_mime
      FROM generations g ORDER BY g.created_at DESC LIMIT 50`
   ).all();
-  res.json(rows);
+  res.json(rows.map(r => ({
+    id: r.id,
+    characterName: r.character_name,
+    characterDescription: r.character_description,
+    model: r.model,
+    createdAt: r.created_at,
+    spriteCount: r.sprite_count,
+    thumbnailData: r.thumb_data,
+    thumbnailMime: r.thumb_mime,
+  })));
 });
 
 app.delete('/api/gallery/:id', (req, res) => {
+  db.prepare('DELETE FROM sprites WHERE generation_id = ?').run(req.params.id);
+  const result = db.prepare('DELETE FROM generations WHERE id = ?').run(req.params.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ success: true });
+});
+
+app.delete('/api/history/:id', (req, res) => {
   db.prepare('DELETE FROM sprites WHERE generation_id = ?').run(req.params.id);
   const result = db.prepare('DELETE FROM generations WHERE id = ?').run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
@@ -193,6 +230,10 @@ app.get('/api/archive', (req, res) => {
 
 // Serve archive files statically
 app.use('/output', express.static(OUTPUT_DIR));
+
+// Serve test files (dev only)
+app.use('/tests', express.static(join(__dirname, '..', 'tests')));
+app.use('/test-fixtures', express.static(join(__dirname, '..', 'test-fixtures')));
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

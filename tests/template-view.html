@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Template Preview</title>
+  <style>
+    body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
+    canvas { border: 1px solid #555; max-width: 100%; }
+    .info { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h2>2K Template Grid (what gets sent to Gemini)</h2>
+  <div class="info" id="info"></div>
+  <canvas id="template"></canvas>
+
+  <script>
+    const COLS = 6, ROWS = 6;
+    const CELL_LABELS = [
+      'Walk Down 1','Walk Down 2','Walk Down 3','Walk Up 1','Walk Up 2','Walk Up 3',
+      'Walk Left 1','Walk Left 2','Walk Left 3','Walk Right 1','Walk Right 2','Walk Right 3',
+      'Idle Down','Idle Up','Idle Left','Idle Right','Battle Idle 1','Battle Idle 2',
+      'Battle Idle 3','Attack 1','Attack 2','Attack 3','Cast 1','Cast 2',
+      'Cast 3','Damage 1','Damage 2','Damage 3','KO 1','KO 2',
+      'KO 3','Victory 1','Victory 2','Victory 3','Weak Pose','Critical Pose',
+    ];
+
+    const config = { cellW: 339, cellH: 339, headerH: 14, border: 2, fontSize: 9 };
+    const { cellW, cellH, headerH, border, fontSize } = config;
+
+    const imgW = COLS * cellW + (COLS + 1) * border;
+    const imgH = ROWS * cellH + (ROWS + 1) * border;
+
+    const canvas = document.getElementById('template');
+    canvas.width = imgW;
+    canvas.height = imgH;
+    const ctx = canvas.getContext('2d');
+
+    // Black grid lines
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, imgW, imgH);
+
+    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (let idx = 0; idx < CELL_LABELS.length; idx++) {
+      const col = idx % COLS;
+      const row = Math.floor(idx / COLS);
+      const x0 = border + col * (cellW + border);
+      const y0 = border + row * (cellH + border);
+
+      // Header strip
+      ctx.fillStyle = '#000';
+      ctx.fillRect(x0, y0, cellW, headerH);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(CELL_LABELS[idx], x0 + cellW / 2, y0 + headerH / 2);
+
+      // Content area (magenta)
+      ctx.fillStyle = '#FF00FF';
+      ctx.fillRect(x0, y0 + headerH, cellW, cellH - headerH);
+    }
+
+    document.getElementById('info').textContent =
+      `Canvas: ${imgW}x${imgH} | Cell: ${cellW}x${cellH} | Header: ${headerH}px | Border: ${border}px | Content: ${cellW}x${cellH - headerH}`;
+  </script>
+</body>
+</html>

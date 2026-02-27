@@ -57,7 +57,6 @@ export function useGridWorkflow() {
           headerH: templateConfig.headerH,
           border: templateConfig.border,
           templateCellH: templateConfig.cellH,
-          floodTolerance: state.floodTolerance,
         },
       );
 
@@ -115,9 +114,9 @@ export function useGridWorkflow() {
     } catch (err: any) {
       dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
     }
-  }, [state.character, state.model, state.imageSize, state.floodTolerance, dispatch]);
+  }, [state.character, state.model, state.imageSize, dispatch]);
 
-  const reExtract = useCallback(async () => {
+  const reExtract = useCallback(async (overrides?: { aaInset?: number }) => {
     if (!state.filledGridImage) return;
 
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
@@ -130,12 +129,12 @@ export function useGridWorkflow() {
         headerH: templateConfig.headerH,
         border: templateConfig.border,
         templateCellH: templateConfig.cellH,
-        floodTolerance: state.floodTolerance,
+        ...overrides,
       },
     );
 
     dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-  }, [state.filledGridImage, state.filledGridMimeType, state.imageSize, state.floodTolerance, dispatch]);
+  }, [state.filledGridImage, state.filledGridMimeType, state.imageSize, dispatch]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });

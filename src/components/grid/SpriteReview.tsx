@@ -9,27 +9,139 @@ import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { SpriteGrid } from './SpriteGrid';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE } from '../../lib/poses';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
+import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
+
+type RGB = [number, number, number];
+
+async function processSprite(
+  sprite: ExtractedSprite,
+  chromaEnabled: boolean,
+  chromaTolerance: number,
+  struckColors: RGB[],
+): Promise<ExtractedSprite> {
+  if (!chromaEnabled && struckColors.length === 0) return sprite;
+
+  const img = new Image();
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('Failed to load sprite'));
+    img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+
+  let imageData = ctx.getImageData(0, 0, img.width, img.height);
+  if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance);
+  if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
+
+  ctx.putImageData(imageData, 0, 0);
+  const dataUrl = canvas.toDataURL('image/png');
+  const base64 = dataUrl.split(',')[1];
+
+  return { ...sprite, imageData: base64, mimeType: 'image/png' };
+}
+
+/** Detect distinct colors from sprites using 6-bit quantization. */
+async function detectPalette(sprites: ExtractedSprite[], maxColors = 48): Promise<RGB[]> {
+  const counts = new Map<number, { r: number; g: number; b: number; n: number }>();
+
+  // Sample from up to 6 sprites for performance
+  for (const sprite of sprites.slice(0, 6)) {
+    const img = new Image();
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, img.width, img.height).data;
+
+    // Sample every 2nd pixel for speed
+    for (let i = 0; i < data.length; i += 8) {
+      if (data[i + 3] === 0) continue;
+      // 6-bit quantization: 4 values per channel = finer color separation
+      const qr = data[i] >> 6;
+      const qg = data[i + 1] >> 6;
+      const qb = data[i + 2] >> 6;
+      const key = (qr << 4) | (qg << 2) | qb;
+      const entry = counts.get(key);
+      if (entry) {
+        entry.r += data[i];
+        entry.g += data[i + 1];
+        entry.b += data[i + 2];
+        entry.n++;
+      } else {
+        counts.set(key, { r: data[i], g: data[i + 1], b: data[i + 2], n: 1 });
+      }
+    }
+  }
+
+  return Array.from(counts.values())
+    .sort((a, b) => b.n - a.n)
+    .slice(0, maxColors)
+    .map((e) => [Math.round(e.r / e.n), Math.round(e.g / e.n), Math.round(e.b / e.n)]);
+}
 
 export function SpriteReview() {
   const { state, dispatch, reExtract, setStep } = useGridWorkflow();
-  const { sprites, floodTolerance } = state;
+  const { sprites } = state;
 
   const [selectedAnim, setSelectedAnim] = useState(0);
   const [frameIndex, setFrameIndex] = useState(0);
   const [speed, setSpeed] = useState(150);
   const [scale, setScale] = useState(2);
-  const [localTolerance, setLocalTolerance] = useState(floodTolerance);
+  const [chromaEnabled, setChromaEnabled] = useState(false);
+  const [chromaTolerance, setChromaTolerance] = useState(80);
+  const [processedSprites, setProcessedSprites] = useState<ExtractedSprite[]>(sprites);
+  const [aaInset, setAaInset] = useState(3);
+  const [palette, setPalette] = useState<RGB[]>([]);
+  const [struckColors, setStruckColors] = useState<RGB[]>([]);
+  const struckKey = JSON.stringify(struckColors);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animTimerRef = useRef<number>(0);
   const lastKeyRef = useRef<string>('ArrowDown');
 
+  // Detect palette from raw sprites
+  useEffect(() => {
+    if (sprites.length === 0) return;
+    let cancelled = false;
+    detectPalette(sprites).then((p) => {
+      if (!cancelled) setPalette(p);
+    });
+    return () => { cancelled = true; };
+  }, [sprites]);
+
+  // Process sprites through chroma key + color strikes
+  useEffect(() => {
+    if (!chromaEnabled && struckColors.length === 0) {
+      setProcessedSprites(sprites);
+      return;
+    }
+
+    let cancelled = false;
+    Promise.all(sprites.map((s) => processSprite(s, chromaEnabled, chromaTolerance, struckColors)))
+      .then((result) => {
+        if (!cancelled) setProcessedSprites(result);
+      });
+
+    return () => { cancelled = true; };
+  }, [sprites, chromaEnabled, chromaTolerance, struckKey]);
+
   const currentAnim = ANIMATIONS[selectedAnim];
   const currentFrames = currentAnim.frames;
 
-  // Build sprite lookup
+  // Build sprite lookup from processed sprites
   const spriteMap = new Map<number, ExtractedSprite>();
-  for (const s of sprites) {
+  for (const s of processedSprites) {
     spriteMap.set(s.cellIndex, s);
   }
 
@@ -132,9 +244,9 @@ export function SpriteReview() {
 
   // Export sprite sheet
   const handleExportSheet = useCallback(async () => {
-    if (sprites.length === 0) return;
+    if (processedSprites.length === 0) return;
     try {
-      const { base64 } = await composeSpriteSheet(sprites);
+      const { base64 } = await composeSpriteSheet(processedSprites);
       const link = document.createElement('a');
       link.href = `data:image/png;base64,${base64}`;
       link.download = `${state.character.name || 'sprites'}-sheet.png`;
@@ -143,40 +255,26 @@ export function SpriteReview() {
     } catch (err: any) {
       dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
     }
-  }, [sprites, state.character.name, dispatch]);
+  }, [processedSprites, state.character.name, dispatch]);
 
   // Export individual PNGs
   const handleExportIndividual = useCallback(() => {
-    if (sprites.length === 0) return;
-    for (const sprite of sprites) {
+    if (processedSprites.length === 0) return;
+    for (const sprite of processedSprites) {
       const link = document.createElement('a');
       link.href = `data:${sprite.mimeType};base64,${sprite.imageData}`;
       const safeName = sprite.label.toLowerCase().replace(/\s+/g, '-');
       link.download = `${state.character.name || 'sprite'}-${safeName}.png`;
       link.click();
     }
-    dispatch({ type: 'SET_STATUS', message: `Exported ${sprites.length} individual sprites!`, statusType: 'success' });
-  }, [sprites, state.character.name, dispatch]);
-
-  // Re-extract with new tolerance
-  const handleToleranceChange = useCallback(
-    (value: number) => {
-      setLocalTolerance(value);
-    },
-    [],
-  );
-
-  const handleReExtract = useCallback(() => {
-    dispatch({ type: 'SET_FLOOD_TOLERANCE', tolerance: localTolerance });
-    // reExtract uses the state tolerance, so we need to wait for the state update
-    setTimeout(() => reExtract(), 50);
-  }, [localTolerance, dispatch, reExtract]);
+    dispatch({ type: 'SET_STATUS', message: `Exported ${processedSprites.length} individual sprites!`, statusType: 'success' });
+  }, [processedSprites, state.character.name, dispatch]);
 
   return (
     <div className="review-layout">
       {/* Left: Sprite Grid */}
       <div className="review-main">
-        <SpriteGrid sprites={sprites} />
+        <SpriteGrid sprites={processedSprites} />
       </div>
 
       {/* Right: Sidebar */}
@@ -251,20 +349,99 @@ export function SpriteReview() {
           </div>
         </div>
 
-        {/* Extraction Tolerance */}
+        {/* Chroma Key */}
         <div className="sidebar-section">
-          <h3>Extraction Tolerance</h3>
-          <div className="slider-row">
-            <input
-              type="range"
-              min={10}
-              max={100}
-              value={localTolerance}
-              onChange={(e) => handleToleranceChange(Number(e.target.value))}
-            />
-            <span className="slider-value">{localTolerance}</span>
+          <h3>Chroma Key</h3>
+          <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <button
+              className={`anim-group-btn ${!chromaEnabled ? 'active' : ''}`}
+              onClick={() => setChromaEnabled(false)}
+            >
+              Off
+            </button>
+            <button
+              className={`anim-group-btn ${chromaEnabled ? 'active' : ''}`}
+              onClick={() => setChromaEnabled(true)}
+            >
+              On
+            </button>
           </div>
-          <button className="btn btn-sm" onClick={handleReExtract}>
+          {chromaEnabled && (
+            <div className="slider-row" style={{ marginTop: 8 }}>
+              <input
+                type="range"
+                min={10}
+                max={150}
+                value={chromaTolerance}
+                onChange={(e) => setChromaTolerance(Number(e.target.value))}
+              />
+              <span className="slider-value">{chromaTolerance}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Color Striker */}
+        {palette.length > 0 && (
+          <div className="sidebar-section">
+            <h3>Color Striker</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {palette.map(([r, g, b], i) => {
+                const isStruck = struckColors.some(
+                  (c) => c[0] === r && c[1] === g && c[2] === b,
+                );
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setStruckColors((prev) =>
+                        isStruck
+                          ? prev.filter((c) => c[0] !== r || c[1] !== g || c[2] !== b)
+                          : [...prev, [r, g, b]],
+                      );
+                    }}
+                    title={`rgb(${r}, ${g}, ${b})`}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: `rgb(${r},${g},${b})`,
+                      border: isStruck ? '2px solid var(--accent)' : '2px solid var(--border)',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      opacity: isStruck ? 0.4 : 1,
+                      position: 'relative',
+                    }}
+                  />
+                );
+              })}
+            </div>
+            {struckColors.length > 0 && (
+              <button
+                className="btn btn-sm w-full"
+                style={{ marginTop: 6 }}
+                onClick={() => setStruckColors([])}
+              >
+                Clear All
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Re-extract */}
+        <div className="sidebar-section">
+          <div className="slider-row">
+            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Edge inset</label>
+            <select
+              value={aaInset}
+              onChange={(e) => setAaInset(Number(e.target.value))}
+              className="btn btn-sm"
+              style={{ width: 'auto', padding: '2px 6px' }}
+            >
+              {[0, 1, 2, 3, 4, 5, 6].map((v) => (
+                <option key={v} value={v}>{v}px</option>
+              ))}
+            </select>
+          </div>
+          <button className="btn btn-sm w-full" onClick={() => reExtract({ aaInset })}>
             Re-extract Sprites
           </button>
         </div>

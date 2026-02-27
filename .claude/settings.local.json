@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(commit-commands:commit-push-pr)",
+      "Bash(git checkout:*)",
+      "Bash(git add docs/plans/2026-02-27-saturation-fallback-grid-detection-design.md)",
+      "Bash(git commit:*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git add src/lib/spriteExtractor.ts)",
+      "Bash(npx playwright test tests/extraction.spec.ts)",
+      "Bash(npm ls serve-handler)",
+      "Bash(npm install --save-dev serve-handler)",
+      "Bash(npx playwright install chromium)"
+    ]
+  }
+}
