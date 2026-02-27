@@ -5,9 +5,9 @@
 
 import { useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { generateTemplate, DEFAULT_CONFIG, LARGE_CONFIG } from '../lib/templateGenerator';
+import { generateTemplate, CONFIG_2K, CONFIG_4K } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
-import { buildGridFillPrompt, CharacterConfig } from '../lib/promptBuilder';
+import { buildGridFillPrompt } from '../lib/promptBuilder';
 import { generateGrid } from '../api/geminiClient';
 
 export function useGridWorkflow() {
@@ -21,7 +21,7 @@ export function useGridWorkflow() {
 
     try {
       // 1. Generate template grid
-      const templateConfig = state.imageSize === '2K' ? LARGE_CONFIG : DEFAULT_CONFIG;
+      const templateConfig = state.imageSize === '4K' ? CONFIG_4K : CONFIG_2K;
       const template = generateTemplate(templateConfig);
 
       dispatch({ type: 'GENERATE_START', templateImage: template.base64 });
@@ -107,7 +107,7 @@ export function useGridWorkflow() {
 
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
 
-    const templateConfig = state.imageSize === '2K' ? LARGE_CONFIG : DEFAULT_CONFIG;
+    const templateConfig = state.imageSize === '4K' ? CONFIG_4K : CONFIG_2K;
     const sprites = await extractSprites(
       state.filledGridImage,
       state.filledGridMimeType,

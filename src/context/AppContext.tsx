@@ -5,7 +5,18 @@
 
 import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
 import { ExtractedSprite } from '../lib/spriteExtractor';
-import { CharacterConfig } from '../lib/promptBuilder';
+
+// ── Types ───────────────────────────────────────────────────────────────────
+
+export interface CharacterPreset {
+  id: string;
+  name: string;
+  genre: string;
+  description: string;
+  equipment: string;
+  colorNotes: string;
+  rowGuidance: string;
+}
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -13,7 +24,14 @@ export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview';
 
 export interface AppState {
   step: WorkflowStep;
-  character: CharacterConfig;
+  character: {
+    name: string;
+    description: string;
+    equipment: string;
+    colorNotes: string;
+    styleNotes: string;
+    rowGuidance: string;
+  };
   model: string;
   imageSize: string;
 
@@ -39,12 +57,22 @@ export interface AppState {
 
   /** History entry ID if saved */
   historyId: number | null;
+
+  /** Character presets */
+  presets: CharacterPreset[];
 }
 
 const initialState: AppState = {
   step: 'configure',
-  character: { name: '', description: '', styleNotes: '' },
-  model: 'gemini-2.5-flash-image',
+  character: {
+    name: '',
+    description: '',
+    equipment: '',
+    colorNotes: '',
+    styleNotes: '',
+    rowGuidance: '',
+  },
+  model: 'nano-banana-pro-preview',
   imageSize: '2K',
   templateImage: null,
   filledGridImage: null,
@@ -56,12 +84,13 @@ const initialState: AppState = {
   statusType: 'info',
   error: null,
   historyId: null,
+  presets: [],
 };
 
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 type Action =
-  | { type: 'SET_CHARACTER'; character: CharacterConfig }
+  | { type: 'SET_CHARACTER'; character: AppState['character'] }
   | { type: 'SET_MODEL'; model: string }
   | { type: 'SET_IMAGE_SIZE'; imageSize: string }
   | { type: 'SET_CHROMA_TOLERANCE'; tolerance: number }
@@ -73,6 +102,8 @@ type Action =
   | { type: 'CLEAR_STATUS' }
   | { type: 'SET_STEP'; step: WorkflowStep }
   | { type: 'SET_HISTORY_ID'; id: number }
+  | { type: 'SET_PRESETS'; presets: CharacterPreset[] }
+  | { type: 'LOAD_PRESET'; preset: CharacterPreset }
   | { type: 'RESET' };
 
 function reducer(state: AppState, action: Action): AppState {
@@ -130,8 +161,22 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, step: action.step };
     case 'SET_HISTORY_ID':
       return { ...state, historyId: action.id };
+    case 'SET_PRESETS':
+      return { ...state, presets: action.presets };
+    case 'LOAD_PRESET':
+      return {
+        ...state,
+        character: {
+          name: action.preset.name,
+          description: action.preset.description,
+          equipment: action.preset.equipment,
+          colorNotes: action.preset.colorNotes,
+          styleNotes: '',
+          rowGuidance: action.preset.rowGuidance,
+        },
+      };
     case 'RESET':
-      return { ...initialState };
+      return { ...initialState, presets: state.presets };
     default:
       return state;
   }

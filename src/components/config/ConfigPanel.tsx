@@ -1,23 +1,111 @@
 /**
  * Character configuration panel.
- * Collects character details, model, image size, and chroma tolerance
- * before generating the 36-sprite grid.
+ * Collects character details via preset or manual entry, image size,
+ * and chroma tolerance before generating the 36-sprite grid.
+ *
+ * Model is hardcoded to nano-banana-pro-preview (no selector).
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
+import { CharacterPreset } from '../../context/AppContext';
+import { applyChromaKey } from '../../lib/chromaKey';
 
-const MODEL_OPTIONS = [
-  { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image' },
-  { value: 'gemini-2.5-flash-preview-05-20', label: 'Gemini 2.5 Flash Preview' },
-];
+// ── Character field union ────────────────────────────────────────────────────
+
+type CharacterField = 'name' | 'description' | 'equipment' | 'colorNotes' | 'styleNotes' | 'rowGuidance';
+
+// ── Chroma Preview canvas dimensions ─────────────────────────────────────────
+
+const PREVIEW_W = 200;
+const PREVIEW_H = 50;
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export function ConfigPanel() {
   const { state, dispatch, generate } = useGridWorkflow();
-  const { character, model, imageSize, chromaTolerance } = state;
+  const { character, imageSize, chromaTolerance, presets } = state;
+  const chromaCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Fetch presets on mount
+  useEffect(() => {
+    fetch('/api/presets')
+      .then((res) => res.json())
+      .then((data: CharacterPreset[]) => {
+        dispatch({ type: 'SET_PRESETS', presets: data });
+      })
+      .catch(() => {
+        // Presets are non-critical; silently ignore fetch errors
+      });
+  }, [dispatch]);
+
+  // Live chroma preview — re-render whenever tolerance changes
+  useEffect(() => {
+    const canvas = chromaCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Build a gradient ImageData: left half = magenta→grey, right half = same after chroma
+    const halfW = PREVIEW_W / 2;
+    const source = ctx.createImageData(PREVIEW_W, PREVIEW_H);
+
+    for (let y = 0; y < PREVIEW_H; y++) {
+      for (let x = 0; x < PREVIEW_W; x++) {
+        const col = x < halfW ? x : x - halfW;
+        const t = col / (halfW - 1); // 0 → 1
+
+        // Interpolate from pure magenta (#FF00FF) to neutral grey (#808080)
+        const r = Math.round(255 * (1 - t) + 128 * t);
+        const g = Math.round(0 * (1 - t) + 128 * t);
+        const b = Math.round(255 * (1 - t) + 128 * t);
+
+        const idx = (y * PREVIEW_W + x) * 4;
+        source.data[idx] = r;
+        source.data[idx + 1] = g;
+        source.data[idx + 2] = b;
+        source.data[idx + 3] = 255;
+      }
+    }
+
+    // Apply chroma key to the right half only
+    const processed = applyChromaKey(source, chromaTolerance);
+
+    // Only overwrite pixels in the right half
+    for (let y = 0; y < PREVIEW_H; y++) {
+      for (let x = halfW; x < PREVIEW_W; x++) {
+        const idx = (y * PREVIEW_W + x) * 4;
+        source.data[idx] = processed.data[idx];
+        source.data[idx + 1] = processed.data[idx + 1];
+        source.data[idx + 2] = processed.data[idx + 2];
+        source.data[idx + 3] = processed.data[idx + 3];
+      }
+    }
+
+    // Draw checkerboard behind the canvas first
+    const checkSize = 6;
+    for (let y = 0; y < PREVIEW_H; y++) {
+      for (let x = 0; x < PREVIEW_W; x++) {
+        const isDark = (Math.floor(x / checkSize) + Math.floor(y / checkSize)) % 2 === 0;
+        const idx = (y * PREVIEW_W + x) * 4;
+        const alpha = source.data[idx + 3] / 255;
+
+        if (alpha < 1) {
+          const bg = isDark ? 26 : 42; // dark blue tones matching the app theme
+          source.data[idx] = Math.round(source.data[idx] * alpha + bg * (1 - alpha));
+          source.data[idx + 1] = Math.round(source.data[idx + 1] * alpha + bg * (1 - alpha));
+          source.data[idx + 2] = Math.round(source.data[idx + 2] * alpha + bg * (1 - alpha));
+          source.data[idx + 3] = 255;
+        }
+      }
+    }
+
+    ctx.putImageData(source, 0, 0);
+  }, [chromaTolerance]);
 
   const updateCharacter = useCallback(
-    (field: 'name' | 'description' | 'styleNotes', value: string) => {
+    (field: CharacterField, value: string) => {
       dispatch({
         type: 'SET_CHARACTER',
         character: { ...character, [field]: value },
@@ -26,13 +114,66 @@ export function ConfigPanel() {
     [character, dispatch],
   );
 
+  const handlePresetChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const presetId = e.target.value;
+      if (presetId === '') {
+        // "Custom Character" — clear fields
+        dispatch({
+          type: 'SET_CHARACTER',
+          character: {
+            name: '',
+            description: '',
+            equipment: '',
+            colorNotes: '',
+            styleNotes: '',
+            rowGuidance: '',
+          },
+        });
+        return;
+      }
+      const preset = presets.find((p) => p.id === presetId);
+      if (preset) {
+        dispatch({ type: 'LOAD_PRESET', preset });
+      }
+    },
+    [presets, dispatch],
+  );
+
   const canGenerate = character.name.trim().length > 0 && character.description.trim().length > 0;
+
+  // Group presets by genre for the optgroup display
+  const presetsByGenre = presets.reduce<Record<string, CharacterPreset[]>>((acc, p) => {
+    const genre = p.genre || 'Other';
+    if (!acc[genre]) acc[genre] = [];
+    acc[genre].push(p);
+    return acc;
+  }, {});
 
   return (
     <div className="config-panel">
       <h2>Character Setup</h2>
 
-      {/* Character Name */}
+      {/* 1. Preset Selector */}
+      <div className="config-field preset-selector">
+        <label htmlFor="preset-select">Preset</label>
+        <select id="preset-select" onChange={handlePresetChange} defaultValue="">
+          <option value="">Custom Character</option>
+          {Object.entries(presetsByGenre).map(([genre, items]) => (
+            <optgroup key={genre} label={genre}>
+              {items.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
+      <div className="preset-divider" />
+
+      {/* 2. Character Name */}
       <div className="config-field">
         <label htmlFor="char-name">Character Name</label>
         <input
@@ -44,7 +185,7 @@ export function ConfigPanel() {
         />
       </div>
 
-      {/* Character Description */}
+      {/* 3. Character Description */}
       <div className="config-field">
         <label htmlFor="char-desc">Character Description</label>
         <textarea
@@ -56,7 +197,31 @@ export function ConfigPanel() {
         />
       </div>
 
-      {/* Style Notes */}
+      {/* 4. Equipment */}
+      <div className="config-field">
+        <label htmlFor="char-equip">Equipment</label>
+        <textarea
+          id="char-equip"
+          rows={2}
+          placeholder="sword, shield, leather armor"
+          value={character.equipment}
+          onChange={(e) => updateCharacter('equipment', e.target.value)}
+        />
+      </div>
+
+      {/* 5. Color Notes */}
+      <div className="config-field">
+        <label htmlFor="char-colors">Color Notes</label>
+        <textarea
+          id="char-colors"
+          rows={2}
+          placeholder="dark steel blue armor, crimson cape, gold trim"
+          value={character.colorNotes}
+          onChange={(e) => updateCharacter('colorNotes', e.target.value)}
+        />
+      </div>
+
+      {/* 6. Style Notes */}
       <div className="config-field">
         <label htmlFor="char-style">Style Notes (optional)</label>
         <textarea
@@ -68,42 +233,38 @@ export function ConfigPanel() {
         />
       </div>
 
-      {/* Model Selector */}
-      <div className="config-field">
-        <label htmlFor="model-select">AI Model</label>
-        <select
-          id="model-select"
-          value={model}
-          onChange={(e) => dispatch({ type: 'SET_MODEL', model: e.target.value })}
-        >
-          {MODEL_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+      {/* 7. Row Guidance */}
+      <div className="config-field row-guidance">
+        <label htmlFor="char-rows">Row Guidance</label>
+        <textarea
+          id="char-rows"
+          rows={6}
+          placeholder="Per-row pose descriptions (loaded from preset or enter custom)..."
+          value={character.rowGuidance}
+          onChange={(e) => updateCharacter('rowGuidance', e.target.value)}
+        />
       </div>
 
-      {/* Image Size */}
+      {/* 8. Image Size (2K / 4K) */}
       <div className="config-field">
         <label>Image Size</label>
         <div className="segmented-control">
-          <button
-            className={imageSize === '1K' ? 'active' : ''}
-            onClick={() => dispatch({ type: 'SET_IMAGE_SIZE', imageSize: '1K' })}
-          >
-            1K (1015px)
-          </button>
           <button
             className={imageSize === '2K' ? 'active' : ''}
             onClick={() => dispatch({ type: 'SET_IMAGE_SIZE', imageSize: '2K' })}
           >
             2K (2814px)
           </button>
+          <button
+            className={imageSize === '4K' ? 'active' : ''}
+            onClick={() => dispatch({ type: 'SET_IMAGE_SIZE', imageSize: '4K' })}
+          >
+            4K (4092px)
+          </button>
         </div>
       </div>
 
-      {/* Chroma Tolerance */}
+      {/* 9. Chroma Tolerance + Live Preview */}
       <div className="config-field">
         <label>Chroma Tolerance</label>
         <div className="slider-row">
@@ -118,9 +279,19 @@ export function ConfigPanel() {
           />
           <span className="slider-value">{chromaTolerance}</span>
         </div>
+        <div className="chroma-preview">
+          <canvas
+            ref={chromaCanvasRef}
+            width={PREVIEW_W}
+            height={PREVIEW_H}
+          />
+          <span className="chroma-preview-label">
+            Left: original gradient &middot; Right: after chroma key
+          </span>
+        </div>
       </div>
 
-      {/* Generate Button */}
+      {/* 10. Generate Button */}
       <div className="config-actions">
         <button
           className="btn btn-accent btn-lg w-full"

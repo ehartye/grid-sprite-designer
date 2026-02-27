@@ -6,43 +6,13 @@
 export interface CharacterConfig {
   name: string;
   description: string;
+  equipment: string;
+  colorNotes: string;
   styleNotes: string;
+  rowGuidance: string;
 }
 
-/**
- * Build the full prompt that tells Gemini how to fill the 6×6 grid template.
- */
-export function buildGridFillPrompt(character: CharacterConfig): string {
-  return `\
-You are filling in a sprite sheet template. The attached image is a 6×6 grid
-(36 cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
-a thin black header strip with white text labeling the pose. You MUST preserve
-every header strip and its text exactly as-is — do not erase, move, or redraw
-them.
-
-Fill every pink cell area with an SNES-era 16-bit pixel-art sprite of a
-${character.name.toUpperCase()} character. The character design:
-${character.description}
-${character.styleNotes ? `\nAdditional style notes: ${character.styleNotes}` : ''}
-  • Style reference: Final Fantasy VI / Chrono Trigger overworld + battle sprites
-  • Consistent proportions and palette across ALL 36 cells
-
-Keep the magenta #FF00FF background behind each sprite for chroma keying.
-Do NOT draw outside the cell boundaries or over the black grid lines.
-
-CENTERING IS CRITICAL: Every sprite must be precisely centered both
-horizontally and vertically within its cell's pink content area (below the
-header strip). The character's feet should rest at a consistent baseline
-roughly 80% down the cell, and the sprite should be horizontally centered
-with equal pink space on the left and right. Standing poses should all share
-the same vertical baseline so they tile cleanly. Even action poses (attack
-swings, casting, damage recoil) must keep the character's center of mass
-near the middle of the cell — do not let poses drift to the edges. KO/lying
-poses should be centered horizontally even though they are low to the ground.
-
-Below is the exact layout with a description of what each cell should depict.
-Row and column numbers are 0-indexed (row, col).
-
+const GENERIC_ROW_GUIDANCE = `\
 ROW 0 — Walk Down (top-down overworld, character facing the camera):
   (0,0) "Walk Down 1" — left foot forward, arms at sides
   (0,1) "Walk Down 2" — neutral standing mid-step, feet together (contact pose)
@@ -89,7 +59,55 @@ ROW 5 — KO 3, Victory, Weak/Critical:
   (5,2) "Victory 2"     — mid-celebration: overhead gesture
   (5,3) "Victory 3"     — celebration end: confident pose
   (5,4) "Weak Pose"     — hunched over, one knee on ground, panting, low HP
-  (5,5) "Critical Pose" — desperate stance, near death
+  (5,5) "Critical Pose" — desperate stance, near death`;
+
+/**
+ * Build the full prompt that tells Gemini how to fill the 6×6 grid template.
+ */
+export function buildGridFillPrompt(character: CharacterConfig): string {
+  const charBlock = [
+    `Fill every pink cell area with an SNES-era 16-bit pixel-art sprite of a`,
+    `${character.name.toUpperCase()} character.`,
+    ``,
+    `Character appearance: ${character.description}`,
+    character.equipment ? `Equipment: ${character.equipment}` : '',
+    character.colorNotes ? `Color palette: ${character.colorNotes}` : '',
+    character.styleNotes ? `Additional style notes: ${character.styleNotes}` : '',
+    ``,
+    `  • Style reference: Final Fantasy VI / Chrono Trigger overworld + battle sprites`,
+    `  • Consistent proportions and palette across ALL 36 cells`,
+  ].filter(Boolean).join('\n');
+
+  const rowSection = character.rowGuidance.trim()
+    ? character.rowGuidance
+    : GENERIC_ROW_GUIDANCE;
+
+  return `\
+You are filling in a sprite sheet template. The attached image is a 6×6 grid
+(36 cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
+a thin black header strip with white text labeling the pose. You MUST preserve
+every header strip and its text exactly as-is — do not erase, move, or redraw
+them.
+
+${charBlock}
+
+Keep the magenta #FF00FF background behind each sprite for chroma keying.
+Do NOT draw outside the cell boundaries or over the black grid lines.
+
+CENTERING IS CRITICAL: Every sprite must be precisely centered both
+horizontally and vertically within its cell's pink content area (below the
+header strip). The character's feet should rest at a consistent baseline
+roughly 80% down the cell, and the sprite should be horizontally centered
+with equal pink space on the left and right. Standing poses should all share
+the same vertical baseline so they tile cleanly. Even action poses (attack
+swings, casting, damage recoil) must keep the character's center of mass
+near the middle of the cell — do not let poses drift to the edges. KO/lying
+poses should be centered horizontally even though they are low to the ground.
+
+Below is the exact layout with a description of what each cell should depict.
+Row and column numbers are 0-indexed (row, col).
+
+${rowSection}
 
 Return the completed sprite sheet as a single image. Preserve ALL header text exactly.`;
 }

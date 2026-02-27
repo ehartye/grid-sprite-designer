@@ -10,27 +10,27 @@
 import { COLS, ROWS, CELL_LABELS } from './poses';
 
 export interface TemplateConfig {
-  cellW: number;         // content width per cell (default 168 for 1K output)
+  cellW: number;         // content width per cell (468 for 2K, 680 for 4K)
   cellH: number;         // total cell height including header
   headerH: number;       // header strip height
   border: number;        // grid line thickness
   fontSize: number;      // label font size
 }
 
-export const DEFAULT_CONFIG: TemplateConfig = {
-  cellW: 168,
-  cellH: 168,
-  headerH: 16,
-  border: 1,
-  fontSize: 10,
-};
-
-export const LARGE_CONFIG: TemplateConfig = {
+export const CONFIG_2K: TemplateConfig = {
   cellW: 468,
   cellH: 468,
   headerH: 28,
   border: 2,
   fontSize: 16,
+};
+
+export const CONFIG_4K: TemplateConfig = {
+  cellW: 680,
+  cellH: 680,
+  headerH: 36,
+  border: 3,
+  fontSize: 22,
 };
 
 const CHROMA_PINK = '#FF00FF';
@@ -42,7 +42,7 @@ const WHITE = '#FFFFFF';
  * a base64-encoded PNG for sending to the API.
  */
 export function generateTemplate(
-  config: TemplateConfig = DEFAULT_CONFIG,
+  config: TemplateConfig = CONFIG_2K,
 ): { canvas: HTMLCanvasElement; base64: string; width: number; height: number } {
   const { cellW, cellH, headerH, border, fontSize } = config;
 
@@ -95,7 +95,7 @@ export function generateTemplate(
  */
 export function getCellBounds(
   cellIndex: number,
-  config: TemplateConfig = DEFAULT_CONFIG,
+  config: TemplateConfig = CONFIG_2K,
 ): { x: number; y: number; w: number; h: number } {
   const col = cellIndex % COLS;
   const row = Math.floor(cellIndex / COLS);

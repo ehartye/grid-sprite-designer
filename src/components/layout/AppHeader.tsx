@@ -1,6 +1,7 @@
 /**
  * Application header bar.
- * Shows title, test-connection button, and contextual actions.
+ * Shows title, tab navigation (Designer / Gallery),
+ * test-connection button, and contextual actions.
  */
 
 import React, { useState, useCallback } from 'react';
@@ -8,7 +9,14 @@ import { useAppContext } from '../../context/AppContext';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { testConnection } from '../../api/geminiClient';
 
-export function AppHeader() {
+export type AppTab = 'designer' | 'gallery';
+
+interface AppHeaderProps {
+  tab: AppTab;
+  onTabChange: (tab: AppTab) => void;
+}
+
+export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
   const { state } = useAppContext();
   const { reset } = useGridWorkflow();
   const [testing, setTesting] = useState(false);
@@ -21,8 +29,9 @@ export function AppHeader() {
       const result = await testConnection(state.model);
       setTestResult(result);
       setTimeout(() => setTestResult(null), 4000);
-    } catch (err: any) {
-      setTestResult({ success: false, error: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setTestResult({ success: false, error: message });
       setTimeout(() => setTestResult(null), 4000);
     } finally {
       setTesting(false);
@@ -35,6 +44,21 @@ export function AppHeader() {
     <header className="app-header">
       <div className="header-branding">
         <h1 className="app-title">Grid Sprite Designer</h1>
+
+        <nav className="header-tabs">
+          <button
+            className={`header-tab${tab === 'designer' ? ' active' : ''}`}
+            onClick={() => onTabChange('designer')}
+          >
+            Designer
+          </button>
+          <button
+            className={`header-tab${tab === 'gallery' ? ' active' : ''}`}
+            onClick={() => onTabChange('gallery')}
+          >
+            Gallery
+          </button>
+        </nav>
       </div>
 
       <div className="header-controls">

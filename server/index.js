@@ -73,6 +73,39 @@ app.post('/api/history/:id/sprites', (req, res) => {
   res.json({ count: sprites.length });
 });
 
+// Character presets
+app.get('/api/presets', (req, res) => {
+  const rows = db.prepare('SELECT * FROM character_presets WHERE is_preset = 1 ORDER BY name').all();
+  res.json(rows.map(r => ({
+    id: r.id,
+    name: r.name,
+    genre: r.genre,
+    description: r.description,
+    equipment: r.equipment,
+    colorNotes: r.color_notes,
+    rowGuidance: r.row_guidance,
+  })));
+});
+
+// Generation gallery
+app.get('/api/gallery', (req, res) => {
+  const rows = db.prepare(
+    `SELECT g.id, g.character_name, g.character_description, g.model, g.created_at,
+            (SELECT COUNT(*) FROM sprites WHERE generation_id = g.id) as sprite_count,
+            (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id ORDER BY s.cell_index LIMIT 1) as thumb_data,
+            (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id ORDER BY s.cell_index LIMIT 1) as thumb_mime
+     FROM generations g ORDER BY g.created_at DESC LIMIT 50`
+  ).all();
+  res.json(rows);
+});
+
+app.delete('/api/gallery/:id', (req, res) => {
+  db.prepare('DELETE FROM sprites WHERE generation_id = ?').run(req.params.id);
+  const result = db.prepare('DELETE FROM generations WHERE id = ?').run(req.params.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ success: true });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
