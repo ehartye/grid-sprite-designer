@@ -1,9 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { createServer } from 'http';
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import handler from 'serve-handler';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..');
 
 test.describe('Sprite Extraction', () => {
@@ -86,6 +89,41 @@ test.describe('Sprite Extraction', () => {
       console.log('FAILING sprites:');
       failures.forEach(f => console.log('  ' + f));
     }
+
+    expect(failures, `${failures.length} sprites have header bleed:\n${failures.join('\n')}`).toHaveLength(0);
+  });
+
+  test('colored grid lines should extract correctly', async ({ page }) => {
+    const fixturePath = join(ROOT, 'test-fixtures', 'colored-grid.jpg');
+    if (!existsSync(fixturePath)) {
+      test.skip();
+      return;
+    }
+
+    await page.goto(
+      `http://localhost:${port}/tests/extract-test.html?fixture=colored-grid.jpg`,
+      { waitUntil: 'domcontentloaded' },
+    );
+
+    await page.waitForFunction(() => (window as any).__extractionDone === true, {
+      timeout: 30000,
+    });
+
+    const results = await page.evaluate(() => (window as any).__results);
+    expect(results).toHaveLength(36);
+
+    const MAX_ALLOWED_BLEED = 15;
+    const failures: string[] = [];
+    for (const r of results) {
+      if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
+        failures.push(`${r.label}: ${r.headerBleedPct}% header bleed`);
+      }
+    }
+
+    await page.screenshot({
+      path: join(ROOT, 'test-fixtures', 'colored-grid-results.png'),
+      fullPage: true,
+    });
 
     expect(failures, `${failures.length} sprites have header bleed:\n${failures.join('\n')}`).toHaveLength(0);
   });
