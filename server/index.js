@@ -3,8 +3,14 @@ dotenv.config({ path: '.env.local' });
 
 import express from 'express';
 import cors from 'cors';
+import { mkdirSync, writeFileSync, readdirSync, statSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { getDb } from './db.js';
 import { createGenerateRouter } from './routes/generate.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const OUTPUT_DIR = join(__dirname, '..', 'output');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -105,6 +111,88 @@ app.delete('/api/gallery/:id', (req, res) => {
   if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
   res.json({ success: true });
 });
+
+// ── Archive: save generation to disk as PNG files ──────────────────────────
+
+app.post('/api/archive', (req, res) => {
+  try {
+    const { characterName, filledGridImage, filledGridMimeType, sprites } = req.body;
+
+    if (!characterName || !filledGridImage) {
+      return res.status(400).json({ error: 'characterName and filledGridImage are required' });
+    }
+
+    // Build folder name: character-name_YYYYMMDD-HHmmss
+    const slug = characterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15).replace(/(\d{8})(\d{6})/, '$1-$2');
+    const folderName = `${slug}_${ts}`;
+    const folderPath = join(OUTPUT_DIR, folderName);
+
+    mkdirSync(folderPath, { recursive: true });
+
+    // Save filled grid
+    const gridExt = (filledGridMimeType || 'image/png').includes('jpeg') ? 'jpg' : 'png';
+    writeFileSync(join(folderPath, `grid.${gridExt}`), Buffer.from(filledGridImage, 'base64'));
+
+    // Save individual sprites
+    let spriteCount = 0;
+    if (sprites && Array.isArray(sprites)) {
+      const spritesDir = join(folderPath, 'sprites');
+      mkdirSync(spritesDir, { recursive: true });
+
+      for (const s of sprites) {
+        const ext = (s.mimeType || 'image/png').includes('jpeg') ? 'jpg' : 'png';
+        const idx = String(s.cellIndex).padStart(2, '0');
+        const poseSlug = (s.poseName || s.poseId || `cell-${idx}`)
+          .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const filename = `${idx}-${poseSlug}.${ext}`;
+        writeFileSync(join(spritesDir, filename), Buffer.from(s.imageData, 'base64'));
+        spriteCount++;
+      }
+    }
+
+    console.log(`[Archive] Saved to ${folderName}: grid + ${spriteCount} sprites`);
+    res.json({ folder: folderName, spriteCount });
+  } catch (err) {
+    console.error('Archive error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// List archive folders
+app.get('/api/archive', (req, res) => {
+  try {
+    if (!existsSync(OUTPUT_DIR)) {
+      return res.json([]);
+    }
+    const entries = readdirSync(OUTPUT_DIR)
+      .filter(name => {
+        const full = join(OUTPUT_DIR, name);
+        return statSync(full).isDirectory();
+      })
+      .map(name => {
+        const full = join(OUTPUT_DIR, name);
+        const hasGrid = existsSync(join(full, 'grid.png')) || existsSync(join(full, 'grid.jpg'));
+        const spritesDir = join(full, 'sprites');
+        const spriteCount = existsSync(spritesDir) ? readdirSync(spritesDir).length : 0;
+        return {
+          folder: name,
+          hasGrid,
+          spriteCount,
+          createdAt: statSync(full).birthtime.toISOString(),
+        };
+      })
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+    res.json(entries);
+  } catch (err) {
+    console.error('Archive list error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Serve archive files statically
+app.use('/output', express.static(OUTPUT_DIR));
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

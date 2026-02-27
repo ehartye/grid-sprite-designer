@@ -56,13 +56,22 @@ export function useGridWorkflow() {
         {
           headerH: templateConfig.headerH,
           border: templateConfig.border,
+          templateCellH: templateConfig.cellH,
           floodTolerance: state.floodTolerance,
         },
       );
 
       dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
 
-      // 5. Save to history
+      // 5. Save to history + archive to disk
+      const spritePayload = sprites.map(s => ({
+        cellIndex: s.cellIndex,
+        poseId: s.label.toLowerCase().replace(/\s+/g, '-'),
+        poseName: s.label,
+        imageData: s.imageData,
+        mimeType: s.mimeType,
+      }));
+
       try {
         const histResp = await fetch('/api/history', {
           method: 'POST',
@@ -78,23 +87,29 @@ export function useGridWorkflow() {
         const histData = await histResp.json();
         dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
 
-        // Save extracted sprites
         await fetch(`/api/history/${histData.id}/sprites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sprites: spritePayload }),
+        });
+      } catch {
+        console.warn('Failed to save to history');
+      }
+
+      // Archive to output/ folder
+      try {
+        await fetch('/api/archive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            sprites: sprites.map(s => ({
-              cellIndex: s.cellIndex,
-              poseId: s.label.toLowerCase().replace(/\s+/g, '-'),
-              poseName: s.label,
-              imageData: s.imageData,
-              mimeType: s.mimeType,
-            })),
+            characterName: state.character.name,
+            filledGridImage: result.image.data,
+            filledGridMimeType: result.image.mimeType,
+            sprites: spritePayload,
           }),
         });
       } catch {
-        // History save is non-critical
-        console.warn('Failed to save to history');
+        console.warn('Failed to archive to disk');
       }
 
     } catch (err: any) {
@@ -114,6 +129,7 @@ export function useGridWorkflow() {
       {
         headerH: templateConfig.headerH,
         border: templateConfig.border,
+        templateCellH: templateConfig.cellH,
         floodTolerance: state.floodTolerance,
       },
     );

@@ -25,10 +25,12 @@ export interface ExtractedSprite {
 }
 
 export interface ExtractionConfig {
-  /** Header strip height to crop off each cell */
+  /** Header strip height in the original template */
   headerH: number;
-  /** Grid line thickness */
+  /** Grid line thickness in the original template */
   border: number;
+  /** Original template cell height (used to scale headerH to actual image) */
+  templateCellH: number;
   /** Flood-fill tolerance: max RGB distance to seed color to count as bg */
   floodTolerance: number;
   /** Interior void tolerance: tighter to avoid eating dark sprite areas */
@@ -42,8 +44,9 @@ export interface ExtractionConfig {
 }
 
 const DEFAULT_EXTRACTION: ExtractionConfig = {
-  headerH: 16,
-  border: 1,
+  headerH: 18,
+  border: 2,
+  templateCellH: 468,
   floodTolerance: 45,
   interiorTolerance: 20,
   defringeWidth: 4,
@@ -509,12 +512,20 @@ export async function extractSprites(
   const cfg = { ...DEFAULT_EXTRACTION, ...config };
   const img = await loadImage(gridBase64, gridMimeType);
 
-  // Calculate cell dimensions from the grid image
+  // Calculate cell dimensions from the returned image
+  // Note: Gemini may return a different resolution than the template we sent.
+  // We compute cell dimensions from the actual image, then scale the header
+  // height proportionally to avoid slicing header text into the sprite.
   const totalBorderW = (COLS + 1) * cfg.border;
   const totalBorderH = (ROWS + 1) * cfg.border;
   const cellW = Math.floor((img.width - totalBorderW) / COLS);
   const cellH = Math.floor((img.height - totalBorderH) / ROWS);
-  const contentH = cellH - cfg.headerH;
+
+  // Scale headerH: template had headerH/templateCellH ratio, apply to actual cellH
+  const headerRatio = cfg.headerH / cfg.templateCellH;
+  // Add 4px safety margin (scaled) to clear any anti-aliased header text
+  const actualHeaderH = Math.ceil(headerRatio * cellH) + 4;
+  const contentH = cellH - actualHeaderH;
 
   if (contentH <= 0 || cellW <= 0) {
     throw new Error(
@@ -534,9 +545,9 @@ export async function extractSprites(
     const col = idx % COLS;
     const row = Math.floor(idx / COLS);
 
-    // Source position in grid (skip borders + headers)
+    // Source position in grid (skip borders + scaled headers)
     const sx = cfg.border + col * (cellW + cfg.border);
-    const sy = cfg.border + row * (cellH + cfg.border) + cfg.headerH;
+    const sy = cfg.border + row * (cellH + cfg.border) + actualHeaderH;
 
     // Draw cell content onto work canvas
     workCtx.clearRect(0, 0, cellW, contentH);

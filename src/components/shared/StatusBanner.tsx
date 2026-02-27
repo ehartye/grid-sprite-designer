@@ -66,7 +66,7 @@ export function StatusBanner() {
 
   return (
     <div
-      className={`status-banner status-${statusType} ${fading ? 'fading' : ''}`}
+      className={`status-banner status-${statusType} visible ${fading ? 'fading' : ''}`}
       onClick={handleDismiss}
       role="status"
       aria-live="polite"

@@ -20,17 +20,17 @@ export interface TemplateConfig {
 export const CONFIG_2K: TemplateConfig = {
   cellW: 468,
   cellH: 468,
-  headerH: 28,
+  headerH: 18,
   border: 2,
-  fontSize: 16,
+  fontSize: 11,
 };
 
 export const CONFIG_4K: TemplateConfig = {
   cellW: 680,
   cellH: 680,
-  headerH: 36,
+  headerH: 24,
   border: 3,
-  fontSize: 22,
+  fontSize: 15,
 };
 
 const CHROMA_PINK = '#FF00FF';

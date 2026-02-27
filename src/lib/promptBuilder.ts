@@ -152,9 +152,9 @@ export function buildGridFillPrompt(character: CharacterConfig): string {
     `  • Consistent proportions and palette across ALL 36 cells`,
   ].filter(Boolean).join('\n');
 
-  const rowSection = character.rowGuidance.trim()
-    ? character.rowGuidance
-    : GENERIC_ROW_GUIDANCE;
+  const characterGuidance = character.rowGuidance.trim()
+    ? `\nCHARACTER-SPECIFIC POSE NOTES (use these to refine each cell):\n${character.rowGuidance.trim()}\n`
+    : '';
 
   return `\
 You are filling in a sprite sheet template. The attached image is a 6×6 grid
@@ -192,7 +192,7 @@ Below is the exact layout. Each entry begins with the HEADER text printed in
 that cell — use it to identify which cell you are filling. The (row, col)
 coordinates are 0-indexed. Every sprite must match its header's pose exactly.
 
-${rowSection}
-
+${GENERIC_ROW_GUIDANCE}
+${characterGuidance}
 Return the completed sprite sheet as a single image. Preserve ALL header text exactly.`;
 }

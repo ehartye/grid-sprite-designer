@@ -6,9 +6,10 @@
  * Model is hardcoded to nano-banana-pro-preview (no selector).
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { CharacterPreset } from '../../context/AppContext';
+import { buildGridFillPrompt } from '../../lib/promptBuilder';
 
 // ── Character field union ────────────────────────────────────────────────────
 
@@ -69,6 +70,11 @@ export function ConfigPanel() {
   );
 
   const canGenerate = character.name.trim().length > 0 && character.description.trim().length > 0;
+
+  const promptPreview = useMemo(
+    () => buildGridFillPrompt(character),
+    [character],
+  );
 
   // Group presets by genre for the optgroup display
   const presetsByGenre = presets.reduce<Record<string, CharacterPreset[]>>((acc, p) => {
@@ -192,9 +198,16 @@ export function ConfigPanel() {
         </div>
       </div>
 
-      {/* 9. Generate Button */}
+      {/* 9. Prompt Preview */}
+      <details className="prompt-preview">
+        <summary>View Full Prompt</summary>
+        <pre className="prompt-preview-text">{promptPreview}</pre>
+      </details>
+
+      {/* 10. Generate Button */}
       <div className="config-actions">
         <button
+          type="button"
           className="btn btn-accent btn-lg w-full"
           disabled={!canGenerate}
           onClick={generate}

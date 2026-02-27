@@ -128,7 +128,7 @@ export function createGenerateRouter(apiKey) {
 
   router.post('/test-connection', async (req, res) => {
     try {
-      const { model = 'gemini-2.5-flash-image' } = req.body || {};
+      const { model = 'nano-banana-pro-preview' } = req.body || {};
 
       const body = {
         contents: [{ parts: [{ text: 'Respond with "ok".' }] }],
