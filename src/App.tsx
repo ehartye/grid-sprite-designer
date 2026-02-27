@@ -26,18 +26,20 @@ function AppContent() {
     <>
       <AppHeader tab={tab} onTabChange={setTab} />
 
-      {tab === 'designer' && (
-        <>
-          {state.step === 'configure' && <ConfigPanel />}
-          {state.step === 'generating' && <GeneratingOverlay />}
-          {state.step === 'review' && <SpriteReview />}
-          {state.step === 'preview' && <AnimationPreview />}
-        </>
-      )}
+      <div className="app-layout">
+        {tab === 'designer' && (
+          <>
+            {state.step === 'configure' && <ConfigPanel />}
+            {state.step === 'generating' && <GeneratingOverlay />}
+            {state.step === 'review' && <SpriteReview />}
+            {state.step === 'preview' && <AnimationPreview />}
+          </>
+        )}
 
-      {tab === 'gallery' && (
-        <GalleryPage onSwitchToDesigner={switchToDesigner} />
-      )}
+        {tab === 'gallery' && (
+          <GalleryPage onSwitchToDesigner={switchToDesigner} />
+        )}
+      </div>
 
       <StatusBanner />
     </>

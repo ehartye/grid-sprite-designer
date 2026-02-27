@@ -6,26 +6,19 @@
  * Model is hardcoded to nano-banana-pro-preview (no selector).
  */
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { CharacterPreset } from '../../context/AppContext';
-import { applyChromaKey } from '../../lib/chromaKey';
 
 // ── Character field union ────────────────────────────────────────────────────
 
 type CharacterField = 'name' | 'description' | 'equipment' | 'colorNotes' | 'styleNotes' | 'rowGuidance';
 
-// ── Chroma Preview canvas dimensions ─────────────────────────────────────────
-
-const PREVIEW_W = 200;
-const PREVIEW_H = 50;
-
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function ConfigPanel() {
   const { state, dispatch, generate } = useGridWorkflow();
-  const { character, imageSize, chromaTolerance, presets } = state;
-  const chromaCanvasRef = useRef<HTMLCanvasElement>(null);
+  const { character, imageSize, presets } = state;
 
   // Fetch presets on mount
   useEffect(() => {
@@ -38,71 +31,6 @@ export function ConfigPanel() {
         // Presets are non-critical; silently ignore fetch errors
       });
   }, [dispatch]);
-
-  // Live chroma preview — re-render whenever tolerance changes
-  useEffect(() => {
-    const canvas = chromaCanvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Build a gradient ImageData: left half = magenta→grey, right half = same after chroma
-    const halfW = PREVIEW_W / 2;
-    const source = ctx.createImageData(PREVIEW_W, PREVIEW_H);
-
-    for (let y = 0; y < PREVIEW_H; y++) {
-      for (let x = 0; x < PREVIEW_W; x++) {
-        const col = x < halfW ? x : x - halfW;
-        const t = col / (halfW - 1); // 0 → 1
-
-        // Interpolate from pure magenta (#FF00FF) to neutral grey (#808080)
-        const r = Math.round(255 * (1 - t) + 128 * t);
-        const g = Math.round(0 * (1 - t) + 128 * t);
-        const b = Math.round(255 * (1 - t) + 128 * t);
-
-        const idx = (y * PREVIEW_W + x) * 4;
-        source.data[idx] = r;
-        source.data[idx + 1] = g;
-        source.data[idx + 2] = b;
-        source.data[idx + 3] = 255;
-      }
-    }
-
-    // Apply chroma key to the right half only
-    const processed = applyChromaKey(source, chromaTolerance);
-
-    // Only overwrite pixels in the right half
-    for (let y = 0; y < PREVIEW_H; y++) {
-      for (let x = halfW; x < PREVIEW_W; x++) {
-        const idx = (y * PREVIEW_W + x) * 4;
-        source.data[idx] = processed.data[idx];
-        source.data[idx + 1] = processed.data[idx + 1];
-        source.data[idx + 2] = processed.data[idx + 2];
-        source.data[idx + 3] = processed.data[idx + 3];
-      }
-    }
-
-    // Draw checkerboard behind the canvas first
-    const checkSize = 6;
-    for (let y = 0; y < PREVIEW_H; y++) {
-      for (let x = 0; x < PREVIEW_W; x++) {
-        const isDark = (Math.floor(x / checkSize) + Math.floor(y / checkSize)) % 2 === 0;
-        const idx = (y * PREVIEW_W + x) * 4;
-        const alpha = source.data[idx + 3] / 255;
-
-        if (alpha < 1) {
-          const bg = isDark ? 26 : 42; // dark blue tones matching the app theme
-          source.data[idx] = Math.round(source.data[idx] * alpha + bg * (1 - alpha));
-          source.data[idx + 1] = Math.round(source.data[idx + 1] * alpha + bg * (1 - alpha));
-          source.data[idx + 2] = Math.round(source.data[idx + 2] * alpha + bg * (1 - alpha));
-          source.data[idx + 3] = 255;
-        }
-      }
-    }
-
-    ctx.putImageData(source, 0, 0);
-  }, [chromaTolerance]);
 
   const updateCharacter = useCallback(
     (field: CharacterField, value: string) => {
@@ -264,34 +192,7 @@ export function ConfigPanel() {
         </div>
       </div>
 
-      {/* 9. Chroma Tolerance + Live Preview */}
-      <div className="config-field">
-        <label>Chroma Tolerance</label>
-        <div className="slider-row">
-          <input
-            type="range"
-            min={0}
-            max={150}
-            value={chromaTolerance}
-            onChange={(e) =>
-              dispatch({ type: 'SET_CHROMA_TOLERANCE', tolerance: Number(e.target.value) })
-            }
-          />
-          <span className="slider-value">{chromaTolerance}</span>
-        </div>
-        <div className="chroma-preview">
-          <canvas
-            ref={chromaCanvasRef}
-            width={PREVIEW_W}
-            height={PREVIEW_H}
-          />
-          <span className="chroma-preview-label">
-            Left: original gradient &middot; Right: after chroma key
-          </span>
-        </div>
-      </div>
-
-      {/* 10. Generate Button */}
+      {/* 9. Generate Button */}
       <div className="config-actions">
         <button
           className="btn btn-accent btn-lg w-full"

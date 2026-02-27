@@ -12,13 +12,13 @@ import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 
 export function SpriteReview() {
   const { state, dispatch, reExtract, setStep } = useGridWorkflow();
-  const { sprites, chromaTolerance } = state;
+  const { sprites, floodTolerance } = state;
 
   const [selectedAnim, setSelectedAnim] = useState(0);
   const [frameIndex, setFrameIndex] = useState(0);
   const [speed, setSpeed] = useState(150);
   const [scale, setScale] = useState(2);
-  const [localTolerance, setLocalTolerance] = useState(chromaTolerance);
+  const [localTolerance, setLocalTolerance] = useState(floodTolerance);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animTimerRef = useRef<number>(0);
@@ -167,7 +167,7 @@ export function SpriteReview() {
   );
 
   const handleReExtract = useCallback(() => {
-    dispatch({ type: 'SET_CHROMA_TOLERANCE', tolerance: localTolerance });
+    dispatch({ type: 'SET_FLOOD_TOLERANCE', tolerance: localTolerance });
     // reExtract uses the state tolerance, so we need to wait for the state update
     setTimeout(() => reExtract(), 50);
   }, [localTolerance, dispatch, reExtract]);
@@ -251,14 +251,14 @@ export function SpriteReview() {
           </div>
         </div>
 
-        {/* Chroma Re-extract */}
+        {/* Extraction Tolerance */}
         <div className="sidebar-section">
-          <h3>Chroma Tolerance</h3>
+          <h3>Extraction Tolerance</h3>
           <div className="slider-row">
             <input
               type="range"
-              min={0}
-              max={150}
+              min={10}
+              max={100}
               value={localTolerance}
               onChange={(e) => handleToleranceChange(Number(e.target.value))}
             />

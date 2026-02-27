@@ -56,7 +56,7 @@ export function useGridWorkflow() {
         {
           headerH: templateConfig.headerH,
           border: templateConfig.border,
-          chromaTolerance: state.chromaTolerance,
+          floodTolerance: state.floodTolerance,
         },
       );
 
@@ -100,7 +100,7 @@ export function useGridWorkflow() {
     } catch (err: any) {
       dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
     }
-  }, [state.character, state.model, state.imageSize, state.chromaTolerance, dispatch]);
+  }, [state.character, state.model, state.imageSize, state.floodTolerance, dispatch]);
 
   const reExtract = useCallback(async () => {
     if (!state.filledGridImage) return;
@@ -114,12 +114,12 @@ export function useGridWorkflow() {
       {
         headerH: templateConfig.headerH,
         border: templateConfig.border,
-        chromaTolerance: state.chromaTolerance,
+        floodTolerance: state.floodTolerance,
       },
     );
 
     dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-  }, [state.filledGridImage, state.filledGridMimeType, state.imageSize, state.chromaTolerance, dispatch]);
+  }, [state.filledGridImage, state.filledGridMimeType, state.imageSize, state.floodTolerance, dispatch]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
