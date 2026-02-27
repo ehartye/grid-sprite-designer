@@ -93,6 +93,55 @@ function computeBrightnessProfile(
 }
 
 /**
+ * Compute average saturation for each row or column.
+ * Saturation = (max - min) / max for each pixel's RGB channels.
+ * High-saturation columns/rows correspond to colored grid lines (pink, magenta).
+ */
+function computeSaturationProfile(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  axis: 'horizontal' | 'vertical',
+): Float64Array {
+  const len = axis === 'horizontal' ? height : width;
+  const profile = new Float64Array(len);
+
+  if (axis === 'horizontal') {
+    for (let y = 0; y < height; y++) {
+      let sum = 0;
+      let count = 0;
+      for (let x = 0; x < width; x += 2) {
+        const i = (y * width + x) * 4;
+        const maxC = Math.max(data[i], data[i + 1], data[i + 2]);
+        if (maxC > 0) {
+          const minC = Math.min(data[i], data[i + 1], data[i + 2]);
+          sum += (maxC - minC) / maxC;
+        }
+        count++;
+      }
+      profile[y] = sum / count;
+    }
+  } else {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      let count = 0;
+      for (let y = 0; y < height; y += 2) {
+        const i = (y * width + x) * 4;
+        const maxC = Math.max(data[i], data[i + 1], data[i + 2]);
+        if (maxC > 0) {
+          const minC = Math.min(data[i], data[i + 1], data[i + 2]);
+          sum += (maxC - minC) / maxC;
+        }
+        count++;
+      }
+      profile[x] = sum / count;
+    }
+  }
+
+  return profile;
+}
+
+/**
  * Smooth a 1D profile with a 3-tap triangular kernel: [1, 2, 1] / 4.
  */
 function smoothProfile(profile: Float64Array): Float64Array {
@@ -139,6 +188,46 @@ function findGridLineInWindow(
 
   return {
     center: minIdx,
+    start: bandStart,
+    end: bandEnd,
+  };
+}
+
+/**
+ * Find a grid line near an expected position by searching for the highest
+ * saturation peak within a window, then expanding to the full saturated band.
+ * This is the inverse of findGridLineInWindow — for colored (not dark) lines.
+ */
+function findGridLineBySaturationPeak(
+  profile: Float64Array,
+  expectedPos: number,
+  windowRadius: number,
+  threshold: number,
+): GridLine | null {
+  const start = Math.max(0, expectedPos - windowRadius);
+  const end = Math.min(profile.length - 1, expectedPos + windowRadius);
+
+  // Find the most saturated position in the window
+  let maxVal = -Infinity;
+  let maxIdx = expectedPos;
+  for (let i = start; i <= end; i++) {
+    if (profile[i] > maxVal) {
+      maxVal = profile[i];
+      maxIdx = i;
+    }
+  }
+
+  // Must be above threshold to count
+  if (maxVal < threshold) return null;
+
+  // Expand the band: consecutive positions above threshold
+  let bandStart = maxIdx;
+  let bandEnd = maxIdx;
+  while (bandStart > 0 && profile[bandStart - 1] > threshold) bandStart--;
+  while (bandEnd < profile.length - 1 && profile[bandEnd + 1] > threshold) bandEnd++;
+
+  return {
+    center: maxIdx,
     start: bandStart,
     end: bandEnd,
   };
@@ -196,11 +285,32 @@ function detectGridLines(
   const hThreshold = computeThreshold(hProfile);
   const searchWindow = Math.max(25, Math.ceil(height * 0.05));
 
-  // ── Step 1: Detect vertical lines (clean — no header confusion) ──
-  const vLines: GridLine[] = [];
+  // ── Step 1: Detect vertical lines via brightness (clean — no header confusion) ──
+  let vLines: GridLine[] = [];
+  let vFoundCount = 0;
   for (const pos of expectedV) {
     const line = findGridLineInWindow(vProfile, pos, searchWindow, vThreshold);
+    if (line) vFoundCount++;
     vLines.push(line || { center: pos, start: pos, end: pos });
+  }
+
+  // ── Step 1b: Saturation fallback for vertical lines ──
+  // If brightness missed most lines (colored lines like pink/magenta),
+  // re-detect using saturation peaks instead of brightness valleys.
+  if (vFoundCount <= Math.floor(expectedV.length / 2)) {
+    const vSatProfile = smoothProfile(
+      computeSaturationProfile(data, width, height, 'vertical'),
+    );
+    // Threshold: top 15% of saturation values in the profile
+    const sortedSat = Array.from(vSatProfile).sort((a, b) => a - b);
+    const satThreshold = sortedSat[Math.floor(sortedSat.length * 0.85)];
+
+    const vSatLines: GridLine[] = [];
+    for (const pos of expectedV) {
+      const line = findGridLineBySaturationPeak(vSatProfile, pos, searchWindow, satThreshold);
+      vSatLines.push(line || { center: pos, start: pos, end: pos });
+    }
+    vLines = vSatLines;
   }
 
   // ── Step 2: Measure actual border width from vertical bands ──
@@ -213,16 +323,28 @@ function detectGridLines(
     : templateBorder;
   const halfBorder = Math.ceil(avgBorderWidth / 2);
 
-  // ── Step 3: Detect horizontal line CENTERS only ──
-  // Band expansion would swallow header dark strips, so we only
-  // use the center (darkest point) and apply the measured border offset.
-  // Note: these centers may be imprecise due to header/border confusion in
-  // the brightness profile. Per-cell chromatic detection (header + footer)
-  // handles the actual content boundaries precisely.
-  const hCenters: number[] = [];
+  // ── Step 3: Detect horizontal line CENTERS ──
+  // Try brightness first, fall back to saturation if needed.
+  let hCenters: number[] = [];
+  let hFoundCount = 0;
   for (const pos of expectedH) {
     const line = findGridLineInWindow(hProfile, pos, searchWindow, hThreshold);
+    if (line) hFoundCount++;
     hCenters.push(line ? line.center : pos);
+  }
+
+  if (hFoundCount <= Math.floor(expectedH.length / 2)) {
+    const hSatProfile = smoothProfile(
+      computeSaturationProfile(data, width, height, 'horizontal'),
+    );
+    const sortedSat = Array.from(hSatProfile).sort((a, b) => a - b);
+    const satThreshold = sortedSat[Math.floor(sortedSat.length * 0.85)];
+
+    hCenters = [];
+    for (const pos of expectedH) {
+      const line = findGridLineBySaturationPeak(hSatProfile, pos, searchWindow, satThreshold);
+      hCenters.push(line ? line.center : pos);
+    }
   }
 
   // ── Step 4: Derive cell rectangles ──
@@ -338,8 +460,8 @@ export async function extractSprites(
       }
 
       if (totalSamples > 0 && chromaCount / totalSamples > 0.10) {
-        // +1 to skip the anti-aliased transition row at the header/content boundary
-        return Math.max(y + 1, 2);
+        // +2 to skip anti-aliased transition rows at the header/content boundary
+        return Math.max(y + 2, 2);
       }
     }
 
