@@ -512,44 +512,115 @@ export async function extractSprites(
   const cfg = { ...DEFAULT_EXTRACTION, ...config };
   const img = await loadImage(gridBase64, gridMimeType);
 
-  // Calculate cell dimensions from the returned image
-  // Note: Gemini may return a different resolution than the template we sent.
-  // We compute cell dimensions from the actual image, then scale the header
-  // height proportionally to avoid slicing header text into the sprite.
-  const totalBorderW = (COLS + 1) * cfg.border;
-  const totalBorderH = (ROWS + 1) * cfg.border;
-  const cellW = Math.floor((img.width - totalBorderW) / COLS);
-  const cellH = Math.floor((img.height - totalBorderH) / ROWS);
+  // Draw the full grid onto a canvas to read pixels
+  const gridCanvas = document.createElement('canvas');
+  gridCanvas.width = img.width;
+  gridCanvas.height = img.height;
+  const gridCtx = gridCanvas.getContext('2d')!;
+  gridCtx.drawImage(img, 0, 0);
 
-  // Scale headerH: template had headerH/templateCellH ratio, apply to actual cellH
-  const headerRatio = cfg.headerH / cfg.templateCellH;
-  // Add 4px safety margin (scaled) to clear any anti-aliased header text
-  const actualHeaderH = Math.ceil(headerRatio * cellH) + 4;
-  const contentH = cellH - actualHeaderH;
+  // Detect grid structure: scan for borders and cells dynamically.
+  // First, find the actual border width by scanning the top-left corner
+  // for consecutive dark rows/columns.
+  const gridData = gridCtx.getImageData(0, 0, img.width, img.height);
+  const gd = gridData.data;
+  const gw = img.width;
 
-  if (contentH <= 0 || cellW <= 0) {
+  // Detect border width by finding the best-fit grid structure.
+  // Try border widths 1-4 and pick the one that gives integer cell sizes
+  // closest to square and with total matching the image dimensions.
+  let detectedBorder = cfg.border;
+  let bestRemainder = Infinity;
+  for (let b = 1; b <= 5; b++) {
+    const avail = img.width - (COLS + 1) * b;
+    const remainder = avail % COLS;
+    if (remainder < bestRemainder) {
+      bestRemainder = remainder;
+      detectedBorder = b;
+    }
+  }
+
+  const cellW = Math.floor((img.width - (COLS + 1) * detectedBorder) / COLS);
+  const cellH = Math.floor((img.height - (ROWS + 1) * detectedBorder) / ROWS);
+
+  if (cellH <= 10 || cellW <= 10) {
     throw new Error(
-      `Invalid grid dimensions: ${img.width}x${img.height}, computed cell ${cellW}x${cellH}`,
+      `Invalid grid dimensions: ${img.width}x${img.height}, detected border ${detectedBorder}, computed cell ${cellW}x${cellH}`,
     );
   }
 
-  const sprites: ExtractedSprite[] = [];
+  // Scan up to 25% of cell height for header (generous — real headers are ~5-15%)
+  const maxHeaderScan = Math.ceil(cellH * 0.25);
 
-  // Working canvas for slicing cells from the grid
-  const workCanvas = document.createElement('canvas');
-  workCanvas.width = cellW;
-  workCanvas.height = contentH;
-  const workCtx = workCanvas.getContext('2d')!;
+  /**
+   * Detect header height by finding where chromatic (colored) content begins.
+   *
+   * Header rows are GRAYSCALE: black background + white text → R ≈ G ≈ B.
+   * Content rows have MAGENTA background (#FF00FF) → high saturation.
+   * Even JPEG-compressed, the magenta shows clear R≠G≠B separation.
+   *
+   * We scan from top and find the first row with significant color saturation,
+   * which marks the start of the content area.
+   */
+  function detectCellHeader(cellX: number, cellY: number): number {
+    for (let y = 0; y < maxHeaderScan; y++) {
+      let chromaCount = 0;
+      let totalSamples = 0;
+
+      // Sample every 2px across the cell width, inset by 2px
+      for (let x = 2; x < cellW - 2; x += 2) {
+        const px = cellX + x;
+        const py = cellY + y;
+        if (px < gw && py < img.height) {
+          totalSamples++;
+          const i = (py * gw + px) * 4;
+          const r = gd[i], g = gd[i + 1], b = gd[i + 2];
+          // Chromatic = not grayscale. Compute saturation as (max-min)/max.
+          const maxC = Math.max(r, g, b);
+          const minC = Math.min(r, g, b);
+          // Require maxC > 30 to ignore near-black noise
+          if (maxC > 30 && (maxC - minC) / maxC > 0.3) {
+            chromaCount++;
+          }
+        }
+      }
+
+      // When >10% of sampled pixels are chromatic, content has started
+      if (totalSamples > 0 && chromaCount / totalSamples > 0.10) {
+        // Back up 2px for JPEG anti-aliasing safety
+        return Math.max(y - 2, 2);
+      }
+    }
+
+    // Fallback: no chromatic content found, use minimal header
+    return 2;
+  }
+
+  const sprites: ExtractedSprite[] = [];
 
   for (let idx = 0; idx < TOTAL_CELLS; idx++) {
     const col = idx % COLS;
     const row = Math.floor(idx / COLS);
 
-    // Source position in grid (skip borders + scaled headers)
-    const sx = cfg.border + col * (cellW + cfg.border);
-    const sy = cfg.border + row * (cellH + cfg.border) + actualHeaderH;
+    // Cell top-left in the grid image
+    const cellX = detectedBorder + col * (cellW + detectedBorder);
+    const cellY = detectedBorder + row * (cellH + detectedBorder);
 
-    // Draw cell content onto work canvas
+    // Dynamically detect header height for this cell
+    const headerH = detectCellHeader(cellX, cellY);
+    const contentH = cellH - headerH;
+
+    if (contentH <= 0) continue;
+
+    // Working canvas for this cell's content
+    const workCanvas = document.createElement('canvas');
+    workCanvas.width = cellW;
+    workCanvas.height = contentH;
+    const workCtx = workCanvas.getContext('2d')!;
+
+    // Slice content area (below header)
+    const sx = cellX;
+    const sy = cellY + headerH;
     workCtx.clearRect(0, 0, cellW, contentH);
     workCtx.drawImage(img, sx, sy, cellW, contentH, 0, 0, cellW, contentH);
 

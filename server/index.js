@@ -194,6 +194,10 @@ app.get('/api/archive', (req, res) => {
 // Serve archive files statically
 app.use('/output', express.static(OUTPUT_DIR));
 
+// Serve test files (dev only)
+app.use('/tests', express.static(join(__dirname, '..', 'tests')));
+app.use('/test-fixtures', express.static(join(__dirname, '..', 'test-fixtures')));
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

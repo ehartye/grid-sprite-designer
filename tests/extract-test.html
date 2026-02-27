@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sprite Extraction Test</title>
+  <style>
+    body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
+    .sprite-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 1200px; }
+    .sprite-cell { background: #333; border: 1px solid #555; text-align: center; padding: 4px; }
+    .sprite-cell img { max-width: 100%; image-rendering: pixelated; background: repeating-conic-gradient(#444 0% 25%, #555 0% 50%) 50% / 10px 10px; }
+    .sprite-cell .label { font-size: 10px; color: #aaa; margin-top: 4px; }
+    .info { margin-bottom: 16px; }
+    #raw-grid { max-width: 600px; border: 1px solid #555; }
+    .section { margin: 20px 0; }
+    #top-pixels { background: #222; padding: 8px; }
+    #top-pixels canvas { margin: 2px; border: 1px solid #666; }
+  </style>
+</head>
+<body>
+  <h2>Sprite Extraction Test</h2>
+  <div class="info" id="info">Loading...</div>
+
+  <div class="section">
+    <h3>Source Grid</h3>
+    <img id="raw-grid" />
+  </div>
+
+  <div class="section">
+    <h3>Top 10px of each sprite (header bleed check)</h3>
+    <p style="color:#f88">If you see any text/black header pixels in these strips, the slicing is wrong.</p>
+    <div id="top-pixels"></div>
+  </div>
+
+  <div class="section">
+    <h3>Extracted Sprites (36)</h3>
+    <div class="sprite-grid" id="sprites"></div>
+  </div>
+
+  <script type="module">
+    const COLS = 6, ROWS = 6, TOTAL_CELLS = 36;
+    const CELL_LABELS = [
+      'Walk Down 1','Walk Down 2','Walk Down 3','Walk Up 1','Walk Up 2','Walk Up 3',
+      'Walk Left 1','Walk Left 2','Walk Left 3','Walk Right 1','Walk Right 2','Walk Right 3',
+      'Idle Down','Idle Up','Idle Left','Idle Right','Battle Idle 1','Battle Idle 2',
+      'Battle Idle 3','Attack 1','Attack 2','Attack 3','Cast 1','Cast 2',
+      'Cast 3','Damage 1','Damage 2','Damage 3','KO 1','KO 2',
+      'KO 3','Victory 1','Victory 2','Victory 3','Weak Pose','Critical Pose',
+    ];
+
+    async function loadImg(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    async function run() {
+      const info = document.getElementById('info');
+      const img = await loadImg('/test-fixtures/filled-grid.jpg');
+      document.getElementById('raw-grid').src = img.src;
+
+      const gridCanvas = document.createElement('canvas');
+      gridCanvas.width = img.width;
+      gridCanvas.height = img.height;
+      const gridCtx = gridCanvas.getContext('2d');
+      gridCtx.drawImage(img, 0, 0);
+      const gridData = gridCtx.getImageData(0, 0, img.width, img.height);
+      const gd = gridData.data;
+      const gw = img.width;
+
+      // Detect border: find best-fit integer cell size
+      let detectedBorder = 2;
+      let bestRemainder = Infinity;
+      for (let b = 1; b <= 5; b++) {
+        const avail = img.width - (COLS + 1) * b;
+        const remainder = avail % COLS;
+        if (remainder < bestRemainder) {
+          bestRemainder = remainder;
+          detectedBorder = b;
+        }
+      }
+
+      const cellW = Math.floor((img.width - (COLS + 1) * detectedBorder) / COLS);
+      const cellH = Math.floor((img.height - (ROWS + 1) * detectedBorder) / ROWS);
+      const maxHeaderScan = Math.ceil(cellH * 0.25);
+
+      function detectCellHeader(cellX, cellY) {
+        for (let y = 0; y < maxHeaderScan; y++) {
+          let chromaCount = 0, totalSamples = 0;
+          for (let x = 2; x < cellW - 2; x += 2) {
+            const px = cellX + x, py = cellY + y;
+            if (px < img.width && py < img.height) {
+              totalSamples++;
+              const i = (py * gw + px) * 4;
+              const r = gd[i], g = gd[i+1], b = gd[i+2];
+              const maxC = Math.max(r, g, b);
+              const minC = Math.min(r, g, b);
+              if (maxC > 30 && (maxC - minC) / maxC > 0.3) {
+                chromaCount++;
+              }
+            }
+          }
+          if (totalSamples > 0 && (chromaCount / totalSamples) > 0.10) {
+            return Math.max(y - 2, 2);
+          }
+        }
+        return 2;
+      }
+
+      const spritesDiv = document.getElementById('sprites');
+      const topPixelsDiv = document.getElementById('top-pixels');
+      const results = [];
+      const headerHeights = [];
+
+      for (let idx = 0; idx < TOTAL_CELLS; idx++) {
+        const col = idx % COLS;
+        const row = Math.floor(idx / COLS);
+
+        const cellX = detectedBorder + col * (cellW + detectedBorder);
+        const cellY = detectedBorder + row * (cellH + detectedBorder);
+        const headerH = detectCellHeader(cellX, cellY);
+        headerHeights.push(headerH);
+        const contentH = cellH - headerH;
+        if (contentH <= 0) continue;
+
+        const workCanvas = document.createElement('canvas');
+        workCanvas.width = cellW;
+        workCanvas.height = contentH;
+        const workCtx = workCanvas.getContext('2d');
+
+        workCtx.clearRect(0, 0, cellW, contentH);
+        workCtx.drawImage(img, cellX, cellY + headerH, cellW, contentH, 0, 0, cellW, contentH);
+
+        const dataUrl = workCanvas.toDataURL('image/png');
+
+        // Check top 10px for header bleed using GRAYSCALE detection.
+        // Header artifacts are achromatic (R≈G≈B: black bg or white text).
+        // Sprite content is chromatic (has color saturation).
+        // Dark sprite pixels (brown bark, shadows) should NOT count as bleed.
+        const checkH = Math.min(10, contentH);
+        const topData = workCtx.getImageData(0, 0, cellW, checkH);
+        let grayPixels = 0;
+        const totalPixels = cellW * checkH;
+        for (let i = 0; i < topData.data.length; i += 4) {
+          const r = topData.data[i], g = topData.data[i+1], b = topData.data[i+2];
+          const maxC = Math.max(r, g, b);
+          const minC = Math.min(r, g, b);
+          // Achromatic: low saturation AND not transparent/near-transparent
+          // Grayscale header: black (all < 30) or white (all > 220)
+          const isGray = (maxC - minC) < 15 && (maxC < 30 || minC > 220);
+          if (isGray) grayPixels++;
+        }
+        const headerBleedPct = ((grayPixels / totalPixels) * 100).toFixed(1);
+
+        results.push({
+          idx, label: CELL_LABELS[idx],
+          headerBleedPct: parseFloat(headerBleedPct),
+          grayPixels, totalPixels, headerH
+        });
+
+        const cell = document.createElement('div');
+        cell.className = 'sprite-cell';
+        const spriteImg = document.createElement('img');
+        spriteImg.src = dataUrl;
+        spriteImg.alt = CELL_LABELS[idx];
+        cell.appendChild(spriteImg);
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = `${CELL_LABELS[idx]} (hdr:${headerH}px, ${headerBleedPct}%)`;
+        label.style.color = parseFloat(headerBleedPct) > 5 ? '#f44' : '#8f8';
+        cell.appendChild(label);
+        spritesDiv.appendChild(cell);
+
+        const stripCanvas = document.createElement('canvas');
+        stripCanvas.width = cellW;
+        stripCanvas.height = checkH;
+        stripCanvas.title = `${CELL_LABELS[idx]}: hdr=${headerH}px, ${headerBleedPct}%`;
+        const stripCtx = stripCanvas.getContext('2d');
+        stripCtx.putImageData(topData, 0, 0);
+        topPixelsDiv.appendChild(stripCanvas);
+      }
+
+      const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+      const avgBleed = (results.reduce((s, r) => s + r.headerBleedPct, 0) / results.length).toFixed(1);
+      const failing = results.filter(r => r.headerBleedPct > 30);
+      const avgHeader = (headerHeights.reduce((s, h) => s + h, 0) / headerHeights.length).toFixed(1);
+
+      info.innerHTML = `
+        Grid: ${img.width}x${img.height} |
+        Border: ${detectedBorder}px |
+        Cell: ${cellW}x${cellH} |
+        MaxScan: ${maxHeaderScan}px |
+        Avg detected header: ${avgHeader}px |
+        Header range: ${Math.min(...headerHeights)}-${Math.max(...headerHeights)}px
+      `;
+
+      const summary = document.createElement('div');
+      summary.id = 'test-results';
+      summary.setAttribute('data-max-bleed', maxBleed.toString());
+      summary.setAttribute('data-failing-count', failing.length.toString());
+      summary.innerHTML = `
+        <h3>Results</h3>
+        <p>Max bleed: ${maxBleed}% | Avg: ${avgBleed}% | Failing (>5%): ${failing.length}/36</p>
+        ${failing.map(f => `<p style="color:#f44">${f.label}: ${f.headerBleedPct}% (hdr:${f.headerH}px)</p>`).join('')}
+        ${failing.length === 0 ? '<p style="color:#8f8">All 36 sprites pass! No header bleed detected.</p>' : ''}
+      `;
+      document.body.insertBefore(summary, spritesDiv.parentElement);
+
+      window.__extractionDone = true;
+      window.__results = results;
+    }
+
+    run().catch(err => {
+      document.getElementById('info').textContent = 'ERROR: ' + err.message;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
