@@ -18,19 +18,19 @@ export interface TemplateConfig {
 }
 
 export const CONFIG_2K: TemplateConfig = {
-  cellW: 468,
-  cellH: 468,
-  headerH: 18,
+  cellW: 339,
+  cellH: 339,
+  headerH: 14,
   border: 2,
-  fontSize: 11,
+  fontSize: 9,
 };
 
 export const CONFIG_4K: TemplateConfig = {
-  cellW: 680,
-  cellH: 680,
-  headerH: 24,
-  border: 3,
-  fontSize: 15,
+  cellW: 678,
+  cellH: 678,
+  headerH: 22,
+  border: 4,
+  fontSize: 14,
 };
 
 const CHROMA_PINK = '#FF00FF';

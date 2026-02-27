@@ -187,13 +187,13 @@ export function ConfigPanel() {
             className={imageSize === '2K' ? 'active' : ''}
             onClick={() => dispatch({ type: 'SET_IMAGE_SIZE', imageSize: '2K' })}
           >
-            2K (2814px)
+            2K (2048px)
           </button>
           <button
             className={imageSize === '4K' ? 'active' : ''}
             onClick={() => dispatch({ type: 'SET_IMAGE_SIZE', imageSize: '4K' })}
           >
-            4K (4092px)
+            4K (4096px)
           </button>
         </div>
       </div>

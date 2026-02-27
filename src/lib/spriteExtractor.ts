@@ -44,9 +44,9 @@ export interface ExtractionConfig {
 }
 
 const DEFAULT_EXTRACTION: ExtractionConfig = {
-  headerH: 18,
+  headerH: 14,
   border: 2,
-  templateCellH: 468,
+  templateCellH: 339,
   floodTolerance: 45,
   interiorTolerance: 20,
   defringeWidth: 4,
