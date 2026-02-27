@@ -161,10 +161,42 @@
         if (profile[i] > maxVal) { maxVal = profile[i]; maxIdx = i; }
       }
       if (maxVal < threshold) return null;
+      const bandThreshold = Math.max(threshold, maxVal * 0.8);
       let bandStart = maxIdx, bandEnd = maxIdx;
-      while (bandStart > 0 && profile[bandStart-1] > threshold) bandStart--;
-      while (bandEnd < profile.length-1 && profile[bandEnd+1] > threshold) bandEnd++;
+      while (bandStart > 0 && profile[bandStart-1] > bandThreshold) bandStart--;
+      while (bandEnd < profile.length-1 && profile[bandEnd+1] > bandThreshold) bandEnd++;
       return { center: maxIdx, start: bandStart, end: bandEnd };
+    }
+
+    function scoreGridLines(lines, expectedPositions, templateBorder) {
+      const gaps = [];
+      for (let i = 0; i < lines.length - 1; i++) {
+        gaps.push(lines[i + 1].center - lines[i].center);
+      }
+      if (gaps.length === 0) return Infinity;
+      const gapMean = gaps.reduce((s, g) => s + g, 0) / gaps.length;
+      if (gapMean === 0) return Infinity;
+      const gapVar = gaps.reduce((s, g) => s + (g - gapMean) ** 2, 0) / gaps.length;
+      const gapCV = Math.sqrt(gapVar) / gapMean;
+
+      let fallbackCount = 0;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].center === expectedPositions[i] && lines[i].start === lines[i].end) {
+          fallbackCount++;
+        }
+      }
+      const fallbackPenalty = (fallbackCount / lines.length) * 2;
+
+      const interior = lines.slice(1, -1);
+      const widths = interior.map(l => l.end - l.start + 1);
+      const avgWidth = widths.length > 0
+        ? widths.reduce((s, w) => s + w, 0) / widths.length
+        : templateBorder;
+      const borderPenalty = avgWidth > templateBorder * 5
+        ? (avgWidth - templateBorder) / templateBorder
+        : 0;
+
+      return gapCV + fallbackPenalty + borderPenalty;
     }
 
     function detectGridLines(data, width, height) {
@@ -191,27 +223,25 @@
       const hThreshold = computeThreshold(hProfile);
       const searchWindow = Math.max(25, Math.ceil(height * 0.05));
 
-      // Step 1: Detect vertical lines via brightness (clean — no header confusion)
-      let vLines = [];
-      let vFoundCount = 0;
+      // Step 1: Detect vertical lines — try both brightness and saturation, pick best
+      const vLinesBright = [];
       for (const pos of expectedV) {
         const line = findGridLineInWindow(vProfile, pos, searchWindow, vThreshold);
-        if (line) vFoundCount++;
-        vLines.push(line || { center: pos, start: pos, end: pos });
+        vLinesBright.push(line || { center: pos, start: pos, end: pos });
       }
 
-      // Step 1b: Saturation fallback for vertical lines
-      if (vFoundCount <= Math.floor(expectedV.length / 2)) {
-        const vSatProfile = smoothProfile(computeSaturationProfile(data, width, height, 'vertical'));
-        const sortedSat = Array.from(vSatProfile).sort((a, b) => a - b);
-        const satThreshold = sortedSat[Math.floor(sortedSat.length * 0.85)];
-        const vSatLines = [];
-        for (const pos of expectedV) {
-          const line = findGridLineBySaturationPeak(vSatProfile, pos, searchWindow, satThreshold);
-          vSatLines.push(line || { center: pos, start: pos, end: pos });
-        }
-        vLines = vSatLines;
+      const vSatProfile = smoothProfile(computeSaturationProfile(data, width, height, 'vertical'));
+      const sortedVSat = Array.from(vSatProfile).sort((a, b) => a - b);
+      const vSatThreshold = sortedVSat[Math.floor(sortedVSat.length * 0.85)];
+      const vLinesSat = [];
+      for (const pos of expectedV) {
+        const line = findGridLineBySaturationPeak(vSatProfile, pos, searchWindow, vSatThreshold);
+        vLinesSat.push(line || { center: pos, start: pos, end: pos });
       }
+
+      const vLines = scoreGridLines(vLinesBright, expectedV, TEMPLATE_BORDER)
+        <= scoreGridLines(vLinesSat, expectedV, TEMPLATE_BORDER)
+        ? vLinesBright : vLinesSat;
 
       // Step 2: Measure actual border width from vertical bands
       const interiorVBands = vLines.slice(1, -1);
@@ -220,25 +250,26 @@
         : TEMPLATE_BORDER;
       const halfBorder = Math.ceil(avgBorderWidth / 2);
 
-      // Step 3: Detect horizontal line CENTERS (brightness first, saturation fallback)
-      let hCenters = [];
-      let hFoundCount = 0;
+      // Step 3: Detect horizontal lines — try both brightness and saturation, pick best
+      const hLinesBright = [];
       for (const pos of expectedH) {
         const line = findGridLineInWindow(hProfile, pos, searchWindow, hThreshold);
-        if (line) hFoundCount++;
-        hCenters.push(line ? line.center : pos);
+        hLinesBright.push(line || { center: pos, start: pos, end: pos });
       }
 
-      if (hFoundCount <= Math.floor(expectedH.length / 2)) {
-        const hSatProfile = smoothProfile(computeSaturationProfile(data, width, height, 'horizontal'));
-        const sortedSat = Array.from(hSatProfile).sort((a, b) => a - b);
-        const satThreshold = sortedSat[Math.floor(sortedSat.length * 0.85)];
-        hCenters = [];
-        for (const pos of expectedH) {
-          const line = findGridLineBySaturationPeak(hSatProfile, pos, searchWindow, satThreshold);
-          hCenters.push(line ? line.center : pos);
-        }
+      const hSatProfile = smoothProfile(computeSaturationProfile(data, width, height, 'horizontal'));
+      const sortedHSat = Array.from(hSatProfile).sort((a, b) => a - b);
+      const hSatThreshold = sortedHSat[Math.floor(sortedHSat.length * 0.85)];
+      const hLinesSat = [];
+      for (const pos of expectedH) {
+        const line = findGridLineBySaturationPeak(hSatProfile, pos, searchWindow, hSatThreshold);
+        hLinesSat.push(line || { center: pos, start: pos, end: pos });
       }
+
+      const hBestLines = scoreGridLines(hLinesBright, expectedH, TEMPLATE_BORDER)
+        <= scoreGridLines(hLinesSat, expectedH, TEMPLATE_BORDER)
+        ? hLinesBright : hLinesSat;
+      const hCenters = hBestLines.map(l => l.center);
 
       // Also detect full hLines for diagnostic display
       const hLines = expectedH.map(pos =>
@@ -277,14 +308,14 @@
             const r = gd[i], g = gd[i+1], b = gd[i+2];
             const maxC = Math.max(r, g, b);
             const minC = Math.min(r, g, b);
-            if (maxC > 30 && (maxC - minC) / maxC > 0.3) chromaCount++;
+            if (maxC > 30 && (maxC - minC) / maxC > 0.2) chromaCount++;
           }
         }
         if (totalSamples > 0 && (chromaCount / totalSamples) > 0.10) {
-          return Math.max(y + 1, 2);
+          return y;
         }
       }
-      return 2;
+      return 0;
     }
 
     // ── Main ──────────────────────────────────────────────────────────

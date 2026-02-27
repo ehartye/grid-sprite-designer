@@ -220,17 +220,68 @@ function findGridLineBySaturationPeak(
   // Must be above threshold to count
   if (maxVal < threshold) return null;
 
-  // Expand the band: consecutive positions above threshold
+  // Expand the band using a LOCAL threshold (80% of peak value).
+  // The external threshold is for peak detection; the local threshold
+  // prevents JPEG anti-aliasing from inflating the band width.
+  const bandThreshold = Math.max(threshold, maxVal * 0.8);
   let bandStart = maxIdx;
   let bandEnd = maxIdx;
-  while (bandStart > 0 && profile[bandStart - 1] > threshold) bandStart--;
-  while (bandEnd < profile.length - 1 && profile[bandEnd + 1] > threshold) bandEnd++;
+  while (bandStart > 0 && profile[bandStart - 1] > bandThreshold) bandStart--;
+  while (bandEnd < profile.length - 1 && profile[bandEnd + 1] > bandThreshold) bandEnd++;
 
   return {
     center: maxIdx,
     start: bandStart,
     end: bandEnd,
   };
+}
+
+/**
+ * Score a set of detected grid lines by uniformity and quality.
+ * Lower score = better detection. Considers:
+ * - Cell spacing uniformity (coefficient of variation)
+ * - Penalty for template-fallback lines (artificially perfect uniformity)
+ * - Penalty for unreasonably wide borders (false-positive dark bands)
+ */
+function scoreGridLines(
+  lines: GridLine[],
+  expectedPositions: number[],
+  templateBorder: number,
+): number {
+  const gaps: number[] = [];
+  for (let i = 0; i < lines.length - 1; i++) {
+    gaps.push(lines[i + 1].center - lines[i].center);
+  }
+  if (gaps.length === 0) return Infinity;
+  const gapMean = gaps.reduce((s, g) => s + g, 0) / gaps.length;
+  if (gapMean === 0) return Infinity;
+  const gapVar = gaps.reduce((s, g) => s + (g - gapMean) ** 2, 0) / gaps.length;
+  const gapCV = Math.sqrt(gapVar) / gapMean;
+
+  // Penalize template fallbacks (undetected lines default to template positions)
+  let fallbackCount = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].center === expectedPositions[i] && lines[i].start === lines[i].end) {
+      fallbackCount++;
+    }
+  }
+  // Weight ×2: template defaults (no real detection) should strongly lose
+  // to any actual detection, even with imperfect band widths
+  const fallbackPenalty = (fallbackCount / lines.length) * 2;
+
+  // Penalize unreasonably wide borders (> 5× template).
+  // Relaxed from 3× to 5× because JPEG anti-aliasing around colored
+  // grid lines can widen detected bands to ~6-8px from a 2px original.
+  const interior = lines.slice(1, -1);
+  const widths = interior.map(l => l.end - l.start + 1);
+  const avgWidth = widths.length > 0
+    ? widths.reduce((s, w) => s + w, 0) / widths.length
+    : templateBorder;
+  const borderPenalty = avgWidth > templateBorder * 5
+    ? (avgWidth - templateBorder) / templateBorder
+    : 0;
+
+  return gapCV + fallbackPenalty + borderPenalty;
 }
 
 /**
@@ -285,33 +336,28 @@ function detectGridLines(
   const hThreshold = computeThreshold(hProfile);
   const searchWindow = Math.max(25, Math.ceil(height * 0.05));
 
-  // ── Step 1: Detect vertical lines via brightness (clean — no header confusion) ──
-  let vLines: GridLine[] = [];
-  let vFoundCount = 0;
+  // ── Step 1: Detect vertical lines — try both brightness and saturation, pick best ──
+  const vLinesBright: GridLine[] = [];
   for (const pos of expectedV) {
     const line = findGridLineInWindow(vProfile, pos, searchWindow, vThreshold);
-    if (line) vFoundCount++;
-    vLines.push(line || { center: pos, start: pos, end: pos });
+    vLinesBright.push(line || { center: pos, start: pos, end: pos });
   }
 
-  // ── Step 1b: Saturation fallback for vertical lines ──
-  // If brightness missed most lines (colored lines like pink/magenta),
-  // re-detect using saturation peaks instead of brightness valleys.
-  if (vFoundCount <= Math.floor(expectedV.length / 2)) {
-    const vSatProfile = smoothProfile(
-      computeSaturationProfile(data, width, height, 'vertical'),
-    );
-    // Threshold: top 15% of saturation values in the profile
-    const sortedSat = Array.from(vSatProfile).sort((a, b) => a - b);
-    const satThreshold = sortedSat[Math.floor(sortedSat.length * 0.85)];
+  const vSatProfile = smoothProfile(
+    computeSaturationProfile(data, width, height, 'vertical'),
+  );
+  const sortedVSat = Array.from(vSatProfile).sort((a, b) => a - b);
+  const vSatThreshold = sortedVSat[Math.floor(sortedVSat.length * 0.85)];
 
-    const vSatLines: GridLine[] = [];
-    for (const pos of expectedV) {
-      const line = findGridLineBySaturationPeak(vSatProfile, pos, searchWindow, satThreshold);
-      vSatLines.push(line || { center: pos, start: pos, end: pos });
-    }
-    vLines = vSatLines;
+  const vLinesSat: GridLine[] = [];
+  for (const pos of expectedV) {
+    const line = findGridLineBySaturationPeak(vSatProfile, pos, searchWindow, vSatThreshold);
+    vLinesSat.push(line || { center: pos, start: pos, end: pos });
   }
+
+  const vLines = scoreGridLines(vLinesBright, expectedV, templateBorder)
+    <= scoreGridLines(vLinesSat, expectedV, templateBorder)
+    ? vLinesBright : vLinesSat;
 
   // ── Step 2: Measure actual border width from vertical bands ──
   const interiorVBands = vLines.slice(1, -1);
@@ -323,29 +369,29 @@ function detectGridLines(
     : templateBorder;
   const halfBorder = Math.ceil(avgBorderWidth / 2);
 
-  // ── Step 3: Detect horizontal line CENTERS ──
-  // Try brightness first, fall back to saturation if needed.
-  let hCenters: number[] = [];
-  let hFoundCount = 0;
+  // ── Step 3: Detect horizontal lines — try both brightness and saturation, pick best ──
+  const hLinesBright: GridLine[] = [];
   for (const pos of expectedH) {
     const line = findGridLineInWindow(hProfile, pos, searchWindow, hThreshold);
-    if (line) hFoundCount++;
-    hCenters.push(line ? line.center : pos);
+    hLinesBright.push(line || { center: pos, start: pos, end: pos });
   }
 
-  if (hFoundCount <= Math.floor(expectedH.length / 2)) {
-    const hSatProfile = smoothProfile(
-      computeSaturationProfile(data, width, height, 'horizontal'),
-    );
-    const sortedSat = Array.from(hSatProfile).sort((a, b) => a - b);
-    const satThreshold = sortedSat[Math.floor(sortedSat.length * 0.85)];
+  const hSatProfile = smoothProfile(
+    computeSaturationProfile(data, width, height, 'horizontal'),
+  );
+  const sortedHSat = Array.from(hSatProfile).sort((a, b) => a - b);
+  const hSatThreshold = sortedHSat[Math.floor(sortedHSat.length * 0.85)];
 
-    hCenters = [];
-    for (const pos of expectedH) {
-      const line = findGridLineBySaturationPeak(hSatProfile, pos, searchWindow, satThreshold);
-      hCenters.push(line ? line.center : pos);
-    }
+  const hLinesSat: GridLine[] = [];
+  for (const pos of expectedH) {
+    const line = findGridLineBySaturationPeak(hSatProfile, pos, searchWindow, hSatThreshold);
+    hLinesSat.push(line || { center: pos, start: pos, end: pos });
   }
+
+  const hBestLines = scoreGridLines(hLinesBright, expectedH, templateBorder)
+    <= scoreGridLines(hLinesSat, expectedH, templateBorder)
+    ? hLinesBright : hLinesSat;
+  const hCenters = hBestLines.map(l => l.center);
 
   // ── Step 4: Derive cell rectangles ──
   // Extra inset to clip anti-aliased border remnants (the gradient
@@ -453,19 +499,18 @@ export async function extractSprites(
           const r = gd[i], g = gd[i + 1], b = gd[i + 2];
           const maxC = Math.max(r, g, b);
           const minC = Math.min(r, g, b);
-          if (maxC > 30 && (maxC - minC) / maxC > 0.3) {
+          if (maxC > 30 && (maxC - minC) / maxC > 0.2) {
             chromaCount++;
           }
         }
       }
 
       if (totalSamples > 0 && chromaCount / totalSamples > 0.10) {
-        // +2 to skip anti-aliased transition rows at the header/content boundary
-        return Math.max(y + 2, 2);
+        return y;
       }
     }
 
-    return 2;
+    return 0;
   }
 
   const sprites: ExtractedSprite[] = [];
