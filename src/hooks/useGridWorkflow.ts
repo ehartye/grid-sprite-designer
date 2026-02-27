@@ -116,7 +116,7 @@ export function useGridWorkflow() {
     }
   }, [state.character, state.model, state.imageSize, dispatch]);
 
-  const reExtract = useCallback(async () => {
+  const reExtract = useCallback(async (overrides?: { aaInset?: number }) => {
     if (!state.filledGridImage) return;
 
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
@@ -129,6 +129,7 @@ export function useGridWorkflow() {
         headerH: templateConfig.headerH,
         border: templateConfig.border,
         templateCellH: templateConfig.cellH,
+        ...overrides,
       },
     );
 

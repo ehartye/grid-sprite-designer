@@ -26,12 +26,15 @@ export interface ExtractionConfig {
   border: number;
   /** Original template cell height (used to scale headerH to actual image) */
   templateCellH: number;
+  /** Extra inset (px) to clip anti-aliased border remnants */
+  aaInset: number;
 }
 
 const DEFAULT_EXTRACTION: ExtractionConfig = {
   headerH: 14,
   border: 2,
   templateCellH: 339,
+  aaInset: 3,
 };
 
 // ── Grid line detection ─────────────────────────────────────────────────────
@@ -162,6 +165,7 @@ function detectGridLines(
   templateBorder: number,
   templateCellW: number,
   templateCellH: number,
+  aaInset: number,
 ): CellRect[] {
   const templateImgW = COLS * templateCellW + (COLS + 1) * templateBorder;
   const templateImgH = ROWS * templateCellH + (ROWS + 1) * templateBorder;
@@ -222,16 +226,21 @@ function detectGridLines(
   }
 
   // ── Step 4: Derive cell rectangles ──
+  // Extra inset to clip anti-aliased border remnants (the gradient
+  // transition zone around grid lines that falls below the detection
+  // threshold but is still faintly visible).
+  const AA_INSET = aaInset;
+
   const cells: CellRect[] = [];
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       // Vertical: use band edges (reliable)
-      const cellX = vLines[col].end + 1;
-      const cellRight = vLines[col + 1].start - 1;
+      const cellX = vLines[col].end + 1 + AA_INSET;
+      const cellRight = vLines[col + 1].start - 1 - AA_INSET;
 
       // Horizontal: use center + halfBorder offset (avoids header confusion)
-      const cellY = hCenters[row] + halfBorder + 1;
-      const cellBottom = hCenters[row + 1] - halfBorder - 1;
+      const cellY = hCenters[row] + halfBorder + 1 + AA_INSET;
+      const cellBottom = hCenters[row + 1] - halfBorder - 1 - AA_INSET;
 
       const w = cellRight - cellX + 1;
       const h = cellBottom - cellY + 1;
@@ -288,6 +297,7 @@ export async function extractSprites(
   const cells = detectGridLines(
     gd, img.width, img.height,
     cfg.border, cfg.templateCellH, cfg.templateCellH, // square cells
+    cfg.aaInset,
   );
 
   if (cells.length !== TOTAL_CELLS) {
