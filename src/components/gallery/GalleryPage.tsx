@@ -6,6 +6,8 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
+import { extractSprites } from '../../lib/spriteExtractor';
+import { CONFIG_2K } from '../../lib/templateGenerator';
 
 interface GalleryEntry {
   id: number;
@@ -13,6 +15,7 @@ interface GalleryEntry {
   createdAt: string;
   spriteCount: number;
   thumbnailData: string | null;
+  thumbnailMime: string | null;
 }
 
 interface GalleryPageProps {
@@ -54,15 +57,28 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
         if (data.character) {
           dispatch({ type: 'SET_CHARACTER', character: data.character });
         }
+        const mimeType = data.filledGridMimeType || 'image/png';
         if (data.filledGridImage) {
           dispatch({
             type: 'GENERATE_COMPLETE',
             filledGridImage: data.filledGridImage,
-            filledGridMimeType: data.filledGridMimeType || 'image/png',
+            filledGridMimeType: mimeType,
             geminiText: data.geminiText || '',
           });
-        }
-        if (data.sprites && data.sprites.length > 0) {
+
+          // Re-extract sprites from the grid using current edge-detection pipeline
+          const sprites = await extractSprites(
+            data.filledGridImage,
+            mimeType,
+            {
+              headerH: CONFIG_2K.headerH,
+              border: CONFIG_2K.border,
+              templateCellH: CONFIG_2K.cellH,
+            },
+          );
+          dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
+        } else if (data.sprites && data.sprites.length > 0) {
+          // Fallback: use stored sprites if no grid image available
           dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
         }
         dispatch({ type: 'SET_HISTORY_ID', id });
@@ -138,7 +154,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
               <div className="gallery-card-thumb">
                 {entry.thumbnailData && (
                   <img
-                    src={`data:image/png;base64,${entry.thumbnailData}`}
+                    src={`data:${entry.thumbnailMime || 'image/png'};base64,${entry.thumbnailData}`}
                     alt={entry.characterName}
                   />
                 )}

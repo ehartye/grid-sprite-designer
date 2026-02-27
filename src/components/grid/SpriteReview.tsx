@@ -12,13 +12,12 @@ import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 
 export function SpriteReview() {
   const { state, dispatch, reExtract, setStep } = useGridWorkflow();
-  const { sprites, floodTolerance } = state;
+  const { sprites } = state;
 
   const [selectedAnim, setSelectedAnim] = useState(0);
   const [frameIndex, setFrameIndex] = useState(0);
   const [speed, setSpeed] = useState(150);
   const [scale, setScale] = useState(2);
-  const [localTolerance, setLocalTolerance] = useState(floodTolerance);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animTimerRef = useRef<number>(0);
@@ -158,20 +157,6 @@ export function SpriteReview() {
     dispatch({ type: 'SET_STATUS', message: `Exported ${sprites.length} individual sprites!`, statusType: 'success' });
   }, [sprites, state.character.name, dispatch]);
 
-  // Re-extract with new tolerance
-  const handleToleranceChange = useCallback(
-    (value: number) => {
-      setLocalTolerance(value);
-    },
-    [],
-  );
-
-  const handleReExtract = useCallback(() => {
-    dispatch({ type: 'SET_FLOOD_TOLERANCE', tolerance: localTolerance });
-    // reExtract uses the state tolerance, so we need to wait for the state update
-    setTimeout(() => reExtract(), 50);
-  }, [localTolerance, dispatch, reExtract]);
-
   return (
     <div className="review-layout">
       {/* Left: Sprite Grid */}
@@ -251,20 +236,9 @@ export function SpriteReview() {
           </div>
         </div>
 
-        {/* Extraction Tolerance */}
+        {/* Re-extract */}
         <div className="sidebar-section">
-          <h3>Extraction Tolerance</h3>
-          <div className="slider-row">
-            <input
-              type="range"
-              min={10}
-              max={100}
-              value={localTolerance}
-              onChange={(e) => handleToleranceChange(Number(e.target.value))}
-            />
-            <span className="slider-value">{localTolerance}</span>
-          </div>
-          <button className="btn btn-sm" onClick={handleReExtract}>
+          <button className="btn btn-sm w-full" onClick={reExtract}>
             Re-extract Sprites
           </button>
         </div>

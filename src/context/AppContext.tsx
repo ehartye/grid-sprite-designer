@@ -45,8 +45,6 @@ export interface AppState {
 
   /** Extracted individual sprites */
   sprites: ExtractedSprite[];
-  /** Flood-fill tolerance for background detection */
-  floodTolerance: number;
 
   /** Status message for the UI */
   status: string;
@@ -79,7 +77,6 @@ const initialState: AppState = {
   filledGridMimeType: 'image/png',
   geminiText: '',
   sprites: [],
-  floodTolerance: 45,
   status: '',
   statusType: 'info',
   error: null,
@@ -93,7 +90,6 @@ type Action =
   | { type: 'SET_CHARACTER'; character: AppState['character'] }
   | { type: 'SET_MODEL'; model: string }
   | { type: 'SET_IMAGE_SIZE'; imageSize: string }
-  | { type: 'SET_FLOOD_TOLERANCE'; tolerance: number }
   | { type: 'GENERATE_START'; templateImage: string }
   | { type: 'GENERATE_COMPLETE'; filledGridImage: string; filledGridMimeType: string; geminiText: string }
   | { type: 'GENERATE_ERROR'; error: string }
@@ -114,8 +110,6 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, model: action.model };
     case 'SET_IMAGE_SIZE':
       return { ...state, imageSize: action.imageSize };
-    case 'SET_FLOOD_TOLERANCE':
-      return { ...state, floodTolerance: action.tolerance };
     case 'GENERATE_START':
       return {
         ...state,
