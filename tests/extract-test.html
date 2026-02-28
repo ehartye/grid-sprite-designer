@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sprite Extraction Test</title>
+  <style>
+    body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
+    .sprite-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 1200px; }
+    .sprite-cell { background: #333; border: 1px solid #555; text-align: center; padding: 4px; }
+    .sprite-cell img { max-width: 100%; image-rendering: pixelated; background: repeating-conic-gradient(#444 0% 25%, #555 0% 50%) 50% / 10px 10px; }
+    .sprite-cell .label { font-size: 10px; color: #aaa; margin-top: 4px; }
+    .info { margin-bottom: 16px; }
+    #raw-grid { max-width: 600px; border: 1px solid #555; }
+    .section { margin: 20px 0; }
+    #top-pixels { background: #222; padding: 8px; }
+    #top-pixels canvas { margin: 2px; border: 1px solid #666; }
+    #grid-overlay { position: relative; display: inline-block; }
+    #grid-overlay canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <h2>Sprite Extraction Test (Edge Detection)</h2>
+  <div class="info" id="info">Loading...</div>
+
+  <div class="section">
+    <h3>Source Grid with Detected Lines</h3>
+    <div id="grid-overlay">
+      <img id="raw-grid" />
+      <canvas id="overlay-canvas"></canvas>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Top 10px of each sprite (header bleed check)</h3>
+    <p style="color:#f88">If you see any text/black header pixels in these strips, the slicing is wrong.</p>
+    <div id="top-pixels"></div>
+  </div>
+
+  <div class="section">
+    <h3>Extracted Sprites (36)</h3>
+    <div class="sprite-grid" id="sprites"></div>
+  </div>
+
+  <script type="module">
+    const COLS = 6, ROWS = 6, TOTAL_CELLS = 36;
+    const CELL_LABELS = [
+      'Walk Down 1','Walk Down 2','Walk Down 3','Walk Up 1','Walk Up 2','Walk Up 3',
+      'Walk Left 1','Walk Left 2','Walk Left 3','Walk Right 1','Walk Right 2','Walk Right 3',
+      'Idle Down','Idle Up','Idle Left','Idle Right','Battle Idle 1','Battle Idle 2',
+      'Battle Idle 3','Attack 1','Attack 2','Attack 3','Cast 1','Cast 2',
+      'Cast 3','Damage 1','Damage 2','Damage 3','KO 1','KO 2',
+      'KO 3','Victory 1','Victory 2','Victory 3','Weak Pose','Critical Pose',
+    ];
+
+    // Template priors (2K config)
+    const TEMPLATE_BORDER = 2;
+    const TEMPLATE_CELL = 339;
+    const TEMPLATE_SIZE = COLS * TEMPLATE_CELL + (COLS + 1) * TEMPLATE_BORDER; // 2048
+
+    async function loadImg(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    // ── Edge Detection Functions ──────────────────────────────────────
+
+    function computeBrightnessProfile(data, width, height, axis) {
+      const len = axis === 'horizontal' ? height : width;
+      const profile = new Float64Array(len);
+      if (axis === 'horizontal') {
+        for (let y = 0; y < height; y++) {
+          let sum = 0, count = 0;
+          for (let x = 0; x < width; x += 2) {
+            const i = (y * width + x) * 4;
+            sum += 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+            count++;
+          }
+          profile[y] = sum / count;
+        }
+      } else {
+        for (let x = 0; x < width; x++) {
+          let sum = 0, count = 0;
+          for (let y = 0; y < height; y += 2) {
+            const i = (y * width + x) * 4;
+            sum += 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+            count++;
+          }
+          profile[x] = sum / count;
+        }
+      }
+      return profile;
+    }
+
+    function smoothProfile(profile) {
+      const out = new Float64Array(profile.length);
+      out[0] = profile[0];
+      out[profile.length - 1] = profile[profile.length - 1];
+      for (let i = 1; i < profile.length - 1; i++) {
+        out[i] = (profile[i-1] + 2*profile[i] + profile[i+1]) / 4;
+      }
+      return out;
+    }
+
+    function findGridLineInWindow(profile, expectedPos, windowRadius, threshold) {
+      const start = Math.max(0, expectedPos - windowRadius);
+      const end = Math.min(profile.length - 1, expectedPos + windowRadius);
+      let minVal = Infinity, minIdx = expectedPos;
+      for (let i = start; i <= end; i++) {
+        if (profile[i] < minVal) { minVal = profile[i]; minIdx = i; }
+      }
+      if (minVal > threshold) return null;
+      let bandStart = minIdx, bandEnd = minIdx;
+      while (bandStart > 0 && profile[bandStart-1] < threshold) bandStart--;
+      while (bandEnd < profile.length-1 && profile[bandEnd+1] < threshold) bandEnd++;
+      return { center: minIdx, start: bandStart, end: bandEnd };
+    }
+
+    function computeSaturationProfile(data, width, height, axis) {
+      const len = axis === 'horizontal' ? height : width;
+      const profile = new Float64Array(len);
+      if (axis === 'horizontal') {
+        for (let y = 0; y < height; y++) {
+          let sum = 0, count = 0;
+          for (let x = 0; x < width; x += 2) {
+            const i = (y * width + x) * 4;
+            const maxC = Math.max(data[i], data[i+1], data[i+2]);
+            if (maxC > 0) {
+              const minC = Math.min(data[i], data[i+1], data[i+2]);
+              sum += (maxC - minC) / maxC;
+            }
+            count++;
+          }
+          profile[y] = sum / count;
+        }
+      } else {
+        for (let x = 0; x < width; x++) {
+          let sum = 0, count = 0;
+          for (let y = 0; y < height; y += 2) {
+            const i = (y * width + x) * 4;
+            const maxC = Math.max(data[i], data[i+1], data[i+2]);
+            if (maxC > 0) {
+              const minC = Math.min(data[i], data[i+1], data[i+2]);
+              sum += (maxC - minC) / maxC;
+            }
+            count++;
+          }
+          profile[x] = sum / count;
+        }
+      }
+      return profile;
+    }
+
+    function findGridLineBySaturationPeak(profile, expectedPos, windowRadius, threshold) {
+      const start = Math.max(0, expectedPos - windowRadius);
+      const end = Math.min(profile.length - 1, expectedPos + windowRadius);
+      let maxVal = -Infinity, maxIdx = expectedPos;
+      for (let i = start; i <= end; i++) {
+        if (profile[i] > maxVal) { maxVal = profile[i]; maxIdx = i; }
+      }
+      if (maxVal < threshold) return null;
+      const bandThreshold = Math.max(threshold, maxVal * 0.8);
+      let bandStart = maxIdx, bandEnd = maxIdx;
+      while (bandStart > 0 && profile[bandStart-1] > bandThreshold) bandStart--;
+      while (bandEnd < profile.length-1 && profile[bandEnd+1] > bandThreshold) bandEnd++;
+      return { center: maxIdx, start: bandStart, end: bandEnd };
+    }
+
+    function scoreGridLines(lines, expectedPositions, templateBorder) {
+      const gaps = [];
+      for (let i = 0; i < lines.length - 1; i++) {
+        gaps.push(lines[i + 1].center - lines[i].center);
+      }
+      if (gaps.length === 0) return Infinity;
+      const gapMean = gaps.reduce((s, g) => s + g, 0) / gaps.length;
+      if (gapMean === 0) return Infinity;
+      const gapVar = gaps.reduce((s, g) => s + (g - gapMean) ** 2, 0) / gaps.length;
+      const gapCV = Math.sqrt(gapVar) / gapMean;
+
+      let fallbackCount = 0;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].center === expectedPositions[i] && lines[i].start === lines[i].end) {
+          fallbackCount++;
+        }
+      }
+      const fallbackPenalty = (fallbackCount / lines.length) * 2;
+
+      const interior = lines.slice(1, -1);
+      const widths = interior.map(l => l.end - l.start + 1);
+      const avgWidth = widths.length > 0
+        ? widths.reduce((s, w) => s + w, 0) / widths.length
+        : templateBorder;
+      const borderPenalty = avgWidth > templateBorder * 5
+        ? (avgWidth - templateBorder) / templateBorder
+        : 0;
+
+      return gapCV + fallbackPenalty + borderPenalty;
+    }
+
+    function detectGridLines(data, width, height) {
+      // Expected grid line positions scaled to image size
+      const expectedH = [], expectedV = [];
+      for (let i = 0; i <= COLS; i++) {
+        const tPos = i * (TEMPLATE_CELL + TEMPLATE_BORDER);
+        expectedV.push(Math.round(tPos * width / TEMPLATE_SIZE));
+      }
+      for (let i = 0; i <= ROWS; i++) {
+        const tPos = i * (TEMPLATE_CELL + TEMPLATE_BORDER);
+        expectedH.push(Math.round(tPos * height / TEMPLATE_SIZE));
+      }
+
+      const hProfile = smoothProfile(computeBrightnessProfile(data, width, height, 'horizontal'));
+      const vProfile = smoothProfile(computeBrightnessProfile(data, width, height, 'vertical'));
+
+      function computeThreshold(profile) {
+        const sorted = Array.from(profile).sort((a, b) => a - b);
+        return sorted[Math.floor(sorted.length / 2)] * 0.5;
+      }
+
+      const vThreshold = computeThreshold(vProfile);
+      const hThreshold = computeThreshold(hProfile);
+      const searchWindow = Math.max(25, Math.ceil(height * 0.05));
+
+      // Step 1: Detect vertical lines — try both brightness and saturation, pick best
+      const vLinesBright = [];
+      for (const pos of expectedV) {
+        const line = findGridLineInWindow(vProfile, pos, searchWindow, vThreshold);
+        vLinesBright.push(line || { center: pos, start: pos, end: pos });
+      }
+
+      const vSatProfile = smoothProfile(computeSaturationProfile(data, width, height, 'vertical'));
+      const sortedVSat = Array.from(vSatProfile).sort((a, b) => a - b);
+      const vSatThreshold = sortedVSat[Math.floor(sortedVSat.length * 0.85)];
+      const vLinesSat = [];
+      for (const pos of expectedV) {
+        const line = findGridLineBySaturationPeak(vSatProfile, pos, searchWindow, vSatThreshold);
+        vLinesSat.push(line || { center: pos, start: pos, end: pos });
+      }
+
+      const vLines = scoreGridLines(vLinesBright, expectedV, TEMPLATE_BORDER)
+        <= scoreGridLines(vLinesSat, expectedV, TEMPLATE_BORDER)
+        ? vLinesBright : vLinesSat;
+
+      // Step 2: Measure actual border width from vertical bands
+      const interiorVBands = vLines.slice(1, -1);
+      const avgBorderWidth = interiorVBands.length > 0
+        ? Math.round(interiorVBands.reduce((s, l) => s + (l.end - l.start + 1), 0) / interiorVBands.length)
+        : TEMPLATE_BORDER;
+      const halfBorder = Math.ceil(avgBorderWidth / 2);
+
+      // Step 3: Detect horizontal lines — try both brightness and saturation, pick best
+      const hLinesBright = [];
+      for (const pos of expectedH) {
+        const line = findGridLineInWindow(hProfile, pos, searchWindow, hThreshold);
+        hLinesBright.push(line || { center: pos, start: pos, end: pos });
+      }
+
+      const hSatProfile = smoothProfile(computeSaturationProfile(data, width, height, 'horizontal'));
+      const sortedHSat = Array.from(hSatProfile).sort((a, b) => a - b);
+      const hSatThreshold = sortedHSat[Math.floor(sortedHSat.length * 0.85)];
+      const hLinesSat = [];
+      for (const pos of expectedH) {
+        const line = findGridLineBySaturationPeak(hSatProfile, pos, searchWindow, hSatThreshold);
+        hLinesSat.push(line || { center: pos, start: pos, end: pos });
+      }
+
+      const hBestLines = scoreGridLines(hLinesBright, expectedH, TEMPLATE_BORDER)
+        <= scoreGridLines(hLinesSat, expectedH, TEMPLATE_BORDER)
+        ? hLinesBright : hLinesSat;
+      const hCenters = hBestLines.map(l => l.center);
+
+      // Also detect full hLines for diagnostic display
+      const hLines = expectedH.map(pos =>
+        findGridLineInWindow(hProfile, pos, searchWindow, hThreshold)
+        || { center: pos, start: pos, end: pos }
+      );
+
+      // Step 4: Derive cell rects using center + halfBorder for H, band edges for V
+      const cells = [];
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const x = vLines[col].end + 1;
+          const cellRight = vLines[col+1].start - 1;
+          const y = hCenters[row] + halfBorder + 1;
+          const cellBottom = hCenters[row+1] - halfBorder - 1;
+          const w = cellRight - x + 1;
+          const h = cellBottom - y + 1;
+          cells.push({ x, y, w: Math.max(w, 1), h: Math.max(h, 1) });
+        }
+      }
+
+      return { hLines, hCenters, vLines, cells, hProfile, vProfile, hThreshold, vThreshold, avgBorderWidth };
+    }
+
+    // ── Chromatic header detection ────────────────────────────────────
+
+    function detectCellHeader(gd, gw, gh, cellX, cellY, cw, ch) {
+      const maxScan = Math.ceil(ch * 0.25);
+      for (let y = 0; y < maxScan; y++) {
+        let chromaCount = 0, totalSamples = 0;
+        for (let x = 2; x < cw - 2; x += 2) {
+          const px = cellX + x, py = cellY + y;
+          if (px < gw && py < gh) {
+            totalSamples++;
+            const i = (py * gw + px) * 4;
+            const r = gd[i], g = gd[i+1], b = gd[i+2];
+            const maxC = Math.max(r, g, b);
+            const minC = Math.min(r, g, b);
+            if (maxC > 30 && (maxC - minC) / maxC > 0.2) chromaCount++;
+          }
+        }
+        if (totalSamples > 0 && (chromaCount / totalSamples) > 0.10) {
+          return y;
+        }
+      }
+      return 0;
+    }
+
+    // ── Main ──────────────────────────────────────────────────────────
+
+    async function run() {
+      const info = document.getElementById('info');
+      const params = new URLSearchParams(window.location.search);
+      const fixture = params.get('fixture') || 'filled-grid.jpg';
+      const img = await loadImg(`/test-fixtures/${fixture}`);
+      document.getElementById('raw-grid').src = img.src;
+
+      const gridCanvas = document.createElement('canvas');
+      gridCanvas.width = img.width;
+      gridCanvas.height = img.height;
+      const gridCtx = gridCanvas.getContext('2d');
+      gridCtx.drawImage(img, 0, 0);
+      const gridData = gridCtx.getImageData(0, 0, img.width, img.height);
+      const gd = gridData.data;
+      const gw = img.width;
+      const gh = img.height;
+
+      // ── Detect grid via edge detection ──
+      const grid = detectGridLines(gd, gw, gh);
+      const { hLines, hCenters, vLines, cells } = grid;
+
+      // Draw detected grid lines as overlay
+      const rawGridImg = document.getElementById('raw-grid');
+      rawGridImg.onload = () => {
+        const oc = document.getElementById('overlay-canvas');
+        const displayW = rawGridImg.clientWidth;
+        const displayH = rawGridImg.clientHeight;
+        oc.width = displayW;
+        oc.height = displayH;
+        const octx = oc.getContext('2d');
+        const sx = displayW / gw, sy = displayH / gh;
+
+        octx.strokeStyle = 'rgba(0,255,0,0.6)';
+        octx.lineWidth = 1;
+        // Horizontal lines
+        for (const line of hLines) {
+          octx.beginPath();
+          octx.moveTo(0, line.center * sy);
+          octx.lineTo(displayW, line.center * sy);
+          octx.stroke();
+        }
+        // Vertical lines
+        for (const line of vLines) {
+          octx.beginPath();
+          octx.moveTo(line.center * sx, 0);
+          octx.lineTo(line.center * sx, displayH);
+          octx.stroke();
+        }
+      };
+
+      // ── Extract sprites using detected cells ──
+      const spritesDiv = document.getElementById('sprites');
+      const topPixelsDiv = document.getElementById('top-pixels');
+      const results = [];
+      const cellDims = [];
+
+      for (let idx = 0; idx < TOTAL_CELLS; idx++) {
+        const cell = cells[idx];
+        const headerH = detectCellHeader(gd, gw, gh, cell.x, cell.y, cell.w, cell.h);
+        const contentH = cell.h - headerH;
+        if (contentH <= 0) continue;
+
+        cellDims.push({ idx, ...cell, headerH, contentH });
+
+        const workCanvas = document.createElement('canvas');
+        workCanvas.width = cell.w;
+        workCanvas.height = contentH;
+        const workCtx = workCanvas.getContext('2d');
+        workCtx.clearRect(0, 0, cell.w, contentH);
+        workCtx.drawImage(img, cell.x, cell.y + headerH, cell.w, contentH, 0, 0, cell.w, contentH);
+
+        const dataUrl = workCanvas.toDataURL('image/png');
+
+        // Check top 10px for header bleed (grayscale detection)
+        const checkH = Math.min(10, contentH);
+        const topData = workCtx.getImageData(0, 0, cell.w, checkH);
+        let grayPixels = 0;
+        const totalPixels = cell.w * checkH;
+        for (let i = 0; i < topData.data.length; i += 4) {
+          const r = topData.data[i], g = topData.data[i+1], b = topData.data[i+2];
+          const maxC = Math.max(r, g, b);
+          const minC = Math.min(r, g, b);
+          const isGray = (maxC - minC) < 15 && (maxC < 30 || minC > 220);
+          if (isGray) grayPixels++;
+        }
+        const headerBleedPct = ((grayPixels / totalPixels) * 100).toFixed(1);
+
+        results.push({
+          idx, label: CELL_LABELS[idx],
+          headerBleedPct: parseFloat(headerBleedPct),
+          grayPixels, totalPixels, headerH,
+          cellW: cell.w, cellH: cell.h
+        });
+
+        const cellEl = document.createElement('div');
+        cellEl.className = 'sprite-cell';
+        const spriteImg = document.createElement('img');
+        spriteImg.src = dataUrl;
+        spriteImg.alt = CELL_LABELS[idx];
+        cellEl.appendChild(spriteImg);
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = `${CELL_LABELS[idx]} (${cell.w}x${cell.h}, hdr:${headerH}px)`;
+        label.style.color = parseFloat(headerBleedPct) > 30 ? '#f44' : '#8f8';
+        cellEl.appendChild(label);
+        spritesDiv.appendChild(cellEl);
+
+        const stripCanvas = document.createElement('canvas');
+        stripCanvas.width = cell.w;
+        stripCanvas.height = checkH;
+        stripCanvas.title = `${CELL_LABELS[idx]}: hdr=${headerH}px, ${headerBleedPct}%`;
+        const stripCtx = stripCanvas.getContext('2d');
+        stripCtx.putImageData(topData, 0, 0);
+        topPixelsDiv.appendChild(stripCanvas);
+      }
+
+      // Cell dimension uniformity check
+      const widths = cellDims.map(c => c.w);
+      const heights = cellDims.map(c => c.h);
+      const minW = Math.min(...widths), maxW = Math.max(...widths);
+      const minH = Math.min(...heights), maxH = Math.max(...heights);
+
+      const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+      const avgBleed = (results.reduce((s, r) => s + r.headerBleedPct, 0) / results.length).toFixed(1);
+      const failing = results.filter(r => r.headerBleedPct > 30);
+      const avgHeader = (results.reduce((s, r) => s + r.headerH, 0) / results.length).toFixed(1);
+
+      // Grid line positions for display
+      const hCenterStr = hCenters.map((c, i) => `${i}:${c}`).join(' ');
+      const vLineStr = vLines.map((l, i) => `${i}:${l.center}[${l.start}-${l.end}]`).join(' ');
+      const uniformW = minW >= maxW - 2;
+      const uniformH = minH >= maxH - 2;
+
+      info.innerHTML = `
+        <b>Grid:</b> ${gw}x${gh} |
+        <b>Border:</b> ${grid.avgBorderWidth}px |
+        <b>Cell W:</b> ${minW}-${maxW}${uniformW ? ' <span style="color:#8f8">OK</span>' : ' <span style="color:#f44">UNEVEN</span>'} |
+        <b>Cell H:</b> ${minH}-${maxH}${uniformH ? ' <span style="color:#8f8">OK</span>' : ' <span style="color:#f44">UNEVEN</span>'} |
+        <b>Avg hdr:</b> ${avgHeader}px<br>
+        <b>H-centers:</b> ${hCenterStr}<br>
+        <b>V-lines:</b> ${vLineStr}
+      `;
+
+      const summary = document.createElement('div');
+      summary.id = 'test-results';
+      summary.setAttribute('data-max-bleed', maxBleed.toString());
+      summary.setAttribute('data-failing-count', failing.length.toString());
+      summary.innerHTML = `
+        <h3>Results</h3>
+        <p>Max bleed: ${maxBleed}% | Avg: ${avgBleed}% | Failing (>30%): ${failing.length}/36</p>
+        ${failing.map(f => `<p style="color:#f44">${f.label}: ${f.headerBleedPct}% (hdr:${f.headerH}px)</p>`).join('')}
+        ${failing.length === 0 ? '<p style="color:#8f8">All 36 sprites pass! No header bleed detected.</p>' : ''}
+      `;
+      document.body.insertBefore(summary, spritesDiv.parentElement);
+
+      window.__extractionDone = true;
+      window.__results = results;
+      window.__grid = grid;
+    }
+
+    run().catch(err => {
+      document.getElementById('info').textContent = 'ERROR: ' + err.message;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
