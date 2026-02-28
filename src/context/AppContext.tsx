@@ -154,6 +154,11 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_STEP':
       return { ...state, step: action.step };
     case 'SET_HISTORY_ID':
+      fetch('/api/state/lastHistoryId', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: action.id }),
+      }).catch(() => {});
       return { ...state, historyId: action.id };
     case 'SET_PRESETS':
       return { ...state, presets: action.presets };
@@ -170,6 +175,7 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     case 'RESET':
+      fetch('/api/state/lastHistoryId', { method: 'DELETE' }).catch(() => {});
       return { ...initialState, presets: state.presets };
     default:
       return state;

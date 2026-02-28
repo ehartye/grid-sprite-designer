@@ -4,10 +4,11 @@
  * Right sidebar: animation preview, export controls, re-extraction.
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
+import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { SpriteGrid } from './SpriteGrid';
-import { ANIMATIONS, DIR_WALK, DIR_IDLE } from '../../lib/poses';
+import { ANIMATIONS, DIR_WALK, DIR_IDLE, TOTAL_CELLS } from '../../lib/poses';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
 
@@ -45,12 +46,12 @@ async function processSprite(
   return { ...sprite, imageData: base64, mimeType: 'image/png' };
 }
 
-/** Detect distinct colors from sprites using 6-bit quantization. */
-async function detectPalette(sprites: ExtractedSprite[], maxColors = 48): Promise<RGB[]> {
+/** Detect distinct colors from sprites using 4-bit quantization. */
+async function detectPalette(sprites: ExtractedSprite[], maxColors = 120): Promise<RGB[]> {
   const counts = new Map<number, { r: number; g: number; b: number; n: number }>();
 
-  // Sample from up to 6 sprites for performance
-  for (const sprite of sprites.slice(0, 6)) {
+  // Sample from up to 12 sprites for broader coverage
+  for (const sprite of sprites.slice(0, 12)) {
     const img = new Image();
     await new Promise<void>((resolve) => {
       img.onload = () => resolve();
@@ -67,11 +68,11 @@ async function detectPalette(sprites: ExtractedSprite[], maxColors = 48): Promis
     // Sample every 2nd pixel for speed
     for (let i = 0; i < data.length; i += 8) {
       if (data[i + 3] === 0) continue;
-      // 6-bit quantization: 4 values per channel = finer color separation
-      const qr = data[i] >> 6;
-      const qg = data[i + 1] >> 6;
-      const qb = data[i + 2] >> 6;
-      const key = (qr << 4) | (qg << 2) | qb;
+      // 4-bit quantization: 16 values per channel = finer color separation
+      const qr = data[i] >> 4;
+      const qg = data[i + 1] >> 4;
+      const qb = data[i + 2] >> 4;
+      const key = (qr << 8) | (qg << 4) | qb;
       const entry = counts.get(key);
       if (entry) {
         entry.r += data[i];
@@ -104,7 +105,14 @@ export function SpriteReview() {
   const [aaInset, setAaInset] = useState(3);
   const [palette, setPalette] = useState<RGB[]>([]);
   const [struckColors, setStruckColors] = useState<RGB[]>([]);
+  const [showRareColors, setShowRareColors] = useState(false);
+  const [swapSource, setSwapSource] = useState<number | null>(null);
+  const [displayOrder, setDisplayOrder] = useState<number[]>(() => Array.from({ length: TOTAL_CELLS }, (_, i) => i));
+  const [mirroredCells, setMirroredCells] = useState<Set<number>>(new Set());
+  const [thumbnailCell, setThumbnailCell] = useState<number | null>(null);
   const struckKey = JSON.stringify(struckColors);
+
+  const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animTimerRef = useRef<number>(0);
@@ -136,12 +144,26 @@ export function SpriteReview() {
     return () => { cancelled = true; };
   }, [sprites, chromaEnabled, chromaTolerance, struckKey]);
 
+  const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
+
+  // Derive display-ordered sprites: remap cellIndex based on displayOrder
+  const displaySprites = useMemo(() => {
+    const byCell = new Map<number, ExtractedSprite>();
+    for (const s of processedSprites) byCell.set(s.cellIndex, s);
+
+    return displayOrder.map((srcIdx, displayIdx) => {
+      const sprite = byCell.get(srcIdx);
+      if (!sprite) return null;
+      return { ...sprite, cellIndex: displayIdx };
+    }).filter(Boolean) as ExtractedSprite[];
+  }, [processedSprites, displayOrder]);
+
   const currentAnim = ANIMATIONS[selectedAnim];
   const currentFrames = currentAnim.frames;
 
-  // Build sprite lookup from processed sprites
+  // Build sprite lookup from display-ordered sprites
   const spriteMap = new Map<number, ExtractedSprite>();
-  for (const s of processedSprites) {
+  for (const s of displaySprites) {
     spriteMap.set(s.cellIndex, s);
   }
 
@@ -180,9 +202,12 @@ export function SpriteReview() {
     const sprite = spriteMap.get(cellIdx);
     if (!sprite) return;
 
+    let cancelled = false;
     const ctx = canvas.getContext('2d')!;
     const img = new Image();
     img.onload = () => {
+      if (cancelled) return;
+
       const w = img.width * scale;
       const h = img.height * scale;
       canvas.width = Math.max(w, 128);
@@ -201,16 +226,50 @@ export function SpriteReview() {
       }
 
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(
-        img,
-        Math.floor((canvas.width - w) / 2),
-        Math.floor((canvas.height - h) / 2),
-        w,
-        h,
-      );
+
+      const dx = Math.floor((canvas.width - w) / 2);
+      const dy = Math.floor((canvas.height - h) / 2);
+
+      if (mirroredCells.has(cellIdx)) {
+        ctx.save();
+        ctx.translate(dx + w, dy);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, 0, 0, w, h);
+        ctx.restore();
+      } else {
+        ctx.drawImage(img, dx, dy, w, h);
+      }
     };
     img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
-  }, [frameIndex, currentFrames, spriteMap, scale]);
+
+    return () => {
+      cancelled = true;
+      img.src = '';
+    };
+  }, [frameIndex, currentFrames, spriteMap, scale, mirroredCells]);
+
+  // Swap click handler
+  const handleCellClick = useCallback((cellIndex: number) => {
+    if (swapSource === null) {
+      setSwapSource(cellIndex);
+    } else if (swapSource === cellIndex) {
+      setSwapSource(null);
+    } else {
+      setDisplayOrder((prev) => {
+        const next = [...prev];
+        const temp = next[swapSource];
+        next[swapSource] = next[cellIndex];
+        next[cellIndex] = temp;
+        return next;
+      });
+      setSwapSource(null);
+    }
+  }, [swapSource]);
+
+  const isOrderModified = useMemo(
+    () => displayOrder.some((v, i) => v !== i),
+    [displayOrder],
+  );
 
   // Arrow key navigation
   useEffect(() => {
@@ -242,11 +301,43 @@ export function SpriteReview() {
     };
   }, []);
 
+  // Apply mirror flip to a sprite's image data (returns new base64)
+  const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
+    const img = new Image();
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
+    });
+    const c = document.createElement('canvas');
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext('2d')!;
+    ctx.translate(img.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, 0);
+    const base64 = c.toDataURL('image/png').split(',')[1];
+    return { ...sprite, imageData: base64, mimeType: 'image/png' };
+  }, []);
+
+  // Prepare export sprites (apply mirrors)
+  const getExportSprites = useCallback(async () => {
+    const results: ExtractedSprite[] = [];
+    for (const sprite of displaySprites) {
+      if (mirroredCells.has(sprite.cellIndex)) {
+        results.push(await flipSpriteHorizontally(sprite));
+      } else {
+        results.push(sprite);
+      }
+    }
+    return results;
+  }, [displaySprites, mirroredCells, flipSpriteHorizontally]);
+
   // Export sprite sheet
   const handleExportSheet = useCallback(async () => {
-    if (processedSprites.length === 0) return;
+    if (displaySprites.length === 0) return;
     try {
-      const { base64 } = await composeSpriteSheet(processedSprites);
+      const exportSprites = await getExportSprites();
+      const { base64 } = await composeSpriteSheet(exportSprites);
       const link = document.createElement('a');
       link.href = `data:image/png;base64,${base64}`;
       link.download = `${state.character.name || 'sprites'}-sheet.png`;
@@ -255,26 +346,141 @@ export function SpriteReview() {
     } catch (err: any) {
       dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
     }
-  }, [processedSprites, state.character.name, dispatch]);
+  }, [displaySprites, getExportSprites, state.character.name, dispatch]);
 
   // Export individual PNGs
-  const handleExportIndividual = useCallback(() => {
-    if (processedSprites.length === 0) return;
-    for (const sprite of processedSprites) {
+  const handleExportIndividual = useCallback(async () => {
+    if (displaySprites.length === 0) return;
+    const exportSprites = await getExportSprites();
+    for (const sprite of exportSprites) {
       const link = document.createElement('a');
       link.href = `data:${sprite.mimeType};base64,${sprite.imageData}`;
       const safeName = sprite.label.toLowerCase().replace(/\s+/g, '-');
       link.download = `${state.character.name || 'sprite'}-${safeName}.png`;
       link.click();
     }
-    dispatch({ type: 'SET_STATUS', message: `Exported ${processedSprites.length} individual sprites!`, statusType: 'success' });
-  }, [processedSprites, state.character.name, dispatch]);
+    dispatch({ type: 'SET_STATUS', message: `Exported ${exportSprites.length} individual sprites!`, statusType: 'success' });
+  }, [displaySprites, getExportSprites, state.character.name, dispatch]);
+
+  // Load all persisted editor state when historyId changes.
+  // Resets to defaults first, then overwrites from DB — merged into one effect
+  // so the save effect can't clobber DB with reset values.
+  useEffect(() => {
+    if (!state.historyId) {
+      setSettingsLoaded(true);
+      return;
+    }
+    setSettingsLoaded(false);
+    let cancelled = false;
+
+    // Reset to defaults immediately
+    setDisplayOrder(Array.from({ length: TOTAL_CELLS }, (_, i) => i));
+    setSwapSource(null);
+    setMirroredCells(new Set());
+    setThumbnailCell(null);
+    setChromaEnabled(false);
+    setChromaTolerance(80);
+    setStruckColors([]);
+    setAaInset(3);
+
+    Promise.all([
+      loadSettings(),
+      fetch(`/api/history/${state.historyId}`).then((r) => r.json()).catch(() => null),
+    ]).then(([settings, histData]) => {
+      if (cancelled) return;
+      if (settings) {
+        setChromaEnabled(settings.chromaEnabled);
+        setChromaTolerance(settings.chromaTolerance);
+        setStruckColors(settings.struckColors);
+        if (settings.mirroredCells.length > 0) setMirroredCells(new Set(settings.mirroredCells));
+        if (settings.cellOrder.length > 0) setDisplayOrder(settings.cellOrder);
+        setAaInset(settings.aaInset);
+      }
+      if (histData?.thumbnailCellIndex != null) {
+        setThumbnailCell(histData.thumbnailCellIndex);
+      }
+      setSettingsLoaded(true);
+    });
+
+    return () => { cancelled = true; };
+  }, [state.historyId, loadSettings]);
+
+  // Save settings on change (debounced internally) — skip until initial load completes
+  useEffect(() => {
+    if (!settingsLoaded) return;
+    saveSettings({
+      chromaEnabled,
+      chromaTolerance,
+      struckColors,
+      mirroredCells: Array.from(mirroredCells),
+      cellOrder: displayOrder,
+      aaInset,
+    });
+  }, [settingsLoaded, chromaEnabled, chromaTolerance, struckKey, mirroredCells, displayOrder, aaInset, saveSettings]);
+
+  const handleMirrorToggle = useCallback((cellIndex: number) => {
+    setMirroredCells((prev) => {
+      const next = new Set(prev);
+      if (next.has(cellIndex)) next.delete(cellIndex);
+      else next.add(cellIndex);
+      return next;
+    });
+  }, []);
+
+  const handleThumbnailSet = useCallback(async (cellIndex: number) => {
+    if (!state.historyId) return;
+    setThumbnailCell(cellIndex);
+
+    // Find the processed sprite (chroma + color strikes applied)
+    const sprite = displaySprites.find((s) => s.cellIndex === cellIndex);
+    let imageData = sprite?.imageData ?? null;
+    let mimeType = sprite?.mimeType ?? null;
+
+    // Apply mirror if active
+    if (sprite && mirroredCells.has(cellIndex)) {
+      const flipped = await flipSpriteHorizontally(sprite);
+      imageData = flipped.imageData;
+      mimeType = flipped.mimeType;
+    }
+
+    fetch(`/api/history/${state.historyId}/thumbnail`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cellIndex, imageData, mimeType }),
+    }).catch(() => {});
+  }, [state.historyId, displaySprites, mirroredCells, flipSpriteHorizontally]);
 
   return (
     <div className="review-layout">
       {/* Left: Sprite Grid */}
       <div className="review-main">
-        <SpriteGrid sprites={processedSprites} />
+        {swapSource !== null && (
+          <div style={{ textAlign: 'center', padding: '6px 0', fontSize: '0.75rem', color: 'var(--accent)' }}>
+            Click another cell to swap, or click the same cell to cancel
+          </div>
+        )}
+        <SpriteGrid
+          sprites={displaySprites}
+          onCellClick={handleCellClick}
+          selectedCell={swapSource}
+          mirroredCells={mirroredCells}
+          onMirrorToggle={handleMirrorToggle}
+          thumbnailCell={thumbnailCell}
+          onThumbnailSet={state.historyId ? handleThumbnailSet : undefined}
+        />
+        {isOrderModified && (
+          <div style={{ textAlign: 'center', padding: '6px 0' }}>
+            <button
+              className="btn btn-sm"
+              onClick={() => {
+                setDisplayOrder(Array.from({ length: TOTAL_CELLS }, (_, i) => i));
+                setSwapSource(null);
+              }}
+            >
+              Reset Swaps
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right: Sidebar */}
@@ -385,7 +591,7 @@ export function SpriteReview() {
           <div className="sidebar-section">
             <h3>Color Striker</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {palette.map(([r, g, b], i) => {
+              {palette.slice(0, 72).map(([r, g, b], i) => {
                 const isStruck = struckColors.some(
                   (c) => c[0] === r && c[1] === g && c[2] === b,
                 );
@@ -414,13 +620,56 @@ export function SpriteReview() {
                 );
               })}
             </div>
+            {palette.length > 72 && (
+              <>
+                <button
+                  className="btn btn-sm w-full"
+                  style={{ marginTop: 6 }}
+                  onClick={() => setShowRareColors((v) => !v)}
+                >
+                  {showRareColors ? 'Hide' : 'More Colors'} ({palette.length - 72})
+                </button>
+                {showRareColors && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+                    {palette.slice(72).map(([r, g, b], i) => {
+                      const isStruck = struckColors.some(
+                        (c) => c[0] === r && c[1] === g && c[2] === b,
+                      );
+                      return (
+                        <button
+                          key={i + 72}
+                          onClick={() => {
+                            setStruckColors((prev) =>
+                              isStruck
+                                ? prev.filter((c) => c[0] !== r || c[1] !== g || c[2] !== b)
+                                : [...prev, [r, g, b]],
+                            );
+                          }}
+                          title={`rgb(${r}, ${g}, ${b})`}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            backgroundColor: `rgb(${r},${g},${b})`,
+                            border: isStruck ? '2px solid var(--accent)' : '2px solid var(--border)',
+                            borderRadius: 4,
+                            cursor: 'pointer',
+                            opacity: isStruck ? 0.4 : 1,
+                            position: 'relative',
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
             {struckColors.length > 0 && (
               <button
                 className="btn btn-sm w-full"
                 style={{ marginTop: 6 }}
                 onClick={() => setStruckColors([])}
               >
-                Clear All
+                Clear All ({struckColors.length})
               </button>
             )}
           </div>

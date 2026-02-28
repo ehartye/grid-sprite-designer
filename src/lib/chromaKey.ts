@@ -101,12 +101,15 @@ export function applyChromaKey(
 
 /**
  * Remove specific colors from ImageData.
- * Each struck color is removed with a fixed tolerance + soft edge.
+ * Uses Euclidean distance in RGB space for tight, perceptually-accurate
+ * color matching.  The tolerance is the max Euclidean distance (default 38
+ * ≈ ~22 per-channel average).  This is much tighter than the old Manhattan
+ * metric and avoids cross-hue bleed (e.g. blue striking green).
  */
 export function strikeColors(
   source: ImageData,
   colors: [number, number, number][],
-  tolerance = 30,
+  tolerance = 38,
 ): ImageData {
   if (colors.length === 0) return new ImageData(
     new Uint8ClampedArray(source.data),
@@ -120,18 +123,18 @@ export function strikeColors(
     source.height,
   );
   const data = out.data;
-  const threshold = tolerance * 3;
+  const thresholdSq = tolerance * tolerance;
 
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] === 0) continue;
 
     for (const [kr, kg, kb] of colors) {
-      const dist =
-        Math.abs(data[i] - kr) +
-        Math.abs(data[i + 1] - kg) +
-        Math.abs(data[i + 2] - kb);
+      const dr = data[i] - kr;
+      const dg = data[i + 1] - kg;
+      const db = data[i + 2] - kb;
+      const distSq = dr * dr + dg * dg + db * db;
 
-      if (dist < threshold) {
+      if (distSq < thresholdSq) {
         data[i + 3] = 0;
         break;
       }

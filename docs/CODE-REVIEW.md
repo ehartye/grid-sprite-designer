@@ -127,6 +127,7 @@ If `extractSprites` throws, the error is only logged to console. `GENERATE_COMPL
 **Area:** Frontend — `GalleryPage.tsx:72-78`
 Re-extraction always uses 2K config. If the original was 4K, extraction produces garbage.
 **Fix:** Store `imageSize` in history and use the matching config.
+**Status:** DEFERRED — focusing on 2K only for now. TODO when 4K support is prioritized.
 
 ### H14 — Rapid programmatic download clicks throttled by browsers
 **Area:** Frontend — `SpriteReview.tsx:261-271`

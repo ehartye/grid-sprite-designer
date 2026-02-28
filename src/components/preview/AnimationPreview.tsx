@@ -64,9 +64,12 @@ export function AnimationPreview() {
     const sprite = spriteMap.get(cellIdx);
     if (!sprite) return;
 
+    let cancelled = false;
     const ctx = canvas.getContext('2d')!;
     const img = new Image();
     img.onload = () => {
+      if (cancelled) return;
+
       const w = img.width * scale;
       const h = img.height * scale;
       canvas.width = Math.max(w, 256);
@@ -94,6 +97,11 @@ export function AnimationPreview() {
       );
     };
     img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
+
+    return () => {
+      cancelled = true;
+      img.src = '';
+    };
   }, [frameIndex, currentFrames, spriteMap, scale]);
 
   // Arrow key controls

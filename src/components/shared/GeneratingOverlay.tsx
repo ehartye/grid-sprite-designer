@@ -8,7 +8,7 @@ import React from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 
 export function GeneratingOverlay() {
-  const { state, reset } = useGridWorkflow();
+  const { state, cancelGeneration } = useGridWorkflow();
 
   return (
     <div className="generating-overlay">
@@ -22,7 +22,7 @@ export function GeneratingOverlay() {
         This may take up to 60 seconds
       </p>
 
-      <button className="btn btn-danger" onClick={reset}>
+      <button className="btn btn-danger" onClick={cancelGeneration}>
         Cancel
       </button>
     </div>

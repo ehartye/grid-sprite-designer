@@ -808,6 +808,89 @@ button {
   image-rendering: pixelated;
 }
 
+.sprite-cell:not(.empty) {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+}
+
+.sprite-cell .cell-mirror-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(14, 14, 24, 0.8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  z-index: 3;
+}
+
+.sprite-cell:hover .cell-mirror-btn {
+  opacity: 1;
+}
+
+.sprite-cell .cell-mirror-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sprite-cell .cell-mirror-btn.active {
+  opacity: 1;
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(200, 255, 0, 0.15);
+}
+
+.sprite-cell .cell-thumb-btn {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(14, 14, 24, 0.8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  z-index: 3;
+}
+
+.sprite-cell:hover .cell-thumb-btn {
+  opacity: 1;
+}
+
+.sprite-cell .cell-thumb-btn:hover {
+  color: #f5c542;
+  border-color: #f5c542;
+}
+
+.sprite-cell .cell-thumb-btn.active {
+  opacity: 1;
+  color: #f5c542;
+  border-color: #f5c542;
+  background: rgba(245, 197, 66, 0.15);
+}
+
 .sprite-cell.empty {
   border-style: dashed;
   border-color: var(--border);

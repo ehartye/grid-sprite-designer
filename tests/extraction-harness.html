@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Extraction Test Harness</title>
+  <style>
+    body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
+    .sprite-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 1200px; }
+    .sprite-cell { background: #333; border: 1px solid #555; text-align: center; padding: 4px; }
+    .sprite-cell img { max-width: 100%; image-rendering: pixelated; background: repeating-conic-gradient(#444 0% 25%, #555 0% 50%) 50% / 10px 10px; }
+    .sprite-cell .label { font-size: 10px; color: #aaa; margin-top: 4px; }
+    .info { margin-bottom: 16px; }
+    #top-pixels { background: #222; padding: 8px; }
+    #top-pixels canvas { margin: 2px; border: 1px solid #666; }
+  </style>
+</head>
+<body>
+  <h2>Extraction Test Harness (real spriteExtractor.ts)</h2>
+  <div class="info" id="info">Loading...</div>
+
+  <div class="section">
+    <h3>Top 10px of each sprite (header bleed check)</h3>
+    <div id="top-pixels"></div>
+  </div>
+
+  <div class="section">
+    <h3>Extracted Sprites</h3>
+    <div class="sprite-grid" id="sprites"></div>
+  </div>
+
+  <script type="module">
+    import { extractSprites } from '/src/lib/spriteExtractor.ts';
+
+    const params = new URLSearchParams(window.location.search);
+    const fixture = params.get('fixture') || 'filled-grid.jpg';
+
+    async function run() {
+      const info = document.getElementById('info');
+      info.textContent = `Loading fixture: ${fixture}...`;
+
+      // Fetch fixture image and convert to base64
+      const resp = await fetch(`/test-fixtures/${fixture}`);
+      if (!resp.ok) throw new Error(`Failed to load fixture: ${resp.status}`);
+      const blob = await resp.blob();
+      const mimeType = blob.type || 'image/jpeg';
+
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          resolve(dataUrl.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      // Call the REAL extractSprites from production code
+      const sprites = await extractSprites(base64, mimeType);
+
+      // Render sprites in visual grid + run header bleed analysis
+      const spritesDiv = document.getElementById('sprites');
+      const topPixelsDiv = document.getElementById('top-pixels');
+      const results = [];
+
+      for (const sprite of sprites) {
+        // Decode sprite base64 to canvas for header bleed analysis
+        const img = await loadImg(`data:${sprite.mimeType};base64,${sprite.imageData}`);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        // Check top 10px for header bleed (grayscale detection)
+        const checkH = Math.min(10, img.height);
+        const topData = ctx.getImageData(0, 0, img.width, checkH);
+        let grayPixels = 0;
+        const totalPixels = img.width * checkH;
+        for (let i = 0; i < topData.data.length; i += 4) {
+          const r = topData.data[i], g = topData.data[i + 1], b = topData.data[i + 2];
+          const maxC = Math.max(r, g, b);
+          const minC = Math.min(r, g, b);
+          const isGray = (maxC - minC) < 15 && (maxC < 30 || minC > 220);
+          if (isGray) grayPixels++;
+        }
+        const headerBleedPct = parseFloat(((grayPixels / totalPixels) * 100).toFixed(1));
+
+        // Whole-sprite dark band scan: check EVERY row for misplaced headers
+        const fullData = ctx.getImageData(0, 0, img.width, img.height);
+        let worstDarkBandPct = 0;
+        let worstDarkBandRow = -1;
+        for (let row = 0; row < img.height; row++) {
+          let darkCount = 0;
+          for (let x = 0; x < img.width; x++) {
+            const pi = (row * img.width + x) * 4;
+            const brightness = 0.299 * fullData.data[pi] + 0.587 * fullData.data[pi + 1] + 0.114 * fullData.data[pi + 2];
+            if (brightness < 30) darkCount++;
+          }
+          const pct = (darkCount / img.width) * 100;
+          if (pct > worstDarkBandPct) {
+            worstDarkBandPct = pct;
+            worstDarkBandRow = row;
+          }
+        }
+        worstDarkBandPct = parseFloat(worstDarkBandPct.toFixed(1));
+
+        results.push({
+          idx: sprite.cellIndex,
+          label: sprite.label,
+          headerBleedPct,
+          grayPixels,
+          totalPixels,
+          cellW: sprite.width,
+          cellH: sprite.height,
+          worstDarkBandPct,
+          worstDarkBandRow,
+        });
+
+        // Visual grid cell
+        const cellEl = document.createElement('div');
+        cellEl.className = 'sprite-cell';
+        const spriteImg = document.createElement('img');
+        spriteImg.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
+        spriteImg.alt = sprite.label;
+        cellEl.appendChild(spriteImg);
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = `${sprite.label} (${sprite.width}x${sprite.height})`;
+        label.style.color = headerBleedPct > 30 ? '#f44' : '#8f8';
+        cellEl.appendChild(label);
+        spritesDiv.appendChild(cellEl);
+
+        // Header bleed strip
+        const stripCanvas = document.createElement('canvas');
+        stripCanvas.width = img.width;
+        stripCanvas.height = checkH;
+        stripCanvas.title = `${sprite.label}: ${headerBleedPct}%`;
+        const stripCtx = stripCanvas.getContext('2d');
+        stripCtx.putImageData(topData, 0, 0);
+        topPixelsDiv.appendChild(stripCanvas);
+      }
+
+      // Summary
+      const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+      const avgBleed = (results.reduce((s, r) => s + r.headerBleedPct, 0) / results.length).toFixed(1);
+      const failing = results.filter(r => r.headerBleedPct > 30);
+
+      info.innerHTML = `
+        <b>Sprites:</b> ${sprites.length} |
+        <b>Max bleed:</b> ${maxBleed}% |
+        <b>Avg bleed:</b> ${avgBleed}% |
+        <b>Failing (>30%):</b> ${failing.length}/${sprites.length}
+        ${failing.length === 0 ? ' <span style="color:#8f8">ALL PASS</span>' : ''}
+      `;
+
+      // Expose results for Playwright
+      window.__extractionDone = true;
+      window.__results = results;
+    }
+
+    function loadImg(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    run().catch(err => {
+      document.getElementById('info').textContent = 'ERROR: ' + err.message;
+      console.error(err);
+      window.__extractionDone = true;
+      window.__results = [];
+    });
+  </script>
+</body>
+</html>

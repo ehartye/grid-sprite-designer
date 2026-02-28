@@ -19,6 +19,7 @@ export function getDb() {
   db.pragma('foreign_keys = ON');
 
   createSchema(db);
+  migrateSchema(db);
   seedPresets(db);
   return db;
 }
@@ -35,6 +36,9 @@ function createSchema(db) {
       prompt TEXT NOT NULL DEFAULT '',
       template_image TEXT NOT NULL DEFAULT '',
       filled_grid_image TEXT NOT NULL DEFAULT '',
+      thumbnail_cell_index INTEGER DEFAULT NULL,
+      thumbnail_image TEXT DEFAULT NULL,
+      thumbnail_mime TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -53,6 +57,21 @@ function createSchema(db) {
 
     CREATE INDEX IF NOT EXISTS idx_sprites_generation ON sprites(generation_id);
 
+    CREATE TABLE IF NOT EXISTS editor_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      generation_id INTEGER NOT NULL UNIQUE,
+      settings TEXT NOT NULL DEFAULT '{}',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY(generation_id) REFERENCES generations(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_editor_settings_generation ON editor_settings(generation_id);
+
+    CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS character_presets (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -65,6 +84,17 @@ function createSchema(db) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+}
+
+function migrateSchema(db) {
+  const migrations = [
+    'ALTER TABLE generations ADD COLUMN thumbnail_cell_index INTEGER DEFAULT NULL',
+    'ALTER TABLE generations ADD COLUMN thumbnail_image TEXT DEFAULT NULL',
+    'ALTER TABLE generations ADD COLUMN thumbnail_mime TEXT DEFAULT NULL',
+  ];
+  for (const sql of migrations) {
+    try { db.exec(sql); } catch (_) { /* column already exists */ }
+  }
 }
 
 function seedPresets(db) {
