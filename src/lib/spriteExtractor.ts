@@ -1,8 +1,13 @@
 /**
  * Extract individual sprites from a filled 6×6 grid image.
  *
- * Uses edge-based grid detection to locate cell boundaries, then
- * chromatic header detection to skip label rows before cropping.
+ * Row detection: darkness-based — header rows (black bg + white text) and grid
+ * lines are mostly dark pixels. We find contiguous dark bands (dividers) and
+ * use the gaps between them as the 6 content row regions.
+ *
+ * Column detection: variance-based (content rows only) — grid line columns have
+ * near-zero variance. We compute column variance using only content row pixels
+ * (excluding headers) and find grid lines, then use gaps as content columns.
  */
 
 import { COLS, ROWS, TOTAL_CELLS, CELL_LABELS } from './poses';
@@ -24,7 +29,9 @@ export interface ExtractionConfig {
   headerH: number;
   /** Grid line thickness in the original template */
   border: number;
-  /** Original template cell height (used to scale headerH to actual image) */
+  /** Original template cell width (used to scale grid to actual image) */
+  templateCellW: number;
+  /** Original template cell height (used to scale grid to actual image) */
   templateCellH: number;
   /** Extra inset (px) to clip anti-aliased border remnants */
   aaInset: number;
@@ -33,14 +40,14 @@ export interface ExtractionConfig {
 const DEFAULT_EXTRACTION: ExtractionConfig = {
   headerH: 14,
   border: 2,
+  templateCellW: 339,
   templateCellH: 339,
   aaInset: 3,
 };
 
 // ── Grid line detection ─────────────────────────────────────────────────────
 
-interface GridLine {
-  center: number;
+interface Band {
   start: number;
   end: number;
 }
@@ -53,250 +60,236 @@ interface CellRect {
 }
 
 /**
- * Compute average brightness (luminance) for each row or column.
- * Sample every 2nd pixel in the cross-dimension for performance.
+ * Compute per-row darkness score (fraction of very dark pixels).
+ *
+ * Header rows (black bg + white text) → mostly dark → high darkness score.
+ * Grid lines (dark/black) → mostly dark → high darkness score.
+ * Content rows (magenta bg + sprite art) → low darkness score.
+ *
+ * This identifies divider bands (headers + grid lines) in one pass.
  */
-function computeBrightnessProfile(
+function computeRowDarkness(
   data: Uint8ClampedArray,
   width: number,
   height: number,
-  axis: 'horizontal' | 'vertical',
 ): Float64Array {
-  const len = axis === 'horizontal' ? height : width;
-  const profile = new Float64Array(len);
-
-  if (axis === 'horizontal') {
-    for (let y = 0; y < height; y++) {
-      let sum = 0;
-      let count = 0;
-      for (let x = 0; x < width; x += 2) {
-        const i = (y * width + x) * 4;
-        sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        count++;
-      }
-      profile[y] = sum / count;
+  const scores = new Float64Array(height);
+  for (let y = 0; y < height; y++) {
+    let dark = 0;
+    let total = 0;
+    for (let x = 0; x < width; x += 2) {
+      total++;
+      const i = (y * width + x) * 4;
+      const brightness = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      if (brightness < 30) dark++;
     }
-  } else {
-    for (let x = 0; x < width; x++) {
-      let sum = 0;
-      let count = 0;
-      for (let y = 0; y < height; y += 2) {
-        const i = (y * width + x) * 4;
-        sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        count++;
-      }
-      profile[x] = sum / count;
-    }
+    scores[y] = total > 0 ? dark / total : 0;
   }
-
-  return profile;
+  return scores;
 }
 
 /**
- * Compute average saturation for each row or column.
- * Saturation = (max - min) / max for each pixel's RGB channels.
- * High-saturation columns/rows correspond to colored grid lines (pink, magenta).
+ * Find contiguous bands where the score exceeds the threshold.
  */
-function computeSaturationProfile(
+function findHighBands(
+  profile: Float64Array,
+  threshold: number,
+): Band[] {
+  const bands: Band[] = [];
+  let i = 0;
+  while (i < profile.length) {
+    if (profile[i] >= threshold) {
+      const start = i;
+      while (i < profile.length && profile[i] >= threshold) i++;
+      bands.push({ start, end: i - 1 });
+    } else {
+      i++;
+    }
+  }
+  return bands;
+}
+
+/**
+ * Merge bands separated by gaps smaller than maxGap pixels.
+ * Handles JPEG artifacts and anti-aliased edges that create tiny
+ * non-chromatic breaks within content regions.
+ */
+function mergeNearbyBands(bands: Band[], maxGap: number): Band[] {
+  if (bands.length === 0) return bands;
+  const merged: Band[] = [{ ...bands[0] }];
+  for (let i = 1; i < bands.length; i++) {
+    const last = merged[merged.length - 1];
+    if (bands[i].start - last.end <= maxGap) {
+      last.end = bands[i].end;
+    } else {
+      merged.push({ ...bands[i] });
+    }
+  }
+  return merged;
+}
+
+/**
+ * Compute per-column brightness variance (for vertical grid line detection).
+ * Grid line columns are uniform color → near-zero variance.
+ * Content columns have varied art → high variance.
+ *
+ * When contentBands is provided, only samples rows within those bands,
+ * excluding header rows whose uniform darkness would dilute the signal.
+ */
+function computeColumnVariance(
   data: Uint8ClampedArray,
   width: number,
   height: number,
-  axis: 'horizontal' | 'vertical',
+  contentBands?: Band[],
 ): Float64Array {
-  const len = axis === 'horizontal' ? height : width;
-  const profile = new Float64Array(len);
-
-  if (axis === 'horizontal') {
-    for (let y = 0; y < height; y++) {
-      let sum = 0;
-      let count = 0;
-      for (let x = 0; x < width; x += 2) {
-        const i = (y * width + x) * 4;
-        const maxC = Math.max(data[i], data[i + 1], data[i + 2]);
-        if (maxC > 0) {
-          const minC = Math.min(data[i], data[i + 1], data[i + 2]);
-          sum += (maxC - minC) / maxC;
+  const variance = new Float64Array(width);
+  for (let x = 0; x < width; x++) {
+    let sum = 0;
+    let sumSq = 0;
+    let count = 0;
+    if (contentBands && contentBands.length > 0) {
+      for (const band of contentBands) {
+        for (let y = band.start; y <= band.end; y += 2) {
+          const i = (y * width + x) * 4;
+          const b = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          sum += b;
+          sumSq += b * b;
+          count++;
         }
-        count++;
       }
-      profile[y] = sum / count;
-    }
-  } else {
-    for (let x = 0; x < width; x++) {
-      let sum = 0;
-      let count = 0;
+    } else {
       for (let y = 0; y < height; y += 2) {
         const i = (y * width + x) * 4;
-        const maxC = Math.max(data[i], data[i + 1], data[i + 2]);
-        if (maxC > 0) {
-          const minC = Math.min(data[i], data[i + 1], data[i + 2]);
-          sum += (maxC - minC) / maxC;
-        }
+        const b = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        sum += b;
+        sumSq += b * b;
         count++;
       }
-      profile[x] = sum / count;
+    }
+    if (count > 0) {
+      const mean = sum / count;
+      variance[x] = sumSq / count - mean * mean;
+    }
+  }
+  return variance;
+}
+
+/**
+ * Find contiguous bands where variance is below threshold (grid lines).
+ * Filters out bands wider than maxWidth to avoid picking up large uniform areas.
+ */
+function findLowBands(profile: Float64Array, threshold: number, maxWidth: number): Band[] {
+  const bands: Band[] = [];
+  let i = 0;
+  while (i < profile.length) {
+    if (profile[i] <= threshold) {
+      const start = i;
+      while (i < profile.length && profile[i] <= threshold) i++;
+      if (i - start <= maxWidth) {
+        bands.push({ start, end: i - 1 });
+      }
+    } else {
+      i++;
+    }
+  }
+  return bands;
+}
+
+/**
+ * Convert detected grid line bands into 6 cell content spans.
+ * Each cell spans from one grid line's far edge to the next grid line's near edge,
+ * with `margin` pixels trimmed on each side to skip anti-aliased edges.
+ */
+function gridLinesToCellSpans(
+  lines: Band[],
+  totalSize: number,
+  margin: number,
+): Array<{ start: number; size: number }> {
+  const sorted = [...lines].sort((a, b) => a.start - b.start);
+
+  // If outer borders weren't detected, add virtual edges
+  const expectedSpacing = totalSize / 6;
+  if (sorted.length === 0 || sorted[0].start > expectedSpacing * 0.3) {
+    sorted.unshift({ start: 0, end: 0 });
+  }
+  if (sorted.length === 0 || sorted[sorted.length - 1].end < totalSize - expectedSpacing * 0.3) {
+    sorted.push({ start: totalSize - 1, end: totalSize - 1 });
+  }
+
+  const spans: Array<{ start: number; size: number }> = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const start = sorted[i].end + 2 + margin;
+    const end = sorted[i + 1].start - 2 - margin;
+    const size = end - start + 1;
+    if (size > 0) {
+      spans.push({ start, size: Math.max(size, 1) });
+    }
+  }
+  return spans;
+}
+
+/**
+ * From a set of candidate grid line bands, select the subset that produces
+ * 6 roughly evenly-spaced cells. Tries the full set first, then prunes
+ * outliers that break the expected ~totalSize/6 spacing.
+ */
+function selectGridLines(
+  candidates: Band[],
+  totalSize: number,
+  margin: number,
+): Band[] | null {
+  // Try candidates as-is
+  const spans = gridLinesToCellSpans(candidates, totalSize, margin);
+  if (spans.length === 6 && spansAreEven(spans, totalSize)) return candidates;
+
+  // If too many candidates, try pruning. Real grid lines are evenly spaced.
+  if (candidates.length > 7) {
+    const expectedSpacing = totalSize / 6;
+    const sorted = [...candidates].sort((a, b) => a.start - b.start);
+
+    const scored = sorted.map((band) => {
+      const center = (band.start + band.end) / 2;
+      const nearestMultiple = Math.round(center / expectedSpacing) * expectedSpacing;
+      const error = Math.abs(center - nearestMultiple);
+      return { band, error };
+    });
+
+    scored.sort((a, b) => a.error - b.error);
+    for (let take = Math.min(scored.length, 10); take >= 7; take--) {
+      const subset = scored.slice(0, take).map((s) => s.band);
+      const subSpans = gridLinesToCellSpans(subset, totalSize, margin);
+      if (subSpans.length === 6 && spansAreEven(subSpans, totalSize)) return subset;
     }
   }
 
-  return profile;
+  return null;
+}
+
+function spansAreEven(
+  spans: Array<{ start: number; size: number }>,
+  totalSize: number,
+): boolean {
+  const expected = totalSize / 6;
+  const tolerance = expected * 0.3;
+  return spans.every((s) => Math.abs(s.size - expected) < tolerance);
 }
 
 /**
- * Smooth a 1D profile with a 3-tap triangular kernel: [1, 2, 1] / 4.
- */
-function smoothProfile(profile: Float64Array): Float64Array {
-  const out = new Float64Array(profile.length);
-  out[0] = profile[0];
-  out[profile.length - 1] = profile[profile.length - 1];
-  for (let i = 1; i < profile.length - 1; i++) {
-    out[i] = (profile[i - 1] + 2 * profile[i] + profile[i + 1]) / 4;
-  }
-  return out;
-}
-
-/**
- * Find a grid line near an expected position by searching for the darkest
- * valley within a window, then expanding to the full dark band.
- */
-function findGridLineInWindow(
-  profile: Float64Array,
-  expectedPos: number,
-  windowRadius: number,
-  threshold: number,
-): GridLine | null {
-  const start = Math.max(0, expectedPos - windowRadius);
-  const end = Math.min(profile.length - 1, expectedPos + windowRadius);
-
-  // Find the darkest row in the window
-  let minVal = Infinity;
-  let minIdx = expectedPos;
-  for (let i = start; i <= end; i++) {
-    if (profile[i] < minVal) {
-      minVal = profile[i];
-      minIdx = i;
-    }
-  }
-
-  // Must be below threshold to count
-  if (minVal > threshold) return null;
-
-  // Expand the band: consecutive rows below threshold
-  let bandStart = minIdx;
-  let bandEnd = minIdx;
-  while (bandStart > 0 && profile[bandStart - 1] < threshold) bandStart--;
-  while (bandEnd < profile.length - 1 && profile[bandEnd + 1] < threshold) bandEnd++;
-
-  return {
-    center: minIdx,
-    start: bandStart,
-    end: bandEnd,
-  };
-}
-
-/**
- * Find a grid line near an expected position by searching for the highest
- * saturation peak within a window, then expanding to the full saturated band.
- * This is the inverse of findGridLineInWindow — for colored (not dark) lines.
- */
-function findGridLineBySaturationPeak(
-  profile: Float64Array,
-  expectedPos: number,
-  windowRadius: number,
-  threshold: number,
-): GridLine | null {
-  const start = Math.max(0, expectedPos - windowRadius);
-  const end = Math.min(profile.length - 1, expectedPos + windowRadius);
-
-  // Find the most saturated position in the window
-  let maxVal = -Infinity;
-  let maxIdx = expectedPos;
-  for (let i = start; i <= end; i++) {
-    if (profile[i] > maxVal) {
-      maxVal = profile[i];
-      maxIdx = i;
-    }
-  }
-
-  // Must be above threshold to count
-  if (maxVal < threshold) return null;
-
-  // Expand the band using a LOCAL threshold (80% of peak value).
-  // The external threshold is for peak detection; the local threshold
-  // prevents JPEG anti-aliasing from inflating the band width.
-  const bandThreshold = Math.max(threshold, maxVal * 0.8);
-  let bandStart = maxIdx;
-  let bandEnd = maxIdx;
-  while (bandStart > 0 && profile[bandStart - 1] > bandThreshold) bandStart--;
-  while (bandEnd < profile.length - 1 && profile[bandEnd + 1] > bandThreshold) bandEnd++;
-
-  return {
-    center: maxIdx,
-    start: bandStart,
-    end: bandEnd,
-  };
-}
-
-/**
- * Score a set of detected grid lines by uniformity and quality.
- * Lower score = better detection. Considers:
- * - Cell spacing uniformity (coefficient of variation)
- * - Penalty for template-fallback lines (artificially perfect uniformity)
- * - Penalty for unreasonably wide borders (false-positive dark bands)
- */
-function scoreGridLines(
-  lines: GridLine[],
-  expectedPositions: number[],
-  templateBorder: number,
-): number {
-  const gaps: number[] = [];
-  for (let i = 0; i < lines.length - 1; i++) {
-    gaps.push(lines[i + 1].center - lines[i].center);
-  }
-  if (gaps.length === 0) return Infinity;
-  const gapMean = gaps.reduce((s, g) => s + g, 0) / gaps.length;
-  if (gapMean === 0) return Infinity;
-  const gapVar = gaps.reduce((s, g) => s + (g - gapMean) ** 2, 0) / gaps.length;
-  const gapCV = Math.sqrt(gapVar) / gapMean;
-
-  // Penalize template fallbacks (undetected lines default to template positions)
-  let fallbackCount = 0;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].center === expectedPositions[i] && lines[i].start === lines[i].end) {
-      fallbackCount++;
-    }
-  }
-  // Weight ×2: template defaults (no real detection) should strongly lose
-  // to any actual detection, even with imperfect band widths
-  const fallbackPenalty = (fallbackCount / lines.length) * 2;
-
-  // Penalize unreasonably wide borders (> 5× template).
-  // Relaxed from 3× to 5× because JPEG anti-aliasing around colored
-  // grid lines can widen detected bands to ~6-8px from a 2px original.
-  const interior = lines.slice(1, -1);
-  const widths = interior.map(l => l.end - l.start + 1);
-  const avgWidth = widths.length > 0
-    ? widths.reduce((s, w) => s + w, 0) / widths.length
-    : templateBorder;
-  const borderPenalty = avgWidth > templateBorder * 5
-    ? (avgWidth - templateBorder) / templateBorder
-    : 0;
-
-  return gapCV + fallbackPenalty + borderPenalty;
-}
-
-/**
- * Detect the actual grid line positions in a filled grid image by
- * scanning brightness profiles and using template positions as priors.
+ * Detect cell rects using two complementary strategies:
  *
- * Strategy:
- *  1. Detect VERTICAL lines first — these are clean (no header confusion).
- *  2. Measure the actual border width from vertical line bands.
- *  3. Detect HORIZONTAL line CENTERS only (the darkest point near each
- *     expected position). We avoid expanding bands because the dark header
- *     strips get swallowed, producing non-uniform cell heights.
- *  4. Use the measured border width to compute cell boundaries from centers.
+ * **Rows (horizontal)**: Chromaticity-based content detection.
+ *   Content rows have magenta (#FF00FF) background → high chromaticity.
+ *   Header rows (black bg + white text) → grayscale → low chromaticity.
+ *   Grid lines (uniform dark/colored) → low chromaticity or absorbed into content.
+ *   We find contiguous chromatic bands — these are the 6 content row regions,
+ *   with headers and grid lines already excluded.
  *
- * Returns 36 cell rectangles derived from detected grid lines.
+ * **Columns (vertical)**: Variance-based grid line detection.
+ *   Grid line columns have near-zero variance (uniform color).
+ *   Content columns have high variance. We find the grid lines and derive
+ *   cell spans from the spaces between them.
+ *
+ * Falls back to template positions if detection doesn't yield 6×6 cells.
  */
 function detectGridLines(
   data: Uint8ClampedArray,
@@ -307,116 +300,86 @@ function detectGridLines(
   templateCellH: number,
   aaInset: number,
 ): CellRect[] {
-  const templateImgW = COLS * templateCellW + (COLS + 1) * templateBorder;
-  const templateImgH = ROWS * templateCellH + (ROWS + 1) * templateBorder;
+  // ── Horizontal: find content rows via chromaticity ──────────────────────
+  // This strips both grid lines AND header text rows in one pass.
+  // Header rows are black bg + white text (grayscale → low chromaticity).
+  // Content rows have magenta background (high chromaticity).
+  const rowChroma = computeRowChromaticity(data, width, height);
+  let hBands = findHighBands(rowChroma, 0.3);
+  console.log(`[GridDetect] Raw high bands (>0.3): ${hBands.length}`, hBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
+  // Merge tiny gaps from JPEG artifacts / anti-aliased edges
+  hBands = mergeNearbyBands(hBands, 3);
+  console.log(`[GridDetect] After merge (gap<=3): ${hBands.length}`, hBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
+  // Filter out narrow bands (colored grid lines that happen to be chromatic)
+  const minBandHeight = height * 0.05;
+  hBands = hBands.filter((b) => b.end - b.start + 1 > minBandHeight);
+  console.log(`[GridDetect] After filter (>${Math.round(minBandHeight)}px): ${hBands.length}`, hBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
 
-  // Compute expected grid line positions scaled to actual image size
-  const expectedH: number[] = [];
-  const expectedV: number[] = [];
-  for (let i = 0; i <= COLS; i++) {
-    const templatePos = i * (templateCellW + templateBorder);
-    expectedV.push(Math.round(templatePos * width / templateImgW));
-  }
-  for (let i = 0; i <= ROWS; i++) {
-    const templatePos = i * (templateCellH + templateBorder);
-    expectedH.push(Math.round(templatePos * height / templateImgH));
-  }
+  // ── Vertical: find grid lines via column variance ──────────────────────
+  const colVar = computeColumnVariance(data, width, height);
+  const colSorted = Array.from(colVar).sort((a, b) => a - b);
+  const colMedian = colSorted[Math.floor(colSorted.length / 2)];
+  const vCandidates = findLowBands(colVar, colMedian * 0.02, 20);
+  console.log(`[GridDetect] Column: median=${colMedian.toFixed(1)}, threshold=${(colMedian*0.02).toFixed(1)}, candidates=${vCandidates.length}`, vCandidates.map(b => `${b.start}-${b.end}`));
+  const vLines = selectGridLines(vCandidates, width, aaInset);
+  console.log(`[GridDetect] Column selectGridLines result: ${vLines ? vLines.length + ' lines' : 'null'}`);
 
-  // Compute brightness profiles
-  const hProfile = smoothProfile(computeBrightnessProfile(data, width, height, 'horizontal'));
-  const vProfile = smoothProfile(computeBrightnessProfile(data, width, height, 'vertical'));
-
-  function computeThreshold(profile: Float64Array): number {
-    const sorted = Array.from(profile).sort((a, b) => a - b);
-    const median = sorted[Math.floor(sorted.length / 2)];
-    return median * 0.5;
-  }
-
-  const vThreshold = computeThreshold(vProfile);
-  const hThreshold = computeThreshold(hProfile);
-  const searchWindow = Math.max(25, Math.ceil(height * 0.05));
-
-  // ── Step 1: Detect vertical lines — try both brightness and saturation, pick best ──
-  const vLinesBright: GridLine[] = [];
-  for (const pos of expectedV) {
-    const line = findGridLineInWindow(vProfile, pos, searchWindow, vThreshold);
-    vLinesBright.push(line || { center: pos, start: pos, end: pos });
+  if (hBands.length !== 6 || !vLines) {
+    console.log(`[GridDetect] FALLBACK: hBands=${hBands.length}, vLines=${!!vLines}`);
+    return templateFallback(width, height, templateBorder, templateCellW, templateCellH, aaInset);
   }
 
-  const vSatProfile = smoothProfile(
-    computeSaturationProfile(data, width, height, 'vertical'),
-  );
-  const sortedVSat = Array.from(vSatProfile).sort((a, b) => a - b);
-  const vSatThreshold = sortedVSat[Math.floor(sortedVSat.length * 0.85)];
+  // Convert content bands to spans with aaInset trimming
+  const hSpans = hBands.map((b) => ({
+    start: b.start + aaInset,
+    size: Math.max(b.end - b.start + 1 - 2 * aaInset, 1),
+  }));
+  const vSpans = gridLinesToCellSpans(vLines, width, aaInset);
 
-  const vLinesSat: GridLine[] = [];
-  for (const pos of expectedV) {
-    const line = findGridLineBySaturationPeak(vSatProfile, pos, searchWindow, vSatThreshold);
-    vLinesSat.push(line || { center: pos, start: pos, end: pos });
+  if (hSpans.length !== 6 || vSpans.length !== 6) {
+    return templateFallback(width, height, templateBorder, templateCellW, templateCellH, aaInset);
   }
-
-  const vLines = scoreGridLines(vLinesBright, expectedV, templateBorder)
-    <= scoreGridLines(vLinesSat, expectedV, templateBorder)
-    ? vLinesBright : vLinesSat;
-
-  // ── Step 2: Measure actual border width from vertical bands ──
-  const interiorVBands = vLines.slice(1, -1);
-  const avgBorderWidth = interiorVBands.length > 0
-    ? Math.round(
-        interiorVBands.reduce((s, l) => s + (l.end - l.start + 1), 0)
-        / interiorVBands.length,
-      )
-    : templateBorder;
-  const halfBorder = Math.ceil(avgBorderWidth / 2);
-
-  // ── Step 3: Detect horizontal lines — try both brightness and saturation, pick best ──
-  const hLinesBright: GridLine[] = [];
-  for (const pos of expectedH) {
-    const line = findGridLineInWindow(hProfile, pos, searchWindow, hThreshold);
-    hLinesBright.push(line || { center: pos, start: pos, end: pos });
-  }
-
-  const hSatProfile = smoothProfile(
-    computeSaturationProfile(data, width, height, 'horizontal'),
-  );
-  const sortedHSat = Array.from(hSatProfile).sort((a, b) => a - b);
-  const hSatThreshold = sortedHSat[Math.floor(sortedHSat.length * 0.85)];
-
-  const hLinesSat: GridLine[] = [];
-  for (const pos of expectedH) {
-    const line = findGridLineBySaturationPeak(hSatProfile, pos, searchWindow, hSatThreshold);
-    hLinesSat.push(line || { center: pos, start: pos, end: pos });
-  }
-
-  const hBestLines = scoreGridLines(hLinesBright, expectedH, templateBorder)
-    <= scoreGridLines(hLinesSat, expectedH, templateBorder)
-    ? hLinesBright : hLinesSat;
-  const hCenters = hBestLines.map(l => l.center);
-
-  // ── Step 4: Derive cell rectangles ──
-  // Extra inset to clip anti-aliased border remnants (the gradient
-  // transition zone around grid lines that falls below the detection
-  // threshold but is still faintly visible).
-  const AA_INSET = aaInset;
 
   const cells: CellRect[] = [];
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
-      // Vertical: use band edges (reliable)
-      const cellX = vLines[col].end + 1 + AA_INSET;
-      const cellRight = vLines[col + 1].start - 1 - AA_INSET;
-
-      // Horizontal: use center + halfBorder offset (avoids header confusion)
-      const cellY = hCenters[row] + halfBorder + 1 + AA_INSET;
-      const cellBottom = hCenters[row + 1] - halfBorder - 1 - AA_INSET;
-
-      const w = cellRight - cellX + 1;
-      const h = cellBottom - cellY + 1;
-
-      cells.push({ x: cellX, y: cellY, w: Math.max(w, 1), h: Math.max(h, 1) });
+      cells.push({
+        x: vSpans[col].start,
+        y: hSpans[row].start,
+        w: vSpans[col].size,
+        h: hSpans[row].size,
+      });
     }
   }
 
+  return cells;
+}
+
+/**
+ * Template-based fallback when band detection fails.
+ */
+function templateFallback(
+  width: number,
+  height: number,
+  templateBorder: number,
+  templateCellW: number,
+  templateCellH: number,
+  aaInset: number,
+): CellRect[] {
+  const templateImgW = COLS * templateCellW + (COLS + 1) * templateBorder;
+  const templateImgH = ROWS * templateCellH + (ROWS + 1) * templateBorder;
+  const cells: CellRect[] = [];
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const tX = col * (templateCellW + templateBorder) + templateBorder;
+      const tY = row * (templateCellH + templateBorder) + templateBorder;
+      const x = Math.round(tX * width / templateImgW) + aaInset;
+      const y = Math.round(tY * height / templateImgH) + aaInset;
+      const w = Math.round(templateCellW * width / templateImgW) - 2 * aaInset;
+      const h = Math.round(templateCellH * height / templateImgH) - 2 * aaInset;
+      cells.push({ x, y, w: Math.max(w, 1), h: Math.max(h, 1) });
+    }
+  }
   return cells;
 }
 
@@ -436,8 +399,9 @@ function loadImage(base64: string, mimeType: string): Promise<HTMLImageElement> 
 /**
  * Extract all 36 sprites from a filled grid image.
  *
- * Uses edge-based grid detection to find cell boundaries, then
- * chromatic header detection to skip label rows before cropping.
+ * Uses chromaticity-based row detection (strips headers + grid lines in one pass)
+ * and variance-based column detection to locate cell boundaries, then crops
+ * each cell directly — no per-cell header detection needed.
  */
 export async function extractSprites(
   gridBase64: string,
@@ -454,17 +418,12 @@ export async function extractSprites(
   const gridCtx = gridCanvas.getContext('2d')!;
   gridCtx.drawImage(img, 0, 0);
 
-  // Read full grid pixel data for analysis
   const gridData = gridCtx.getImageData(0, 0, img.width, img.height);
-  const gd = gridData.data;
-  const gw = img.width;
 
-  // Detect actual grid line positions via brightness profiling.
-  // Gemini doesn't preserve template grid structure faithfully — borders shift,
-  // headers vary in size — so we scan for the real grid lines in the output.
+  // Detect cell rects — headers are already excluded by chromaticity detection
   const cells = detectGridLines(
-    gd, img.width, img.height,
-    cfg.border, cfg.templateCellH, cfg.templateCellH, // square cells
+    gridData.data, img.width, img.height,
+    cfg.border, cfg.templateCellW, cfg.templateCellH,
     cfg.aaInset,
   );
 
@@ -474,70 +433,24 @@ export async function extractSprites(
     );
   }
 
-  /**
-   * Detect header height within a cell by finding where chromatic content begins.
-   *
-   * Header rows are GRAYSCALE: black background + white text → R ≈ G ≈ B.
-   * Content rows have MAGENTA background (#FF00FF) → high saturation.
-   * Even JPEG-compressed, the magenta shows clear R≠G≠B separation.
-   */
-  function detectCellHeader(
-    cellX: number, cellY: number,
-    cw: number, ch: number,
-  ): number {
-    const maxScan = Math.ceil(ch * 0.25);
-    for (let y = 0; y < maxScan; y++) {
-      let chromaCount = 0;
-      let totalSamples = 0;
-
-      for (let x = 2; x < cw - 2; x += 2) {
-        const px = cellX + x;
-        const py = cellY + y;
-        if (px < gw && py < img.height) {
-          totalSamples++;
-          const i = (py * gw + px) * 4;
-          const r = gd[i], g = gd[i + 1], b = gd[i + 2];
-          const maxC = Math.max(r, g, b);
-          const minC = Math.min(r, g, b);
-          if (maxC > 30 && (maxC - minC) / maxC > 0.2) {
-            chromaCount++;
-          }
-        }
-      }
-
-      if (totalSamples > 0 && chromaCount / totalSamples > 0.10) {
-        return y;
-      }
-    }
-
-    return 0;
-  }
-
   const sprites: ExtractedSprite[] = [];
 
   for (let idx = 0; idx < TOTAL_CELLS; idx++) {
     const cell = cells[idx];
 
-    // Dynamically detect header height for this cell
-    const headerH = detectCellHeader(cell.x, cell.y, cell.w, cell.h);
-    const contentH = cell.h - headerH;
-
-    if (contentH <= 0) continue;
-
-    // Crop the cell content area (below header)
+    // Cell rects already exclude headers — crop directly
     const workCanvas = document.createElement('canvas');
     workCanvas.width = cell.w;
-    workCanvas.height = contentH;
+    workCanvas.height = cell.h;
     const workCtx = workCanvas.getContext('2d')!;
 
-    workCtx.clearRect(0, 0, cell.w, contentH);
+    workCtx.clearRect(0, 0, cell.w, cell.h);
     workCtx.drawImage(
       img,
-      cell.x, cell.y + headerH, cell.w, contentH,
-      0, 0, cell.w, contentH,
+      cell.x, cell.y, cell.w, cell.h,
+      0, 0, cell.w, cell.h,
     );
 
-    // Convert to PNG base64
     const dataUrl = workCanvas.toDataURL('image/png');
     const base64 = dataUrl.split(',')[1];
 
@@ -547,7 +460,7 @@ export async function extractSprites(
       imageData: base64,
       mimeType: 'image/png',
       width: cell.w,
-      height: contentH,
+      height: cell.h,
     });
   }
 

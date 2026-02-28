@@ -73,6 +73,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
             {
               headerH: CONFIG_2K.headerH,
               border: CONFIG_2K.border,
+              templateCellW: CONFIG_2K.cellW,
               templateCellH: CONFIG_2K.cellH,
             },
           );

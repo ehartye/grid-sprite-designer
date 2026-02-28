@@ -3,7 +3,7 @@
  * Orchestrates: generate template → call Gemini → extract sprites.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { generateTemplate, CONFIG_2K, CONFIG_4K } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
@@ -12,12 +12,29 @@ import { generateGrid } from '../api/geminiClient';
 
 export function useGridWorkflow() {
   const { state, dispatch } = useAppContext();
+  const abortRef = useRef<AbortController | null>(null);
+  const isGeneratingRef = useRef(false);
+
+  const cancelGeneration = useCallback(() => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    isGeneratingRef.current = false;
+    dispatch({ type: 'RESET' });
+  }, [dispatch]);
 
   const generate = useCallback(async () => {
     if (!state.character.name.trim() || !state.character.description.trim()) {
       dispatch({ type: 'SET_STATUS', message: 'Please enter a character name and description.', statusType: 'warning' });
       return;
     }
+
+    if (isGeneratingRef.current) return;
+    isGeneratingRef.current = true;
+
+    const abort = new AbortController();
+    abortRef.current = abort;
 
     try {
       // 1. Generate template grid
@@ -35,12 +52,17 @@ export function useGridWorkflow() {
         prompt,
         { data: template.base64, mimeType: 'image/png' },
         state.imageSize,
+        abort.signal,
       );
+
+      if (abort.signal.aborted) return;
 
       if (!result.image) {
         dispatch({ type: 'GENERATE_ERROR', error: 'Gemini returned no image. Try again.' });
         return;
       }
+
+      if (abort.signal.aborted) return;
 
       dispatch({
         type: 'GENERATE_COMPLETE',
@@ -56,9 +78,12 @@ export function useGridWorkflow() {
         {
           headerH: templateConfig.headerH,
           border: templateConfig.border,
+          templateCellW: templateConfig.cellW,
           templateCellH: templateConfig.cellH,
         },
       );
+
+      if (abort.signal.aborted) return;
 
       dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
 
@@ -82,16 +107,21 @@ export function useGridWorkflow() {
             prompt,
             filledGridImage: result.image.data,
           }),
+          signal: abort.signal,
         });
         const histData = await histResp.json();
+
+        if (abort.signal.aborted) return;
         dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
 
         await fetch(`/api/history/${histData.id}/sprites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sprites: spritePayload }),
+          signal: abort.signal,
         });
-      } catch {
+      } catch (e: any) {
+        if (e?.name === 'AbortError') return;
         console.warn('Failed to save to history');
       }
 
@@ -106,13 +136,19 @@ export function useGridWorkflow() {
             filledGridMimeType: result.image.mimeType,
             sprites: spritePayload,
           }),
+          signal: abort.signal,
         });
-      } catch {
+      } catch (e: any) {
+        if (e?.name === 'AbortError') return;
         console.warn('Failed to archive to disk');
       }
 
     } catch (err: any) {
+      if (err?.name === 'AbortError') return;
       dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
+    } finally {
+      isGeneratingRef.current = false;
+      abortRef.current = null;
     }
   }, [state.character, state.model, state.imageSize, dispatch]);
 
@@ -128,6 +164,7 @@ export function useGridWorkflow() {
       {
         headerH: templateConfig.headerH,
         border: templateConfig.border,
+        templateCellW: templateConfig.cellW,
         templateCellH: templateConfig.cellH,
         ...overrides,
       },
@@ -144,5 +181,5 @@ export function useGridWorkflow() {
     dispatch({ type: 'SET_STEP', step });
   }, [dispatch]);
 
-  return { state, dispatch, generate, reExtract, reset, setStep };
+  return { state, dispatch, generate, reExtract, reset, cancelGeneration, setStep };
 }

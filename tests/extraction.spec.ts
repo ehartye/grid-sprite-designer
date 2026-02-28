@@ -1,130 +1,126 @@
 import { test, expect } from '@playwright/test';
-import { createServer } from 'http';
-import { readFileSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import handler from 'serve-handler';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..');
 
+const MAX_ALLOWED_BLEED = 15; // % of top 10px that are dark/white
+const MAX_DARK_BAND_PCT = 80; // % dark pixels in any single row (catches misplaced headers)
+const MAX_HEIGHT_SPREAD = 10; // px max height variation within a row
+
+interface SpriteResult {
+  idx: number;
+  label: string;
+  headerBleedPct: number;
+  grayPixels: number;
+  totalPixels: number;
+  cellW: number;
+  cellH: number;
+  worstDarkBandPct: number;
+  worstDarkBandRow: number;
+}
+
+async function runExtraction(page: any, fixture: string): Promise<SpriteResult[]> {
+  await page.goto(`/tests/extraction-harness.html?fixture=${fixture}`, {
+    waitUntil: 'domcontentloaded',
+  });
+
+  await page.waitForFunction(() => (window as any).__extractionDone === true, {
+    timeout: 30000,
+  });
+
+  return page.evaluate(() => (window as any).__results);
+}
+
+function checkResults(results: SpriteResult[], fixtureName: string) {
+  expect(results, `${fixtureName}: expected 36 sprites`).toHaveLength(36);
+
+  // Check header bleed (top 10px)
+  const bleedFailures: string[] = [];
+  for (const r of results) {
+    if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
+      bleedFailures.push(`${r.label}: ${r.headerBleedPct}% header bleed`);
+    }
+  }
+  expect(bleedFailures, `${fixtureName}: header bleed failures:\n${bleedFailures.join('\n')}`).toHaveLength(0);
+
+  // Check whole-sprite dark bands (catches headers anywhere, not just top)
+  const darkBandFailures: string[] = [];
+  for (const r of results) {
+    if (r.worstDarkBandPct > MAX_DARK_BAND_PCT) {
+      darkBandFailures.push(`${r.label}: ${r.worstDarkBandPct}% dark at row ${r.worstDarkBandRow}`);
+    }
+  }
+  expect(darkBandFailures, `${fixtureName}: dark band failures:\n${darkBandFailures.join('\n')}`).toHaveLength(0);
+
+  // Check cell height uniformity within each row (6 sprites per row)
+  for (let row = 0; row < 6; row++) {
+    const rowSprites = results.filter(r => Math.floor(r.idx / 6) === row);
+    const heights = rowSprites.map(r => r.cellH);
+    const spread = Math.max(...heights) - Math.min(...heights);
+    expect(spread, `${fixtureName} row ${row}: height spread ${spread}px (heights: ${heights.join(',')})`).toBeLessThanOrEqual(MAX_HEIGHT_SPREAD);
+  }
+}
+
 test.describe('Sprite Extraction', () => {
-  let server: ReturnType<typeof createServer>;
-  let port: number;
-
-  test.beforeAll(async () => {
-    // Simple static file server for the test HTML + fixtures
-    server = createServer((req, res) => {
-      return handler(req, res, { public: ROOT });
-    });
-    await new Promise<void>((resolve) => {
-      server.listen(0, () => {
-        port = (server.address() as any).port;
-        resolve();
-      });
-    });
-  });
-
-  test.afterAll(async () => {
-    server?.close();
-  });
-
-  test('extracted sprites should not contain header text', async ({ page }) => {
-    // Verify fixture exists
+  test('filled-grid: standard dark grid lines', async ({ page }) => {
     const fixturePath = join(ROOT, 'test-fixtures', 'filled-grid.jpg');
     expect(existsSync(fixturePath), 'Test fixture filled-grid.jpg must exist').toBeTruthy();
 
-    await page.goto(`http://localhost:${port}/tests/extract-test.html`, {
-      waitUntil: 'domcontentloaded',
-    });
+    const results = await runExtraction(page, 'filled-grid.jpg');
+    checkResults(results, 'filled-grid');
 
-    // Wait for extraction to complete
-    await page.waitForFunction(() => (window as any).__extractionDone === true, {
-      timeout: 30000,
-    });
-
-    // Get test results
-    const results = await page.evaluate(() => (window as any).__results);
-    expect(results).toHaveLength(36);
-
-    // Check each sprite for header bleed
-    const MAX_ALLOWED_BLEED = 15; // % of top 10px that are dark/white
-    const failures: string[] = [];
-
-    for (const r of results) {
-      if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
-        failures.push(`${r.label}: ${r.headerBleedPct}% header bleed (${r.darkPixels}/${r.totalPixels} dark/white pixels in top 10px)`);
-      }
-    }
-
-    // Screenshot the results page for manual inspection
     await page.screenshot({
-      path: join(ROOT, 'test-fixtures', 'extraction-results.png'),
+      path: join(ROOT, 'test-results', 'filled-grid-results.png'),
       fullPage: true,
     });
 
-    // Screenshot just the top-pixels section (zoomed header bleed check)
-    const topPixels = page.locator('#top-pixels');
-    await topPixels.screenshot({
-      path: join(ROOT, 'test-fixtures', 'header-bleed-strips.png'),
-    });
-
-    // Screenshot the sprite grid
-    const spriteGrid = page.locator('.sprite-grid');
-    await spriteGrid.screenshot({
-      path: join(ROOT, 'test-fixtures', 'extracted-sprites.png'),
-    });
-
-    // Get computed dimensions
-    const info = await page.locator('#info').textContent();
-    console.log('Extraction info:', info);
-
     // Log summary
-    const maxBleed = Math.max(...results.map((r: any) => r.headerBleedPct));
-    const avgBleed = results.reduce((s: number, r: any) => s + r.headerBleedPct, 0) / results.length;
-    console.log(`Header bleed — max: ${maxBleed}%, avg: ${avgBleed.toFixed(1)}%`);
-
-    if (failures.length > 0) {
-      console.log('FAILING sprites:');
-      failures.forEach(f => console.log('  ' + f));
-    }
-
-    expect(failures, `${failures.length} sprites have header bleed:\n${failures.join('\n')}`).toHaveLength(0);
+    const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+    const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
+    console.log(`filled-grid — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
   });
 
-  test('colored grid lines should extract correctly', async ({ page }) => {
+  test('colored-grid: colored (pink) grid lines', async ({ page }) => {
     const fixturePath = join(ROOT, 'test-fixtures', 'colored-grid.jpg');
     if (!existsSync(fixturePath)) {
       test.skip();
       return;
     }
 
-    await page.goto(
-      `http://localhost:${port}/tests/extract-test.html?fixture=colored-grid.jpg`,
-      { waitUntil: 'domcontentloaded' },
-    );
-
-    await page.waitForFunction(() => (window as any).__extractionDone === true, {
-      timeout: 30000,
-    });
-
-    const results = await page.evaluate(() => (window as any).__results);
-    expect(results).toHaveLength(36);
-
-    const MAX_ALLOWED_BLEED = 15;
-    const failures: string[] = [];
-    for (const r of results) {
-      if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
-        failures.push(`${r.label}: ${r.headerBleedPct}% header bleed`);
-      }
-    }
+    const results = await runExtraction(page, 'colored-grid.jpg');
+    checkResults(results, 'colored-grid');
 
     await page.screenshot({
-      path: join(ROOT, 'test-fixtures', 'colored-grid-results.png'),
+      path: join(ROOT, 'test-results', 'colored-grid-results.png'),
       fullPage: true,
     });
 
-    expect(failures, `${failures.length} sprites have header bleed:\n${failures.join('\n')}`).toHaveLength(0);
+    const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+    const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
+    console.log(`colored-grid — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
+  });
+
+  test('fluxbot-drone: magenta grid lines', async ({ page }) => {
+    const fixturePath = join(ROOT, 'test-fixtures', 'fluxbot-drone.jpg');
+    if (!existsSync(fixturePath)) {
+      test.skip();
+      return;
+    }
+
+    const results = await runExtraction(page, 'fluxbot-drone.jpg');
+    checkResults(results, 'fluxbot-drone');
+
+    await page.screenshot({
+      path: join(ROOT, 'test-results', 'fluxbot-drone-results.png'),
+      fullPage: true,
+    });
+
+    const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+    const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
+    console.log(`fluxbot-drone — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
   });
 });

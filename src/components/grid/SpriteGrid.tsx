@@ -5,17 +5,20 @@
  */
 
 import React from 'react';
-import { useAppContext } from '../../context/AppContext';
-import { CELL_LABELS, COLS } from '../../lib/poses';
+import { CELL_LABELS } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
 
 interface SpriteGridProps {
   sprites: ExtractedSprite[];
   onCellClick?: (cellIndex: number) => void;
   selectedCell?: number | null;
+  mirroredCells?: Set<number>;
+  onMirrorToggle?: (cellIndex: number) => void;
+  thumbnailCell?: number | null;
+  onThumbnailSet?: (cellIndex: number) => void;
 }
 
-export function SpriteGrid({ sprites, onCellClick, selectedCell }: SpriteGridProps) {
+export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet }: SpriteGridProps) {
   // Build a lookup map from cellIndex to sprite
   const spriteMap = new Map<number, ExtractedSprite>();
   for (const sprite of sprites) {
@@ -27,6 +30,7 @@ export function SpriteGrid({ sprites, onCellClick, selectedCell }: SpriteGridPro
       {CELL_LABELS.map((label, idx) => {
         const sprite = spriteMap.get(idx);
         const isSelected = selectedCell === idx;
+        const isMirrored = mirroredCells?.has(idx) ?? false;
 
         return (
           <div
@@ -37,11 +41,38 @@ export function SpriteGrid({ sprites, onCellClick, selectedCell }: SpriteGridPro
             title={label}
           >
             {sprite ? (
-              <img
-                src={`data:${sprite.mimeType};base64,${sprite.imageData}`}
-                alt={label}
-                draggable={false}
-              />
+              <>
+                <img
+                  src={`data:${sprite.mimeType};base64,${sprite.imageData}`}
+                  alt={label}
+                  draggable={false}
+                  style={isMirrored ? { transform: 'scaleX(-1)' } : undefined}
+                />
+                {onMirrorToggle && (
+                  <button
+                    className={`cell-mirror-btn ${isMirrored ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMirrorToggle(idx);
+                    }}
+                    title={isMirrored ? 'Unmirror' : 'Mirror'}
+                  >
+                    &#x21c4;
+                  </button>
+                )}
+                {onThumbnailSet && (
+                  <button
+                    className={`cell-thumb-btn ${thumbnailCell === idx ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onThumbnailSet(idx);
+                    }}
+                    title={thumbnailCell === idx ? 'Gallery thumbnail' : 'Set as gallery thumbnail'}
+                  >
+                    {thumbnailCell === idx ? '\u2605' : '\u2606'}
+                  </button>
+                )}
+              </>
             ) : null}
             <span className="cell-label">{label}</span>
           </div>

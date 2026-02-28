@@ -15,7 +15,7 @@ const OUTPUT_DIR = join(__dirname, '..', 'output');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-app.use(cors());
+app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'] }));
 app.use(express.json({ limit: '50mb' }));
 
 const apiKey = process.env.GEMINI_API_KEY;
@@ -60,6 +60,7 @@ app.get('/api/history/:id', (req, res) => {
     filledGridImage: gen.filled_grid_image,
     filledGridMimeType: 'image/png',
     geminiText: gen.prompt || '',
+    thumbnailCellIndex: gen.thumbnail_cell_index,
     sprites: sprites.map(s => ({
       cellIndex: s.cell_index,
       label: s.pose_name,
@@ -114,13 +115,23 @@ app.get('/api/presets', (req, res) => {
   })));
 });
 
+// Set thumbnail cell for a generation (with processed image data)
+app.put('/api/history/:id/thumbnail', (req, res) => {
+  const { cellIndex, imageData, mimeType } = req.body;
+  const result = db.prepare(
+    `UPDATE generations SET thumbnail_cell_index = ?, thumbnail_image = ?, thumbnail_mime = ?, updated_at = datetime('now') WHERE id = ?`
+  ).run(cellIndex, imageData || null, mimeType || null, req.params.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ success: true });
+});
+
 // Generation gallery
 app.get('/api/gallery', (req, res) => {
   const rows = db.prepare(
     `SELECT g.id, g.character_name, g.character_description, g.model, g.created_at,
             (SELECT COUNT(*) FROM sprites WHERE generation_id = g.id) as sprite_count,
-            (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id ORDER BY s.cell_index LIMIT 1) as thumb_data,
-            (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id ORDER BY s.cell_index LIMIT 1) as thumb_mime
+            COALESCE(g.thumbnail_image, (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_data,
+            COALESCE(g.thumbnail_mime, (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_mime
      FROM generations g ORDER BY g.created_at DESC LIMIT 50`
   ).all();
   res.json(rows.map(r => ({
@@ -139,6 +150,41 @@ app.delete('/api/gallery/:id', (req, res) => {
   db.prepare('DELETE FROM sprites WHERE generation_id = ?').run(req.params.id);
   const result = db.prepare('DELETE FROM generations WHERE id = ?').run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ success: true });
+});
+
+// App state (key-value store for session persistence)
+app.get('/api/state/:key', (req, res) => {
+  const row = db.prepare('SELECT value FROM app_state WHERE key = ?').get(req.params.key);
+  res.json({ value: row ? row.value : null });
+});
+
+app.put('/api/state/:key', (req, res) => {
+  const { value } = req.body;
+  db.prepare(
+    'INSERT INTO app_state (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
+  ).run(req.params.key, String(value));
+  res.json({ success: true });
+});
+
+app.delete('/api/state/:key', (req, res) => {
+  db.prepare('DELETE FROM app_state WHERE key = ?').run(req.params.key);
+  res.json({ success: true });
+});
+
+// Editor settings per generation
+app.get('/api/history/:id/settings', (req, res) => {
+  const row = db.prepare('SELECT settings FROM editor_settings WHERE generation_id = ?').get(req.params.id);
+  res.json(row ? JSON.parse(row.settings) : null);
+});
+
+app.put('/api/history/:id/settings', (req, res) => {
+  const settings = JSON.stringify(req.body);
+  db.prepare(
+    `INSERT INTO editor_settings (generation_id, settings, updated_at)
+     VALUES (?, ?, datetime('now'))
+     ON CONFLICT(generation_id) DO UPDATE SET settings = excluded.settings, updated_at = excluded.updated_at`
+  ).run(req.params.id, settings);
   res.json({ success: true });
 });
 

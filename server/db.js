@@ -19,6 +19,7 @@ export function getDb() {
   db.pragma('foreign_keys = ON');
 
   createSchema(db);
+  migrateSchema(db);
   seedPresets(db);
   return db;
 }
@@ -35,6 +36,9 @@ function createSchema(db) {
       prompt TEXT NOT NULL DEFAULT '',
       template_image TEXT NOT NULL DEFAULT '',
       filled_grid_image TEXT NOT NULL DEFAULT '',
+      thumbnail_cell_index INTEGER DEFAULT NULL,
+      thumbnail_image TEXT DEFAULT NULL,
+      thumbnail_mime TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -53,6 +57,21 @@ function createSchema(db) {
 
     CREATE INDEX IF NOT EXISTS idx_sprites_generation ON sprites(generation_id);
 
+    CREATE TABLE IF NOT EXISTS editor_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      generation_id INTEGER NOT NULL UNIQUE,
+      settings TEXT NOT NULL DEFAULT '{}',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY(generation_id) REFERENCES generations(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_editor_settings_generation ON editor_settings(generation_id);
+
+    CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS character_presets (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -65,6 +84,17 @@ function createSchema(db) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+}
+
+function migrateSchema(db) {
+  const migrations = [
+    'ALTER TABLE generations ADD COLUMN thumbnail_cell_index INTEGER DEFAULT NULL',
+    'ALTER TABLE generations ADD COLUMN thumbnail_image TEXT DEFAULT NULL',
+    'ALTER TABLE generations ADD COLUMN thumbnail_mime TEXT DEFAULT NULL',
+  ];
+  for (const sql of migrations) {
+    try { db.exec(sql); } catch (_) { /* column already exists */ }
+  }
 }
 
 function seedPresets(db) {
@@ -1003,6 +1033,391 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Rustback settles into a proud stance, all six legs planted wide and thorax raised high. Both eyes glow steadily and a piece of salvaged scrap dangles from one mandible as a trophy.
   Header "Weak Pose" (5,4): Three of the six legs are failing, causing the Rustback to drag its body. One eye is dark and the other flickers weakly. The mandibles click slowly and the abdomen glow is nearly extinguished.
   Header "Critical Pose" (5,5): Only two legs function, barely dragging the corroded body forward. The cracked red camera-eye is dead, the green scanner emits only a faint flicker. The mandibles hang open and the abdomen is dark.`,
+    },
+    {
+      id: 'baron-brioche',
+      name: "Baron Brioche",
+      genre: "Food Fantasy",
+      description: "A pompous bread nobleman with a golden-brown brioche bun for a head, a flaky croissant mustache, and tiny raisin eyes set deep in his doughy face. Plump, round body made of layered pastry. Struts with aristocratic arrogance.",
+      equipment: "A baguette rapier with a butter-pat crossguard, a cape made of flattened puff pastry sheets, and a monocle made from a hardened sugar disc. A breadbasket shield on his back.",
+      colorNotes: "Golden-brown brioche head, warm amber pastry body. Cape is pale golden puff pastry. Baguette rapier is tan with a yellow butter crossguard. Monocle is translucent amber sugar. Raisin eyes are dark brown.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Baron Brioche steps forward on his left foot with an aristocratic waddle, his puff-pastry cape fluttering to the right. The baguette rapier swings at his side and his sugar monocle glints. His brioche head bobs with each step.
+  Header "Walk Down 2" (0,1): Neutral mid-step, feet together, cape draped behind him. His croissant mustache curls upward proudly and his raisin eyes stare imperiously ahead. The breadbasket shield sits snugly on his round back.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, puff-pastry cape swishing left. Crumbs trail faintly from his flaky body with each step.
+  Header "Walk Up 1" (0,3): Baron Brioche faces away, the puff-pastry cape and breadbasket shield filling the view. His golden-brown brioche head sits atop his round pastry body like a crown.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, cape draping straight. The layered pastry texture of his body is visible, with each flaky layer catching light differently.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, cape billowing. The baguette rapier handle protrudes at his hip.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Facing left with his left foot forward, the Baron's rotund pastry profile is on full display. The baguette rapier extends slightly ahead and the croissant mustache curls elegantly in profile.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his plump layered body balanced. The sugar monocle catches light and his raisin eyes look down his doughy nose.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, puff-pastry cape swaying forward. A small dusting of flour trails behind him.
+  Header "Walk Right 1" (1,3): Facing right with his right foot forward, baguette rapier extended confidently. The breadbasket shield peeks from behind his round body and the cape trails.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the Baron's aristocratic profile visible — brioche head held high, croissant mustache bristling, sugar monocle gleaming.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, cape flowing behind. His pastry body bounces gently with each waddle.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): Baron Brioche stands facing the viewer with one hand on his hip and the other resting on the baguette rapier pommel. His croissant mustache twitches with disdain and his sugar monocle gleams.
+  Header "Idle Up" (2,1): Facing away, the puff-pastry cape drapes regally over his round pastry body. The breadbasket shield sits on his back and the brioche head is tilted upward snobbishly.
+  Header "Idle Left" (2,2): Facing left, one hand adjusts the sugar monocle while the other holds the baguette rapier loosely. His raisin eyes squint with aristocratic suspicion.
+  Header "Idle Right" (2,3): Facing right, the Baron puffs out his layered chest proudly, cape flowing behind. He twirls one end of the croissant mustache with his free hand.
+  Header "Battle Idle 1" (2,4): Baron Brioche drops into a fencing stance, baguette rapier raised in a classic en garde position. His puff-pastry cape flares behind him and his raisin eyes narrow with intensity.
+  Header "Battle Idle 2" (2,5): He shifts weight in his fencing stance, the rapier tip tracing small circles. The butter-pat crossguard catches light and his brioche head gleams with a buttery sheen.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Baron holds his en garde pose firmly, monocle gleaming with determination. His croissant mustache bristles and the baguette rapier hums with flour-dusted menace.
+  Header "Attack 1" (3,1): Wind-up — Baron Brioche pulls the baguette rapier back in a classic lunge preparation, his round body coiling. The puff-pastry cape wraps slightly around his torso.
+  Header "Attack 2" (3,2): Mid-lunge — the baguette rapier thrusts forward with surprising speed, a small puff of flour erupting from the blade. His pastry body stretches forward dramatically.
+  Header "Attack 3" (3,3): Follow-through — rapier fully extended, a burst of toasted bread crumbs explodes from the tip on impact. The cape flies outward and his monocle catches the light of the strike.
+  Header "Cast 1" (3,4): Baron Brioche raises the baguette rapier overhead, and the breadbasket shield floats off his back. Golden dough energy begins swirling between the two items.
+  Header "Cast 2" (3,5): A ring of floating croissants, rolls, and breadsticks materializes around him as the dough energy intensifies. His brioche head glows warm gold and the mustache crackles with yeast magic.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The bread spell releases — a barrage of magically-hardened dinner rolls fires outward from the orbiting ring. The breadbasket shield snaps back onto his back and his cape billows from the yeasty shockwave.
+  Header "Damage 1" (4,1): Baron Brioche flinches from a hit, his monocle popping off his face. A chunk of his brioche head crumbles away and he clutches it in horror. The croissant mustache droops on one side.
+  Header "Damage 2" (4,2): Staggering back, large flaky crumbs break from his layered body. His puff-pastry cape tears and the baguette rapier wavers in his grip. His raisin eyes widen with indignation.
+  Header "Damage 3" (4,3): Recovery — Baron Brioche pats himself back into shape, smoothing the pastry layers. He retrieves his monocle and jams it back on, mustache bristling with outrage.
+  Header "KO 1" (4,4): The Baron's pastry legs give way, his round body crumbling at the seams. The baguette rapier cracks in half and the monocle shatters. His brioche head deflates slightly.
+  Header "KO 2" (4,5): Baron Brioche topples sideways, his layered body flattening like a collapsed souffle. The puff-pastry cape spreads beneath him and crumbs scatter everywhere.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Baron lies flat and deflated on the ground, looking like a sad, squashed pastry. His broken baguette rapier lies beside him, the croissant mustache has unraveled, and his monocle is in pieces.
+  Header "Victory 1" (5,1): Baron Brioche puffs up to twice his size in triumph, pastry layers expanding gloriously. He raises the baguette rapier overhead and his monocle catches a triumphant gleam.
+  Header "Victory 2" (5,2): He twirls the baguette rapier in a flourish while golden bread crumbs shower around him like confetti. His croissant mustache curls upward in a magnificent victory pose.
+  Header "Victory 3" (5,3): The Baron plants the baguette rapier into the ground, crosses his arms over his puffed pastry chest, and tilts his brioche head back with a hearty, arrogant laugh.
+  Header "Weak Pose" (5,4): Baron Brioche leans heavily on the baguette rapier, his pastry body sagging and crumbling at the edges. His monocle is cracked and the croissant mustache hangs limply.
+  Header "Critical Pose" (5,5): Barely holding together, the Baron's body is a mess of separated flaky layers. His brioche head is dented, one raisin eye has fallen out, and the baguette rapier is bent — but he still sneers defiantly through his ruined mustache.`,
+    },
+    {
+      id: 'sergeant-sriracha',
+      name: "Sergeant Sriracha",
+      genre: "Food Fantasy",
+      description: "A fiery hot-sauce warrior with a body shaped like a bright red sriracha bottle, a green cap helmet, and intense orange-flame eyes. Muscular arms sprout from the bottle shoulders. Legs are sturdy and planted wide in a military stance.",
+      equipment: "Dual chili-pepper grenades on a bandolier across his chest, armored gauntlets with capsaicin-dripping knuckle spikes, and a nozzle cannon mounted on his right forearm that shoots pressurized hot sauce. A jalape\u00f1o-shaped combat knife at his belt.",
+      colorNotes: "Bright red body with white sriracha rooster label on chest. Green cap helmet. Orange-flame eyes. Gauntlets are dark red with orange spikes. Chili grenades are green and red. Nozzle cannon is chrome with red tubing.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Sergeant Sriracha marches forward on his left foot with military precision, the chili-pepper bandolier bouncing across his bright red bottle body. His green cap helmet sits firmly and the nozzle cannon on his right forearm gleams.
+  Header "Walk Down 2" (0,1): Neutral mid-step, feet together in attention. The white rooster label on his chest is clearly visible. His orange-flame eyes burn forward and the jalape\u00f1o knife is strapped at his belt.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, bandolier swaying. Small wisps of steam rise from the capsaicin knuckle spikes on his gauntlets.
+  Header "Walk Up 1" (0,3): Facing away, the bright red bottle body narrows toward the green cap. The bandolier crosses his back and the nozzle cannon's chrome barrel is visible on his right arm.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, military posture rigid. The green and red chili grenades hang in neat rows across his back.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. Steam wisps trail from the nozzle cannon's barrel.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Facing left with his left foot forward in a disciplined march. His bottle-shaped profile shows the nozzle cannon extending from his forearm and the bandolier slung diagonally.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left. His cylindrical red body and green cap helmet create a distinctive silhouette. The jalape\u00f1o knife is visible at his belt.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, the chili grenades clinking together softly. His orange-flame eyes glare ahead.
+  Header "Walk Right 1" (1,3): Facing right with his right foot forward, nozzle cannon arm leading. The capsaicin knuckle spikes drip with a faint orange glow. The bandolier trails across his body.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the white rooster label partially visible on his side. The green cap sits at a slight military angle.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. A small heat shimmer radiates from his bright red body.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): Sergeant Sriracha stands at ease facing the viewer, hands behind his back, chest out to display the rooster label proudly. His flame eyes scan forward and the green cap helmet shadows his face.
+  Header "Idle Up" (2,1): At ease facing away, the bandolier of chili grenades visible across his back. The green cap sits atop the narrowing bottle neck.
+  Header "Idle Left" (2,2): Facing left at ease, one hand resting on the jalape\u00f1o knife. His cylindrical profile and the nozzle cannon at his side are prominent.
+  Header "Idle Right" (2,3): Facing right at ease, the nozzle cannon arm hanging ready. Steam gently wafts from the barrel and his flame eyes look ahead watchfully.
+  Header "Battle Idle 1" (2,4): Sriracha drops into a combat crouch, nozzle cannon raised and aimed forward with pressurized sauce visible in the chrome barrel. A chili grenade is gripped in his other hand. His flame eyes blaze bright.
+  Header "Battle Idle 2" (2,5): He shifts weight in his combat stance, the nozzle cannon barrel glowing orange from internal heat. The capsaicin knuckle spikes drip molten sauce onto the ground.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): Sriracha holds his combat stance, nozzle cannon humming with pressure. A heat shimmer distorts the air around his bright red body and his flame eyes are locked on target.
+  Header "Attack 1" (3,1): Wind-up — Sriracha cocks back his cannon arm as pressure builds visibly inside the chrome barrel. His bottle body compresses slightly like a squeezed bottle.
+  Header "Attack 2" (3,2): A concentrated blast of hot sauce erupts from the nozzle cannon in a fiery orange stream. The recoil pushes him back slightly and his green cap tilts from the force.
+  Header "Attack 3" (3,3): Follow-through — the sauce stream splashes on impact, sending bright red droplets sizzling in all directions. Sriracha steadies himself, barrel smoking.
+  Header "Cast 1" (3,4): Sriracha pulls the pins on two chili grenades simultaneously, one in each hand. The grenades glow from green to bright red as they activate, smoke curling from their stems.
+  Header "Cast 2" (3,5): He hurls both chili grenades upward where they orbit him, trailing fire and capsaicin vapor. His entire body glows brighter red and the rooster label seems to animate.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The chili grenades detonate — a massive explosion of fire, hot sauce, and pepper seeds erupts outward. Sriracha stands in the center, arms wide, his flame eyes blazing white-hot.
+  Header "Damage 1" (4,1): Sriracha stumbles back from a hit, a crack forming in his bottle body. Hot sauce leaks from the crack and his green cap is knocked askew. He grunts through gritted teeth.
+  Header "Damage 2" (4,2): Staggering further, more cracks spread across his body. Hot sauce drips from multiple fractures and the nozzle cannon sparks. A chili grenade falls from the damaged bandolier.
+  Header "Damage 3" (4,3): Recovery — Sriracha slaps a hand over the worst crack, sealing it with sheer heat pressure. His flame eyes reignite with fury and he straightens his green cap.
+  Header "KO 1" (4,4): The cracks widen catastrophically — hot sauce pours from his body in streams. The nozzle cannon goes limp, the bandolier snaps, and chili grenades scatter. His flame eyes flicker.
+  Header "KO 2" (4,5): Sriracha topples forward, his cracked bottle body splitting open on impact. A pool of hot sauce spreads beneath him and his green cap rolls away.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): Sergeant Sriracha lies in a pool of his own sauce, body cracked open like a broken bottle. The green cap rests upside down nearby, the bandolier is scattered, and his flame eyes are completely dark.
+  Header "Victory 1" (5,1): Sriracha pumps his nozzle cannon arm overhead, firing a triumphant geyser of hot sauce into the air like a fountain. His flame eyes blaze and the rooster label glows.
+  Header "Victory 2" (5,2): He flexes both arms, capsaicin knuckle spikes flaring bright orange. A ring of fire surrounds his feet and his bottle body gleams an intense, polished red.
+  Header "Victory 3" (5,3): Sriracha plants his feet wide, crosses his arms, and lets steam pour from his green cap in a dramatic release of pressure. The chili grenades on his bandolier glow victoriously.
+  Header "Weak Pose" (5,4): Sriracha's body is covered in hairline cracks, sauce slowly seeping out. The nozzle cannon droops, barely functional. His flame eyes are dim embers and he breathes in labored puffs of steam.
+  Header "Critical Pose" (5,5): Barely standing, Sriracha is a shattered mess — body held together by sheer will, sauce pooling at his feet. One flame eye is out, the other gutters weakly. He aims the sputtering nozzle cannon with his last ounce of heat.`,
+    },
+    {
+      id: 'duchess-gelato',
+      name: "Duchess Gelato",
+      genre: "Food Fantasy",
+      description: "An elegant ice cream sorceress with a swirled tri-color gelato head (strawberry pink, pistachio green, vanilla cream), a waffle-cone corset bodice, and a flowing skirt made of frozen cream ribbons. Graceful and poised with a cold, regal demeanor.",
+      equipment: "A wafer-stick wand tipped with a crystallized sugar star, a parasol made from a giant sugar cookie with royal icing filigree, and delicate spun-sugar jewelry at her wrists and neck. A small sundae-glass familiar floats beside her.",
+      colorNotes: "Tri-color gelato head: strawberry pink, pistachio green, vanilla cream. Waffle-cone bodice is warm tan with grid pattern. Skirt is pale white-blue frozen cream. Wand is tan wafer with a sparkling sugar star. Parasol is cream with white icing swirls.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Duchess Gelato glides forward on her left foot, frozen cream skirt swirling gracefully. The wafer-stick wand is held delicately in her right hand and the sugar cookie parasol rests on her left shoulder. Her tri-color gelato head swirls gently.
+  Header "Walk Down 2" (0,1): Neutral mid-step, feet together. The spun-sugar necklace sparkles at her throat and the sundae-glass familiar bobs beside her. The waffle-cone corset's grid pattern is clearly visible.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, frozen cream skirt flowing to the opposite side. A faint trail of frost crystals follows her steps.
+  Header "Walk Up 1" (0,3): Facing away, the frozen cream skirt cascades down in elegant ribbons. The sugar cookie parasol rests against her shoulder and the gelato swirl of her head catches ambient light.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, skirt draping straight. The waffle-cone corset lacing is visible up her back and the spun-sugar bracelets glint.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the sundae-glass familiar trailing behind her. Frost crystallizes in her wake.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Facing left with her left foot forward in an elegant glide. Her tri-color gelato head is visible in profile — pink, green, cream layers stacked. The parasol trails behind.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the frozen cream skirt draping around her. The wafer-stick wand rests at her side with the sugar star dimly twinkling.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, skirt swirling forward. The sundae-glass familiar floats ahead of her, scouting.
+  Header "Walk Right 1" (1,3): Facing right with her right foot forward, parasol leading. The waffle-cone corset's warm tan contrasts with the icy blue-white of her frozen skirt.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, her elegant profile showing the gelato swirl and the spun-sugar earring catching light.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The sundae-glass familiar follows faithfully behind her.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): Duchess Gelato stands poised facing the viewer, parasol resting on her shoulder and wand held loosely. Her gelato head swirls slowly with hypnotic color and the sundae familiar orbits her lazily.
+  Header "Idle Up" (2,1): Facing away, the frozen cream skirt and sugar cookie parasol dominate the view. Frost crystals drift gently downward around her feet.
+  Header "Idle Left" (2,2): Facing left, she holds the parasol open to shade her gelato head from imagined heat. The wand rests in the crook of her arm and her expression is serene.
+  Header "Idle Right" (2,3): Facing right, the Duchess fans herself delicately with one hand. The sundae-glass familiar hovers near her shoulder and the sugar star on her wand pulses faintly.
+  Header "Battle Idle 1" (2,4): Duchess Gelato snaps the parasol shut and holds it like a staff alongside the wafer wand. Her gelato head swirls faster, frost radiating from her body. The sundae familiar's ice cream glows.
+  Header "Battle Idle 2" (2,5): She twirls the wand in a figure-eight, trails of frost and tiny snowflakes following the sugar star. Her frozen cream skirt crystallizes into sharp icy edges.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Duchess holds her battle pose with cold elegance, wand raised and parasol braced. The air around her visibly chills with frost particles and her gelato head gleams with icy resolve.
+  Header "Attack 1" (3,1): Wind-up — she pulls the wafer wand back, the sugar star gathering swirling frost energy. The sundae familiar spins rapidly beside her, generating cold.
+  Header "Attack 2" (3,2): She thrusts the wand forward, launching a concentrated blast of frozen cream that spirals toward the target. The sugar star blazes with icy light.
+  Header "Attack 3" (3,3): Follow-through — the frozen blast impacts in a burst of ice crystals and cream splatter. The Duchess flicks the wand with a satisfied flourish, frost settling around her.
+  Header "Cast 1" (3,4): The Duchess raises both the wand and the parasol overhead, opening the parasol upside-down like a bowl. A blizzard of sprinkles, cream, and ice begins swirling above her.
+  Header "Cast 2" (3,5): The inverted parasol fills with magical gelato energy — a miniature frozen storm swirls inside it. Her tri-color head blazes bright and the sundae familiar merges into the growing spell.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Duchess flips the parasol and slams it down — a massive wave of flash-frozen gelato erupts outward, coating everything in ice cream and frost. The sundae familiar reforms beside her, glowing.
+  Header "Damage 1" (4,1): Duchess Gelato flinches as a hit cracks her waffle-cone corset. A scoop of pink gelato drops from her head and the parasol wavers. She gasps with regal indignation.
+  Header "Damage 2" (4,2): Staggering back, her tri-color gelato head begins to melt — streams of pink, green, and cream run down her face. The frozen cream skirt thaws at the edges and drips.
+  Header "Damage 3" (4,3): Recovery — the Duchess waves her wand and re-freezes herself with a flash of cold. The melting stops, though her gelato head is slightly lopsided. She composes herself with icy dignity.
+  Header "KO 1" (4,4): Her gelato head melts catastrophically, colors running together into a muddy swirl. The waffle-cone corset cracks and crumbles. The sundae familiar shatters like glass.
+  Header "KO 2" (4,5): Duchess Gelato collapses in a pool of melted ice cream, her frozen skirt dissolving into puddles. The parasol breaks and the wand's sugar star dissolves.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): All that remains is a sad puddle of melted tri-color gelato with a broken waffle-cone corset sitting in the center. The wafer wand and shattered parasol lie in the pool. Only a faint cold mist marks where she stood.
+  Header "Victory 1" (5,1): The Duchess twirls her parasol overhead triumphantly as a shower of rainbow sprinkles cascades down. Her gelato head swirls in vibrant, perfectly layered colors.
+  Header "Victory 2" (5,2): She conjures a massive sundae from thin air beside her and perches the sundae familiar on top as the cherry. She curtsies with a regal flourish, frost sparkling.
+  Header "Victory 3" (5,3): Duchess Gelato snaps the parasol open and poses beneath it, wand planted at her side. Tiny ice cream cones orbit her like a frozen solar system.
+  Header "Weak Pose" (5,4): The Duchess leans on her parasol as a cane, her gelato head drooping and slowly melting. Her frozen skirt is slushy and the wafer wand droops. The sundae familiar flickers in and out of existence.
+  Header "Critical Pose" (5,5): Barely a silhouette of her former self — mostly melted, the Duchess holds together by sheer frozen willpower. Her gelato head is a single dripping blob, the corset is cracked, but she still aims the dissolving wand with trembling grace.`,
+    },
+    {
+      id: 'general-gumbo',
+      name: "General Gumbo",
+      genre: "Food Fantasy",
+      description: "A hulking stew golem villain with a cast-iron cauldron for a torso, thick okra-stalk arms, and legs made of bundled andouille sausage links. His head is a bubbling pot lid with two glowing ember eyes peering through the steam. A dark roux oozes from his joints.",
+      equipment: "A massive ladle war-hammer with a heavy iron bowl, a lid shield that doubles as his head cover, and chains made of linked onion rings draped across his body. A belt of bay leaves and a pouch of file powder at his hip.",
+      colorNotes: "Dark iron-gray cauldron torso with brown roux dripping from seams. Okra arms are dark green. Sausage legs are reddish-brown. Ember eyes are orange-red. Ladle is dark iron. Onion ring chains are golden-brown. Steam is white-gray.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): General Gumbo lumbers forward on his left sausage-link leg, the cauldron torso sloshing audibly. The ladle war-hammer drags at his right side and onion-ring chains rattle across his chest. Steam billows from his pot-lid head.
+  Header "Walk Down 2" (0,1): Neutral mid-step, sausage legs planted wide for balance. His ember eyes glow through the steam and dark roux oozes from the joints between his cauldron body and okra arms. The bay-leaf belt hangs at his waist.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right sausage leg leads, chains swinging. The ladle's heavy iron bowl scrapes along the ground and roux drips trail behind him.
+  Header "Walk Up 1" (0,3): Facing away, the massive cast-iron cauldron torso dominates the view with handles protruding at the sides. The onion-ring chains cross his back and the pot-lid head vents steam upward.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, sausage legs steady. The dark green okra arms hang at his sides and the ladle war-hammer is slung across his back.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right leg forward, steam trailing. The bundled sausage links of his legs flex with each heavy step.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Facing left with his left sausage leg forward, the General's massive profile shows the cauldron torso, okra arm, and pot-lid head venting steam. The ladle drags behind.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his bulk filling the frame. The onion-ring chains catch light and the ember eyes peer sideways through billowing steam.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right leg leads, dark roux splattering with each heavy footfall. The iron cauldron creaks with the motion.
+  Header "Walk Right 1" (1,3): Facing right with his right sausage leg forward, ladle war-hammer swinging ahead. The file-powder pouch bounces at his hip and steam pours from the pot-lid.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the cauldron's curved profile visible. His okra arm hangs ready and the bay leaves flutter at his belt.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left leg leads while facing right, onion-ring chains clinking. Each step shakes the ground beneath him.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): General Gumbo stands menacingly, both okra hands resting on the ladle war-hammer planted before him. His pot-lid head vents a steady column of steam and his ember eyes smolder through it. Roux drips slowly from his torso seams.
+  Header "Idle Up" (2,1): Facing away, a hulking mass of iron and stew. The cauldron handles jut outward, the ladle is slung across his back, and steam rises from the pot-lid into the air.
+  Header "Idle Left" (2,2): Facing left, one okra arm rests on the ladle handle while the other hangs at his side, roux dripping from the knuckles. The onion-ring chains sag under their own weight.
+  Header "Idle Right" (2,3): Facing right, the General's ember eyes glow ominously through a fresh billow of steam. His sausage legs are planted wide and the cauldron bubbles faintly inside.
+  Header "Battle Idle 1" (2,4): Gumbo hoists the ladle war-hammer onto his shoulder with one okra arm, the other fist clenched. His pot-lid head tilts forward aggressively, steam jetting sideways. The cauldron torso bubbles violently.
+  Header "Battle Idle 2" (2,5): He shifts the ladle to a two-handed grip, ember eyes flaring brighter. The roux at his joints darkens and thickens menacingly, and the onion-ring chains tighten across his swelling chest.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The General holds the massive ladle at the ready, steam pouring from every seam of his body. His ember eyes are slits of focused rage and the cauldron bubbles and roils inside.
+  Header "Attack 1" (3,1): Wind-up — Gumbo heaves the ladle war-hammer overhead with both okra arms, the heavy iron bowl blotting out the sky. His cauldron torso groans under the strain.
+  Header "Attack 2" (3,2): The ladle crashes downward with devastating force, the iron bowl slamming into the ground. A shockwave of dark roux and hot broth explodes outward from the impact. The chains rattle furiously.
+  Header "Attack 3" (3,3): Follow-through — Gumbo wrenches the ladle from the crater, splashing boiling gumbo in an arc. Steam erupts from the impact zone and his ember eyes blaze with satisfaction.
+  Header "Cast 1" (3,4): The General removes his pot-lid head and holds it over the cauldron opening. The stew inside begins to bubble and churn with unnatural energy, green and brown vapors spiraling upward.
+  Header "Cast 2" (3,5): He plunges an okra arm into his own cauldron body, stirring the contents. A vortex of stew energy rises — chunks of okra, sausage, and shrimp orbit within a tornado of dark roux magic.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): Gumbo slams the pot-lid back on and the spell erupts — a geyser of boiling, enchanted gumbo blasts from every seam and joint, scalding everything nearby. The onion-ring chains glow red-hot.
+  Header "Damage 1" (4,1): A hit dents the cauldron torso, causing a spray of hot stew from the crack. The pot-lid rattles and his ember eyes flicker. One onion-ring chain link snaps.
+  Header "Damage 2" (4,2): Staggering, a large section of the cauldron cracks open, pouring stew. His okra arms wilt slightly and the sausage legs buckle. Steam vents erratically from the pot-lid.
+  Header "Damage 3" (4,3): Recovery — Gumbo slaps a massive okra hand over the crack, sealing it with hardened roux. He straightens up with a threatening rumble, ember eyes reigniting.
+  Header "KO 1" (4,4): The cauldron torso fractures catastrophically — stew pours from every side. The okra arms go limp, sausage legs buckle, and the pot-lid tilts off his head. Ember eyes dim.
+  Header "KO 2" (4,5): General Gumbo collapses in a massive splash of gumbo, his cauldron body splitting open. The ladle clatters to the ground and sausage links scatter.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): A shattered iron cauldron sits in a lake of cooling gumbo. Limp okra arms, disconnected sausage links, and a cracked pot-lid lie scattered in the stew. The ember eyes are cold dark stones.
+  Header "Victory 1" (5,1): General Gumbo raises the ladle war-hammer overhead with one arm, stew raining down from the bowl like a grotesque trophy. His pot-lid head jets steam in a furious victory roar and his ember eyes blaze.
+  Header "Victory 2" (5,2): He slams both okra fists against his cauldron chest in a thunderous drumroll, each impact sending splashes of dark roux outward. The onion-ring chains clatter percussively.
+  Header "Victory 3" (5,3): Gumbo plants the ladle and removes his pot-lid, revealing the bubbling stew within. He holds the lid aloft like a crown, ember eyes glowing with malevolent pride.
+  Header "Weak Pose" (5,4): The cauldron is covered in cracks, leaking stew from a dozen wounds. His okra arms are wilted and browning, the sausage legs are sagging, and one ember eye has gone dark. Steam barely trickles from the pot-lid.
+  Header "Critical Pose" (5,5): Barely a shell of iron and stew, Gumbo holds together through sheer stubborn villainy. The cauldron is more hole than metal, the roux has dried to a crust, and his remaining ember eye burns with desperate, simmering fury.`,
+    },
+    {
+      id: 'pepperoni-pete',
+      name: "Pepperoni Pete",
+      genre: "Food Fantasy",
+      description: "A roguish pizza-slice thief with a triangular pizza body, a golden-brown crust spine running down his back, and a face made of melted mozzarella with pepperoni-disc cheeks. Lanky and flexible with a sneaky, hunched posture. Strings of cheese trail from his movements.",
+      equipment: "Twin pizza-cutter chakrams that he throws and recalls, suction-cup boots made of mozzarella for wall-climbing, and a bandana made from a folded napkin. A utility belt of condiment packets (hot pepper flakes, parmesan, garlic butter).",
+      colorNotes: "Triangular body is pizza-orange with melted yellow cheese and red pepperoni spots. Crust spine is golden-brown. Mozzarella face is pale yellow-white. Napkin bandana is white with red checkered pattern. Pizza-cutter chakrams are silver with red handles.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Pepperoni Pete slinks forward on his left foot in a sneaky crouch, strings of mozzarella trailing from his movements. The twin pizza-cutter chakrams hang at his hips and the checkered napkin bandana covers his lower face.
+  Header "Walk Down 2" (0,1): Neutral mid-step, feet together in a ready stance. His triangular pizza body leans forward and his pepperoni-disc cheeks poke above the bandana. Cheese strings dangle from his elbows.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, cheese trailing. The condiment-packet utility belt rattles softly and his mozzarella suction-cup boots stick briefly to the ground.
+  Header "Walk Up 1" (0,3): Facing away, the golden-brown crust spine runs prominently down his triangular back. The pizza-cutter chakrams cross on his lower back and cheese strings trail behind him.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, his pizza-slice silhouette narrow from behind. The checkered bandana ties flutter at the back of his head.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the crust spine catching light. Mozzarella strings stretch and snap with each step.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Facing left with his left foot forward in a sneaky sidestep. His flat triangular profile is visible — the pointed pizza tip at top, widening to the crust at his back. A chakram glints at his hip.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, hunched and ready. His mozzarella face peeks over the bandana and the condiment belt pouches hang from his waist.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, cheese dripping from his trailing hand. His mozzarella boots squelch softly.
+  Header "Walk Right 1" (1,3): Facing right with his right foot forward, one hand reaching for a chakram. The pizza-orange body and pepperoni spots are vivid in profile. The bandana trails behind.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the crust spine visible along his back. His cheesy face is scrunched with mischievous focus.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. A string of cheese stretches back to his previous position before snapping.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): Pete stands in a casual thieves' slouch, one hand spinning a pizza-cutter chakram lazily. His pepperoni cheeks bulge in a smirk above the bandana and cheese strings hang from his fingertips.
+  Header "Idle Up" (2,1): Facing away in a slouch, the crust spine and crossed chakrams are visible. His napkin bandana ties droop and he scratches his back, flaking off a pepperoni disc.
+  Header "Idle Left" (2,2): Facing left, Pete leans against an invisible wall, arms crossed. The chakrams dangle from his fingers and his mozzarella face has a bored, scheming expression.
+  Header "Idle Right" (2,3): Facing right, he casually tosses a parmesan packet from his utility belt and catches it. His pizza-triangle body is relaxed and slightly droopy with stretchy cheese.
+  Header "Battle Idle 1" (2,4): Pete snaps to attention, a pizza-cutter chakram in each hand held in a dual-wield stance. His mozzarella face stretches into a wild grin above the bandana and his body tenses.
+  Header "Battle Idle 2" (2,5): He flips one chakram in the air and catches it, shifting into a new stance. Cheese strings whip around him dynamically and his pepperoni cheeks flush darker red.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): Pete crouches low with both chakrams ready, the silver blades spinning slowly. His mozzarella eyes narrow and cheese strings drift around him like tripwires.
+  Header "Attack 1" (3,1): Wind-up — Pete cocks his arm back, one pizza-cutter chakram spinning up to speed in his grip. His triangular body coils like a spring, cheese stretching taut.
+  Header "Attack 2" (3,2): He hurls the chakram in a flat spinning arc, the silver blade slicing through the air with a pizza-cutter whir. Cheese strings trail behind it like a yo-yo tether.
+  Header "Attack 3" (3,3): The chakram ricochets back to his hand as the second one flies out in a follow-up throw. Both blades flash silver and cheese-string trails criss-cross the frame.
+  Header "Cast 1" (3,4): Pete rips open all his condiment packets at once — hot pepper flakes, parmesan, and garlic butter swirl around him in a spicy tornado. His pizza body absorbs the seasonings and glows.
+  Header "Cast 2" (3,5): The condiment tornado intensifies — pepper flakes ignite into tiny sparks, parmesan crystallizes into shrapnel, and garlic butter coats his chakrams with a golden sheen. His eyes glow red-pepper hot.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): Pete launches both seasoned chakrams simultaneously through the condiment storm — they spiral outward trailing fire, cheese, and garlic-butter sparks. The explosion is a greasy, spicy supernova.
+  Header "Damage 1" (4,1): Pete flinches as a hit takes a bite-shaped chunk out of his pizza body. Cheese strings spray from the wound and he clutches the missing section. His bandana slips.
+  Header "Damage 2" (4,2): Another hit tears more pizza from his body — he's visibly smaller now, missing a large triangular piece. Toppings scatter and his mozzarella face stretches in pain.
+  Header "Damage 3" (4,3): Recovery — Pete pulls his remaining cheese together, stretching mozzarella over the wounds like bandages. He's battered but his eyes burn with defiant mischief behind the crooked bandana.
+  Header "KO 1" (4,4): Pete's pizza body tears apart — cheese strings snap, pepperoni discs pop off, and the crust spine cracks. The chakrams clatter to the ground and his mozzarella face melts into a sad droop.
+  Header "KO 2" (4,5): He collapses into a messy heap of cheese, sauce, and scattered toppings. The napkin bandana flutters down over the pile and the chakrams spin to a stop beside him.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): A sad pile of cold pizza remains — flattened, stale, and congealed. The crust spine lies cracked on top, pepperoni discs are scattered, and the checkered bandana covers the mess like a tiny shroud. The chakrams are stuck in the ground nearby.
+  Header "Victory 1" (5,1): Pete juggles both pizza-cutter chakrams overhead, spinning and catching them with flashy flair. Cheese strings fly everywhere in celebration and his pepperoni cheeks glow with triumph.
+  Header "Victory 2" (5,2): He strikes a dramatic rogue pose — one foot on an invisible ledge, chakram pointed forward, napkin bandana billowing. A trail of cheese strings frames him like a cheesy spotlight.
+  Header "Victory 3" (5,3): Pete takes a bite out of his own arm (it grows back immediately in a stretch of cheese), chewing smugly. He twirls a chakram on one finger and winks with a mozzarella eyelid.
+  Header "Weak Pose" (5,4): Pete is missing large chunks of his pizza body, barely held together by overstretched cheese strings. The crust spine is cracked, the bandana is torn, and he holds one chakram weakly while the other drags on the ground.
+  Header "Critical Pose" (5,5): Just a sad, tiny triangle of pizza with a face — most of his body is gone. He clutches one battered chakram with a single stretched cheese-string arm, his last pepperoni cheek barely hanging on. But his mozzarella grin refuses to die.`,
+    },
+    {
+      id: 'queen-umami',
+      name: "Queen Umami",
+      genre: "Food Fantasy",
+      description: "A sinister mushroom empress villain with a massive shiitake cap crown, a body woven from enoki and oyster mushroom fibers, and glowing bioluminescent spore eyes. Tall and willowy with an unsettling, swaying gait. Dark truffle-colored skin with veins of mycelium running beneath the surface.",
+      equipment: "A gnarled morel scepter that drips with dark spore ink, a cloak of layered portobello gills that rustles like whispers, and a choker of dried porcini discs. Clouds of psychedelic spores drift around her constantly.",
+      colorNotes: "Shiitake cap crown is dark brown with tan cracks. Body is pale cream enoki fibers with gray oyster mushroom patches. Bioluminescent eyes are eerie blue-green. Truffle skin is near-black. Morel scepter is dark honeycomb brown. Portobello gill cloak is dark brown-purple. Spore clouds are sickly yellow-green.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Queen Umami drifts forward on her left foot with an unsettling sway, her portobello-gill cloak rustling in layers. The morel scepter is held in her right hand, dripping dark spore ink. A cloud of yellow-green spores trails in her wake.
+  Header "Walk Down 2" (0,1): Neutral mid-step, feet together. Her massive shiitake cap crown shadows her face, only the bioluminescent blue-green eyes visible beneath. Mycelium veins pulse faintly beneath her dark truffle skin.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, gill cloak whispering. The porcini choker gleams at her throat and spores swirl around her enoki-fiber body.
+  Header "Walk Up 1" (0,3): Facing away, the portobello-gill cloak cascades down in dark, layered ruffles. The shiitake cap crown is enormous from behind, with tan cracks radiating outward.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the cloak draped like a fungal waterfall. Mycelium threads connect her feet to the ground, spreading outward.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, spore clouds billowing behind her. The morel scepter drips a trail of dark ink.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Facing left with her left foot forward in a swaying glide. Her willowy profile shows the shiitake crown, pale enoki body, and the gill cloak trailing. Spores drift from her every movement.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, her bioluminescent eyes casting an eerie glow on her cheek. The morel scepter's honeycomb texture is visible in profile.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, portobello cloak swirling forward. Mycelium threads spread from her footprints.
+  Header "Walk Right 1" (1,3): Facing right with her right foot forward, scepter extended ahead dripping ink. Her tall willowy frame sways like a fungus in wind, the shiitake crown tilting slightly.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right. The oyster mushroom patches on her body catch light with a gray pearlescence. The porcini choker gleams darkly.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, spore cloud thickening around her. The gill cloak whispers as it moves.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): Queen Umami stands still facing the viewer, an aura of slowly rotating spores surrounding her. The morel scepter rests upright at her side, leaking ink. Her bioluminescent eyes are half-lidded and menacing beneath the shiitake crown.
+  Header "Idle Up" (2,1): Facing away, motionless but for the slowly rustling gill cloak. Mycelium threads fan outward from her feet in an expanding network. Spores drift upward lazily.
+  Header "Idle Left" (2,2): Facing left, she strokes the morel scepter thoughtfully, dark ink coating her fingers. Her bioluminescent eyes cast a blue-green glow on the scepter's honeycomb surface.
+  Header "Idle Right" (2,3): Facing right, Queen Umami holds up one hand and examines the mycelium veins pulsing beneath her truffle skin. A small mushroom sprouts from her palm and she crushes it, releasing spores.
+  Header "Battle Idle 1" (2,4): Umami raises the morel scepter overhead, its dark ink flowing upward in defiance of gravity. Her bioluminescent eyes blaze fully open, her spore cloud intensifies to a toxic haze, and the gill cloak spreads wide like fungal wings.
+  Header "Battle Idle 2" (2,5): She sways hypnotically in her battle stance, the spore cloud pulsing in rhythm. Mycelium threads creep outward from her feet aggressively and the morel scepter hums with dark energy.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Queen holds her menacing stance, gill cloak spread wide. The spore cloud is thick and choking, her eyes are blazing beacons, and the morel scepter drips with anticipation.
+  Header "Attack 1" (3,1): Wind-up — Umami raises the morel scepter and dark spore ink collects at its tip, forming a large, quivering droplet. Mycelium threads retract from the ground into her body, charging the attack.
+  Header "Attack 2" (3,2): She swings the scepter in a wide arc, the collected ink launching as a toxic slash of dark spore energy. The portobello cloak flares outward and her eyes leave bioluminescent trails.
+  Header "Attack 3" (3,3): The dark slash impacts and erupts into a patch of rapid fungal growth — mushrooms sprout instantly at the point of contact, then wither and release a secondary spore burst.
+  Header "Cast 1" (3,4): Queen Umami plants the morel scepter into the ground. Mycelium threads explode outward from the base, forming a vast underground network. Small mushrooms begin sprouting in a circle around her.
+  Header "Cast 2" (3,5): The mushroom circle grows taller, each cap glowing with bioluminescent energy. The Queen raises her arms and the spore cloud converges overhead into a dense, swirling fungal storm. Her eyes are blinding blue-green.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The fungal storm detonates — a massive cascade of toxic spores, sprouting mushrooms, and dark mycelium tendrils erupts in all directions. The Queen stands in the eye, gill cloak billowing, a silhouette of pure fungal terror.
+  Header "Damage 1" (4,1): A hit tears a section of enoki fibers from her body, exposing dark truffle beneath. She recoils, her shiitake crown cracking at one edge. Spores scatter erratically.
+  Header "Damage 2" (4,2): Staggering, more of her enoki-fiber body tears away. The mycelium veins beneath her skin pulse frantically in repair mode. The portobello cloak shreds at the edges and the morel scepter wavers.
+  Header "Damage 3" (4,3): Recovery — Queen Umami regrows her damaged fibers rapidly, new mushroom tissue sprouting to fill the gaps. The repairs are visible as lighter-colored patches. She hisses through clenched teeth, eyes blazing.
+  Header "KO 1" (4,4): Her body can't keep up with the damage — enoki fibers wilt and collapse. The shiitake crown splits down the middle, the morel scepter cracks, and the bioluminescent light in her eyes sputters.
+  Header "KO 2" (4,5): Queen Umami topples in a cascade of decaying mushroom matter, her gill cloak folding over her like a funeral shroud. The spore cloud dissipates and mycelium threads go limp.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): A mound of wilted, decaying fungal matter lies on the ground — the split shiitake crown on top, the broken morel scepter beside it. The bioluminescent glow is gone. Only a few dormant spores drift upward from the remains.
+  Header "Victory 1" (5,1): Queen Umami raises the morel scepter and a forest of bioluminescent mushrooms erupts around her in celebration. Her eyes blaze triumphant blue-green and the gill cloak spreads wide like a dark throne behind her.
+  Header "Victory 2" (5,2): She laughs silently, spore clouds erupting in rhythmic bursts like dark fireworks. Mycelium threads spread outward in a conquering web and new mushrooms sprout wherever they touch.
+  Header "Victory 3" (5,3): The Queen sits upon a throne of interwoven mushrooms that grew from the battlefield. She rests the scepter across her lap, shiitake crown gleaming, bioluminescent eyes half-lidded in cold satisfaction.
+  Header "Weak Pose" (5,4): Umami's body is riddled with rot — enoki fibers browning and wilting, the shiitake crown sagging and cracked. Her bioluminescent eyes are dim and her spore cloud is thin. She clutches the morel scepter for support.
+  Header "Critical Pose" (5,5): A crumbling ruin of fungus, Queen Umami barely maintains her form. Her crown is shattered, her cloak is decomposing, and only one bioluminescent eye still glows — but the mycelium beneath the ground still pulses, and her grip on the cracked scepter remains iron.`,
+    },
+    {
+      id: 'wasabi-ronin',
+      name: "Wasabi Ronin",
+      genre: "Food Fantasy",
+      description: "A stoic wandering sushi warrior with a body made of tightly-packed rice wrapped in a nori seaweed cloak, a head of vibrant green wasabi paste shaped into a stern samurai topknot, and eyes made of pickled ginger slices. Compact, disciplined physique with precise, economical movements.",
+      equipment: "A razor-sharp sashimi blade (a single long slice of gleaming tuna used as a katana), bamboo-mat armor worn over the nori cloak, and chopstick throwing daggers tucked into a soy-sauce-bottle holster at his hip. A small dish of soy sauce serves as a meditation focus.",
+      colorNotes: "White rice body with dark green nori cloak. Bright green wasabi head and topknot. Pink pickled-ginger eyes. Sashimi blade is deep red tuna with a silver edge. Bamboo-mat armor is tan with green ties. Chopsticks are pale wood. Soy sauce bottle is dark brown-black.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Wasabi Ronin steps forward on his left foot with measured discipline, his nori cloak swaying slightly. The sashimi blade is sheathed at his left hip in a bamboo scabbard and his wasabi topknot is sharp and rigid. His ginger eyes stare ahead unblinking.
+  Header "Walk Down 2" (0,1): Neutral mid-step, feet together. His compact rice body is wrapped tightly in the nori seaweed, bamboo-mat armor visible over his chest. The soy-sauce holster sits at his right hip with chopstick daggers.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, nori cloak shifting. A few grains of rice trail from the hem of his cloak as he moves.
+  Header "Walk Up 1" (0,3): Facing away, the dark green nori cloak covers most of his rice body. The bamboo-mat armor crosses his back and the sashimi blade handle protrudes from his left hip. The wasabi topknot juts upward sharply.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, cloak hanging straight. The tan bamboo-mat armor ties are knotted neatly and the chopstick daggers are visible in the holster.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. The nori cloak's edge reveals the white rice body beneath.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Facing left with his left foot forward in a precise, silent step. His compact profile shows the wasabi head, bamboo-mat armor, and the sashimi blade scabbard at his hip. The nori cloak drapes.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his disciplined posture rigid. The pickled-ginger eyes are visible in profile, pink and alert. One hand rests near the sashimi blade hilt.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, nori cloak swaying forward. His wasabi topknot is sharp as a blade in silhouette.
+  Header "Walk Right 1" (1,3): Facing right with his right foot forward, hand hovering over the sashimi blade. The bamboo-mat armor plates shift with his movement and the soy-sauce holster is visible.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, stoic and still. The deep red of the sheathed sashimi blade peeks from the bamboo scabbard.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. Rice grains scatter faintly from his precise footwork.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): Wasabi Ronin stands perfectly still, hands at his sides, facing the viewer. His ginger eyes are calm, his wasabi topknot motionless. The sashimi blade rests sheathed and the nori cloak is undisturbed. Total stillness.
+  Header "Idle Up" (2,1): Facing away in a meditative stance, the nori cloak draped over his rice body. The sashimi blade crosses his back and the wasabi topknot is perfectly vertical.
+  Header "Idle Left" (2,2): Facing left, one hand rests on the sashimi hilt in a classic iaido ready position. His expression is blank and focused, ginger eyes unblinking.
+  Header "Idle Right" (2,3): Facing right, the Ronin holds the small soy sauce dish in one hand, meditating on its dark surface. His wasabi features are serene.
+  Header "Battle Idle 1" (2,4): In a single fluid motion, Wasabi Ronin draws the sashimi blade — the deep red tuna katana gleams with a razor-silver edge. His nori cloak falls back from his arms and his ginger eyes narrow. The wasabi topknot seems to sharpen.
+  Header "Battle Idle 2" (2,5): He shifts into a low kendo stance, the sashimi blade angled precisely. A faint green aura of wasabi heat radiates from his body and the bamboo-mat armor creaks.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Ronin holds his blade perfectly level, the tuna-red surface reflecting light. His entire body is coiled potential energy — ginger eyes locked, wasabi head steady, rice body compressed and ready.
+  Header "Attack 1" (3,1): Wind-up — Wasabi Ronin raises the sashimi blade overhead in a classic two-handed grip. His rice body compresses like a loaded spring and the nori cloak whips back.
+  Header "Attack 2" (3,2): A devastating downward slash — the sashimi blade cuts through the air with a flash of red and silver. A thin line of wasabi heat trails the blade edge and his ginger eyes blaze.
+  Header "Attack 3" (3,3): Follow-through — the blade completes its arc with surgical precision. A burst of wasabi-green energy erupts at the point of impact and the Ronin flicks the blade clean in a chiburi motion.
+  Header "Cast 1" (3,4): Wasabi Ronin draws three chopstick daggers between his fingers and channels energy through them. Each chopstick tip glows with a different condiment aura — soy brown, wasabi green, ginger pink.
+  Header "Cast 2" (3,5): He hurls the charged chopsticks upward where they form a triangle in the air. A spinning mandala of sushi energy materializes between them — rice, nori, and fish spinning in a sacred pattern.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The sushi mandala fires — a focused beam of pure umami energy blasts downward through the chopstick triangle. The beam is layered: soy-dark outer ring, wasabi-green core, ginger-pink sparks. The Ronin sheathes his blade as the attack lands.
+  Header "Damage 1" (4,1): A hit scatters rice from the Ronin's body, leaving a gap in his torso. His nori cloak tears and a chopstick snaps. His ginger eyes wince but he holds his stance.
+  Header "Damage 2" (4,2): More rice bursts from his body, the nori cloak now shredded. His bamboo-mat armor cracks and the sashimi blade wobbles in his loosening grip. The wasabi topknot wilts slightly.
+  Header "Damage 3" (4,3): Recovery — the Ronin presses his scattered rice back into place with one hand, packing it tight. He adjusts the torn nori, steadies the blade, and hardens his wasabi expression. Ginger eyes sharpen.
+  Header "KO 1" (4,4): His rice body finally falls apart — grains pouring from the torn nori like sand. The sashimi blade drops as his arm disintegrates. The wasabi topknot melts in the heat of defeat.
+  Header "KO 2" (4,5): Wasabi Ronin collapses into a mound of loose rice, torn nori sheets, and a puddle of melted wasabi. The sashimi blade lies across the pile and the chopsticks are scattered.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): A deconstructed sushi plate lies on the ground — scattered rice, limp nori, a dissolved wasabi smear, two pink ginger slices where the eyes were, and the sashimi blade resting atop it all. The chopsticks are laid parallel in a final respectful gesture.
+  Header "Victory 1" (5,1): Wasabi Ronin sheathes the sashimi blade in one precise, ceremonial motion — the blade slides home with a decisive click. His wasabi topknot gleams and his ginger eyes close in satisfied meditation.
+  Header "Victory 2" (5,2): He performs a formal bow, the nori cloak spreading elegantly. Then he rises and holds the soy sauce dish aloft in a toast to the fallen. A single cherry blossom petal — made of thin-sliced ginger — drifts past.
+  Header "Victory 3" (5,3): The Ronin sits cross-legged on the ground, sashimi blade across his lap, chopstick daggers arranged neatly beside him. He sips from the soy sauce dish in serene contemplation, wasabi topknot perfect.
+  Header "Weak Pose" (5,4): His rice body is thin and loosely packed, grains falling steadily. The nori cloak is more hole than seaweed, the wasabi topknot is drooping, and he uses the sashimi blade as a walking stick. His ginger eyes are faded.
+  Header "Critical Pose" (5,5): Barely a fistful of rice held together by a single strip of nori, the Ronin somehow still stands. The sashimi blade trembles in his grip, the wasabi has nearly dissolved, and only one faint ginger eye remains — but his stance is still perfect.`,
     }
   ];
 
