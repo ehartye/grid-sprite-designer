@@ -178,6 +178,13 @@ swings, casting, damage recoil) must keep the character's center of mass
 near the middle of the cell — do not let poses drift to the edges. KO/lying
 poses should be centered horizontally even though they are low to the ground.
 
+EQUIPMENT CONSISTENCY: Held items must stay in the same hand across all
+poses — if the character wields a sword in their right hand, it remains in
+the right hand in every cell (side-view poses naturally mirror this).
+Back-worn items (capes, backpacks, slung shields, quivers, sheathed weapons)
+must appear consistently on the character's back in every pose where the
+back or side is visible. Do not omit, move, or swap equipment between cells.
+
 FULL BODY VISIBILITY: The character's ENTIRE body — head to toe — must be
 fully visible within every cell. No part of the sprite (head, feet, weapon,
 hat, cape, tail, wings) may be clipped or cut off by the cell boundary.
