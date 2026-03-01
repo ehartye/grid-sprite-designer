@@ -317,8 +317,14 @@ function detectGridLines(
   // Merge nearby dark bands (header + adjacent grid line = one divider)
   const mergedDark = mergeNearbyBands(darkBands, 3);
   console.log(`[GridDetect] Merged dividers: ${mergedDark.length}`, mergedDark.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
-  // Content rows are the gaps between dividers — use gridLinesToCellSpans
-  const hSpans = gridLinesToCellSpans(mergedDark, height, aaInset);
+  // Select the best dividers that produce 6 evenly-spaced content rows,
+  // pruning stray dark bands (e.g. a dark sprite row that passes the threshold).
+  const selectedRowDividers = selectGridLines(mergedDark, height, aaInset);
+  const rowDividers = selectedRowDividers || mergedDark;
+  if (selectedRowDividers) {
+    console.log(`[GridDetect] Selected row dividers: ${selectedRowDividers.length} (pruned ${mergedDark.length - selectedRowDividers.length})`);
+  }
+  const hSpans = gridLinesToCellSpans(rowDividers, height, aaInset);
   console.log(`[GridDetect] Content row spans: ${hSpans.length}`, hSpans.map(s => `${s.start} (${s.size}px)`));
 
   // ── Vertical: find grid lines via column variance ──────────────────────

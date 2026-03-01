@@ -255,7 +255,7 @@ app.post('/api/archive', (req, res, next) => {
 
     // Build folder name: character-name_YYYYMMDD-HHmmss
     const slug = characterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15).replace(/(\d{8})(\d{6})/, '$1-$2');
+    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14).replace(/(\d{8})(\d{6})/, '$1-$2');
     const folderName = `${slug}_${ts}`;
     const folderPath = join(OUTPUT_DIR, folderName);
 
