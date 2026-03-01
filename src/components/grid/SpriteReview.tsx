@@ -11,16 +11,19 @@ import { SpriteGrid } from './SpriteGrid';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE, TOTAL_CELLS } from '../../lib/poses';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
+import { posterize } from '../../lib/imagePreprocess';
 
 type RGB = [number, number, number];
 
 async function processSprite(
   sprite: ExtractedSprite,
+  posterizeOutput: boolean,
+  posterizeBits: number,
   chromaEnabled: boolean,
   chromaTolerance: number,
   struckColors: RGB[],
 ): Promise<ExtractedSprite> {
-  if (!chromaEnabled && struckColors.length === 0) return sprite;
+  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0) return sprite;
 
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -36,6 +39,7 @@ async function processSprite(
   ctx.drawImage(img, 0, 0);
 
   let imageData = ctx.getImageData(0, 0, img.width, img.height);
+  if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
   if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance);
   if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
 
@@ -47,7 +51,7 @@ async function processSprite(
 }
 
 /** Detect distinct colors from sprites using 4-bit quantization. */
-async function detectPalette(sprites: ExtractedSprite[], maxColors = 120): Promise<RGB[]> {
+async function detectPalette(sprites: ExtractedSprite[], maxColors = 144): Promise<RGB[]> {
   const counts = new Map<number, { r: number; g: number; b: number; n: number }>();
 
   // Sample from up to 12 sprites for broader coverage
@@ -103,6 +107,8 @@ export function SpriteReview() {
   const [chromaTolerance, setChromaTolerance] = useState(80);
   const [processedSprites, setProcessedSprites] = useState<ExtractedSprite[]>(sprites);
   const [aaInset, setAaInset] = useState(3);
+  const [posterizeBits, setPosterizeBits] = useState(4);
+  const [posterizeOutput, setPosterizeOutput] = useState(false);
   const [palette, setPalette] = useState<RGB[]>([]);
   const [struckColors, setStruckColors] = useState<RGB[]>([]);
   const [showRareColors, setShowRareColors] = useState(false);
@@ -118,31 +124,41 @@ export function SpriteReview() {
   const animTimerRef = useRef<number>(0);
   const lastKeyRef = useRef<string>('ArrowDown');
 
-  // Detect palette from raw sprites
+  // Detect palette from sprites with posterization only (never chroma/strikes,
+  // so striking a color doesn't reshuffle the palette).
   useEffect(() => {
     if (sprites.length === 0) return;
     let cancelled = false;
-    detectPalette(sprites).then((p) => {
-      if (!cancelled) setPalette(p);
-    });
-    return () => { cancelled = true; };
-  }, [sprites]);
 
-  // Process sprites through chroma key + color strikes
+    const sourcePromise = posterizeOutput
+      ? Promise.all(sprites.map(s => processSprite(s, true, posterizeBits, false, 0, [])))
+      : Promise.resolve(sprites);
+
+    sourcePromise.then(source => {
+      if (cancelled) return;
+      return detectPalette(source);
+    }).then(p => {
+      if (p && !cancelled) setPalette(p);
+    });
+
+    return () => { cancelled = true; };
+  }, [sprites, posterizeOutput, posterizeBits]);
+
+  // Process sprites through posterization + chroma key + color strikes
   useEffect(() => {
-    if (!chromaEnabled && struckColors.length === 0) {
+    if (!posterizeOutput && !chromaEnabled && struckColors.length === 0) {
       setProcessedSprites(sprites);
       return;
     }
 
     let cancelled = false;
-    Promise.all(sprites.map((s) => processSprite(s, chromaEnabled, chromaTolerance, struckColors)))
+    Promise.all(sprites.map((s) => processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors)))
       .then((result) => {
         if (!cancelled) setProcessedSprites(result);
       });
 
     return () => { cancelled = true; };
-  }, [sprites, chromaEnabled, chromaTolerance, struckKey]);
+  }, [sprites, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckKey]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
 
@@ -382,6 +398,8 @@ export function SpriteReview() {
     setChromaTolerance(80);
     setStruckColors([]);
     setAaInset(3);
+    setPosterizeBits(4);
+    setPosterizeOutput(false);
 
     Promise.all([
       loadSettings(),
@@ -395,6 +413,8 @@ export function SpriteReview() {
         if (settings.mirroredCells.length > 0) setMirroredCells(new Set(settings.mirroredCells));
         if (settings.cellOrder.length > 0) setDisplayOrder(settings.cellOrder);
         setAaInset(settings.aaInset);
+        setPosterizeBits(settings.posterizeBits);
+        setPosterizeOutput(settings.posterizeOutput);
       }
       if (histData?.thumbnailCellIndex != null) {
         setThumbnailCell(histData.thumbnailCellIndex);
@@ -415,8 +435,10 @@ export function SpriteReview() {
       mirroredCells: Array.from(mirroredCells),
       cellOrder: displayOrder,
       aaInset,
+      posterizeBits,
+      posterizeOutput,
     });
-  }, [settingsLoaded, chromaEnabled, chromaTolerance, struckKey, mirroredCells, displayOrder, aaInset, saveSettings]);
+  }, [settingsLoaded, chromaEnabled, chromaTolerance, struckKey, mirroredCells, displayOrder, aaInset, posterizeBits, posterizeOutput, saveSettings]);
 
   const handleMirrorToggle = useCallback((cellIndex: number) => {
     setMirroredCells((prev) => {
@@ -690,7 +712,47 @@ export function SpriteReview() {
               ))}
             </select>
           </div>
-          <button className="btn btn-sm w-full" onClick={() => reExtract({ aaInset })}>
+          <div className="slider-row" style={{ marginTop: 6 }}>
+            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              Posterize ({posterizeBits === 8 ? 'off' : `${posterizeBits}-bit`})
+            </label>
+            <input
+              type="range"
+              min={1}
+              max={8}
+              value={posterizeBits}
+              onChange={(e) => {
+                const bits = Number(e.target.value);
+                setPosterizeBits(bits);
+                if (bits === 8) setPosterizeOutput(false);
+              }}
+            />
+            <span className="slider-value">{posterizeBits}</span>
+          </div>
+          {posterizeBits < 8 && (
+            <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 4 }}>
+              <button
+                type="button"
+                className={`anim-group-btn ${!posterizeOutput ? 'active' : ''}`}
+                onClick={() => setPosterizeOutput(false)}
+              >
+                Original
+              </button>
+              <button
+                type="button"
+                className={`anim-group-btn ${posterizeOutput ? 'active' : ''}`}
+                onClick={() => setPosterizeOutput(true)}
+              >
+                Posterized
+              </button>
+            </div>
+          )}
+          <button
+            type="button"
+            className="btn btn-sm w-full"
+            style={{ marginTop: 6 }}
+            onClick={() => reExtract({ aaInset, posterizeBits })}
+          >
             Re-extract Sprites
           </button>
         </div>

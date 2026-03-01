@@ -11,6 +11,7 @@
  */
 
 import { COLS, ROWS, TOTAL_CELLS, CELL_LABELS } from './poses';
+import { posterize } from './imagePreprocess';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,8 @@ export interface ExtractionConfig {
   templateCellH: number;
   /** Extra inset (px) to clip anti-aliased border remnants */
   aaInset: number;
+  /** Bits per channel for posterization during grid detection (1-8) */
+  posterizeBits: number;
 }
 
 const DEFAULT_EXTRACTION: ExtractionConfig = {
@@ -43,6 +46,7 @@ const DEFAULT_EXTRACTION: ExtractionConfig = {
   templateCellW: 339,
   templateCellH: 339,
   aaInset: 3,
+  posterizeBits: 4,
 };
 
 // ── Grid line detection ─────────────────────────────────────────────────────
@@ -439,9 +443,13 @@ function loadImage(base64: string, mimeType: string): Promise<HTMLImageElement> 
 /**
  * Extract all 36 sprites from a filled grid image.
  *
- * Uses chromaticity-based row detection (strips headers + grid lines in one pass)
- * and variance-based column detection to locate cell boundaries, then crops
- * each cell directly — no per-cell header detection needed.
+ * Uses darkness-based row detection and variance-based column detection
+ * to locate cell boundaries, then crops each cell directly.
+ *
+ * The original image data from Gemini is never modified. Posterization
+ * is applied to an in-memory copy for grid detection only — sprite
+ * crops always come from the unmodified original. Posterized output
+ * is handled client-side in the processSprite pipeline.
  */
 export async function extractSprites(
   gridBase64: string,
@@ -458,11 +466,14 @@ export async function extractSprites(
   const gridCtx = gridCanvas.getContext('2d')!;
   gridCtx.drawImage(img, 0, 0);
 
-  const gridData = gridCtx.getImageData(0, 0, img.width, img.height);
+  const originalData = gridCtx.getImageData(0, 0, img.width, img.height);
 
-  // Detect cell rects — headers are already excluded by chromaticity detection
+  // Posterize a copy for grid detection — absorbs JPEG artifacts and makes
+  // grid lines / backgrounds perfectly uniform without touching the original.
+  const detectionData = posterize(originalData, cfg.posterizeBits);
+
   const cells = detectGridLines(
-    gridData.data, img.width, img.height,
+    detectionData.data, img.width, img.height,
     cfg.border, cfg.templateCellW, cfg.templateCellH,
     cfg.aaInset,
   );
@@ -473,12 +484,13 @@ export async function extractSprites(
     );
   }
 
+  // Always crop from the original image — posterization for output is handled
+  // client-side in the processSprite pipeline for instant toggling.
   const sprites: ExtractedSprite[] = [];
 
   for (let idx = 0; idx < TOTAL_CELLS; idx++) {
     const cell = cells[idx];
 
-    // Cell rects already exclude headers — crop directly
     const workCanvas = document.createElement('canvas');
     workCanvas.width = cell.w;
     workCanvas.height = cell.h;

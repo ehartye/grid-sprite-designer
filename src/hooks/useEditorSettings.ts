@@ -14,6 +14,8 @@ export interface EditorSettings {
   mirroredCells: number[];
   cellOrder: number[];
   aaInset: number;
+  posterizeBits: number;
+  posterizeOutput: boolean;
 }
 
 const DEFAULTS: EditorSettings = {
@@ -23,6 +25,8 @@ const DEFAULTS: EditorSettings = {
   mirroredCells: [],
   cellOrder: [],
   aaInset: 3,
+  posterizeBits: 4,
+  posterizeOutput: false,
 };
 
 export function useEditorSettings(historyId: number | null) {
