@@ -216,10 +216,13 @@ function gridLinesToCellSpans(
     sorted.push({ start: totalSize - 1, end: totalSize - 1 });
   }
 
+  // Skip past the grid line pixel bleed beyond the detected band edge
+  const GRID_LINE_SKIP = 2;
+
   const spans: Array<{ start: number; size: number }> = [];
   for (let i = 0; i < sorted.length - 1; i++) {
-    const start = sorted[i].end + 2 + margin;
-    const end = sorted[i + 1].start - 2 - margin;
+    const start = sorted[i].end + GRID_LINE_SKIP + margin;
+    const end = sorted[i + 1].start - GRID_LINE_SKIP - margin;
     const size = end - start + 1;
     if (size > 0) {
       spans.push({ start, size: Math.max(size, 1) });
@@ -277,19 +280,18 @@ function spansAreEven(
 /**
  * Detect cell rects using two complementary strategies:
  *
- * **Rows (horizontal)**: Chromaticity-based content detection.
- *   Content rows have magenta (#FF00FF) background → high chromaticity.
- *   Header rows (black bg + white text) → grayscale → low chromaticity.
- *   Grid lines (uniform dark/colored) → low chromaticity or absorbed into content.
- *   We find contiguous chromatic bands — these are the 6 content row regions,
- *   with headers and grid lines already excluded.
+ * **Rows (horizontal)**: Darkness-based divider detection.
+ *   Header rows (black bg + white text) and grid lines are mostly dark pixels.
+ *   We find dark bands (dividers) and use the gaps between them as content rows.
+ *   This is robust regardless of cell background color.
  *
  * **Columns (vertical)**: Variance-based grid line detection.
  *   Grid line columns have near-zero variance (uniform color).
- *   Content columns have high variance. We find the grid lines and derive
- *   cell spans from the spaces between them.
+ *   Content columns have high variance. Variance is computed only within
+ *   detected content rows to exclude headers that dilute the signal.
  *
- * Falls back to template positions if detection doesn't yield 6×6 cells.
+ * Falls back to template positions per-axis: if rows succeed but columns
+ * fail, uses detected rows with template-based columns (hybrid mode).
  */
 function detectGridLines(
   data: Uint8ClampedArray,
@@ -300,59 +302,97 @@ function detectGridLines(
   templateCellH: number,
   aaInset: number,
 ): CellRect[] {
-  // ── Horizontal: find content rows via chromaticity ──────────────────────
-  // This strips both grid lines AND header text rows in one pass.
-  // Header rows are black bg + white text (grayscale → low chromaticity).
-  // Content rows have magenta background (high chromaticity).
-  const rowChroma = computeRowChromaticity(data, width, height);
-  let hBands = findHighBands(rowChroma, 0.3);
-  console.log(`[GridDetect] Raw high bands (>0.3): ${hBands.length}`, hBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
-  // Merge tiny gaps from JPEG artifacts / anti-aliased edges
-  hBands = mergeNearbyBands(hBands, 3);
-  console.log(`[GridDetect] After merge (gap<=3): ${hBands.length}`, hBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
-  // Filter out narrow bands (colored grid lines that happen to be chromatic)
-  const minBandHeight = height * 0.05;
-  hBands = hBands.filter((b) => b.end - b.start + 1 > minBandHeight);
-  console.log(`[GridDetect] After filter (>${Math.round(minBandHeight)}px): ${hBands.length}`, hBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
+  // ── Horizontal: find content rows via darkness-based divider detection ──
+  // Headers (black bg + white text) and grid lines are mostly dark pixels.
+  // We find dark bands (dividers) and use the gaps between them as content rows.
+  // This is more robust than chromaticity-based detection because header/grid-line
+  // darkness is consistent regardless of sprite art content.
+  const rowDark = computeRowDarkness(data, width, height);
+  const darkBands = findHighBands(rowDark, 0.3);
+  console.log(`[GridDetect] Dark divider bands: ${darkBands.length}`, darkBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
+  // Merge nearby dark bands (header + adjacent grid line = one divider)
+  const mergedDark = mergeNearbyBands(darkBands, 3);
+  console.log(`[GridDetect] Merged dividers: ${mergedDark.length}`, mergedDark.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
+  // Content rows are the gaps between dividers — use gridLinesToCellSpans
+  const hSpans = gridLinesToCellSpans(mergedDark, height, aaInset);
+  console.log(`[GridDetect] Content row spans: ${hSpans.length}`, hSpans.map(s => `${s.start} (${s.size}px)`));
 
   // ── Vertical: find grid lines via column variance ──────────────────────
-  const colVar = computeColumnVariance(data, width, height);
+  // Compute variance only within detected content rows to exclude uniform
+  // header areas that dilute the grid line signal.
+  const contentBands: Band[] = hSpans.map(s => ({ start: s.start, end: s.start + s.size - 1 }));
+  const colVar = computeColumnVariance(data, width, height, contentBands.length === 6 ? contentBands : undefined);
   const colSorted = Array.from(colVar).sort((a, b) => a - b);
   const colMedian = colSorted[Math.floor(colSorted.length / 2)];
-  const vCandidates = findLowBands(colVar, colMedian * 0.02, 20);
-  console.log(`[GridDetect] Column: median=${colMedian.toFixed(1)}, threshold=${(colMedian*0.02).toFixed(1)}, candidates=${vCandidates.length}`, vCandidates.map(b => `${b.start}-${b.end}`));
-  const vLines = selectGridLines(vCandidates, width, aaInset);
-  console.log(`[GridDetect] Column selectGridLines result: ${vLines ? vLines.length + ' lines' : 'null'}`);
 
-  if (hBands.length !== 6 || !vLines) {
-    console.log(`[GridDetect] FALLBACK: hBands=${hBands.length}, vLines=${!!vLines}`);
+  // Try progressively higher thresholds — JPEG artifacts can give grid lines
+  // non-trivial variance, so 2% of median may be too strict.
+  let vLines: Band[] | null = null;
+  for (const pct of [0.02, 0.05, 0.10]) {
+    const threshold = colMedian * pct;
+    const vCandidates = findLowBands(colVar, threshold, 20);
+    console.log(`[GridDetect] Column: median=${colMedian.toFixed(1)}, threshold=${threshold.toFixed(1)} (${pct*100}%), candidates=${vCandidates.length}`, vCandidates.map(b => `${b.start}-${b.end}`));
+    vLines = selectGridLines(vCandidates, width, aaInset);
+    if (vLines) {
+      console.log(`[GridDetect] Column selectGridLines result: ${vLines.length} lines (at ${pct*100}%)`);
+      break;
+    }
+  }
+  if (!vLines) console.log(`[GridDetect] Column selectGridLines: no valid grid found at any threshold`);
+
+  if (hSpans.length !== 6 && !vLines) {
+    console.log(`[GridDetect] FULL FALLBACK: hSpans=${hSpans.length}, vLines=${!!vLines}`);
     return templateFallback(width, height, templateBorder, templateCellW, templateCellH, aaInset);
   }
 
-  // Convert content bands to spans with aaInset trimming
-  const hSpans = hBands.map((b) => ({
-    start: b.start + aaInset,
-    size: Math.max(b.end - b.start + 1 - 2 * aaInset, 1),
-  }));
-  const vSpans = gridLinesToCellSpans(vLines, width, aaInset);
+  // Derive final row/column spans, using template as fallback for whichever axis failed
+  const finalRows = hSpans.length === 6 ? hSpans : templateColSpans(height, templateCellH, templateBorder, aaInset);
+  let finalCols: Array<{ start: number; size: number }>;
+  if (vLines) {
+    const vSpans = gridLinesToCellSpans(vLines, width, aaInset);
+    finalCols = vSpans.length === 6 ? vSpans : templateColSpans(width, templateCellW, templateBorder, aaInset);
+  } else {
+    finalCols = templateColSpans(width, templateCellW, templateBorder, aaInset);
+  }
 
-  if (hSpans.length !== 6 || vSpans.length !== 6) {
-    return templateFallback(width, height, templateBorder, templateCellW, templateCellH, aaInset);
+  if (hSpans.length === 6 && !vLines) {
+    console.log(`[GridDetect] HYBRID: detected rows + template columns`);
   }
 
   const cells: CellRect[] = [];
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       cells.push({
-        x: vSpans[col].start,
-        y: hSpans[row].start,
-        w: vSpans[col].size,
-        h: hSpans[row].size,
+        x: finalCols[col].start,
+        y: finalRows[row].start,
+        w: finalCols[col].size,
+        h: finalRows[row].size,
       });
     }
   }
 
   return cells;
+}
+
+/**
+ * Derive 6 evenly-spaced cell spans for one axis using template proportions.
+ * Used when detection succeeds on one axis but fails on the other.
+ */
+function templateColSpans(
+  totalSize: number,
+  templateCellSize: number,
+  templateBorder: number,
+  aaInset: number,
+): Array<{ start: number; size: number }> {
+  const templateTotal = COLS * templateCellSize + (COLS + 1) * templateBorder;
+  const spans: Array<{ start: number; size: number }> = [];
+  for (let i = 0; i < COLS; i++) {
+    const tPos = i * (templateCellSize + templateBorder) + templateBorder;
+    const start = Math.round(tPos * totalSize / templateTotal) + aaInset;
+    const size = Math.round(templateCellSize * totalSize / templateTotal) - 2 * aaInset;
+    spans.push({ start, size: Math.max(size, 1) });
+  }
+  return spans;
 }
 
 /**
@@ -389,7 +429,7 @@ function loadImage(base64: string, mimeType: string): Promise<HTMLImageElement> 
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Failed to load grid image'));
+    img.onerror = () => reject(new Error(`Failed to load image (${mimeType})`));
     img.src = `data:${mimeType};base64,${base64}`;
   });
 }
@@ -471,36 +511,33 @@ export async function extractSprites(
  * Compose extracted sprites back into a clean sprite sheet (no grid lines, no headers).
  * Returns a canvas with all sprites arranged in a 6×6 grid.
  */
-export function composeSpriteSheet(
+export async function composeSpriteSheet(
   sprites: ExtractedSprite[],
 ): Promise<{ canvas: HTMLCanvasElement; base64: string }> {
-  return new Promise(async (resolve, reject) => {
-    if (sprites.length === 0) {
-      reject(new Error('No sprites to compose'));
-      return;
-    }
+  if (sprites.length === 0) {
+    throw new Error('No sprites to compose');
+  }
 
-    const { width: cellW, height: cellH } = sprites[0];
-    const sheetW = COLS * cellW;
-    const sheetH = ROWS * cellH;
+  const { width: cellW, height: cellH } = sprites[0];
+  const sheetW = COLS * cellW;
+  const sheetH = ROWS * cellH;
 
-    const canvas = document.createElement('canvas');
-    canvas.width = sheetW;
-    canvas.height = sheetH;
-    const ctx = canvas.getContext('2d')!;
+  const canvas = document.createElement('canvas');
+  canvas.width = sheetW;
+  canvas.height = sheetH;
+  const ctx = canvas.getContext('2d')!;
 
-    // Transparent background
-    ctx.clearRect(0, 0, sheetW, sheetH);
+  // Transparent background
+  ctx.clearRect(0, 0, sheetW, sheetH);
 
-    for (const sprite of sprites) {
-      const img = await loadImage(sprite.imageData, sprite.mimeType);
-      const col = sprite.cellIndex % COLS;
-      const row = Math.floor(sprite.cellIndex / COLS);
-      ctx.drawImage(img, col * cellW, row * cellH);
-    }
+  for (const sprite of sprites) {
+    const img = await loadImage(sprite.imageData, sprite.mimeType);
+    const col = sprite.cellIndex % COLS;
+    const row = Math.floor(sprite.cellIndex / COLS);
+    ctx.drawImage(img, col * cellW, row * cellH);
+  }
 
-    const dataUrl = canvas.toDataURL('image/png');
-    const base64 = dataUrl.split(',')[1];
-    resolve({ canvas, base64 });
-  });
+  const dataUrl = canvas.toDataURL('image/png');
+  const base64 = dataUrl.split(',')[1];
+  return { canvas, base64 };
 }

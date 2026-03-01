@@ -3,7 +3,7 @@
  * Manages the full workflow: configure → generate → extract → review → export
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { ExtractedSprite } from '../lib/spriteExtractor';
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -154,11 +154,6 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_STEP':
       return { ...state, step: action.step };
     case 'SET_HISTORY_ID':
-      fetch('/api/state/lastHistoryId', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: action.id }),
-      }).catch(() => {});
       return { ...state, historyId: action.id };
     case 'SET_PRESETS':
       return { ...state, presets: action.presets };
@@ -175,7 +170,6 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     case 'RESET':
-      fetch('/api/state/lastHistoryId', { method: 'DELETE' }).catch(() => {});
       return { ...initialState, presets: state.presets };
     default:
       return state;
@@ -193,6 +187,26 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const prevHistoryIdRef = useRef<number | null>(null);
+
+  // Sync historyId changes to the server (moved out of reducer to avoid side effects)
+  useEffect(() => {
+    const prev = prevHistoryIdRef.current;
+    const curr = state.historyId;
+    prevHistoryIdRef.current = curr;
+
+    if (curr !== null && curr !== prev) {
+      // historyId was set — persist it
+      fetch('/api/state/lastHistoryId', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: curr }),
+      }).catch(() => {});
+    } else if (curr === null && prev !== null) {
+      // historyId was cleared (RESET) — delete it
+      fetch('/api/state/lastHistoryId', { method: 'DELETE' }).catch(() => {});
+    }
+  }, [state.historyId]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

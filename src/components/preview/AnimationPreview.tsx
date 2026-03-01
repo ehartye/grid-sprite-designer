@@ -4,7 +4,7 @@
  * Accessible from the review step.
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
@@ -25,10 +25,13 @@ export function AnimationPreview() {
   const currentFrames = currentAnim.frames;
 
   // Build sprite lookup
-  const spriteMap = new Map<number, ExtractedSprite>();
-  for (const s of sprites) {
-    spriteMap.set(s.cellIndex, s);
-  }
+  const spriteMap = useMemo(() => {
+    const map = new Map<number, ExtractedSprite>();
+    for (const s of sprites) {
+      map.set(s.cellIndex, s);
+    }
+    return map;
+  }, [sprites]);
 
   // Animation loop
   useEffect(() => {

@@ -5,11 +5,11 @@ export default defineConfig({
   timeout: 30_000,
   reporter: [['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:5175',
+    baseURL: 'http://localhost:5174',
   },
   webServer: {
-    command: 'npx vite --port 5175',
-    port: 5175,
+    command: 'npx vite --port 5174',
+    port: 5174,
     reuseExistingServer: true,
   },
 });

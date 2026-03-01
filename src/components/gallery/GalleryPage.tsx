@@ -86,7 +86,11 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
 
         onSwitchToDesigner();
       } catch (err) {
-        console.error('Failed to load generation:', err);
+        dispatch({
+          type: 'SET_STATUS',
+          message: `Failed to load generation: ${err instanceof Error ? err.message : String(err)}`,
+          statusType: 'error',
+        });
       }
     },
     [dispatch, onSwitchToDesigner],
@@ -105,11 +109,15 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
         await fetch(`/api/history/${id}`, { method: 'DELETE' });
         setEntries((prev) => prev.filter((entry) => entry.id !== id));
       } catch {
-        console.warn('Failed to delete entry');
+        dispatch({
+          type: 'SET_STATUS',
+          message: 'Failed to delete entry',
+          statusType: 'error',
+        });
       }
       setDeleteConfirm(null);
     },
-    [deleteConfirm],
+    [deleteConfirm, dispatch],
   );
 
   const formatDate = (dateStr: string): string => {
@@ -150,7 +158,15 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
             <div
               key={entry.id}
               className="gallery-card"
+              role="button"
+              tabIndex={0}
               onClick={() => handleLoad(entry.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleLoad(entry.id);
+                }
+              }}
             >
               <div className="gallery-card-thumb">
                 {entry.thumbnailData && (

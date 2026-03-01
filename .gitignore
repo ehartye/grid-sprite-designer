@@ -4,4 +4,8 @@ data/
 .env.local
 playwright-report/
 test-results/
-
+server/*.db
+output/
+.playwright-mcp/
+*.png
+test-fixtures/*.b64
