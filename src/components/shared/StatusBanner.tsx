@@ -13,6 +13,7 @@ export function StatusBanner() {
   const [visible, setVisible] = useState(false);
   const [fading, setFading] = useState(false);
   const timerRef = useRef<number>(0);
+  const fadeTimerRef = useRef<number>(0);
   const prevStatusRef = useRef('');
 
   useEffect(() => {
@@ -21,16 +22,19 @@ export function StatusBanner() {
       setVisible(true);
       setFading(false);
 
-      // Clear any existing timer
+      // Clear any existing timers
       if (timerRef.current) {
         window.clearTimeout(timerRef.current);
+      }
+      if (fadeTimerRef.current) {
+        window.clearTimeout(fadeTimerRef.current);
       }
 
       // Auto-fade after 5 seconds
       timerRef.current = window.setTimeout(() => {
         setFading(true);
         // Remove from DOM after fade animation
-        window.setTimeout(() => {
+        fadeTimerRef.current = window.setTimeout(() => {
           setVisible(false);
           setFading(false);
           dispatch({ type: 'CLEAR_STATUS' });
@@ -47,6 +51,9 @@ export function StatusBanner() {
       if (timerRef.current) {
         window.clearTimeout(timerRef.current);
       }
+      if (fadeTimerRef.current) {
+        window.clearTimeout(fadeTimerRef.current);
+      }
     };
   }, [status, dispatch]);
 
@@ -54,8 +61,11 @@ export function StatusBanner() {
     if (timerRef.current) {
       window.clearTimeout(timerRef.current);
     }
+    if (fadeTimerRef.current) {
+      window.clearTimeout(fadeTimerRef.current);
+    }
     setFading(true);
-    setTimeout(() => {
+    fadeTimerRef.current = window.setTimeout(() => {
       setVisible(false);
       setFading(false);
       dispatch({ type: 'CLEAR_STATUS' });

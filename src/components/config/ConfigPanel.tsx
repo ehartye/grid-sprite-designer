@@ -77,12 +77,15 @@ export function ConfigPanel() {
   );
 
   // Group presets by genre for the optgroup display
-  const presetsByGenre = presets.reduce<Record<string, CharacterPreset[]>>((acc, p) => {
-    const genre = p.genre || 'Other';
-    if (!acc[genre]) acc[genre] = [];
-    acc[genre].push(p);
-    return acc;
-  }, {});
+  const presetsByGenre = useMemo(
+    () => presets.reduce<Record<string, CharacterPreset[]>>((acc, p) => {
+      const genre = p.genre || 'Other';
+      if (!acc[genre]) acc[genre] = [];
+      acc[genre].push(p);
+      return acc;
+    }, {}),
+    [presets],
+  );
 
   return (
     <div className="config-panel">
@@ -184,12 +187,14 @@ export function ConfigPanel() {
         <label>Image Size</label>
         <div className="segmented-control">
           <button
+            type="button"
             className={imageSize === '2K' ? 'active' : ''}
             onClick={() => dispatch({ type: 'SET_IMAGE_SIZE', imageSize: '2K' })}
           >
             2K (2048px)
           </button>
           <button
+            type="button"
             className={imageSize === '4K' ? 'active' : ''}
             onClick={() => dispatch({ type: 'SET_IMAGE_SIZE', imageSize: '4K' })}
           >

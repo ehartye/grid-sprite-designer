@@ -28,176 +28,224 @@ if (!apiKey) {
 const db = getDb();
 console.log('[Server] Database initialized.');
 
+/** Parse a route :id param as a positive integer. Returns null if invalid. */
+function parseIntParam(val) {
+  const n = Number(val);
+  if (!Number.isInteger(n) || n <= 0) return null;
+  return n;
+}
+
 // Mount routes
 app.use('/api', createGenerateRouter(apiKey));
 
 // Simple history endpoints
-app.get('/api/history', (req, res) => {
-  const rows = db.prepare(
-    'SELECT id, character_name, character_description, model, created_at FROM generations ORDER BY created_at DESC LIMIT 50'
-  ).all();
-  res.json(rows);
+app.get('/api/history', (req, res, next) => {
+  try {
+    const rows = db.prepare(
+      'SELECT id, character_name, character_description, model, created_at FROM generations ORDER BY created_at DESC LIMIT 50'
+    ).all();
+    res.json(rows);
+  } catch (err) { next(err); }
 });
 
-app.get('/api/history/:id', (req, res) => {
-  const gen = db.prepare('SELECT * FROM generations WHERE id = ?').get(req.params.id);
-  if (!gen) return res.status(404).json({ error: 'Not found' });
+app.get('/api/history/:id', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
-  const sprites = db.prepare(
-    'SELECT * FROM sprites WHERE generation_id = ? ORDER BY cell_index'
-  ).all(req.params.id);
+    const gen = db.prepare('SELECT * FROM generations WHERE id = ?').get(id);
+    if (!gen) return res.status(404).json({ error: 'Not found' });
 
-  res.json({
-    id: gen.id,
-    character: {
-      name: gen.character_name || '',
-      description: gen.character_description || '',
-      equipment: '',
-      colorNotes: '',
-      styleNotes: '',
-      rowGuidance: '',
-    },
-    filledGridImage: gen.filled_grid_image,
-    filledGridMimeType: 'image/png',
-    geminiText: gen.prompt || '',
-    thumbnailCellIndex: gen.thumbnail_cell_index,
-    sprites: sprites.map(s => ({
-      cellIndex: s.cell_index,
-      label: s.pose_name,
-      imageData: s.image_data,
-      mimeType: s.mime_type,
-      width: 0,
-      height: 0,
-    })),
-  });
+    const sprites = db.prepare(
+      'SELECT * FROM sprites WHERE generation_id = ? ORDER BY cell_index'
+    ).all(id);
+
+    res.json({
+      id: gen.id,
+      character: {
+        name: gen.character_name || '',
+        description: gen.character_description || '',
+        equipment: '',
+        colorNotes: '',
+        styleNotes: '',
+        rowGuidance: '',
+      },
+      filledGridImage: gen.filled_grid_image,
+      filledGridMimeType: 'image/png',
+      geminiText: gen.prompt || '',
+      thumbnailCellIndex: gen.thumbnail_cell_index,
+      sprites: sprites.map(s => ({
+        cellIndex: s.cell_index,
+        label: s.pose_name,
+        imageData: s.image_data,
+        mimeType: s.mime_type,
+        width: 0,
+        height: 0,
+      })),
+    });
+  } catch (err) { next(err); }
 });
 
-app.post('/api/history', (req, res) => {
-  const { characterName, characterDescription, model, prompt, templateImage, filledGridImage } = req.body;
+app.post('/api/history', (req, res, next) => {
+  try {
+    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage } = req.body;
 
-  const result = db.prepare(
-    `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image)
+    const result = db.prepare(
+      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image)
      VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '');
+    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '');
 
-  res.json({ id: result.lastInsertRowid });
+    res.json({ id: result.lastInsertRowid });
+  } catch (err) { next(err); }
 });
 
-app.post('/api/history/:id/sprites', (req, res) => {
-  const { sprites } = req.body; // Array of { cellIndex, poseId, poseName, imageData, mimeType }
+app.post('/api/history/:id/sprites', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
-  const insert = db.prepare(
-    `INSERT INTO sprites (generation_id, cell_index, pose_id, pose_name, image_data, mime_type)
+    const { sprites } = req.body; // Array of { cellIndex, poseId, poseName, imageData, mimeType }
+
+    const insert = db.prepare(
+      `INSERT INTO sprites (generation_id, cell_index, pose_id, pose_name, image_data, mime_type)
      VALUES (?, ?, ?, ?, ?, ?)`
-  );
+    );
 
-  const insertAll = db.transaction(() => {
-    for (const s of sprites) {
-      insert.run(req.params.id, s.cellIndex, s.poseId, s.poseName, s.imageData, s.mimeType);
-    }
-  });
+    const insertAll = db.transaction(() => {
+      for (const s of sprites) {
+        insert.run(id, s.cellIndex, s.poseId, s.poseName, s.imageData, s.mimeType);
+      }
+    });
 
-  insertAll();
-  res.json({ count: sprites.length });
+    insertAll();
+    res.json({ count: sprites.length });
+  } catch (err) { next(err); }
 });
 
 // Character presets
-app.get('/api/presets', (req, res) => {
-  const rows = db.prepare('SELECT * FROM character_presets WHERE is_preset = 1 ORDER BY name').all();
-  res.json(rows.map(r => ({
-    id: r.id,
-    name: r.name,
-    genre: r.genre,
-    description: r.description,
-    equipment: r.equipment,
-    colorNotes: r.color_notes,
-    rowGuidance: r.row_guidance,
-  })));
+app.get('/api/presets', (req, res, next) => {
+  try {
+    const rows = db.prepare('SELECT * FROM character_presets WHERE is_preset = 1 ORDER BY name').all();
+    res.json(rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      genre: r.genre,
+      description: r.description,
+      equipment: r.equipment,
+      colorNotes: r.color_notes,
+      rowGuidance: r.row_guidance,
+    })));
+  } catch (err) { next(err); }
 });
 
 // Set thumbnail cell for a generation (with processed image data)
-app.put('/api/history/:id/thumbnail', (req, res) => {
-  const { cellIndex, imageData, mimeType } = req.body;
-  const result = db.prepare(
-    `UPDATE generations SET thumbnail_cell_index = ?, thumbnail_image = ?, thumbnail_mime = ?, updated_at = datetime('now') WHERE id = ?`
-  ).run(cellIndex, imageData || null, mimeType || null, req.params.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
-  res.json({ success: true });
+app.put('/api/history/:id/thumbnail', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+
+    const { cellIndex, imageData, mimeType } = req.body;
+    const result = db.prepare(
+      `UPDATE generations SET thumbnail_cell_index = ?, thumbnail_image = ?, thumbnail_mime = ?, updated_at = datetime('now') WHERE id = ?`
+    ).run(cellIndex, imageData || null, mimeType || null, id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json({ success: true });
+  } catch (err) { next(err); }
 });
 
 // Generation gallery
-app.get('/api/gallery', (req, res) => {
-  const rows = db.prepare(
-    `SELECT g.id, g.character_name, g.character_description, g.model, g.created_at,
+app.get('/api/gallery', (req, res, next) => {
+  try {
+    const rows = db.prepare(
+      `SELECT g.id, g.character_name, g.character_description, g.model, g.created_at,
             (SELECT COUNT(*) FROM sprites WHERE generation_id = g.id) as sprite_count,
             COALESCE(g.thumbnail_image, (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_data,
             COALESCE(g.thumbnail_mime, (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_mime
      FROM generations g ORDER BY g.created_at DESC LIMIT 50`
-  ).all();
-  res.json(rows.map(r => ({
-    id: r.id,
-    characterName: r.character_name,
-    characterDescription: r.character_description,
-    model: r.model,
-    createdAt: r.created_at,
-    spriteCount: r.sprite_count,
-    thumbnailData: r.thumb_data,
-    thumbnailMime: r.thumb_mime,
-  })));
-});
-
-app.delete('/api/gallery/:id', (req, res) => {
-  db.prepare('DELETE FROM sprites WHERE generation_id = ?').run(req.params.id);
-  const result = db.prepare('DELETE FROM generations WHERE id = ?').run(req.params.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
-  res.json({ success: true });
+    ).all();
+    res.json(rows.map(r => ({
+      id: r.id,
+      characterName: r.character_name,
+      characterDescription: r.character_description,
+      model: r.model,
+      createdAt: r.created_at,
+      spriteCount: r.sprite_count,
+      thumbnailData: r.thumb_data,
+      thumbnailMime: r.thumb_mime,
+    })));
+  } catch (err) { next(err); }
 });
 
 // App state (key-value store for session persistence)
-app.get('/api/state/:key', (req, res) => {
-  const row = db.prepare('SELECT value FROM app_state WHERE key = ?').get(req.params.key);
-  res.json({ value: row ? row.value : null });
+app.get('/api/state/:key', (req, res, next) => {
+  try {
+    const row = db.prepare('SELECT value FROM app_state WHERE key = ?').get(req.params.key);
+    res.json({ value: row ? row.value : null });
+  } catch (err) { next(err); }
 });
 
-app.put('/api/state/:key', (req, res) => {
-  const { value } = req.body;
-  db.prepare(
-    'INSERT INTO app_state (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
-  ).run(req.params.key, String(value));
-  res.json({ success: true });
+app.put('/api/state/:key', (req, res, next) => {
+  try {
+    const { value } = req.body;
+    db.prepare(
+      'INSERT INTO app_state (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
+    ).run(req.params.key, String(value));
+    res.json({ success: true });
+  } catch (err) { next(err); }
 });
 
-app.delete('/api/state/:key', (req, res) => {
-  db.prepare('DELETE FROM app_state WHERE key = ?').run(req.params.key);
-  res.json({ success: true });
+app.delete('/api/state/:key', (req, res, next) => {
+  try {
+    db.prepare('DELETE FROM app_state WHERE key = ?').run(req.params.key);
+    res.json({ success: true });
+  } catch (err) { next(err); }
 });
 
 // Editor settings per generation
-app.get('/api/history/:id/settings', (req, res) => {
-  const row = db.prepare('SELECT settings FROM editor_settings WHERE generation_id = ?').get(req.params.id);
-  res.json(row ? JSON.parse(row.settings) : null);
+app.get('/api/history/:id/settings', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+
+    const row = db.prepare('SELECT settings FROM editor_settings WHERE generation_id = ?').get(id);
+    try {
+      res.json(row ? JSON.parse(row.settings) : null);
+    } catch {
+      res.json(null);
+    }
+  } catch (err) { next(err); }
 });
 
-app.put('/api/history/:id/settings', (req, res) => {
-  const settings = JSON.stringify(req.body);
-  db.prepare(
-    `INSERT INTO editor_settings (generation_id, settings, updated_at)
+app.put('/api/history/:id/settings', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+
+    const settings = JSON.stringify(req.body);
+    db.prepare(
+      `INSERT INTO editor_settings (generation_id, settings, updated_at)
      VALUES (?, ?, datetime('now'))
      ON CONFLICT(generation_id) DO UPDATE SET settings = excluded.settings, updated_at = excluded.updated_at`
-  ).run(req.params.id, settings);
-  res.json({ success: true });
+    ).run(id, settings);
+    res.json({ success: true });
+  } catch (err) { next(err); }
 });
 
-app.delete('/api/history/:id', (req, res) => {
-  db.prepare('DELETE FROM sprites WHERE generation_id = ?').run(req.params.id);
-  const result = db.prepare('DELETE FROM generations WHERE id = ?').run(req.params.id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
-  res.json({ success: true });
+app.delete('/api/history/:id', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+
+    db.prepare('DELETE FROM sprites WHERE generation_id = ?').run(id);
+    const result = db.prepare('DELETE FROM generations WHERE id = ?').run(id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json({ success: true });
+  } catch (err) { next(err); }
 });
 
 // ── Archive: save generation to disk as PNG files ──────────────────────────
 
-app.post('/api/archive', (req, res) => {
+app.post('/api/archive', (req, res, next) => {
   try {
     const { characterName, filledGridImage, filledGridMimeType, sprites } = req.body;
 
@@ -236,14 +284,11 @@ app.post('/api/archive', (req, res) => {
 
     console.log(`[Archive] Saved to ${folderName}: grid + ${spriteCount} sprites`);
     res.json({ folder: folderName, spriteCount });
-  } catch (err) {
-    console.error('Archive error:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { next(err); }
 });
 
 // List archive folders
-app.get('/api/archive', (req, res) => {
+app.get('/api/archive', (req, res, next) => {
   try {
     if (!existsSync(OUTPUT_DIR)) {
       return res.json([]);
@@ -268,10 +313,7 @@ app.get('/api/archive', (req, res) => {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
     res.json(entries);
-  } catch (err) {
-    console.error('Archive list error:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { next(err); }
 });
 
 // Serve archive files statically
@@ -280,6 +322,12 @@ app.use('/output', express.static(OUTPUT_DIR));
 // Serve test files (dev only)
 app.use('/tests', express.static(join(__dirname, '..', 'tests')));
 app.use('/test-fixtures', express.static(join(__dirname, '..', 'test-fixtures')));
+
+// Global error handler
+app.use((err, req, res, _next) => {
+  console.error('[Server] Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

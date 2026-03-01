@@ -35,5 +35,11 @@ export async function testConnection(model: string = 'nano-banana-pro-preview'):
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model }),
   });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+    throw new Error(err.error || `Connection test failed (${response.status})`);
+  }
+
   return response.json();
 }

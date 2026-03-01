@@ -32,6 +32,10 @@ export function applyChromaKey(
   const data = out.data;
 
   const coreThreshold = tolerance * 3;
+  // Width of the soft alpha ramp (in Manhattan-distance units) around the core
+  // key color. Pixels within coreThreshold are fully transparent; those between
+  // coreThreshold and coreThreshold+SOFT_EDGE_WIDTH get partial alpha.
+  // 60 gives a smooth fade that avoids hard cutoffs on anti-aliased sprite edges.
   const SOFT_EDGE_WIDTH = 60;
   const outerThreshold = coreThreshold + SOFT_EDGE_WIDTH;
 
