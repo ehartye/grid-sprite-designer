@@ -522,7 +522,52 @@ export async function extractSprites(
     });
   }
 
-  return sprites;
+  return normalizeSprites(sprites);
+}
+
+/**
+ * Normalize all sprites to uniform dimensions (max width × max height),
+ * bottom-aligned and horizontally centered with transparent padding.
+ */
+async function normalizeSprites(sprites: ExtractedSprite[]): Promise<ExtractedSprite[]> {
+  const widths = sprites.map(s => s.width);
+  const heights = sprites.map(s => s.height);
+  const maxW = Math.max(...widths);
+  const maxH = Math.max(...heights);
+  const minW = Math.min(...widths);
+  const minH = Math.min(...heights);
+
+  // Already uniform — skip work
+  if (minW === maxW && minH === maxH) return sprites;
+
+  console.log(
+    `[Normalize] Resized sprites to ${maxW}×${maxH} (was ${minW}-${maxW} × ${minH}-${maxH})`,
+  );
+
+  return Promise.all(sprites.map(async sprite => {
+    if (sprite.width === maxW && sprite.height === maxH) return sprite;
+
+    const img = await loadImage(sprite.imageData, sprite.mimeType);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = maxW;
+    canvas.height = maxH;
+    const ctx = canvas.getContext('2d')!;
+    ctx.clearRect(0, 0, maxW, maxH);
+
+    // Draw bottom-aligned, horizontally centered
+    const x = Math.floor((maxW - sprite.width) / 2);
+    const y = maxH - sprite.height;
+    ctx.drawImage(img, x, y);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    return {
+      ...sprite,
+      imageData: dataUrl.split(',')[1],
+      width: maxW,
+      height: maxH,
+    };
+  }));
 }
 
 /**
