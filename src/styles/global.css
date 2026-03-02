@@ -891,6 +891,35 @@ button {
   background: rgba(245, 197, 66, 0.15);
 }
 
+.sprite-cell .cell-zoom-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(14, 14, 24, 0.8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  z-index: 3;
+}
+
+.sprite-cell:hover .cell-zoom-btn {
+  opacity: 1;
+}
+
+.sprite-cell .cell-zoom-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .sprite-cell.empty {
   border-style: dashed;
   border-color: var(--border);
@@ -1267,6 +1296,275 @@ img.sprite-image {
 .gap-sm { gap: 6px; }
 .gap-md { gap: 12px; }
 .gap-lg { gap: 20px; }
+
+/* ============================================================
+   Sprite Zoom Modal
+   ============================================================ */
+
+.zoom-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  width: 90vw;
+  max-height: 90vh;
+  animation: modalIn 0.25s ease both;
+  overflow: hidden;
+}
+
+.zoom-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.zoom-modal-header .zoom-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zoom-modal-header .zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.zoom-modal-header .zoom-controls button {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.zoom-modal-header .zoom-controls button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.zoom-modal-header .zoom-level {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  min-width: 32px;
+  text-align: center;
+}
+
+.zoom-modal-header .zoom-tool-toggle {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.zoom-modal-header .zoom-tool-toggle button {
+  width: 30px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.zoom-modal-header .zoom-tool-toggle button:hover {
+  color: var(--text);
+  background: var(--bg-card-hover);
+}
+
+.zoom-modal-header .zoom-tool-toggle button.active {
+  background: var(--accent);
+  color: var(--bg-base);
+}
+
+.zoom-modal-header .zoom-close-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.zoom-modal-header .zoom-close-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.zoom-modal-canvas-wrap {
+  flex: 1;
+  overflow: hidden;
+  cursor: crosshair;
+  min-height: 400px;
+  position: relative;
+  background: var(--bg-base);
+}
+
+.zoom-modal-canvas-wrap.is-eraser {
+  cursor: pointer;
+}
+
+.zoom-modal-canvas-wrap.is-panning {
+  cursor: grabbing;
+}
+
+.zoom-modal-canvas-wrap canvas {
+  display: block;
+}
+
+.zoom-modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  min-height: 40px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.zoom-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.zoom-struck-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.zoom-struck-chip {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  opacity: 0.5;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.zoom-struck-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    rgba(255, 71, 87, 0.7) 40%,
+    rgba(255, 71, 87, 0.7) 60%,
+    transparent 60%
+  );
+}
+
+.zoom-struck-chip:hover {
+  opacity: 1;
+  border-color: var(--danger);
+}
+
+.zoom-strike-confirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-alt);
+  animation: fadeUp 0.15s ease both;
+}
+
+.zoom-strike-confirm .strike-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.zoom-strike-confirm .strike-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.zoom-strike-confirm .strike-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.zoom-strike-confirm .strike-actions button {
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.zoom-strike-confirm .btn-strike {
+  background: var(--accent);
+  color: var(--bg-base);
+  border: 1px solid var(--accent);
+}
+
+.zoom-strike-confirm .btn-strike:hover {
+  background: var(--accent-hover);
+}
+
+.zoom-strike-confirm .btn-strike-cancel {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.zoom-strike-confirm .btn-strike-cancel:hover {
+  border-color: var(--border-light);
+  color: var(--text);
+}
 
 /* ============================================================
    Responsive
