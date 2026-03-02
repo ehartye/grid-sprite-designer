@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { SpriteGrid } from './SpriteGrid';
+import { SpriteZoomModal } from './SpriteZoomModal';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE, TOTAL_CELLS } from '../../lib/poses';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
@@ -22,8 +23,10 @@ async function processSprite(
   chromaEnabled: boolean,
   chromaTolerance: number,
   struckColors: RGB[],
+  erasedPixels?: Set<string>,
 ): Promise<ExtractedSprite> {
-  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0) return sprite;
+  const hasErasure = erasedPixels && erasedPixels.size > 0;
+  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure) return sprite;
 
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -42,6 +45,17 @@ async function processSprite(
   if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
   if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance);
   if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
+  if (hasErasure) {
+    for (const key of erasedPixels) {
+      const sep = key.indexOf(',');
+      const x = parseInt(key.substring(0, sep), 10);
+      const y = parseInt(key.substring(sep + 1), 10);
+      if (x >= 0 && y >= 0 && x < img.width && y < img.height) {
+        const i = (y * img.width + x) * 4;
+        imageData.data[i + 3] = 0;
+      }
+    }
+  }
 
   ctx.putImageData(imageData, 0, 0);
   const dataUrl = canvas.toDataURL('image/png');
@@ -116,7 +130,14 @@ export function SpriteReview() {
   const [displayOrder, setDisplayOrder] = useState<number[]>(() => Array.from({ length: TOTAL_CELLS }, (_, i) => i));
   const [mirroredCells, setMirroredCells] = useState<Set<number>>(new Set());
   const [thumbnailCell, setThumbnailCell] = useState<number | null>(null);
+  const [zoomSpriteIndex, setZoomSpriteIndex] = useState<number | null>(null);
+  const [erasedPixels, setErasedPixels] = useState<Map<number, Set<string>>>(new Map());
   const struckKey = JSON.stringify(struckColors);
+  const erasedKey = useMemo(() => {
+    let total = 0;
+    for (const s of erasedPixels.values()) total += s.size;
+    return total;
+  }, [erasedPixels]);
 
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
 
@@ -144,21 +165,23 @@ export function SpriteReview() {
     return () => { cancelled = true; };
   }, [sprites, posterizeOutput, posterizeBits]);
 
-  // Process sprites through posterization + chroma key + color strikes
+  // Process sprites through posterization + chroma key + color strikes + erasures
   useEffect(() => {
-    if (!posterizeOutput && !chromaEnabled && struckColors.length === 0) {
+    if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && erasedPixels.size === 0) {
       setProcessedSprites(sprites);
       return;
     }
 
     let cancelled = false;
-    Promise.all(sprites.map((s) => processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors)))
+    Promise.all(sprites.map((s) =>
+      processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors, erasedPixels.get(s.cellIndex)),
+    ))
       .then((result) => {
         if (!cancelled) setProcessedSprites(result);
       });
 
     return () => { cancelled = true; };
-  }, [sprites, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckKey]);
+  }, [sprites, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckKey, erasedKey]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
 
@@ -472,6 +495,37 @@ export function SpriteReview() {
     }).catch(() => {});
   }, [state.historyId, displaySprites, mirroredCells, flipSpriteHorizontally]);
 
+  const handleZoomClick = useCallback((cellIndex: number) => {
+    setZoomSpriteIndex(cellIndex);
+  }, []);
+
+  const handleZoomStrikeColor = useCallback((color: RGB) => {
+    setStruckColors((prev) => {
+      if (prev.some((c) => c[0] === color[0] && c[1] === color[1] && c[2] === color[2])) return prev;
+      return [...prev, color];
+    });
+  }, []);
+
+  const handleZoomUnstrikeColor = useCallback((color: RGB) => {
+    setStruckColors((prev) =>
+      prev.filter((c) => c[0] !== color[0] || c[1] !== color[1] || c[2] !== color[2]),
+    );
+  }, []);
+
+  const handleErasePixel = useCallback((x: number, y: number) => {
+    if (zoomSpriteIndex === null) return;
+    // Map display cellIndex back to source cellIndex
+    const srcIdx = displayOrder[zoomSpriteIndex];
+    setErasedPixels((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(srcIdx);
+      const copy = existing ? new Set(existing) : new Set<string>();
+      copy.add(`${x},${y}`);
+      next.set(srcIdx, copy);
+      return next;
+    });
+  }, [zoomSpriteIndex, displayOrder]);
+
   return (
     <div className="review-layout">
       {/* Left: Sprite Grid */}
@@ -489,6 +543,7 @@ export function SpriteReview() {
           onMirrorToggle={handleMirrorToggle}
           thumbnailCell={thumbnailCell}
           onThumbnailSet={state.historyId ? handleThumbnailSet : undefined}
+          onZoomClick={handleZoomClick}
         />
         {isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
@@ -782,6 +837,21 @@ export function SpriteReview() {
           </div>
         </div>
       </aside>
+
+      {zoomSpriteIndex !== null && (() => {
+        const zoomSprite = displaySprites.find((s) => s.cellIndex === zoomSpriteIndex);
+        if (!zoomSprite) return null;
+        return (
+          <SpriteZoomModal
+            sprite={zoomSprite}
+            struckColors={struckColors}
+            onStrikeColor={handleZoomStrikeColor}
+            onUnstrikeColor={handleZoomUnstrikeColor}
+            onErasePixel={handleErasePixel}
+            onClose={() => setZoomSpriteIndex(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

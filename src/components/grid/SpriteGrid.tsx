@@ -16,9 +16,10 @@ interface SpriteGridProps {
   onMirrorToggle?: (cellIndex: number) => void;
   thumbnailCell?: number | null;
   onThumbnailSet?: (cellIndex: number) => void;
+  onZoomClick?: (cellIndex: number) => void;
 }
 
-export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet }: SpriteGridProps) {
+export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick }: SpriteGridProps) {
   // Build a lookup map from cellIndex to sprite
   const spriteMap = new Map<number, ExtractedSprite>();
   for (const sprite of sprites) {
@@ -70,6 +71,18 @@ export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, 
                     title={thumbnailCell === idx ? 'Gallery thumbnail' : 'Set as gallery thumbnail'}
                   >
                     {thumbnailCell === idx ? '\u2605' : '\u2606'}
+                  </button>
+                )}
+                {onZoomClick && (
+                  <button
+                    className="cell-zoom-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onZoomClick(idx);
+                    }}
+                    title="Zoom / inspect pixels"
+                  >
+                    &#x1F50D;
                   </button>
                 )}
               </>
