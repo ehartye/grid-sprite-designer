@@ -63,6 +63,14 @@ function checkResults(results: SpriteResult[], fixtureName: string) {
     const spread = Math.max(...heights) - Math.min(...heights);
     expect(spread, `${fixtureName} row ${row}: height spread ${spread}px (heights: ${heights.join(',')})`).toBeLessThanOrEqual(MAX_HEIGHT_SPREAD);
   }
+
+  // Check all sprites have identical dimensions (post-normalization)
+  const widths = results.map(r => r.cellW);
+  const heights = results.map(r => r.cellH);
+  const widthSpread = Math.max(...widths) - Math.min(...widths);
+  const heightSpread = Math.max(...heights) - Math.min(...heights);
+  expect(widthSpread, `${fixtureName}: width spread ${widthSpread}px`).toBe(0);
+  expect(heightSpread, `${fixtureName}: height spread ${heightSpread}px`).toBe(0);
 }
 
 test.describe('Sprite Extraction', () => {
@@ -123,6 +131,39 @@ test.describe('Sprite Extraction', () => {
     const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
     console.log(`fluxbot-drone — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
   });
+
+  // Dynamic tests for all character fixtures
+  const characterFixtures = [
+    'kael-thornwood',
+    'magma-wyrm',
+    'mosskin-spirit',
+    'robot-leech-snake',
+    'rustback-scavenger',
+    'spore-lurker',
+    'voidmaw-parasite',
+  ];
+
+  for (const fixture of characterFixtures) {
+    test(`${fixture}: character fixture extraction`, async ({ page }) => {
+      const fixturePath = join(ROOT, 'test-fixtures', `${fixture}.jpg`);
+      if (!existsSync(fixturePath)) {
+        test.skip();
+        return;
+      }
+
+      const results = await runExtraction(page, `${fixture}.jpg`);
+      checkResults(results, fixture);
+
+      await page.screenshot({
+        path: join(ROOT, 'test-results', `${fixture}-results.png`),
+        fullPage: true,
+      });
+
+      const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+      const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
+      console.log(`${fixture} — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
+    });
+  }
 
   test('posterization: 5-bit output has SNES-conformant colors', async ({ page }) => {
     const fixturePath = join(ROOT, 'test-fixtures', 'filled-grid.jpg');
