@@ -8,6 +8,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { extractSprites } from '../../lib/spriteExtractor';
 import { CONFIG_2K } from '../../lib/templateGenerator';
+import { getBuildingGridConfig, type BuildingGridSize } from '../../lib/gridConfig';
 
 interface GalleryEntry {
   id: number;
@@ -53,10 +54,33 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
         if (!res.ok) throw new Error('Failed to load generation');
         const data = await res.json();
 
-        // Populate state with loaded generation
-        if (data.character) {
+        // Reset previous state before loading new generation
+        dispatch({ type: 'RESET' });
+
+        // Set sprite type first
+        const spriteType = data.spriteType || 'character';
+        dispatch({ type: 'SET_SPRITE_TYPE', spriteType });
+
+        // Populate config state
+        if (spriteType === 'building' && data.gridSize) {
+          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+          dispatch({
+            type: 'SET_BUILDING',
+            building: {
+              name: data.character?.name || '',
+              description: data.character?.description || '',
+              details: '',
+              colorNotes: '',
+              styleNotes: '',
+              cellGuidance: '',
+              gridSize: data.gridSize,
+              cellLabels: spriteLabels,
+            },
+          });
+        } else if (data.character) {
           dispatch({ type: 'SET_CHARACTER', character: data.character });
         }
+
         const mimeType = data.filledGridMimeType || 'image/png';
         if (data.filledGridImage) {
           dispatch({
@@ -66,20 +90,35 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
             geminiText: data.geminiText || '',
           });
 
-          // Re-extract sprites from the grid using current edge-detection pipeline
-          const sprites = await extractSprites(
-            data.filledGridImage,
-            mimeType,
-            {
-              headerH: CONFIG_2K.headerH,
-              border: CONFIG_2K.border,
-              templateCellW: CONFIG_2K.cellW,
-              templateCellH: CONFIG_2K.cellH,
-            },
-          );
+          // Build extraction config based on sprite type
+          let extractionConfig: Parameters<typeof extractSprites>[2] = {
+            headerH: CONFIG_2K.headerH,
+            border: CONFIG_2K.border,
+            templateCellW: CONFIG_2K.cellW,
+            templateCellH: CONFIG_2K.cellH,
+          };
+
+          if (spriteType === 'building' && data.gridSize) {
+            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+            const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
+            const templateParams = gridConfig.templates['2K'];
+            extractionConfig = {
+              headerH: templateParams.headerH,
+              border: templateParams.border,
+              templateCellW: templateParams.cellW,
+              templateCellH: templateParams.cellH,
+              gridOverride: {
+                cols: gridConfig.cols,
+                rows: gridConfig.rows,
+                totalCells: gridConfig.totalCells,
+                cellLabels: gridConfig.cellLabels,
+              },
+            };
+          }
+
+          const sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
           dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
         } else if (data.sprites && data.sprites.length > 0) {
-          // Fallback: use stored sprites if no grid image available
           dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
         }
         dispatch({ type: 'SET_HISTORY_ID', id });

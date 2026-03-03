@@ -8,7 +8,7 @@
 
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
-import { CharacterPreset } from '../../context/AppContext';
+import { CharacterPreset, SpriteType } from '../../context/AppContext';
 import { buildGridFillPrompt } from '../../lib/promptBuilder';
 
 // ── Character field union ────────────────────────────────────────────────────
@@ -89,6 +89,26 @@ export function ConfigPanel() {
 
   return (
     <div className="config-panel">
+      {/* Mode Toggle: Character / Building */}
+      <div className="config-field">
+        <div className="segmented-control">
+          <button
+            type="button"
+            className={state.spriteType === 'character' ? 'active' : ''}
+            onClick={() => dispatch({ type: 'SET_SPRITE_TYPE', spriteType: 'character' as SpriteType })}
+          >
+            Character
+          </button>
+          <button
+            type="button"
+            className={state.spriteType === 'building' ? 'active' : ''}
+            onClick={() => dispatch({ type: 'SET_SPRITE_TYPE', spriteType: 'building' as SpriteType })}
+          >
+            Building
+          </button>
+        </div>
+      </div>
+
       <h2>Character Setup</h2>
 
       {/* 1. Preset Selector */}

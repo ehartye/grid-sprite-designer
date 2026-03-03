@@ -21,6 +21,7 @@ export function getDb() {
   createSchema(db);
   migrateSchema(db);
   seedPresets(db);
+  seedBuildingPresets(db);
   return db;
 }
 
@@ -83,6 +84,20 @@ function createSchema(db) {
       is_preset INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS building_presets (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      genre TEXT NOT NULL DEFAULT '',
+      grid_size TEXT NOT NULL DEFAULT '3x3',
+      description TEXT NOT NULL DEFAULT '',
+      details TEXT NOT NULL DEFAULT '',
+      color_notes TEXT NOT NULL DEFAULT '',
+      cell_labels TEXT NOT NULL DEFAULT '[]',
+      cell_guidance TEXT NOT NULL DEFAULT '',
+      is_preset INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 }
 
@@ -91,6 +106,8 @@ function migrateSchema(db) {
     'ALTER TABLE generations ADD COLUMN thumbnail_cell_index INTEGER DEFAULT NULL',
     'ALTER TABLE generations ADD COLUMN thumbnail_image TEXT DEFAULT NULL',
     'ALTER TABLE generations ADD COLUMN thumbnail_mime TEXT DEFAULT NULL',
+    "ALTER TABLE generations ADD COLUMN sprite_type TEXT NOT NULL DEFAULT 'character'",
+    "ALTER TABLE generations ADD COLUMN grid_size TEXT DEFAULT NULL",
   ];
   for (const sql of migrations) {
     try { db.exec(sql); } catch (_) { /* column already exists */ }
@@ -1434,4 +1451,331 @@ ROW 5 — KO 3, Victory, Status Poses:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} character presets.`);
+}
+
+function seedBuildingPresets(db) {
+  const PRESETS = [
+    {
+      id: 'medieval-inn',
+      name: 'Medieval Inn',
+      genre: 'Classic Fantasy',
+      gridSize: '3x3',
+      description: 'A cozy two-story medieval inn with a thatched roof, stone chimney, and a wooden sign hanging from an iron bracket. Warm light spills from the windows.',
+      details: 'Stone foundation, timber-framed walls with whitewash plaster, dark wooden beams. A wooden door with iron hinges at ground level. Second-floor balcony with flower boxes.',
+      colorNotes: 'Warm browns and tans for wood, grey stone foundation, golden-yellow window glow, dark green trim.',
+      cellLabels: JSON.stringify([
+        'Day - Idle', 'Day - Smoke Rising', 'Day - Sign Swaying',
+        'Evening - Lights On', 'Evening - Chimney Glow', 'Evening - Busy',
+        'Night - Lantern Lit', 'Night - Quiet', 'Night - Closed'
+      ]),
+      cellGuidance: `ROW 0 — Daytime Activity:
+  Header "Day - Idle" (0,0): The inn in full daylight. Warm sun illuminates the thatched roof and timber walls. Windows reflect blue sky. Door is open. Quiet, peaceful.
+  Header "Day - Smoke Rising" (0,1): Same daytime view but a thin trail of grey smoke rises from the stone chimney. Kitchen is active. Small detail change from Idle.
+  Header "Day - Sign Swaying" (0,2): Same daytime view but the hanging wooden sign tilts slightly to the right as if caught by a breeze. Sign text is too small to read at pixel scale.
+
+ROW 1 — Evening Transition:
+  Header "Evening - Lights On" (1,0): Dusk sky tones (purple-orange). All windows now glow warm golden-yellow from interior candles and hearth. The facade is slightly darker.
+  Header "Evening - Chimney Glow" (1,1): Evening view with a warm orange glow emanating from the chimney top. More smoke than daytime. Windows still warmly lit.
+  Header "Evening - Busy" (1,2): Evening with multiple warm-lit windows and a small figure silhouette visible in the doorway. The inn looks welcoming and active.
+
+ROW 2 — Nighttime:
+  Header "Night - Lantern Lit" (2,0): Dark night sky with stars. A single lantern glows beside the front door. Few windows still lit with dim warm light. Mostly dark facade.
+  Header "Night - Quiet" (2,1): Deep night. Only one upstairs window has a faint glow. The lantern beside the door flickers. Very dark and atmospheric.
+  Header "Night - Closed" (2,2): Full night, all lights extinguished. The inn is a dark silhouette with just starlight reflecting off the roof. Completely still.`,
+    },
+    {
+      id: 'castle-tower',
+      name: 'Castle Tower',
+      genre: 'Classic Fantasy',
+      gridSize: '2x2',
+      description: 'A tall stone castle tower with crenellated battlements, narrow arrow-slit windows, and a blue pennant flag at the peak.',
+      details: 'Grey stone block construction, moss growing on lower sections, a wooden door with iron reinforcement at the base. Spiral staircase window slits visible along the height.',
+      colorNotes: 'Cool greys for stone, dark green moss patches, royal blue pennant, brown wooden door.',
+      cellLabels: JSON.stringify([
+        'Day', 'Night',
+        'Damaged', 'Ruined'
+      ]),
+      cellGuidance: `ROW 0 — Time of Day:
+  Header "Day" (0,0): The tower in bright daylight. Clean stone walls catch sunlight on the left side. Blue pennant waves in the breeze. Arrow slits are dark.
+  Header "Night" (0,1): The tower under moonlight. A cool blue-grey cast over the stone. A single torch flickers at the top of the battlements. Pennant barely visible.
+
+ROW 1 — Damage States:
+  Header "Damaged" (1,0): The tower has taken battle damage. Cracks run through the upper stonework, two blocks are missing from the battlements. The pennant is torn. Scorch marks around an arrow slit.
+  Header "Ruined" (1,1): The tower is a ruin. The top third has collapsed, leaving jagged broken walls. No pennant. Vines and moss cover exposed surfaces. Rubble at the base.`,
+    },
+    {
+      id: 'space-station-module',
+      name: 'Space Station Module',
+      genre: 'Sci-Fi',
+      gridSize: '2x3',
+      description: 'A cylindrical space station module with metallic hull plating, glowing blue viewport windows, and antenna arrays on top.',
+      details: 'Brushed metal hull with panel seam lines, a circular airlock hatch on one side, solar panel wing extending from the right side, blinking navigation lights.',
+      colorNotes: 'Silver and light grey hull, blue glowing viewports, red and green navigation lights, dark solar panels with blue accents.',
+      cellLabels: JSON.stringify([
+        'Normal - Frame 1', 'Normal - Frame 2',
+        'Alert - Frame 1', 'Alert - Frame 2',
+        'Damaged', 'Destroyed'
+      ]),
+      cellGuidance: `ROW 0 — Normal Operation (loop 1→2→1):
+  Header "Normal - Frame 1" (0,0): The module in standard operation. Viewports glow steady blue. Navigation lights: green on right, red on left. Antenna array points upward.
+  Header "Normal - Frame 2" (0,1): Subtle animation frame — navigation lights blink (swap positions or dim), antenna tilts very slightly. Viewport glow unchanged.
+
+ROW 1 — Alert Mode (loop 1→2→1):
+  Header "Alert - Frame 1" (1,0): Red alert mode. Viewports pulse orange-red instead of blue. A rotating amber warning light is visible on top. Hull unchanged.
+  Header "Alert - Frame 2" (1,1): Alert animation frame — warning light rotated to opposite side, viewport glow slightly dimmer (pulse trough). Tense atmosphere.
+
+ROW 2 — Damage Progression:
+  Header "Damaged" (2,0): Hull breach on the upper left section — torn metal plates and sparks. One viewport is dark/cracked. Solar panel bent at an angle. Some debris floating nearby.
+  Header "Destroyed" (2,1): The module is wrecked. Hull split open exposing interior compartments. All viewports dark. Solar panel detached. Sparks and small fires. Debris cloud.`,
+    },
+    {
+      id: 'ancient-tree',
+      name: 'Ancient Tree',
+      genre: 'Nature',
+      gridSize: '3x3',
+      description: 'A massive ancient oak tree with a thick gnarled trunk, spreading canopy of leaves, and visible root system above ground.',
+      details: 'Trunk is wide enough for a door-sized hollow at the base. Branches spread in all directions forming a broad canopy. Thick roots break through the soil around the base.',
+      colorNotes: 'Dark brown trunk, varied greens for leaves (spring=bright, summer=deep, autumn=orange/red), bare grey-brown branches in winter.',
+      cellLabels: JSON.stringify([
+        'Spring', 'Summer', 'Autumn',
+        'Winter', 'Enchanted', 'Corrupted',
+        'Sapling', 'Ancient', 'Dead'
+      ]),
+      cellGuidance: `ROW 0 — Seasons (bright conditions):
+  Header "Spring" (0,0): The tree in early spring with fresh bright-green leaves just emerging. Small white blossoms scattered in the canopy. Light green grass at the base.
+  Header "Summer" (0,1): Full summer canopy — dense deep-green foliage. The tree is at its most lush and full. Dappled sunlight visible. Rich green grass below.
+  Header "Autumn" (0,2): Autumn colors — leaves in oranges, reds, and golds. Some leaves falling. A few bare branch tips visible through the thinning canopy.
+
+ROW 1 — Special Variants:
+  Header "Winter" (1,0): Bare winter branches covered in a light dusting of snow. No leaves. The trunk's texture and gnarled shape are fully visible. Snow on the ground.
+  Header "Enchanted" (1,1): The tree glows with magical energy. Small motes of light float among summer-green leaves. The hollow at the base emits a soft golden glow.
+  Header "Corrupted" (1,2): Dark twisted version. Leaves are sickly purple-black. The trunk has dark veins of corruption. The ground around it is dead and grey.
+
+ROW 2 — Life Stages:
+  Header "Sapling" (2,0): A young version of the tree — thin trunk, small canopy, only a few branches. Fresh and bright green. No hollow yet.
+  Header "Ancient" (2,1): Extremely old version — massive trunk, sprawling roots, heavy moss and lichen. Canopy is enormous. A wise, weathered presence.
+  Header "Dead" (2,2): The tree has died. Bare grey branches, cracked dry trunk, no leaves. Some branches have broken off. Dry ground with dead grass.`,
+    },
+    {
+      id: 'blacksmith-shop',
+      name: 'Blacksmith Shop',
+      genre: 'Village',
+      gridSize: '3x3',
+      description: 'A sturdy blacksmith workshop with an open-air forge, a large anvil visible inside, and a shingled roof with a wide chimney billowing smoke.',
+      details: 'Stone and brick construction with heavy wooden support beams. Open front wall exposes the forge and anvil. Weapon and tool racks on the back wall. Bellows beside the forge.',
+      colorNotes: 'Dark red-brown brick, grey stone, orange forge glow, dark iron anvil and tools, brown wooden beams.',
+      cellLabels: JSON.stringify([
+        'Idle', 'Forge Lit', 'Sparks Flying',
+        'Light Damage', 'Heavy Damage', 'Destroyed',
+        'Day', 'Afternoon', 'Night'
+      ]),
+      cellGuidance: `ROW 0 — Activity States (loop Idle→Forge Lit→Sparks→Forge Lit):
+  Header "Idle" (0,0): The shop at rest. Forge is cold/dark, no smoke from chimney. Tools hang neatly on racks. The anvil sits empty. Quiet and still.
+  Header "Forge Lit" (0,1): The forge is burning — warm orange glow illuminates the interior. Smoke rises from the chimney. The bellows are compressed, ready.
+  Header "Sparks Flying" (0,2): Active forging — bright sparks spray from the anvil area. Forge blazes hot white-orange. Heavy smoke billows from chimney. The most active frame.
+
+ROW 1 — Damage Progression:
+  Header "Light Damage" (1,0): Minor battle damage. Some roof shingles displaced, a crack in the front wall. Forge is out. One tool rack has fallen. Still structurally sound.
+  Header "Heavy Damage" (1,1): Severe damage. Part of the roof has collapsed. The front wall has a large breach. Anvil toppled. Soot and char marks everywhere.
+  Header "Destroyed" (1,2): The shop is ruined. Most of the roof gone, walls crumbled to half-height. The forge is a pile of rubble. Charred beams. Only the chimney partially stands.
+
+ROW 2 — Time of Day:
+  Header "Day" (2,0): Bright daylight. The shop is open and ready for business. Forge has a warm glow. Clear lighting, sharp shadows.
+  Header "Afternoon" (2,1): Golden hour lighting — warm amber light from the right. Long shadows. The forge glow is less visible against the warm ambient light.
+  Header "Night" (2,2): Night scene with the forge as the main light source. Warm orange glow spills outward. Everything outside the forge-light is dark blue-grey shadow.`,
+    },
+    {
+      id: 'haunted-cathedral',
+      name: 'Haunted Cathedral',
+      genre: 'Dark Fantasy',
+      gridSize: '2x3',
+      description: 'A Gothic cathedral with pointed arched windows, a tall spire, flying buttresses, and an ominous atmosphere with cracked stonework and overgrown vines.',
+      details: 'Dark stone construction with ornate Gothic architectural details. Large rose window on the front facade. Double wooden doors, one hanging ajar. Gargoyles perch on corners.',
+      colorNotes: 'Dark grey and charcoal stone, deep purple stained glass glow, sickly green vine overgrowth, pale moonlight blues.',
+      cellLabels: JSON.stringify([
+        'Day - Abandoned', 'Day - Haunted',
+        'Dusk - Eerie Glow', 'Dusk - Spirits',
+        'Night - Dark', 'Night - Possessed'
+      ]),
+      cellGuidance: `ROW 0 — Daytime States:
+  Header "Day - Abandoned" (0,0): The cathedral in daylight but clearly long-abandoned. Cracked walls, overgrown vines, broken windows. Still imposing but desolate. No supernatural elements.
+  Header "Day - Haunted" (0,1): Same daytime view but with subtle supernatural hints — a faint ghostly wisp near the doorway, one window glowing faintly purple from inside.
+
+ROW 1 — Dusk Transition:
+  Header "Dusk - Eerie Glow" (1,0): Twilight sky. The rose window now glows an unsettling purple. A faint green mist creeps along the ground at the cathedral base.
+  Header "Dusk - Spirits" (1,1): Dusk with ghostly figures barely visible near the windows and entrance. The purple glow is brighter. Small spectral orbs float around the spire.
+
+ROW 2 — Night Horror:
+  Header "Night - Dark" (2,0): Deep night. The cathedral is a menacing dark silhouette against a moonlit sky. Only the rose window pulses with a dim, rhythmic purple glow.
+  Header "Night - Possessed" (2,1): Full supernatural event — the cathedral glows from within with intense purple and green light. Spectral energy crackles around the spire. Ghostly faces in windows. The ground mist is thick and glowing.`,
+    },
+    {
+      id: 'cyberpunk-noodle-shop',
+      name: 'Cyberpunk Noodle Shop',
+      genre: 'Cyberpunk',
+      gridSize: '3x3',
+      description: 'A cramped street-level noodle shop with a glowing neon sign, steam vents, and a roll-up metal shutter. Wedged between towering megastructures.',
+      details: 'Corrugated metal walls plastered with holographic ads. A serving counter with bar stools faces the street. Overhead cables and pipes run across the facade. A flickering neon bowl-and-chopsticks sign hangs above.',
+      colorNotes: 'Hot pink and cyan neon, dark gunmetal walls, warm orange interior light, purple holographic ad accents, yellow steam highlights.',
+      cellLabels: JSON.stringify([
+        'Open - Idle', 'Open - Steam Burst', 'Open - Neon Flicker',
+        'Busy Hour', 'Rain - Reflections', 'Rain - Heavy',
+        'Closed - Shuttered', 'Closed - Neon Only', 'Power Outage'
+      ]),
+      cellGuidance: `ROW 0 — Open for Business:
+  Header "Open - Idle" (0,0): The shop is open, shutter rolled up. Warm orange light spills from inside. Neon sign glows steady pink-cyan. A wisp of steam rises from the kitchen vent. Calm street scene.
+  Header "Open - Steam Burst" (0,1): A burst of white-yellow steam erupts from the kitchen vent, partially obscuring the upper facade. Neon sign visible through the haze. Interior still warmly lit.
+  Header "Open - Neon Flicker" (0,2): The neon sign blinks — the bowl portion is dark, only chopsticks glow cyan. One holographic ad on the wall glitches. Otherwise same as Idle.
+
+ROW 1 — Atmosphere Variants:
+  Header "Busy Hour" (1,0): Peak hour — warm glow is brighter, more steam, small silhouette figures visible at the counter stools. The neon sign blazes at full intensity. Lively energy.
+  Header "Rain - Reflections" (1,1): Light rain. Puddles on the ground reflect the neon pink and cyan. Rain streaks visible against the dark walls. Interior glow creates warm contrast.
+  Header "Rain - Heavy" (1,2): Heavy downpour. Rain is dense, partially obscuring the facade. Neon colors bleed and streak in the rain. Steam mixes with rain vapor. Moody and atmospheric.
+
+ROW 2 — Closed States:
+  Header "Closed - Shuttered" (2,0): Metal shutter is down. The neon sign is off. Holographic ads still flicker faintly. Dark and quiet. Only ambient city-glow illuminates the wet metal.
+  Header "Closed - Neon Only" (2,1): Shutter down but the neon sign still glows — a beacon in the dark alley. The pink-cyan light reflects off the metal shutter. Everything else dark.
+  Header "Power Outage" (2,2): Complete darkness. No neon, no ads, no interior light. The shop is a dark metallic shape. Only faint moonlight/ambient highlights the corrugated edges.`,
+    },
+    {
+      id: 'desert-pyramid',
+      name: 'Desert Pyramid',
+      genre: 'Ancient',
+      gridSize: '2x2',
+      description: 'A weathered sandstone step pyramid rising from desert dunes, with hieroglyphic carvings on the entrance facade and a golden capstone at the peak.',
+      details: 'Four-stepped pyramid with smooth sandstone blocks. A dark entrance doorway at the base center flanked by carved pillars. Hieroglyphic panels on either side. Wind-worn edges. Sand drifts against the lower steps.',
+      colorNotes: 'Sandy tan and warm ochre stone, golden capstone catching sunlight, dark entrance shadow, faded turquoise and red hieroglyphic paint traces.',
+      cellLabels: JSON.stringify([
+        'Day - Intact', 'Day - Excavated',
+        'Curse Active', 'Sandstorm'
+      ]),
+      cellGuidance: `ROW 0 — Archaeological States:
+  Header "Day - Intact" (0,0): The pyramid in bright desert sunlight. Clean sandstone glowing warm. Golden capstone gleams. Sand dunes around the base. Clear blue sky implied by lighting. Sharp shadows on stepped surfaces.
+  Header "Day - Excavated" (0,1): Same daylight pyramid but with archaeological scaffolding on one side. Exposed hieroglyphic panel cleaned to reveal vivid turquoise and red paint. Dig trenches at the base expose buried lower steps.
+
+ROW 1 — Supernatural/Environmental:
+  Header "Curse Active" (1,0): The pyramid's entrance glows with an eerie green-gold light. Hieroglyphics pulse faintly. The golden capstone emits a beam of light upward. Sand around the base levitates slightly. Ominous atmosphere.
+  Header "Sandstorm" (1,1): A sandstorm engulfs the pyramid. Dense tan-brown sand swirls obscure the lower half. Only the upper steps and golden capstone peek through the storm. Wind-driven sand streaks across the frame.`,
+    },
+    {
+      id: 'underwater-coral-shrine',
+      name: 'Underwater Coral Shrine',
+      genre: 'Aquatic Fantasy',
+      gridSize: '2x3',
+      description: 'A submerged shrine built from living coral and seashells, with bioluminescent algae providing an ethereal glow. Ancient stone archway at the center.',
+      details: 'A stone arch entrance covered in barnacles and coral growth. Brain coral and branching coral form natural walls. Giant clamshells flank the entrance. Kelp strands sway from the top. Schools of tiny fish swim nearby.',
+      colorNotes: 'Deep sea blues and teals for water tones, vibrant coral pinks and oranges, bioluminescent cyan-green glow, pearl-white shells, moss-green kelp.',
+      cellLabels: JSON.stringify([
+        'Calm - Day', 'Calm - Night',
+        'Current - Fish Swarm', 'Current - Kelp Sway',
+        'Awakened - Glow', 'Awakened - Portal'
+      ]),
+      cellGuidance: `ROW 0 — Calm Waters:
+  Header "Calm - Day" (0,0): The shrine in shallow sunlit water. Light rays filter down from above, creating caustic patterns on the coral. Bioluminescence is subtle. Fish idle near the entrance. Peaceful and serene.
+  Header "Calm - Night" (0,1): Deep night waters — darker blue-black tones. The bioluminescent algae now clearly glow cyan-green along the coral edges and archway. A few jellyfish drift above. Mystical and quiet.
+
+ROW 1 — Active Ocean:
+  Header "Current - Fish Swarm" (1,0): A large school of small silver fish swirls around the shrine, creating a living cloud of movement. The coral is partially obscured. Dynamic and lively.
+  Header "Current - Kelp Sway" (1,1): Strong current — kelp strands stream dramatically to the right. Small bubbles trail from the coral peaks. The shrine looks windswept underwater. Sand particles in the water.
+
+ROW 2 — Magical Awakening:
+  Header "Awakened - Glow" (2,0): The shrine activates — all bioluminescent algae blaze bright cyan-green. The coral pulses with inner light. The clamshells open to reveal glowing pearls. Ancient runes on the stone arch illuminate.
+  Header "Awakened - Portal" (2,1): Full magical event — a swirling portal of blue-white light fills the stone archway. Energy ripples radiate outward through the water. All coral glows intensely. Fish scatter. The shrine is a beacon of power.`,
+    },
+    {
+      id: 'mushroom-cottage',
+      name: 'Mushroom Cottage',
+      genre: 'Fairy Tale',
+      gridSize: '3x3',
+      description: 'A whimsical cottage built inside a giant red-and-white spotted toadstool mushroom, with a round wooden door, tiny windows, and a smoking chimney poking through the cap.',
+      details: 'The mushroom cap serves as the roof — bright red with white spots. A round hobbit-style door with brass hinges. Two small round windows with flower boxes. A tiny cobblestone path leads to the door. Smaller decorative mushrooms grow around the base.',
+      colorNotes: 'Bright red mushroom cap with white spots, cream-colored stem/walls, warm brown door and window frames, green grass and moss, yellow flower box flowers.',
+      cellLabels: JSON.stringify([
+        'Spring - Flowers', 'Summer - Butterflies', 'Autumn - Falling Leaves',
+        'Winter - Snow Cap', 'Fairy Lights', 'Enchanted Growth',
+        'Tiny Cottage', 'Standard', 'Grand Mushroom'
+      ]),
+      cellGuidance: `ROW 0 — Seasonal Variants:
+  Header "Spring - Flowers" (0,0): The mushroom cottage in spring. Flower boxes overflow with colorful blooms. Small wildflowers surround the base. The mushroom cap is vibrant and fresh. Bright, cheerful lighting.
+  Header "Summer - Butterflies" (0,1): Full summer — lush green grass, tiny colorful butterflies flutter around the cottage. The mushroom cap is at its brightest red. Warm golden sunlight.
+  Header "Autumn - Falling Leaves" (0,2): Autumn tones — tiny orange and yellow leaves drift past. The grass is amber-green. A small pumpkin sits beside the door. The mushroom cap has slight golden-brown patches.
+
+ROW 1 — Magical Variants:
+  Header "Winter - Snow Cap" (1,0): Snow covers the mushroom cap spots, creating a cozy winter scene. Icicles hang from the cap edge. Warm glow from the windows. Bare tiny trees nearby.
+  Header "Fairy Lights" (1,1): Twilight scene with tiny glowing fairy lights strung around the cap edge and along the path. Fireflies dot the air. The windows glow warm. Magical and cozy.
+  Header "Enchanted Growth" (1,2): The mushroom has been magically enhanced — the cap glows faintly, sparkle particles float upward, smaller mushrooms around the base also glow in various colors. Mystical energy.
+
+ROW 2 — Size Variants (same design, different scale):
+  Header "Tiny Cottage" (2,0): A very small version — just big enough for a pixie. The door is acorn-sized. Only one window. A single tiny mushroom companion. Adorable miniature scale.
+  Header "Standard" (2,1): The normal-sized cottage as described. This is the canonical reference version with all details at standard scale.
+  Header "Grand Mushroom" (2,2): An enormous version — the mushroom is three stories tall with multiple windows at different heights. A balcony wraps around the stem. Multiple chimneys. Grand and impressive.`,
+    },
+    {
+      id: 'mech-hangar',
+      name: 'Mech Hangar Bay',
+      genre: 'Mecha',
+      gridSize: '2x3',
+      description: 'A massive military hangar bay with blast doors, heavy crane systems, and industrial catwalks. Designed to house and maintain giant combat mechs.',
+      details: 'Reinforced steel blast doors that open vertically. Interior visible when open — a mech silhouette in a maintenance cradle, tool racks, fuel lines. Hazard stripe markings on the floor. Overhead crane rail runs the width. Control booth on upper right.',
+      colorNotes: 'Military dark green and steel grey, hazard yellow-black stripes, red warning lights, white industrial lighting interior, blue holographic displays in control booth.',
+      cellLabels: JSON.stringify([
+        'Doors Closed', 'Doors Opening',
+        'Doors Open - Empty', 'Doors Open - Mech Docked',
+        'Launch Sequence', 'Battle Damage'
+      ]),
+      cellGuidance: `ROW 0 — Door States:
+  Header "Doors Closed" (0,0): The hangar exterior with massive blast doors fully shut. Hazard stripes visible at the door seam. A red status light glows above. The structure looks imposing and sealed. Military stencil numbering on the door.
+  Header "Doors Opening" (0,1): The blast doors mid-opening — a bright white gap reveals the lit interior. Hydraulic pistons visible on the door sides. Steam vents from the mechanism. Status light is amber/yellow.
+
+ROW 1 — Interior States:
+  Header "Doors Open - Empty" (1,0): Doors fully open revealing an empty hangar bay. The maintenance cradle is vacant. Overhead crane idle. Interior lit with white industrial lights. Tool racks and fuel lines visible. Clean and ready.
+  Header "Doors Open - Mech Docked" (1,1): Doors open with a large mech silhouette locked in the maintenance cradle. Robotic arms perform maintenance. Blue holographic diagnostic displays active in the control booth. Busy scene.
+
+ROW 2 — Action States:
+  Header "Launch Sequence" (2,0): Active launch — the mech stands at the open door threshold, backlit by interior lights. Thruster exhaust glows blue-white at its feet. Catwalks retracted. Warning lights flash. Dramatic tension.
+  Header "Battle Damage" (2,1): The hangar has taken hits — one blast door is crumpled inward, scorch marks on the walls. Sparks shower from severed cables. Interior fires visible. The crane has collapsed. Debris everywhere.`,
+    },
+    {
+      id: 'volcanic-forge-temple',
+      name: 'Volcanic Forge Temple',
+      genre: 'Elemental',
+      gridSize: '3x3',
+      description: 'A massive temple built into the face of an active volcano, with lava channels running through carved stone conduits and a great forge entrance framed by obsidian pillars.',
+      details: 'Black volcanic rock and obsidian construction. Carved dwarven/elemental runes glow orange along the pillars. Lava flows through carved channels on either side of the entrance. A huge forge opening reveals the orange-white glow of the inner sanctum. Stone steps lead up to the entrance.',
+      colorNotes: 'Black obsidian and dark volcanic rock, bright orange-red lava and forge glow, carved runes glow amber-orange, grey volcanic ash, deep red accents.',
+      cellLabels: JSON.stringify([
+        'Dormant', 'Active - Lava Flow', 'Eruption',
+        'Forge Cold', 'Forge Blazing', 'Forge - Artifact',
+        'Day - Smoke', 'Lava Night', 'Destroyed'
+      ]),
+      cellGuidance: `ROW 0 — Volcanic Activity:
+  Header "Dormant" (0,0): The temple with minimal volcanic activity. Lava channels are dark with only a faint orange glow deep within. The forge entrance is dimly lit. Wisps of smoke from the mountaintop. Imposing but quiet.
+  Header "Active - Lava Flow" (0,1): Volcanic activity increasing — lava flows brightly through the carved channels. The forge entrance glows orange-white. Rune carvings on pillars pulse with heat. Steam and heat shimmer in the air.
+  Header "Eruption" (0,2): Full eruption behind the temple — lava fountains spray upward, molten rock rains down. The temple channels overflow with bright lava. Intense orange-red glow illuminates everything. Ash and embers fill the air.
+
+ROW 1 — Forge States:
+  Header "Forge Cold" (1,0): The great forge is inactive — the entrance is dark. No lava in the channels. The obsidian pillars are cold black. The runes are unlit. The temple looks abandoned and ancient.
+  Header "Forge Blazing" (1,1): The forge is at full power — white-hot light pours from the entrance. Sparks fly outward. Lava channels glow intensely. Runes blaze bright orange. Heat waves visible. The temple is alive with elemental energy.
+  Header "Forge - Artifact" (1,2): A magical forging event — the forge emits a beam of golden light upward from the entrance. The lava channels pulse in rhythm. Runes cycle through colors (orange to white). An aura of power surrounds the temple.
+
+ROW 2 — Environmental:
+  Header "Day - Smoke" (2,0): Daylight view with volcanic smoke drifting from the peak. The dark obsidian contrasts against the sky. Lava channels have a moderate warm glow. The temple's carved details are clearly visible.
+  Header "Lava Night" (2,1): Night scene — the temple is silhouetted against the dark sky, lit only by the lava glow from channels and forge. Runes provide accent lighting. The volcanic rock absorbs all other light. Dramatic and ominous.
+  Header "Destroyed" (2,2): The temple has been destroyed by a catastrophic eruption. Obsidian pillars shattered, forge entrance collapsed. Cooled black lava covers the steps. Some channels still glow faintly. Ruins and rubble.`,
+    },
+  ];
+
+  const insert = db.prepare(
+    `INSERT OR REPLACE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, cell_guidance, is_preset)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+  );
+
+  const insertAll = db.transaction(() => {
+    for (const p of PRESETS) {
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.details, p.colorNotes, p.cellLabels, p.cellGuidance);
+    }
+  });
+
+  insertAll();
+  console.log(`[DB] Seeded ${PRESETS.length} building presets.`);
 }

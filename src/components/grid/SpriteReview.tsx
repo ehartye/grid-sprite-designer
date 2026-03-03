@@ -6,11 +6,13 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
+import { useBuildingWorkflow } from '../../hooks/useBuildingWorkflow';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
-import { ANIMATIONS, DIR_WALK, DIR_IDLE, TOTAL_CELLS } from '../../lib/poses';
+import { ANIMATIONS, DIR_WALK, DIR_IDLE } from '../../lib/poses';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
+import { BUILDING_GRIDS } from '../../lib/gridConfig';
 import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 
@@ -110,8 +112,13 @@ async function detectPalette(sprites: ExtractedSprite[], maxColors = 144): Promi
 }
 
 export function SpriteReview() {
-  const { state, dispatch, reExtract, setStep } = useGridWorkflow();
+  const { state, dispatch, reExtract: charReExtract, setStep } = useGridWorkflow();
+  const { reExtract: buildingReExtract } = useBuildingWorkflow();
   const { sprites } = state;
+  const isBuilding = state.spriteType === 'building';
+  const reExtract = isBuilding ? buildingReExtract : charReExtract;
+  const buildingGrid = isBuilding ? BUILDING_GRIDS[state.building.gridSize] : null;
+  const cellCount = isBuilding && buildingGrid ? buildingGrid.cols * buildingGrid.rows : 36;
 
   const [selectedAnim, setSelectedAnim] = useState(0);
   const [frameIndex, setFrameIndex] = useState(0);
@@ -127,7 +134,7 @@ export function SpriteReview() {
   const [struckColors, setStruckColors] = useState<RGB[]>([]);
   const [showRareColors, setShowRareColors] = useState(false);
   const [swapSource, setSwapSource] = useState<number | null>(null);
-  const [displayOrder, setDisplayOrder] = useState<number[]>(() => Array.from({ length: TOTAL_CELLS }, (_, i) => i));
+  const [displayOrder, setDisplayOrder] = useState<number[]>(() => Array.from({ length: sprites.length || cellCount }, (_, i) => i));
   const [mirroredCells, setMirroredCells] = useState<Set<number>>(new Set());
   const [thumbnailCell, setThumbnailCell] = useState<number | null>(null);
   const [zoomSpriteIndex, setZoomSpriteIndex] = useState<number | null>(null);
@@ -197,8 +204,13 @@ export function SpriteReview() {
     }).filter(Boolean) as ExtractedSprite[];
   }, [processedSprites, displayOrder]);
 
-  const currentAnim = ANIMATIONS[selectedAnim];
-  const currentFrames = currentAnim.frames;
+  // For buildings, cycle through all cells; for characters, use animation definitions
+  const buildingFrames = useMemo(
+    () => Array.from({ length: cellCount }, (_, i) => i),
+    [cellCount],
+  );
+  const currentAnim = isBuilding ? null : ANIMATIONS[selectedAnim];
+  const currentFrames = isBuilding ? buildingFrames : currentAnim!.frames;
 
   // Build sprite lookup from display-ordered sprites
   const spriteMap = new Map<number, ExtractedSprite>();
@@ -213,11 +225,12 @@ export function SpriteReview() {
       return;
     }
 
+    const shouldLoop = isBuilding || currentAnim?.loop;
     const tick = () => {
       setFrameIndex((prev) => {
         const next = prev + 1;
         if (next >= currentFrames.length) {
-          return currentAnim.loop ? 0 : currentFrames.length - 1;
+          return shouldLoop ? 0 : currentFrames.length - 1;
         }
         return next;
       });
@@ -225,7 +238,7 @@ export function SpriteReview() {
 
     animTimerRef.current = window.setInterval(tick, speed);
     return () => window.clearInterval(animTimerRef.current);
-  }, [currentFrames.length, currentAnim.loop, speed, selectedAnim]);
+  }, [currentFrames.length, currentAnim?.loop, speed, selectedAnim, isBuilding]);
 
   // Reset frame on anim change
   useEffect(() => {
@@ -310,8 +323,10 @@ export function SpriteReview() {
     [displayOrder],
   );
 
-  // Arrow key navigation
+  // Arrow key navigation (character mode only)
   useEffect(() => {
+    if (isBuilding) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (DIR_WALK[e.key]) {
         e.preventDefault();
@@ -338,7 +353,7 @@ export function SpriteReview() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [isBuilding]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -376,30 +391,33 @@ export function SpriteReview() {
     if (displaySprites.length === 0) return;
     try {
       const exportSprites = await getExportSprites();
-      const { base64 } = await composeSpriteSheet(exportSprites);
+      const gridCols = state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols : undefined;
+      const { base64 } = await composeSpriteSheet(exportSprites, gridCols);
       const link = document.createElement('a');
+      const exportName = state.spriteType === 'building' ? state.building.name : state.character.name;
       link.href = `data:image/png;base64,${base64}`;
-      link.download = `${state.character.name || 'sprites'}-sheet.png`;
+      link.download = `${exportName || 'sprites'}-sheet.png`;
       link.click();
       dispatch({ type: 'SET_STATUS', message: 'Sprite sheet exported!', statusType: 'success' });
     } catch (err: any) {
       dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
     }
-  }, [displaySprites, getExportSprites, state.character.name, dispatch]);
+  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.spriteType, state.building.gridSize, dispatch]);
 
   // Export individual PNGs
   const handleExportIndividual = useCallback(async () => {
     if (displaySprites.length === 0) return;
     const exportSprites = await getExportSprites();
+    const baseName = state.spriteType === 'building' ? state.building.name : state.character.name;
     for (const sprite of exportSprites) {
       const link = document.createElement('a');
       link.href = `data:${sprite.mimeType};base64,${sprite.imageData}`;
       const safeName = sprite.label.toLowerCase().replace(/\s+/g, '-');
-      link.download = `${state.character.name || 'sprite'}-${safeName}.png`;
+      link.download = `${baseName || 'sprite'}-${safeName}.png`;
       link.click();
     }
     dispatch({ type: 'SET_STATUS', message: `Exported ${exportSprites.length} individual sprites!`, statusType: 'success' });
-  }, [displaySprites, getExportSprites, state.character.name, dispatch]);
+  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.spriteType, dispatch]);
 
   // Load all persisted editor state when historyId changes.
   // Resets to defaults first, then overwrites from DB — merged into one effect
@@ -413,7 +431,7 @@ export function SpriteReview() {
     let cancelled = false;
 
     // Reset to defaults immediately
-    setDisplayOrder(Array.from({ length: TOTAL_CELLS }, (_, i) => i));
+    setDisplayOrder(Array.from({ length: sprites.length || cellCount }, (_, i) => i));
     setSwapSource(null);
     setMirroredCells(new Set());
     setThumbnailCell(null);
@@ -544,13 +562,15 @@ export function SpriteReview() {
           thumbnailCell={thumbnailCell}
           onThumbnailSet={state.historyId ? handleThumbnailSet : undefined}
           onZoomClick={handleZoomClick}
+          gridCols={state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols : undefined}
+          cellLabels={state.spriteType === 'building' ? state.building.cellLabels : undefined}
         />
         {isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
             <button
               className="btn btn-sm"
               onClick={() => {
-                setDisplayOrder(Array.from({ length: TOTAL_CELLS }, (_, i) => i));
+                setDisplayOrder(Array.from({ length: sprites.length || cellCount }, (_, i) => i));
                 setSwapSource(null);
               }}
             >
@@ -562,23 +582,25 @@ export function SpriteReview() {
 
       {/* Right: Sidebar */}
       <aside className="review-sidebar">
-        {/* Animation Groups */}
-        <div className="sidebar-section">
-          <h3>Animation</h3>
-          <div className="anim-group-grid">
-            {ANIMATIONS.map((anim, idx) => (
-              <button
-                key={anim.name}
-                className={`anim-group-btn ${idx === selectedAnim ? 'active' : ''}`}
-                onClick={() => setSelectedAnim(idx)}
-              >
-                {anim.name}
-              </button>
-            ))}
+        {/* Animation Groups (character only) */}
+        {!isBuilding && (
+          <div className="sidebar-section">
+            <h3>Animation</h3>
+            <div className="anim-group-grid">
+              {ANIMATIONS.map((anim, idx) => (
+                <button
+                  key={anim.name}
+                  className={`anim-group-btn ${idx === selectedAnim ? 'active' : ''}`}
+                  onClick={() => setSelectedAnim(idx)}
+                >
+                  {anim.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Animation Preview */}
+        {/* Cell Cycling Preview */}
         <div className="sidebar-section">
           <h3>Preview</h3>
           <canvas ref={canvasRef} className="anim-preview-canvas" />
@@ -614,23 +636,25 @@ export function SpriteReview() {
           </div>
         </div>
 
-        {/* Arrow Key Hint */}
-        <div className="sidebar-section">
-          <h3>Movement</h3>
-          <div className="arrow-hint">
-            <div className="arrow-hint-row">
-              <div className="arrow-key">^</div>
+        {/* Arrow Key Hint (character only) */}
+        {!isBuilding && (
+          <div className="sidebar-section">
+            <h3>Movement</h3>
+            <div className="arrow-hint">
+              <div className="arrow-hint-row">
+                <div className="arrow-key">^</div>
+              </div>
+              <div className="arrow-hint-row">
+                <div className="arrow-key">&lt;</div>
+                <div className="arrow-key">v</div>
+                <div className="arrow-key">&gt;</div>
+              </div>
+              <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                Arrow keys to walk/idle
+              </span>
             </div>
-            <div className="arrow-hint-row">
-              <div className="arrow-key">&lt;</div>
-              <div className="arrow-key">v</div>
-              <div className="arrow-key">&gt;</div>
-            </div>
-            <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 4 }}>
-              Arrow keys to walk/idle
-            </span>
           </div>
-        </div>
+        )}
 
         {/* Chroma Key */}
         <div className="sidebar-section">

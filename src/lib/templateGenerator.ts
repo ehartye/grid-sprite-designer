@@ -1,16 +1,18 @@
 /**
- * Generate a 6×6 sprite grid template image on a canvas.
+ * Generate sprite grid template images on a canvas.
  * Each cell has a magenta (#FF00FF) chroma-key background,
  * a thin black header strip with the pose label in white text,
  * separated by thin black grid lines.
  *
- * Port of generate_sprite_grid.py to client-side canvas.
+ * Supports both 6x6 character grids (default) and variable-size
+ * building grids (3x3, 2x3, 2x2) via optional GridConfig parameter.
  */
 
 import { COLS, ROWS, CELL_LABELS } from './poses';
+import type { GridConfig } from './gridConfig';
 
 export interface TemplateConfig {
-  cellW: number;         // content width per cell (468 for 2K, 680 for 4K)
+  cellW: number;         // content width per cell
   cellH: number;         // total cell height including header
   headerH: number;       // header strip height
   border: number;        // grid line thickness
@@ -40,37 +42,54 @@ const WHITE = '#FFFFFF';
 /**
  * Generate the template grid as a canvas and return it along with
  * a base64-encoded PNG for sending to the API.
+ *
+ * When gridConfig is provided, uses its cols/rows/cellLabels instead
+ * of the hardcoded 6x6 character constants. For non-square grids
+ * (e.g. 2x3), the grid is centered on a square canvas.
  */
 export function generateTemplate(
   config: TemplateConfig = CONFIG_2K,
+  gridConfig?: GridConfig,
 ): { canvas: HTMLCanvasElement; base64: string; width: number; height: number } {
   const { cellW, cellH, headerH, border, fontSize } = config;
 
-  const imgW = COLS * cellW + (COLS + 1) * border;
-  const imgH = ROWS * cellH + (ROWS + 1) * border;
+  const cols = gridConfig?.cols ?? COLS;
+  const rows = gridConfig?.rows ?? ROWS;
+  const cellLabels = gridConfig?.cellLabels ?? CELL_LABELS;
+
+  const gridW = cols * cellW + (cols + 1) * border;
+  const gridH = rows * cellH + (rows + 1) * border;
+
+  // Canvas is always square (max of grid dimensions) to stay within 1:1 format
+  const canvasSize = Math.max(gridW, gridH);
 
   const canvas = document.createElement('canvas');
-  canvas.width = imgW;
-  canvas.height = imgH;
+  canvas.width = canvasSize;
+  canvas.height = canvasSize;
   const ctx = canvas.getContext('2d')!;
 
-  // Fill entire canvas with black (grid lines)
+  // Fill entire canvas with black
   ctx.fillStyle = BLACK;
-  ctx.fillRect(0, 0, imgW, imgH);
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+  // Offset to center the grid on the canvas
+  const offsetX = Math.floor((canvasSize - gridW) / 2);
+  const offsetY = Math.floor((canvasSize - gridH) / 2);
 
   // Font for headers
   ctx.font = `bold ${fontSize}px Arial, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  for (let idx = 0; idx < CELL_LABELS.length; idx++) {
-    const col = idx % COLS;
-    const row = Math.floor(idx / COLS);
-    const label = CELL_LABELS[idx];
+  const totalCells = cols * rows;
+  for (let idx = 0; idx < totalCells; idx++) {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const label = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
 
-    // Cell content area top-left
-    const x0 = border + col * (cellW + border);
-    const y0 = border + row * (cellH + border);
+    // Cell content area top-left (with offset for centering)
+    const x0 = offsetX + border + col * (cellW + border);
+    const y0 = offsetY + border + row * (cellH + border);
 
     // Header strip (black bg, white text)
     ctx.fillStyle = BLACK;
@@ -87,7 +106,7 @@ export function generateTemplate(
   const dataUrl = canvas.toDataURL('image/png');
   const base64 = dataUrl.split(',')[1];
 
-  return { canvas, base64, width: imgW, height: imgH };
+  return { canvas, base64, width: canvasSize, height: canvasSize };
 }
 
 /**
@@ -96,10 +115,20 @@ export function generateTemplate(
 export function getCellBounds(
   cellIndex: number,
   config: TemplateConfig = CONFIG_2K,
+  gridConfig?: GridConfig,
 ): { x: number; y: number; w: number; h: number } {
-  const col = cellIndex % COLS;
-  const row = Math.floor(cellIndex / COLS);
-  const x = config.border + col * (config.cellW + config.border);
-  const y = config.border + row * (config.cellH + config.border) + config.headerH;
+  const cols = gridConfig?.cols ?? COLS;
+  const rows = gridConfig?.rows ?? ROWS;
+
+  const gridW = cols * config.cellW + (cols + 1) * config.border;
+  const gridH = rows * config.cellH + (rows + 1) * config.border;
+  const canvasSize = Math.max(gridW, gridH);
+  const offsetX = Math.floor((canvasSize - gridW) / 2);
+  const offsetY = Math.floor((canvasSize - gridH) / 2);
+
+  const col = cellIndex % cols;
+  const row = Math.floor(cellIndex / cols);
+  const x = offsetX + config.border + col * (config.cellW + config.border);
+  const y = offsetY + config.border + row * (config.cellH + config.border) + config.headerH;
   return { x, y, w: config.cellW, h: config.cellH - config.headerH };
 }

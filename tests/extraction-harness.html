@@ -4,7 +4,7 @@
   <title>Extraction Test Harness</title>
   <style>
     body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
-    .sprite-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 1200px; }
+    .sprite-grid { display: grid; gap: 4px; max-width: 1200px; }
     .sprite-cell { background: #333; border: 1px solid #555; text-align: center; padding: 4px; }
     .sprite-cell img { max-width: 100%; image-rendering: pixelated; background: repeating-conic-gradient(#444 0% 25%, #555 0% 50%) 50% / 10px 10px; }
     .sprite-cell .label { font-size: 10px; color: #aaa; margin-top: 4px; }
@@ -33,9 +33,22 @@
     const params = new URLSearchParams(window.location.search);
     const fixture = params.get('fixture') || 'filled-grid.jpg';
 
+    // Grid override params for non-6x6 grids (e.g. building 2x3)
+    const gridCols = params.get('cols') ? Number(params.get('cols')) : null;
+    const gridRows = params.get('rows') ? Number(params.get('rows')) : null;
+    const gridCellW = params.get('cellW') ? Number(params.get('cellW')) : null;
+    const gridCellH = params.get('cellH') ? Number(params.get('cellH')) : null;
+    const gridHeaderH = params.get('headerH') ? Number(params.get('headerH')) : null;
+    const gridBorder = params.get('border') ? Number(params.get('border')) : null;
+    const gridLabels = params.get('labels') ? params.get('labels').split(',') : null;
+
     async function run() {
       const info = document.getElementById('info');
       info.textContent = `Loading fixture: ${fixture}...`;
+
+      // Set grid columns for display
+      const displayCols = gridCols || 6;
+      document.getElementById('sprites').style.gridTemplateColumns = `repeat(${displayCols}, 1fr)`;
 
       // Fetch fixture image and convert to base64
       const resp = await fetch(`/test-fixtures/${fixture}`);
@@ -53,8 +66,20 @@
         reader.readAsDataURL(blob);
       });
 
+      // Build extraction config
+      const extractionConfig = {};
+      if (gridCols && gridRows) {
+        const totalCells = gridCols * gridRows;
+        const labels = gridLabels || Array.from({ length: totalCells }, (_, i) => `Cell ${Math.floor(i / gridCols)},${i % gridCols}`);
+        extractionConfig.gridOverride = { cols: gridCols, rows: gridRows, totalCells, cellLabels: labels };
+      }
+      if (gridCellW) extractionConfig.templateCellW = gridCellW;
+      if (gridCellH) extractionConfig.templateCellH = gridCellH;
+      if (gridHeaderH != null) extractionConfig.headerH = gridHeaderH;
+      if (gridBorder != null) extractionConfig.border = gridBorder;
+
       // Call the REAL extractSprites from production code
-      const sprites = await extractSprites(base64, mimeType);
+      const sprites = await extractSprites(base64, mimeType, Object.keys(extractionConfig).length > 0 ? extractionConfig : undefined);
 
       // Render sprites in visual grid + run header bleed analysis
       const spritesDiv = document.getElementById('sprites');

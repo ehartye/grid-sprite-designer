@@ -8,6 +8,9 @@ import { ExtractedSprite } from '../lib/spriteExtractor';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
+export type SpriteType = 'character' | 'building';
+export type BuildingGridSize = '3x3' | '2x3' | '2x2';
+
 export interface CharacterPreset {
   id: string;
   name: string;
@@ -18,12 +21,28 @@ export interface CharacterPreset {
   rowGuidance: string;
 }
 
+export interface BuildingPreset {
+  id: string;
+  name: string;
+  genre: string;
+  gridSize: BuildingGridSize;
+  description: string;
+  details: string;
+  colorNotes: string;
+  cellLabels: string[];
+  cellGuidance: string;
+}
+
 // ── State ────────────────────────────────────────────────────────────────────
 
 export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview';
 
 export interface AppState {
   step: WorkflowStep;
+
+  /** Active sprite type mode */
+  spriteType: SpriteType;
+
   character: {
     name: string;
     description: string;
@@ -32,6 +51,18 @@ export interface AppState {
     styleNotes: string;
     rowGuidance: string;
   };
+
+  building: {
+    name: string;
+    description: string;
+    details: string;
+    colorNotes: string;
+    styleNotes: string;
+    cellGuidance: string;
+    gridSize: BuildingGridSize;
+    cellLabels: string[];
+  };
+
   model: string;
   imageSize: string;
 
@@ -58,10 +89,14 @@ export interface AppState {
 
   /** Character presets */
   presets: CharacterPreset[];
+
+  /** Building presets */
+  buildingPresets: BuildingPreset[];
 }
 
 const initialState: AppState = {
   step: 'configure',
+  spriteType: 'character',
   character: {
     name: '',
     description: '',
@@ -69,6 +104,16 @@ const initialState: AppState = {
     colorNotes: '',
     styleNotes: '',
     rowGuidance: '',
+  },
+  building: {
+    name: '',
+    description: '',
+    details: '',
+    colorNotes: '',
+    styleNotes: '',
+    cellGuidance: '',
+    gridSize: '3x3',
+    cellLabels: Array(9).fill(''),
   },
   model: 'nano-banana-pro-preview',
   imageSize: '2K',
@@ -82,12 +127,15 @@ const initialState: AppState = {
   error: null,
   historyId: null,
   presets: [],
+  buildingPresets: [],
 };
 
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 type Action =
+  | { type: 'SET_SPRITE_TYPE'; spriteType: SpriteType }
   | { type: 'SET_CHARACTER'; character: AppState['character'] }
+  | { type: 'SET_BUILDING'; building: AppState['building'] }
   | { type: 'SET_MODEL'; model: string }
   | { type: 'SET_IMAGE_SIZE'; imageSize: string }
   | { type: 'GENERATE_START'; templateImage: string }
@@ -100,12 +148,27 @@ type Action =
   | { type: 'SET_HISTORY_ID'; id: number }
   | { type: 'SET_PRESETS'; presets: CharacterPreset[] }
   | { type: 'LOAD_PRESET'; preset: CharacterPreset }
+  | { type: 'SET_BUILDING_PRESETS'; presets: BuildingPreset[] }
+  | { type: 'LOAD_BUILDING_PRESET'; preset: BuildingPreset }
   | { type: 'RESET' };
+
+/** Get the default cell label count for a building grid size */
+function gridSizeToCellCount(gridSize: BuildingGridSize): number {
+  switch (gridSize) {
+    case '3x3': return 9;
+    case '2x3': return 6;
+    case '2x2': return 4;
+  }
+}
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case 'SET_SPRITE_TYPE':
+      return { ...state, spriteType: action.spriteType };
     case 'SET_CHARACTER':
       return { ...state, character: action.character };
+    case 'SET_BUILDING':
+      return { ...state, building: action.building };
     case 'SET_MODEL':
       return { ...state, model: action.model };
     case 'SET_IMAGE_SIZE':
@@ -169,8 +232,28 @@ function reducer(state: AppState, action: Action): AppState {
           rowGuidance: action.preset.rowGuidance,
         },
       };
+    case 'SET_BUILDING_PRESETS':
+      return { ...state, buildingPresets: action.presets };
+    case 'LOAD_BUILDING_PRESET': {
+      const cellCount = gridSizeToCellCount(action.preset.gridSize);
+      const labels = action.preset.cellLabels.slice(0, cellCount);
+      while (labels.length < cellCount) labels.push('');
+      return {
+        ...state,
+        building: {
+          name: action.preset.name,
+          description: action.preset.description,
+          details: action.preset.details,
+          colorNotes: action.preset.colorNotes,
+          styleNotes: '',
+          cellGuidance: action.preset.cellGuidance,
+          gridSize: action.preset.gridSize,
+          cellLabels: labels,
+        },
+      };
+    }
     case 'RESET':
-      return { ...initialState, presets: state.presets };
+      return { ...initialState, presets: state.presets, buildingPresets: state.buildingPresets };
     default:
       return state;
   }

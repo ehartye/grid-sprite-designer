@@ -5,63 +5,135 @@
   <style>
     body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
     canvas { border: 1px solid #555; max-width: 100%; }
-    .info { margin: 10px 0; }
+    .info { margin: 10px 0; font-size: 14px; }
+    .controls { margin: 10px 0; display: flex; gap: 12px; align-items: center; }
+    select, button { font-family: monospace; font-size: 14px; padding: 4px 8px; }
+    .dim { color: #888; }
   </style>
 </head>
 <body>
-  <h2>2K Template Grid (what gets sent to Gemini)</h2>
+  <h2>Empty Template Preview (what gets sent to Gemini)</h2>
+  <div class="controls">
+    <label>Grid:
+      <select id="gridSelect">
+        <option value="6x6">Character 6x6</option>
+        <option value="3x3">Building 3x3</option>
+        <option value="2x3" selected>Building 2x3</option>
+        <option value="2x2">Building 2x2</option>
+      </select>
+    </label>
+    <label>Resolution:
+      <select id="resSelect">
+        <option value="2K">2K</option>
+        <option value="4K">4K</option>
+      </select>
+    </label>
+  </div>
   <div class="info" id="info"></div>
   <canvas id="template"></canvas>
 
   <script>
-    const COLS = 6, ROWS = 6;
-    const CELL_LABELS = [
-      'Walk Down 1','Walk Down 2','Walk Down 3','Walk Up 1','Walk Up 2','Walk Up 3',
-      'Walk Left 1','Walk Left 2','Walk Left 3','Walk Right 1','Walk Right 2','Walk Right 3',
-      'Idle Down','Idle Up','Idle Left','Idle Right','Battle Idle 1','Battle Idle 2',
-      'Battle Idle 3','Attack 1','Attack 2','Attack 3','Cast 1','Cast 2',
-      'Cast 3','Damage 1','Damage 2','Damage 3','KO 1','KO 2',
-      'KO 3','Victory 1','Victory 2','Victory 3','Weak Pose','Critical Pose',
-    ];
+    const GRIDS = {
+      '6x6': {
+        cols: 6, rows: 6,
+        labels: [
+          'Walk Down 1','Walk Down 2','Walk Down 3','Walk Up 1','Walk Up 2','Walk Up 3',
+          'Walk Left 1','Walk Left 2','Walk Left 3','Walk Right 1','Walk Right 2','Walk Right 3',
+          'Idle Down','Idle Up','Idle Left','Idle Right','Battle Idle 1','Battle Idle 2',
+          'Battle Idle 3','Attack 1','Attack 2','Attack 3','Cast 1','Cast 2',
+          'Cast 3','Damage 1','Damage 2','Damage 3','KO 1','KO 2',
+          'KO 3','Victory 1','Victory 2','Victory 3','Weak Pose','Critical Pose',
+        ],
+        templates: {
+          '2K': { cellW: 339, cellH: 339, headerH: 14, border: 2, fontSize: 9 },
+          '4K': { cellW: 678, cellH: 678, headerH: 22, border: 4, fontSize: 14 },
+        },
+      },
+      '3x3': {
+        cols: 3, rows: 3,
+        labels: ['Cell 0,0','Cell 0,1','Cell 0,2','Cell 1,0','Cell 1,1','Cell 1,2','Cell 2,0','Cell 2,1','Cell 2,2'],
+        templates: {
+          '2K': { cellW: 680, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
+          '4K': { cellW: 1360, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
+        },
+      },
+      '2x3': {
+        cols: 2, rows: 3,
+        labels: ['Cell 0,0','Cell 0,1','Cell 1,0','Cell 1,1','Cell 2,0','Cell 2,1'],
+        templates: {
+          '2K': { cellW: 1021, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
+          '4K': { cellW: 2042, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
+        },
+      },
+      '2x2': {
+        cols: 2, rows: 2,
+        labels: ['Cell 0,0','Cell 0,1','Cell 1,0','Cell 1,1'],
+        templates: {
+          '2K': { cellW: 1021, cellH: 1021, headerH: 28, border: 2, fontSize: 18 },
+          '4K': { cellW: 2042, cellH: 2042, headerH: 44, border: 4, fontSize: 28 },
+        },
+      },
+    };
 
-    const config = { cellW: 339, cellH: 339, headerH: 14, border: 2, fontSize: 9 };
-    const { cellW, cellH, headerH, border, fontSize } = config;
+    function render() {
+      const gridKey = document.getElementById('gridSelect').value;
+      const res = document.getElementById('resSelect').value;
+      const grid = GRIDS[gridKey];
+      const cfg = grid.templates[res];
+      const { cols, rows, labels } = grid;
+      const { cellW, cellH, headerH, border, fontSize } = cfg;
 
-    const imgW = COLS * cellW + (COLS + 1) * border;
-    const imgH = ROWS * cellH + (ROWS + 1) * border;
+      const gridW = cols * cellW + (cols + 1) * border;
+      const gridH = rows * cellH + (rows + 1) * border;
+      const canvasSize = Math.max(gridW, gridH);
+      const offsetX = Math.floor((canvasSize - gridW) / 2);
+      const offsetY = Math.floor((canvasSize - gridH) / 2);
 
-    const canvas = document.getElementById('template');
-    canvas.width = imgW;
-    canvas.height = imgH;
-    const ctx = canvas.getContext('2d');
+      const canvas = document.getElementById('template');
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+      const ctx = canvas.getContext('2d');
 
-    // Black grid lines
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, imgW, imgH);
-
-    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    for (let idx = 0; idx < CELL_LABELS.length; idx++) {
-      const col = idx % COLS;
-      const row = Math.floor(idx / COLS);
-      const x0 = border + col * (cellW + border);
-      const y0 = border + row * (cellH + border);
-
-      // Header strip
+      // Fill entire canvas with black
       ctx.fillStyle = '#000';
-      ctx.fillRect(x0, y0, cellW, headerH);
-      ctx.fillStyle = '#fff';
-      ctx.fillText(CELL_LABELS[idx], x0 + cellW / 2, y0 + headerH / 2);
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-      // Content area (magenta)
-      ctx.fillStyle = '#FF00FF';
-      ctx.fillRect(x0, y0 + headerH, cellW, cellH - headerH);
+      ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const totalCells = cols * rows;
+      for (let idx = 0; idx < totalCells; idx++) {
+        const col = idx % cols;
+        const row = Math.floor(idx / cols);
+        const label = idx < labels.length ? labels[idx] : `Cell ${row},${col}`;
+
+        const x0 = offsetX + border + col * (cellW + border);
+        const y0 = offsetY + border + row * (cellH + border);
+
+        // Header strip
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x0, y0, cellW, headerH);
+        ctx.fillStyle = '#fff';
+        ctx.fillText(label, x0 + cellW / 2, y0 + headerH / 2);
+
+        // Content area (magenta)
+        ctx.fillStyle = '#FF00FF';
+        ctx.fillRect(x0, y0 + headerH, cellW, cellH - headerH);
+      }
+
+      const info = `Canvas: ${canvasSize}x${canvasSize} | Grid: ${gridW}x${gridH} | ` +
+        `Offset: (${offsetX}, ${offsetY}) | Cell: ${cellW}x${cellH} | ` +
+        `Header: ${headerH}px | Border: ${border}px | Content: ${cellW}x${cellH - headerH}`;
+      document.getElementById('info').innerHTML = info +
+        (offsetX > 0 || offsetY > 0
+          ? `<br><span class="dim">Black margins: left/right=${offsetX}px, top/bottom=${offsetY}px</span>`
+          : '');
     }
 
-    document.getElementById('info').textContent =
-      `Canvas: ${imgW}x${imgH} | Cell: ${cellW}x${cellH} | Header: ${headerH}px | Border: ${border}px | Content: ${cellW}x${cellH - headerH}`;
+    document.getElementById('gridSelect').addEventListener('change', render);
+    document.getElementById('resSelect').addEventListener('change', render);
+    render();
   </script>
 </body>
 </html>

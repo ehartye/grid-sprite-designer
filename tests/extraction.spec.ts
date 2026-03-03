@@ -165,6 +165,97 @@ test.describe('Sprite Extraction', () => {
     });
   }
 
+  // Building grid tests (non-6x6)
+  const buildingFixtures = [
+    {
+      name: 'junk-bug-spire',
+      cols: 2, rows: 3, totalCells: 6,
+      cellW: 1021, cellH: 680, headerH: 22, border: 2,
+      labels: ['Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Stage 5', 'Stage 6'],
+    },
+    {
+      name: 'medieval-inn',
+      cols: 3, rows: 3, totalCells: 9,
+      cellW: 680, cellH: 680, headerH: 22, border: 2,
+      labels: [
+        'Day - Idle', 'Day - Smoke Rising', 'Day - Sign Swaying',
+        'Evening - Lights On', 'Evening - Chimney Glow', 'Evening - Busy',
+        'Night - Lantern Lit', 'Night - Quiet', 'Night - Closed',
+      ],
+    },
+  ];
+
+  for (const bf of buildingFixtures) {
+    test(`${bf.name}: building ${bf.cols}x${bf.rows} extraction`, async ({ page }) => {
+      const fixturePath = join(ROOT, 'test-fixtures', `${bf.name}.jpg`);
+      if (!existsSync(fixturePath)) {
+        test.skip();
+        return;
+      }
+
+      const params = new URLSearchParams({
+        fixture: `${bf.name}.jpg`,
+        cols: String(bf.cols),
+        rows: String(bf.rows),
+        cellW: String(bf.cellW),
+        cellH: String(bf.cellH),
+        headerH: String(bf.headerH),
+        border: String(bf.border),
+        labels: bf.labels.join(','),
+      });
+
+      await page.goto(`/tests/extraction-harness.html?${params}`, {
+        waitUntil: 'domcontentloaded',
+      });
+
+      await page.waitForFunction(() => (window as any).__extractionDone === true, {
+        timeout: 30000,
+      });
+
+      const results: SpriteResult[] = await page.evaluate(() => (window as any).__results);
+
+      // Save screenshot first for visual inspection
+      await page.screenshot({
+        path: join(ROOT, 'test-results', `${bf.name}-results.png`),
+        fullPage: true,
+      });
+
+      // Building-specific assertions
+      expect(results, `${bf.name}: expected ${bf.totalCells} sprites`).toHaveLength(bf.totalCells);
+
+      // Check header bleed
+      const bleedFailures: string[] = [];
+      for (const r of results) {
+        if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
+          bleedFailures.push(`${r.label}: ${r.headerBleedPct}% header bleed`);
+        }
+      }
+      expect(bleedFailures, `${bf.name}: header bleed failures:\n${bleedFailures.join('\n')}`).toHaveLength(0);
+
+      // Dark bands: log as informational for buildings (dark content is expected
+      // for structures like ruins, spires, etc. — unlike character sprites)
+      const darkBandInfo: string[] = [];
+      for (const r of results) {
+        if (r.worstDarkBandPct > MAX_DARK_BAND_PCT) {
+          darkBandInfo.push(`${r.label}: ${r.worstDarkBandPct}% dark at row ${r.worstDarkBandRow}`);
+        }
+      }
+      if (darkBandInfo.length > 0) {
+        console.log(`${bf.name} — dark bands (informational, not a failure for buildings):\n  ${darkBandInfo.join('\n  ')}`);
+      }
+
+      // Check uniform dimensions
+      const widths = results.map(r => r.cellW);
+      const heights = results.map(r => r.cellH);
+      expect(Math.max(...widths) - Math.min(...widths), `${bf.name}: width spread`).toBe(0);
+      expect(Math.max(...heights) - Math.min(...heights), `${bf.name}: height spread`).toBe(0);
+
+      const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
+      const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
+      console.log(`${bf.name} — sprites: ${results.length}, max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%, cell: ${results[0]?.cellW}x${results[0]?.cellH}`);
+    });
+  }
+
   test('posterization: 5-bit output has SNES-conformant colors', async ({ page }) => {
     const fixturePath = join(ROOT, 'test-fixtures', 'filled-grid.jpg');
     expect(existsSync(fixturePath), 'Test fixture filled-grid.jpg must exist').toBeTruthy();

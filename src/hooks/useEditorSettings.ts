@@ -3,7 +3,7 @@
  * per generation via the /api/history/:id/settings endpoints.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 type RGB = [number, number, number];
 
@@ -64,6 +64,24 @@ export function useEditorSettings(historyId: number | null) {
     } catch {
       return null;
     }
+  }, [historyId]);
+
+  // Flush any pending debounced save on page unload
+  useEffect(() => {
+    const flush = () => {
+      if (timerRef.current && historyId && lastJsonRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+        fetch(`/api/history/${historyId}/settings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: lastJsonRef.current,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+    window.addEventListener('beforeunload', flush);
+    return () => window.removeEventListener('beforeunload', flush);
   }, [historyId]);
 
   return { save, load };
