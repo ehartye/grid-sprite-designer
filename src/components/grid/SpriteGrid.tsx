@@ -1,7 +1,8 @@
 /**
- * 6x6 sprite grid display.
+ * Sprite grid display.
  * Shows extracted sprites on checkerboard transparency backgrounds
  * or empty cells with pose labels when no sprites are available.
+ * Supports variable grid sizes (6x6 character default, 3x3/2x3/2x2 buildings).
  */
 
 import React from 'react';
@@ -17,9 +18,16 @@ interface SpriteGridProps {
   thumbnailCell?: number | null;
   onThumbnailSet?: (cellIndex: number) => void;
   onZoomClick?: (cellIndex: number) => void;
+  /** Override grid columns (default 6 for characters) */
+  gridCols?: number;
+  /** Override cell labels (default from poses.ts) */
+  cellLabels?: string[];
 }
 
-export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick }: SpriteGridProps) {
+export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels }: SpriteGridProps) {
+  const cols = gridCols ?? 6;
+  const labels = cellLabels ?? CELL_LABELS;
+
   // Build a lookup map from cellIndex to sprite
   const spriteMap = new Map<number, ExtractedSprite>();
   for (const sprite of sprites) {
@@ -27,8 +35,11 @@ export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, 
   }
 
   return (
-    <div className="sprite-grid">
-      {CELL_LABELS.map((label, idx) => {
+    <div
+      className="sprite-grid"
+      style={cols !== 6 ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : undefined}
+    >
+      {labels.map((label, idx) => {
         const sprite = spriteMap.get(idx);
         const isSelected = selectedCell === idx;
         const isMirrored = mirroredCells?.has(idx) ?? false;

@@ -38,7 +38,12 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
     }
   }, [state.model]);
 
-  const showNewCharacter = state.step === 'review' || state.step === 'preview';
+  const showNewSprite = state.step === 'review' || state.step === 'preview' || tab === 'gallery';
+
+  const handleNewSprite = useCallback(() => {
+    reset();
+    onTabChange('designer');
+  }, [reset, onTabChange]);
 
   return (
     <header className="app-header">
@@ -82,9 +87,9 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
           {testing ? 'Testing...' : 'Test Connection'}
         </button>
 
-        {showNewCharacter && (
-          <button className="btn btn-sm btn-danger" onClick={reset}>
-            New Character
+        {showNewSprite && (
+          <button className="btn btn-sm btn-danger" onClick={handleNewSprite}>
+            New Sprite
           </button>
         )}
       </div>

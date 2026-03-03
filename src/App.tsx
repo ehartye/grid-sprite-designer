@@ -8,6 +8,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AppHeader, AppTab } from './components/layout/AppHeader';
 import { ConfigPanel } from './components/config/ConfigPanel';
+import { BuildingConfigPanel } from './components/config/BuildingConfigPanel';
 import { SpriteReview } from './components/grid/SpriteReview';
 import { GeneratingOverlay } from './components/shared/GeneratingOverlay';
 import { StatusBanner } from './components/shared/StatusBanner';
@@ -15,6 +16,7 @@ import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
 import { extractSprites } from './lib/spriteExtractor';
 import { CONFIG_2K } from './lib/templateGenerator';
+import { getBuildingGridConfig, type BuildingGridSize } from './lib/gridConfig';
 
 function AppContent() {
   const { state, dispatch } = useAppContext();
@@ -37,7 +39,29 @@ function AppContent() {
         if (!res.ok) return;
         const data = await res.json();
 
-        if (data.character) {
+        // Restore sprite type if saved
+        const spriteType = data.spriteType || 'character';
+        if (spriteType !== 'character') {
+          dispatch({ type: 'SET_SPRITE_TYPE', spriteType });
+        }
+
+        if (spriteType === 'building' && data.gridSize) {
+          // Restore building config state
+          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+          dispatch({
+            type: 'SET_BUILDING',
+            building: {
+              name: data.character?.name || '',
+              description: data.character?.description || '',
+              details: '',
+              colorNotes: '',
+              styleNotes: '',
+              cellGuidance: '',
+              gridSize: data.gridSize,
+              cellLabels: spriteLabels,
+            },
+          });
+        } else if (data.character) {
           dispatch({ type: 'SET_CHARACTER', character: data.character });
         }
         const mimeType = data.filledGridMimeType || 'image/png';
@@ -48,12 +72,36 @@ function AppContent() {
             filledGridMimeType: mimeType,
             geminiText: data.geminiText || '',
           });
-          const sprites = await extractSprites(data.filledGridImage, mimeType, {
+
+          // Use the correct extraction config based on sprite type
+          let extractionConfig: Parameters<typeof extractSprites>[2] = {
             headerH: CONFIG_2K.headerH,
             border: CONFIG_2K.border,
             templateCellW: CONFIG_2K.cellW,
             templateCellH: CONFIG_2K.cellH,
-          });
+          };
+
+          if (spriteType === 'building' && data.gridSize) {
+            // For buildings, derive extraction params from the grid config
+            // Cell labels from sprites are enough for display
+            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+            const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
+            const templateParams = gridConfig.templates['2K'];
+            extractionConfig = {
+              headerH: templateParams.headerH,
+              border: templateParams.border,
+              templateCellW: templateParams.cellW,
+              templateCellH: templateParams.cellH,
+              gridOverride: {
+                cols: gridConfig.cols,
+                rows: gridConfig.rows,
+                totalCells: gridConfig.totalCells,
+                cellLabels: gridConfig.cellLabels,
+              },
+            };
+          }
+
+          const sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
           dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
         } else if (data.sprites && data.sprites.length > 0) {
           dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
@@ -76,7 +124,9 @@ function AppContent() {
       <div className="app-layout">
         {tab === 'designer' && (
           <>
-            {state.step === 'configure' && <ConfigPanel />}
+            {state.step === 'configure' && (
+              state.spriteType === 'building' ? <BuildingConfigPanel /> : <ConfigPanel />
+            )}
             {state.step === 'generating' && <GeneratingOverlay />}
             {state.step === 'review' && <SpriteReview />}
             {state.step === 'preview' && <AnimationPreview />}

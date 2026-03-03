@@ -1,9 +1,12 @@
 /**
- * Extract individual sprites from a filled 6×6 grid image.
+ * Extract individual sprites from a filled grid image.
+ *
+ * Supports both 6x6 character grids (default) and variable-size
+ * building grids (3x3, 2x3, 2x2) via optional gridOverride config.
  *
  * Row detection: darkness-based — header rows (black bg + white text) and grid
  * lines are mostly dark pixels. We find contiguous dark bands (dividers) and
- * use the gaps between them as the 6 content row regions.
+ * use the gaps between them as the content row regions.
  *
  * Column detection: variance-based (content rows only) — grid line columns have
  * near-zero variance. We compute column variance using only content row pixels
@@ -25,6 +28,13 @@ export interface ExtractedSprite {
   height: number;
 }
 
+export interface GridOverride {
+  cols: number;
+  rows: number;
+  totalCells: number;
+  cellLabels: string[];
+}
+
 export interface ExtractionConfig {
   /** Header strip height in the original template */
   headerH: number;
@@ -38,6 +48,8 @@ export interface ExtractionConfig {
   aaInset: number;
   /** Bits per channel for posterization during grid detection (1-8) */
   posterizeBits: number;
+  /** Override grid dimensions for non-6x6 grids */
+  gridOverride?: GridOverride;
 }
 
 const DEFAULT_EXTRACTION: ExtractionConfig = {
@@ -200,7 +212,7 @@ function findLowBands(profile: Float64Array, threshold: number, maxWidth: number
 }
 
 /**
- * Convert detected grid line bands into 6 cell content spans.
+ * Convert detected grid line bands into N cell content spans.
  * Each cell spans from one grid line's far edge to the next grid line's near edge,
  * with `margin` pixels trimmed on each side to skip anti-aliased edges.
  */
@@ -208,11 +220,12 @@ function gridLinesToCellSpans(
   lines: Band[],
   totalSize: number,
   margin: number,
+  expectedCells: number,
 ): Array<{ start: number; size: number }> {
   const sorted = [...lines].sort((a, b) => a.start - b.start);
 
   // If outer borders weren't detected, add virtual edges
-  const expectedSpacing = totalSize / 6;
+  const expectedSpacing = totalSize / expectedCells;
   if (sorted.length === 0 || sorted[0].start > expectedSpacing * 0.3) {
     sorted.unshift({ start: 0, end: 0 });
   }
@@ -237,21 +250,22 @@ function gridLinesToCellSpans(
 
 /**
  * From a set of candidate grid line bands, select the subset that produces
- * 6 roughly evenly-spaced cells. Tries the full set first, then prunes
- * outliers that break the expected ~totalSize/6 spacing.
+ * N roughly evenly-spaced cells. Tries the full set first, then prunes
+ * outliers that break the expected spacing.
  */
 function selectGridLines(
   candidates: Band[],
   totalSize: number,
   margin: number,
+  expectedCells: number,
 ): Band[] | null {
   // Try candidates as-is
-  const spans = gridLinesToCellSpans(candidates, totalSize, margin);
-  if (spans.length === 6 && spansAreEven(spans, totalSize)) return candidates;
+  const spans = gridLinesToCellSpans(candidates, totalSize, margin, expectedCells);
+  if (spans.length === expectedCells && spansAreEven(spans, totalSize, expectedCells)) return candidates;
 
   // If too many candidates, try pruning. Real grid lines are evenly spaced.
-  if (candidates.length > 7) {
-    const expectedSpacing = totalSize / 6;
+  if (candidates.length > expectedCells + 1) {
+    const expectedSpacing = totalSize / expectedCells;
     const sorted = [...candidates].sort((a, b) => a.start - b.start);
 
     const scored = sorted.map((band) => {
@@ -262,10 +276,10 @@ function selectGridLines(
     });
 
     scored.sort((a, b) => a.error - b.error);
-    for (let take = Math.min(scored.length, 10); take >= 7; take--) {
+    for (let take = Math.min(scored.length, expectedCells + 4); take >= expectedCells + 1; take--) {
       const subset = scored.slice(0, take).map((s) => s.band);
-      const subSpans = gridLinesToCellSpans(subset, totalSize, margin);
-      if (subSpans.length === 6 && spansAreEven(subSpans, totalSize)) return subset;
+      const subSpans = gridLinesToCellSpans(subset, totalSize, margin, expectedCells);
+      if (subSpans.length === expectedCells && spansAreEven(subSpans, totalSize, expectedCells)) return subset;
     }
   }
 
@@ -275,8 +289,9 @@ function selectGridLines(
 function spansAreEven(
   spans: Array<{ start: number; size: number }>,
   totalSize: number,
+  expectedCells: number,
 ): boolean {
-  const expected = totalSize / 6;
+  const expected = totalSize / expectedCells;
   const tolerance = expected * 0.3;
   return spans.every((s) => Math.abs(s.size - expected) < tolerance);
 }
@@ -305,44 +320,38 @@ function detectGridLines(
   templateCellW: number,
   templateCellH: number,
   aaInset: number,
+  gridCols: number,
+  gridRows: number,
 ): CellRect[] {
   // ── Horizontal: find content rows via darkness-based divider detection ──
-  // Headers (black bg + white text) and grid lines are mostly dark pixels.
-  // We find dark bands (dividers) and use the gaps between them as content rows.
-  // This is more robust than chromaticity-based detection because header/grid-line
-  // darkness is consistent regardless of sprite art content.
   const rowDark = computeRowDarkness(data, width, height);
   const darkBands = findHighBands(rowDark, 0.3);
   console.log(`[GridDetect] Dark divider bands: ${darkBands.length}`, darkBands.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
-  // Merge nearby dark bands (header + adjacent grid line = one divider)
-  const mergedDark = mergeNearbyBands(darkBands, 3);
-  console.log(`[GridDetect] Merged dividers: ${mergedDark.length}`, mergedDark.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
-  // Select the best dividers that produce 6 evenly-spaced content rows,
-  // pruning stray dark bands (e.g. a dark sprite row that passes the threshold).
-  const selectedRowDividers = selectGridLines(mergedDark, height, aaInset);
+  // Merge gap scales with cell size: Gemini may place gaps between grid lines
+  // and headers. For 6x6 (339px cells) → ~17px, for 2x3 (680px cells) → ~34px.
+  const mergeGap = Math.max(3, Math.round(templateCellH * 0.05));
+  const mergedDark = mergeNearbyBands(darkBands, mergeGap);
+  console.log(`[GridDetect] Merged dividers (gap=${mergeGap}): ${mergedDark.length}`, mergedDark.map(b => `${b.start}-${b.end} (${b.end-b.start+1}px)`));
+  const selectedRowDividers = selectGridLines(mergedDark, height, aaInset, gridRows);
   const rowDividers = selectedRowDividers || mergedDark;
   if (selectedRowDividers) {
     console.log(`[GridDetect] Selected row dividers: ${selectedRowDividers.length} (pruned ${mergedDark.length - selectedRowDividers.length})`);
   }
-  const hSpans = gridLinesToCellSpans(rowDividers, height, aaInset);
+  const hSpans = gridLinesToCellSpans(rowDividers, height, aaInset, gridRows);
   console.log(`[GridDetect] Content row spans: ${hSpans.length}`, hSpans.map(s => `${s.start} (${s.size}px)`));
 
   // ── Vertical: find grid lines via column variance ──────────────────────
-  // Compute variance only within detected content rows to exclude uniform
-  // header areas that dilute the grid line signal.
   const contentBands: Band[] = hSpans.map(s => ({ start: s.start, end: s.start + s.size - 1 }));
-  const colVar = computeColumnVariance(data, width, height, contentBands.length === 6 ? contentBands : undefined);
+  const colVar = computeColumnVariance(data, width, height, contentBands.length === gridRows ? contentBands : undefined);
   const colSorted = Array.from(colVar).sort((a, b) => a - b);
   const colMedian = colSorted[Math.floor(colSorted.length / 2)];
 
-  // Try progressively higher thresholds — JPEG artifacts can give grid lines
-  // non-trivial variance, so 2% of median may be too strict.
   let vLines: Band[] | null = null;
   for (const pct of [0.02, 0.05, 0.10]) {
     const threshold = colMedian * pct;
     const vCandidates = findLowBands(colVar, threshold, 20);
     console.log(`[GridDetect] Column: median=${colMedian.toFixed(1)}, threshold=${threshold.toFixed(1)} (${pct*100}%), candidates=${vCandidates.length}`, vCandidates.map(b => `${b.start}-${b.end}`));
-    vLines = selectGridLines(vCandidates, width, aaInset);
+    vLines = selectGridLines(vCandidates, width, aaInset, gridCols);
     if (vLines) {
       console.log(`[GridDetect] Column selectGridLines result: ${vLines.length} lines (at ${pct*100}%)`);
       break;
@@ -350,28 +359,27 @@ function detectGridLines(
   }
   if (!vLines) console.log(`[GridDetect] Column selectGridLines: no valid grid found at any threshold`);
 
-  if (hSpans.length !== 6 && !vLines) {
+  if (hSpans.length !== gridRows && !vLines) {
     console.log(`[GridDetect] FULL FALLBACK: hSpans=${hSpans.length}, vLines=${!!vLines}`);
-    return templateFallback(width, height, templateBorder, templateCellW, templateCellH, aaInset);
+    return templateFallback(width, height, templateBorder, templateCellW, templateCellH, aaInset, gridCols, gridRows);
   }
 
-  // Derive final row/column spans, using template as fallback for whichever axis failed
-  const finalRows = hSpans.length === 6 ? hSpans : templateColSpans(height, templateCellH, templateBorder, aaInset);
+  const finalRows = hSpans.length === gridRows ? hSpans : templateAxisSpans(height, templateCellH, templateBorder, aaInset, gridRows);
   let finalCols: Array<{ start: number; size: number }>;
   if (vLines) {
-    const vSpans = gridLinesToCellSpans(vLines, width, aaInset);
-    finalCols = vSpans.length === 6 ? vSpans : templateColSpans(width, templateCellW, templateBorder, aaInset);
+    const vSpans = gridLinesToCellSpans(vLines, width, aaInset, gridCols);
+    finalCols = vSpans.length === gridCols ? vSpans : templateAxisSpans(width, templateCellW, templateBorder, aaInset, gridCols);
   } else {
-    finalCols = templateColSpans(width, templateCellW, templateBorder, aaInset);
+    finalCols = templateAxisSpans(width, templateCellW, templateBorder, aaInset, gridCols);
   }
 
-  if (hSpans.length === 6 && !vLines) {
+  if (hSpans.length === gridRows && !vLines) {
     console.log(`[GridDetect] HYBRID: detected rows + template columns`);
   }
 
   const cells: CellRect[] = [];
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
       cells.push({
         x: finalCols[col].start,
         y: finalRows[row].start,
@@ -385,18 +393,19 @@ function detectGridLines(
 }
 
 /**
- * Derive 6 evenly-spaced cell spans for one axis using template proportions.
+ * Derive N evenly-spaced cell spans for one axis using template proportions.
  * Used when detection succeeds on one axis but fails on the other.
  */
-function templateColSpans(
+function templateAxisSpans(
   totalSize: number,
   templateCellSize: number,
   templateBorder: number,
   aaInset: number,
+  count: number,
 ): Array<{ start: number; size: number }> {
-  const templateTotal = COLS * templateCellSize + (COLS + 1) * templateBorder;
+  const templateTotal = count * templateCellSize + (count + 1) * templateBorder;
   const spans: Array<{ start: number; size: number }> = [];
-  for (let i = 0; i < COLS; i++) {
+  for (let i = 0; i < count; i++) {
     const tPos = i * (templateCellSize + templateBorder) + templateBorder;
     const start = Math.round(tPos * totalSize / templateTotal) + aaInset;
     const size = Math.round(templateCellSize * totalSize / templateTotal) - 2 * aaInset;
@@ -415,12 +424,14 @@ function templateFallback(
   templateCellW: number,
   templateCellH: number,
   aaInset: number,
+  gridCols: number,
+  gridRows: number,
 ): CellRect[] {
-  const templateImgW = COLS * templateCellW + (COLS + 1) * templateBorder;
-  const templateImgH = ROWS * templateCellH + (ROWS + 1) * templateBorder;
+  const templateImgW = gridCols * templateCellW + (gridCols + 1) * templateBorder;
+  const templateImgH = gridRows * templateCellH + (gridRows + 1) * templateBorder;
   const cells: CellRect[] = [];
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
       const tX = col * (templateCellW + templateBorder) + templateBorder;
       const tY = row * (templateCellH + templateBorder) + templateBorder;
       const x = Math.round(tX * width / templateImgW) + aaInset;
@@ -431,6 +442,55 @@ function templateFallback(
     }
   }
   return cells;
+}
+
+// ── Per-cell header stripping ────────────────────────────────────────────────
+
+/**
+ * Scan the top of each cell for a dark header strip and adjust cell rects
+ * to exclude it. This handles cases where template fallback or failed row
+ * detection leaves header strips inside cell rects.
+ *
+ * Uses a conservative approach: only strips if the majority of the expected
+ * header region is dark, and strips exactly the expected header height.
+ * Already-stripped cells (from successful darkness detection) have bright
+ * content at the top, so they're left untouched.
+ */
+function stripCellHeaders(
+  cells: CellRect[],
+  data: Uint8ClampedArray,
+  imgWidth: number,
+  imgHeight: number,
+  scaledHeaderH: number,
+): void {
+  if (scaledHeaderH <= 0) return;
+
+  for (let ci = 0; ci < cells.length; ci++) {
+    const cell = cells[ci];
+    if (cell.h <= scaledHeaderH) continue;
+
+    let darkRows = 0;
+    for (let dy = 0; dy < scaledHeaderH; dy++) {
+      const y = cell.y + dy;
+      if (y >= imgHeight) break;
+      let dark = 0;
+      let total = 0;
+      for (let x = cell.x; x < cell.x + cell.w; x += 2) {
+        if (x >= imgWidth) break;
+        total++;
+        const i = (y * imgWidth + x) * 4;
+        const brightness = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        if (brightness < 30) dark++;
+      }
+      if (total > 0 && dark / total > 0.3) darkRows++;
+    }
+
+    if (darkRows >= scaledHeaderH * 0.6) {
+      console.log(`[HeaderStrip] Cell ${ci}: stripped ${scaledHeaderH}px header (${darkRows}/${scaledHeaderH} dark rows)`);
+      cell.y += scaledHeaderH;
+      cell.h -= scaledHeaderH;
+    }
+  }
 }
 
 // ── Image loading ────────────────────────────────────────────────────────────
@@ -447,15 +507,13 @@ function loadImage(base64: string, mimeType: string): Promise<HTMLImageElement> 
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Extract all 36 sprites from a filled grid image.
+ * Extract sprites from a filled grid image.
  *
  * Uses darkness-based row detection and variance-based column detection
  * to locate cell boundaries, then crops each cell directly.
  *
- * The original image data from Gemini is never modified. Posterization
- * is applied to an in-memory copy for grid detection only — sprite
- * crops always come from the unmodified original. Posterized output
- * is handled client-side in the processSprite pipeline.
+ * When gridOverride is provided, uses those dimensions instead of the
+ * default 6x6 character constants from poses.ts.
  */
 export async function extractSprites(
   gridBase64: string,
@@ -463,6 +521,11 @@ export async function extractSprites(
   config: Partial<ExtractionConfig> = {},
 ): Promise<ExtractedSprite[]> {
   const cfg = { ...DEFAULT_EXTRACTION, ...config };
+  const gridCols = cfg.gridOverride?.cols ?? COLS;
+  const gridRows = cfg.gridOverride?.rows ?? ROWS;
+  const totalCells = cfg.gridOverride?.totalCells ?? TOTAL_CELLS;
+  const cellLabels = cfg.gridOverride?.cellLabels ?? CELL_LABELS;
+
   const img = await loadImage(gridBase64, gridMimeType);
 
   // Draw the full grid onto a canvas to read pixels
@@ -482,19 +545,26 @@ export async function extractSprites(
     detectionData.data, img.width, img.height,
     cfg.border, cfg.templateCellW, cfg.templateCellH,
     cfg.aaInset,
+    gridCols, gridRows,
   );
 
-  if (cells.length !== TOTAL_CELLS) {
+  if (cells.length !== totalCells) {
     throw new Error(
-      `Grid detection found ${cells.length} cells, expected ${TOTAL_CELLS}`,
+      `Grid detection found ${cells.length} cells, expected ${totalCells}`,
     );
   }
+
+  // Strip headers that may be included in cell rects (especially from
+  // template fallback when darkness detection fails on dark content rows)
+  const templateImgH = gridRows * cfg.templateCellH + (gridRows + 1) * cfg.border;
+  const scaledHeaderH = Math.round(cfg.headerH * img.height / templateImgH);
+  stripCellHeaders(cells, detectionData.data, img.width, img.height, scaledHeaderH);
 
   // Always crop from the original image — posterization for output is handled
   // client-side in the processSprite pipeline for instant toggling.
   const sprites: ExtractedSprite[] = [];
 
-  for (let idx = 0; idx < TOTAL_CELLS; idx++) {
+  for (let idx = 0; idx < totalCells; idx++) {
     const cell = cells[idx];
 
     const workCanvas = document.createElement('canvas');
@@ -514,7 +584,7 @@ export async function extractSprites(
 
     sprites.push({
       cellIndex: idx,
-      label: CELL_LABELS[idx],
+      label: idx < cellLabels.length ? cellLabels[idx] : `Cell ${idx}`,
       imageData: base64,
       mimeType: 'image/png',
       width: cell.w,
@@ -572,18 +642,23 @@ async function normalizeSprites(sprites: ExtractedSprite[]): Promise<ExtractedSp
 
 /**
  * Compose extracted sprites back into a clean sprite sheet (no grid lines, no headers).
- * Returns a canvas with all sprites arranged in a 6×6 grid.
+ * Returns a canvas with all sprites arranged in a grid.
+ * When gridCols is provided, uses that for layout; defaults to 6 (character grid).
  */
 export async function composeSpriteSheet(
   sprites: ExtractedSprite[],
+  gridCols?: number,
 ): Promise<{ canvas: HTMLCanvasElement; base64: string }> {
   if (sprites.length === 0) {
     throw new Error('No sprites to compose');
   }
 
+  const cols = gridCols ?? COLS;
+  const rows = Math.ceil(sprites.length / cols);
+
   const { width: cellW, height: cellH } = sprites[0];
-  const sheetW = COLS * cellW;
-  const sheetH = ROWS * cellH;
+  const sheetW = cols * cellW;
+  const sheetH = rows * cellH;
 
   const canvas = document.createElement('canvas');
   canvas.width = sheetW;
@@ -595,8 +670,8 @@ export async function composeSpriteSheet(
 
   for (const sprite of sprites) {
     const img = await loadImage(sprite.imageData, sprite.mimeType);
-    const col = sprite.cellIndex % COLS;
-    const row = Math.floor(sprite.cellIndex / COLS);
+    const col = sprite.cellIndex % cols;
+    const row = Math.floor(sprite.cellIndex / cols);
     ctx.drawImage(img, col * cellW, row * cellH);
   }
 

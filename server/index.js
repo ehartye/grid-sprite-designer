@@ -62,6 +62,8 @@ app.get('/api/history/:id', (req, res, next) => {
 
     res.json({
       id: gen.id,
+      spriteType: gen.sprite_type || 'character',
+      gridSize: gen.grid_size || null,
       character: {
         name: gen.character_name || '',
         description: gen.character_description || '',
@@ -88,12 +90,12 @@ app.get('/api/history/:id', (req, res, next) => {
 
 app.post('/api/history', (req, res, next) => {
   try {
-    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage } = req.body;
+    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize } = req.body;
 
     const result = db.prepare(
-      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image)
-     VALUES (?, ?, ?, ?, ?, ?)`
-    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '');
+      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null);
 
     res.json({ id: result.lastInsertRowid });
   } catch (err) { next(err); }
@@ -125,16 +127,32 @@ app.post('/api/history/:id/sprites', (req, res, next) => {
 // Character presets
 app.get('/api/presets', (req, res, next) => {
   try {
-    const rows = db.prepare('SELECT * FROM character_presets WHERE is_preset = 1 ORDER BY name').all();
-    res.json(rows.map(r => ({
-      id: r.id,
-      name: r.name,
-      genre: r.genre,
-      description: r.description,
-      equipment: r.equipment,
-      colorNotes: r.color_notes,
-      rowGuidance: r.row_guidance,
-    })));
+    const type = req.query.type;
+    if (type === 'building') {
+      const rows = db.prepare('SELECT * FROM building_presets WHERE is_preset = 1 ORDER BY name').all();
+      res.json(rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        genre: r.genre,
+        gridSize: r.grid_size,
+        description: r.description,
+        details: r.details,
+        colorNotes: r.color_notes,
+        cellLabels: JSON.parse(r.cell_labels || '[]'),
+        cellGuidance: r.cell_guidance,
+      })));
+    } else {
+      const rows = db.prepare('SELECT * FROM character_presets WHERE is_preset = 1 ORDER BY name').all();
+      res.json(rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        genre: r.genre,
+        description: r.description,
+        equipment: r.equipment,
+        colorNotes: r.color_notes,
+        rowGuidance: r.row_guidance,
+      })));
+    }
   } catch (err) { next(err); }
 });
 

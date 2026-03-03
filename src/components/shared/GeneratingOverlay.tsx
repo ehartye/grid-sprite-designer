@@ -5,17 +5,24 @@
  */
 
 import React from 'react';
+import { useAppContext } from '../../context/AppContext';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
+import { BUILDING_GRIDS } from '../../lib/gridConfig';
 
 export function GeneratingOverlay() {
-  const { state, cancelGeneration } = useGridWorkflow();
+  const { state } = useAppContext();
+  const { cancelGeneration } = useGridWorkflow();
+
+  const cellCount = state.spriteType === 'building'
+    ? (BUILDING_GRIDS[state.building.gridSize]?.totalCells ?? 9)
+    : 36;
 
   return (
     <div className="generating-overlay">
       <div className="generating-spinner" />
 
       <p className="gen-title">
-        Generating 36 sprites with {state.model}...
+        Generating {cellCount} sprites with {state.model}...
       </p>
 
       <p className="gen-subtitle">
