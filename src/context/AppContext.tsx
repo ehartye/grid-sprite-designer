@@ -5,10 +5,12 @@
 
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { ExtractedSprite } from '../lib/spriteExtractor';
+import type { TerrainGridSize, BackgroundGridSize, BackgroundMode } from '../lib/gridConfig';
+import { TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../lib/gridConfig';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export type SpriteType = 'character' | 'building';
+export type SpriteType = 'character' | 'building' | 'terrain' | 'background';
 export type BuildingGridSize = '3x3' | '2x3' | '2x2';
 
 export interface CharacterPreset {
@@ -31,6 +33,29 @@ export interface BuildingPreset {
   colorNotes: string;
   cellLabels: string[];
   cellGuidance: string;
+}
+
+export interface TerrainPreset {
+  id: string;
+  name: string;
+  genre: string;
+  gridSize: TerrainGridSize;
+  description: string;
+  colorNotes: string;
+  tileLabels: string[];
+  tileGuidance: string;
+}
+
+export interface BackgroundPreset {
+  id: string;
+  name: string;
+  genre: string;
+  gridSize: BackgroundGridSize;
+  bgMode: BackgroundMode;
+  description: string;
+  colorNotes: string;
+  layerLabels: string[];
+  layerGuidance: string;
 }
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -63,6 +88,27 @@ export interface AppState {
     cellLabels: string[];
   };
 
+  terrain: {
+    name: string;
+    description: string;
+    colorNotes: string;
+    styleNotes: string;
+    tileGuidance: string;
+    gridSize: TerrainGridSize;
+    cellLabels: string[];
+  };
+
+  background: {
+    name: string;
+    description: string;
+    colorNotes: string;
+    styleNotes: string;
+    layerGuidance: string;
+    bgMode: BackgroundMode;
+    gridSize: BackgroundGridSize;
+    cellLabels: string[];
+  };
+
   model: string;
   imageSize: string;
 
@@ -92,6 +138,12 @@ export interface AppState {
 
   /** Building presets */
   buildingPresets: BuildingPreset[];
+
+  /** Terrain presets */
+  terrainPresets: TerrainPreset[];
+
+  /** Background presets */
+  backgroundPresets: BackgroundPreset[];
 }
 
 const initialState: AppState = {
@@ -115,6 +167,25 @@ const initialState: AppState = {
     gridSize: '3x3',
     cellLabels: Array(9).fill(''),
   },
+  terrain: {
+    name: '',
+    description: '',
+    colorNotes: '',
+    styleNotes: '',
+    tileGuidance: '',
+    gridSize: '4x4' as TerrainGridSize,
+    cellLabels: Array(16).fill(''),
+  },
+  background: {
+    name: '',
+    description: '',
+    colorNotes: '',
+    styleNotes: '',
+    layerGuidance: '',
+    bgMode: 'parallax' as BackgroundMode,
+    gridSize: '1x4' as BackgroundGridSize,
+    cellLabels: Array(4).fill(''),
+  },
   model: 'nano-banana-pro-preview',
   imageSize: '2K',
   templateImage: null,
@@ -128,6 +199,8 @@ const initialState: AppState = {
   historyId: null,
   presets: [],
   buildingPresets: [],
+  terrainPresets: [],
+  backgroundPresets: [],
 };
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -150,6 +223,12 @@ type Action =
   | { type: 'LOAD_PRESET'; preset: CharacterPreset }
   | { type: 'SET_BUILDING_PRESETS'; presets: BuildingPreset[] }
   | { type: 'LOAD_BUILDING_PRESET'; preset: BuildingPreset }
+  | { type: 'SET_TERRAIN'; terrain: AppState['terrain'] }
+  | { type: 'SET_BACKGROUND'; background: AppState['background'] }
+  | { type: 'SET_TERRAIN_PRESETS'; presets: TerrainPreset[] }
+  | { type: 'LOAD_TERRAIN_PRESET'; preset: TerrainPreset }
+  | { type: 'SET_BACKGROUND_PRESETS'; presets: BackgroundPreset[] }
+  | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
   | { type: 'RESET' };
 
 /** Get the default cell label count for a building grid size */
@@ -252,8 +331,57 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     }
+    case 'SET_TERRAIN':
+      return { ...state, terrain: action.terrain };
+    case 'SET_BACKGROUND':
+      return { ...state, background: action.background };
+    case 'SET_TERRAIN_PRESETS':
+      return { ...state, terrainPresets: action.presets };
+    case 'LOAD_TERRAIN_PRESET': {
+      const tGrid = TERRAIN_GRIDS[action.preset.gridSize];
+      const tLabels = action.preset.tileLabels.slice(0, tGrid?.totalCells ?? 16);
+      while (tLabels.length < (tGrid?.totalCells ?? 16)) tLabels.push('');
+      return {
+        ...state,
+        terrain: {
+          name: action.preset.name,
+          description: action.preset.description,
+          colorNotes: action.preset.colorNotes,
+          styleNotes: '',
+          tileGuidance: action.preset.tileGuidance,
+          gridSize: action.preset.gridSize,
+          cellLabels: tLabels,
+        },
+      };
+    }
+    case 'SET_BACKGROUND_PRESETS':
+      return { ...state, backgroundPresets: action.presets };
+    case 'LOAD_BACKGROUND_PRESET': {
+      const bGrid = BACKGROUND_GRIDS[action.preset.gridSize];
+      const bLabels = action.preset.layerLabels.slice(0, bGrid?.totalCells ?? 4);
+      while (bLabels.length < (bGrid?.totalCells ?? 4)) bLabels.push('');
+      return {
+        ...state,
+        background: {
+          name: action.preset.name,
+          description: action.preset.description,
+          colorNotes: action.preset.colorNotes,
+          styleNotes: '',
+          layerGuidance: action.preset.layerGuidance,
+          bgMode: action.preset.bgMode,
+          gridSize: action.preset.gridSize,
+          cellLabels: bLabels,
+        },
+      };
+    }
     case 'RESET':
-      return { ...initialState, presets: state.presets, buildingPresets: state.buildingPresets };
+      return {
+        ...initialState,
+        presets: state.presets,
+        buildingPresets: state.buildingPresets,
+        terrainPresets: state.terrainPresets,
+        backgroundPresets: state.backgroundPresets,
+      };
     default:
       return state;
   }
