@@ -13,7 +13,7 @@ export function getDb() {
   const dataDir = join(__dirname, '..', 'data');
   mkdirSync(dataDir, { recursive: true });
 
-  const dbPath = join(dataDir, 'grid-sprite.db');
+  const dbPath = process.env.DB_PATH || join(dataDir, 'grid-sprite.db');
   db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
@@ -376,162 +376,11 @@ ROW 5 — KO 3, Victory Sequence, Status Poses:
 
   insertGrid.run('RPG Full', 'character', 'RPG', '6x6', 6, 6, characterCellLabels, characterCellGroups, rpgFullGuidance, null);
 
-  // --- Building grid presets ---
-  // 3x3 building grid: 3 rows of 3 cells each (activity, damage, time-of-day or thematic variants)
-  insertGrid.run('3x3 Building', 'building', 'General', '3x3', 3, 3,
-    JSON.stringify([
-      'Cell 1', 'Cell 2', 'Cell 3',
-      'Cell 4', 'Cell 5', 'Cell 6',
-      'Cell 7', 'Cell 8', 'Cell 9'
-    ]),
-    JSON.stringify([
-      { name: 'Row 1', cells: [0,1,2] },
-      { name: 'Row 2', cells: [3,4,5] },
-      { name: 'Row 3', cells: [6,7,8] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER that names the variant. Draw the same building in each cell but reflecting the variant described by its header label. Maintain consistent architecture, proportions, and style across all cells. Each row typically represents a thematic group (e.g., activity states, damage states, time of day).`,
-    null
-  );
+  // Building, terrain, and background grid presets are created per content preset
+  // in their respective seed functions (seedBuildingPresets, seedTerrainPresets,
+  // seedBackgroundPresets) so each gets specific cell labels matching the content.
 
-  // 2x2 building grid: 4 states/variants
-  insertGrid.run('2x2 Building', 'building', 'General', '2x2', 2, 2,
-    JSON.stringify(['Cell 1', 'Cell 2', 'Cell 3', 'Cell 4']),
-    JSON.stringify([
-      { name: 'Row 1', cells: [0,1] },
-      { name: 'Row 2', cells: [2,3] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER that names the variant. Draw the same building in each cell but reflecting the variant described by its header label. Maintain consistent architecture, proportions, and style across all cells.`,
-    null
-  );
-
-  // 2x3 building grid: 2 columns, 3 rows (6 states)
-  insertGrid.run('2x3 Building', 'building', 'General', '2x3', 2, 3,
-    JSON.stringify([
-      'Cell 1', 'Cell 2',
-      'Cell 3', 'Cell 4',
-      'Cell 5', 'Cell 6'
-    ]),
-    JSON.stringify([
-      { name: 'Row 1', cells: [0,1] },
-      { name: 'Row 2', cells: [2,3] },
-      { name: 'Row 3', cells: [4,5] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER that names the variant. Draw the same building in each cell but reflecting the variant described by its header label. Maintain consistent architecture, proportions, and style across all cells. Each row typically represents a thematic group.`,
-    null
-  );
-
-  // --- Terrain grid presets ---
-  // 4x4 terrain tileset: 16 tiles (base tiles, paths, edges, corners)
-  insertGrid.run('4x4 Terrain', 'terrain', 'General', '4x4', 4, 4,
-    JSON.stringify([
-      'Tile 1', 'Tile 2', 'Tile 3', 'Tile 4',
-      'Tile 5', 'Tile 6', 'Tile 7', 'Tile 8',
-      'Tile 9', 'Tile 10', 'Tile 11', 'Tile 12',
-      'Tile 13', 'Tile 14', 'Tile 15', 'Tile 16'
-    ]),
-    JSON.stringify([
-      { name: 'Base Tiles', cells: [0,1,2,3] },
-      { name: 'Path Tiles', cells: [4,5,6,7] },
-      { name: 'Edge Tiles', cells: [8,9,10,11] },
-      { name: 'Corner Tiles', cells: [12,13,14,15] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER naming the tile type. All tiles must share the same art style, color palette, and scale. Tiles in each row form a thematic group (base variants, paths, edges, corners). Edge and corner tiles must seamlessly connect with adjacent base tiles.`,
-    null
-  );
-
-  // 3x3 terrain tileset: 9 tiles
-  insertGrid.run('3x3 Terrain', 'terrain', 'General', '3x3', 3, 3,
-    JSON.stringify([
-      'Tile 1', 'Tile 2', 'Tile 3',
-      'Tile 4', 'Tile 5', 'Tile 6',
-      'Tile 7', 'Tile 8', 'Tile 9'
-    ]),
-    JSON.stringify([
-      { name: 'Row 1', cells: [0,1,2] },
-      { name: 'Row 2', cells: [3,4,5] },
-      { name: 'Row 3', cells: [6,7,8] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER naming the tile type. All tiles must share the same art style, color palette, and scale. Edge tiles must seamlessly connect with adjacent base tiles. Each row represents a thematic group.`,
-    null
-  );
-
-  // 5x5 terrain tileset: 25 tiles (large set with base, roots, clearings, paths, edges)
-  insertGrid.run('5x5 Terrain', 'terrain', 'General', '5x5', 5, 5,
-    JSON.stringify([
-      'Tile 1', 'Tile 2', 'Tile 3', 'Tile 4', 'Tile 5',
-      'Tile 6', 'Tile 7', 'Tile 8', 'Tile 9', 'Tile 10',
-      'Tile 11', 'Tile 12', 'Tile 13', 'Tile 14', 'Tile 15',
-      'Tile 16', 'Tile 17', 'Tile 18', 'Tile 19', 'Tile 20',
-      'Tile 21', 'Tile 22', 'Tile 23', 'Tile 24', 'Tile 25'
-    ]),
-    JSON.stringify([
-      { name: 'Row 1', cells: [0,1,2,3,4] },
-      { name: 'Row 2', cells: [5,6,7,8,9] },
-      { name: 'Row 3', cells: [10,11,12,13,14] },
-      { name: 'Row 4', cells: [15,16,17,18,19] },
-      { name: 'Row 5', cells: [20,21,22,23,24] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER naming the tile type. All tiles must share the same art style, color palette, and scale. Edge and corner tiles must seamlessly connect with adjacent base tiles. Each row represents a thematic group.`,
-    null
-  );
-
-  // --- Background grid presets ---
-  // 1x4 parallax: 4 vertical layers (farthest to nearest)
-  insertGrid.run('1x4 Parallax', 'background', 'General', '1x4', 1, 4,
-    JSON.stringify(['Far Background', 'Mid Background', 'Near Background', 'Foreground']),
-    JSON.stringify([
-      { name: 'All Layers', cells: [0,1,2,3] }
-    ]),
-    `LAYER ORDER (top to bottom, farthest to nearest): Each cell is one parallax layer. Draw each layer so it tiles horizontally. Layers stack vertically — the top cell is the farthest background, the bottom cell is the nearest foreground. Maintain consistent color palette and art style across all layers. Each layer must fill its ENTIRE cell with no magenta visible.`,
-    'parallax'
-  );
-
-  // 1x5 parallax: 5 vertical layers
-  insertGrid.run('1x5 Parallax', 'background', 'General', '1x5', 1, 5,
-    JSON.stringify(['Far Sky', 'Distant Background', 'Mid Background', 'Near Background', 'Foreground']),
-    JSON.stringify([
-      { name: 'All Layers', cells: [0,1,2,3,4] }
-    ]),
-    `LAYER ORDER (top to bottom, farthest to nearest): Each cell is one parallax layer. Draw each layer so it tiles horizontally. Layers stack vertically — the top cell is the farthest background, the bottom cell is the nearest foreground. Maintain consistent color palette and art style across all layers. Each layer must fill its ENTIRE cell with no magenta visible.`,
-    'parallax'
-  );
-
-  // 1x3 parallax: 3 vertical layers
-  insertGrid.run('1x3 Parallax', 'background', 'General', '1x3', 1, 3,
-    JSON.stringify(['Background', 'Midground', 'Foreground']),
-    JSON.stringify([
-      { name: 'All Layers', cells: [0,1,2] }
-    ]),
-    `LAYER ORDER (top to bottom, farthest to nearest): Each cell is one parallax layer. Draw each layer so it tiles horizontally. Layers stack vertically — the top cell is the farthest background, the bottom cell is the nearest foreground. Maintain consistent color palette and art style across all layers. Each layer must fill its ENTIRE cell with no magenta visible.`,
-    'parallax'
-  );
-
-  // 3x2 scene: 6 scene variants in a 3-column, 2-row grid
-  insertGrid.run('3x2 Scene', 'background', 'General', '3x2', 3, 2,
-    JSON.stringify([
-      'Variant 1', 'Variant 2', 'Variant 3',
-      'Variant 4', 'Variant 5', 'Variant 6'
-    ]),
-    JSON.stringify([
-      { name: 'Row 1', cells: [0,1,2] },
-      { name: 'Row 2', cells: [3,4,5] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER naming the scene variant. Draw the same scene/environment in each cell but reflecting the condition described by its header label (e.g., different weather, time of day, or supernatural state). Maintain consistent composition, landmark placement, and art style across all cells. Each cell must fill its ENTIRE area with no magenta visible.`,
-    'scene'
-  );
-
-  // 2x2 scene: 4 scene variants
-  insertGrid.run('2x2 Scene', 'background', 'General', '2x2', 2, 2,
-    JSON.stringify(['Variant 1', 'Variant 2', 'Variant 3', 'Variant 4']),
-    JSON.stringify([
-      { name: 'Row 1', cells: [0,1] },
-      { name: 'Row 2', cells: [2,3] }
-    ]),
-    `Each cell in the grid has a WHITE TEXT HEADER naming the scene variant. Draw the same scene/environment in each cell but reflecting the condition described by its header label. Maintain consistent composition, landmark placement, and art style across all cells. Each cell must fill its ENTIRE area with no magenta visible.`,
-    'scene'
-  );
-
-  console.log('[DB] Seeded grid presets for all sprite types.');
+  console.log('[DB] Seeded character grid presets.');
 }
 
 function seedPresets(db) {
@@ -2216,22 +2065,41 @@ ROW 2 — Environmental:
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} building presets.`);
 
-  // Link building presets to matching grid presets by grid_size
+  // Create a grid preset per building content preset with real cell labels, then link
+  const existingBuildingGrids = db.prepare("SELECT COUNT(*) as c FROM grid_presets WHERE sprite_type = 'building'").get().c;
+  if (existingBuildingGrids > 0) {
+    console.log('[DB] Building grid presets already seeded, skipping.');
+    return;
+  }
+
+  const insertGrid = db.prepare(`
+    INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
   const insertLink = db.prepare(`
     INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, guidance_override, sort_order)
     VALUES (?, ?, ?, 0)
   `);
-  const buildings = db.prepare('SELECT id, grid_size, cell_guidance FROM building_presets').all();
+  const BUILDING_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER that names the variant. Draw the same building in each cell but reflecting the variant described by its header label. Maintain consistent architecture, proportions, and style across all cells. Each row typically represents a thematic group (e.g., activity states, damage states, time of day).`;
+  const gridSizeToDims = { '3x3': [3,3], '2x2': [2,2], '2x3': [2,3] };
   const linkAll = db.transaction(() => {
-    for (const b of buildings) {
-      const gridPreset = db.prepare("SELECT id FROM grid_presets WHERE grid_size = ? AND sprite_type = 'building'").get(b.grid_size);
-      if (gridPreset) {
-        insertLink.run(b.id, gridPreset.id, b.cell_guidance || '');
+    for (const p of PRESETS) {
+      const [cols, rows] = gridSizeToDims[p.gridSize] || [3, 3];
+      const labels = JSON.parse(p.cellLabels);
+      const cellGroups = [];
+      for (let r = 0; r < rows; r++) {
+        const cells = [];
+        for (let c = 0; c < cols; c++) cells.push(r * cols + c);
+        cellGroups.push({ name: `Row ${r + 1}`, cells });
       }
+      insertGrid.run(p.name, 'building', p.genre, p.gridSize, cols, rows,
+        p.cellLabels, JSON.stringify(cellGroups), BUILDING_GUIDANCE, null);
+      const gridId = Number(db.prepare("SELECT last_insert_rowid() as id").get().id);
+      insertLink.run(p.id, gridId, p.cellGuidance || '');
     }
   });
   linkAll();
-  console.log(`[DB] Created ${buildings.length} building grid links.`);
+  console.log(`[DB] Created ${PRESETS.length} building grid presets + links.`);
 }
 
 function seedTerrainPresets(db) {
@@ -2466,22 +2334,41 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} terrain presets.`);
 
-  // Link terrain presets to matching grid presets by grid_size
+  // Create a grid preset per terrain content preset with real tile labels, then link
+  const existingTerrainGrids = db.prepare("SELECT COUNT(*) as c FROM grid_presets WHERE sprite_type = 'terrain'").get().c;
+  if (existingTerrainGrids > 0) {
+    console.log('[DB] Terrain grid presets already seeded, skipping.');
+    return;
+  }
+
+  const insertGrid = db.prepare(`
+    INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
   const insertLink = db.prepare(`
     INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, guidance_override, sort_order)
     VALUES (?, ?, ?, 0)
   `);
-  const terrains = db.prepare('SELECT id, grid_size, tile_guidance FROM terrain_presets').all();
+  const TERRAIN_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER naming the tile type. All tiles must share the same art style, color palette, and scale. Edge and corner tiles must seamlessly connect with adjacent base tiles. Each row represents a thematic group.`;
+  const terrainSizeToDims = { '4x4': [4,4], '3x3': [3,3], '5x5': [5,5] };
   const linkAll = db.transaction(() => {
-    for (const t of terrains) {
-      const gridPreset = db.prepare("SELECT id FROM grid_presets WHERE grid_size = ? AND sprite_type = 'terrain'").get(t.grid_size);
-      if (gridPreset) {
-        insertLink.run(t.id, gridPreset.id, t.tile_guidance || '');
+    for (const p of PRESETS) {
+      const [cols, rows] = terrainSizeToDims[p.gridSize] || [4, 4];
+      const labels = JSON.parse(p.tileLabels);
+      const cellGroups = [];
+      for (let r = 0; r < rows; r++) {
+        const cells = [];
+        for (let c = 0; c < cols; c++) cells.push(r * cols + c);
+        cellGroups.push({ name: `Row ${r + 1}`, cells });
       }
+      insertGrid.run(p.name, 'terrain', p.genre, p.gridSize, cols, rows,
+        p.tileLabels, JSON.stringify(cellGroups), TERRAIN_GUIDANCE, null);
+      const gridId = Number(db.prepare("SELECT last_insert_rowid() as id").get().id);
+      insertLink.run(p.id, gridId, p.tileGuidance || '');
     }
   });
   linkAll();
-  console.log(`[DB] Created ${terrains.length} terrain grid links.`);
+  console.log(`[DB] Created ${PRESETS.length} terrain grid presets + links.`);
 }
 
 function seedBackgroundPresets(db) {
@@ -2610,20 +2497,46 @@ function seedBackgroundPresets(db) {
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} background presets.`);
 
-  // Link background presets to matching grid presets by grid_size and bg_mode
+  // Create a grid preset per background content preset with real layer labels, then link
+  const existingBgGrids = db.prepare("SELECT COUNT(*) as c FROM grid_presets WHERE sprite_type = 'background'").get().c;
+  if (existingBgGrids > 0) {
+    console.log('[DB] Background grid presets already seeded, skipping.');
+    return;
+  }
+
+  const insertGrid = db.prepare(`
+    INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
   const insertLink = db.prepare(`
     INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, guidance_override, sort_order)
     VALUES (?, ?, ?, 0)
   `);
-  const backgrounds = db.prepare('SELECT id, grid_size, bg_mode, layer_guidance FROM background_presets').all();
+  const PARALLAX_GUIDANCE = `LAYER ORDER (top to bottom, farthest to nearest): Each cell is one parallax layer. Draw each layer so it tiles horizontally. Layers stack vertically — the top cell is the farthest background, the bottom cell is the nearest foreground. Maintain consistent color palette and art style across all layers. Each layer must fill its ENTIRE cell with no magenta visible.`;
+  const SCENE_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER naming the scene variant. Draw the same scene/environment in each cell but reflecting the condition described by its header label. Maintain consistent composition, landmark placement, and art style across all cells. Each cell must fill its ENTIRE area with no magenta visible.`;
+  const bgSizeToDims = { '1x3': [1,3], '1x4': [1,4], '1x5': [1,5], '2x2': [2,2], '3x2': [3,2], '3x3': [3,3] };
   const linkAll = db.transaction(() => {
-    for (const bg of backgrounds) {
-      const gridPreset = db.prepare("SELECT id FROM grid_presets WHERE grid_size = ? AND bg_mode = ? AND sprite_type = 'background'").get(bg.grid_size, bg.bg_mode);
-      if (gridPreset) {
-        insertLink.run(bg.id, gridPreset.id, bg.layer_guidance || '');
-      }
+    for (const p of PRESETS) {
+      const [cols, rows] = bgSizeToDims[p.gridSize] || [1, 4];
+      const totalCells = cols * rows;
+      const cellGroups = p.bgMode === 'parallax'
+        ? [{ name: 'All Layers', cells: Array.from({ length: totalCells }, (_, i) => i) }]
+        : (() => {
+            const groups = [];
+            for (let r = 0; r < rows; r++) {
+              const cells = [];
+              for (let c = 0; c < cols; c++) cells.push(r * cols + c);
+              groups.push({ name: `Row ${r + 1}`, cells });
+            }
+            return groups;
+          })();
+      const guidance = p.bgMode === 'parallax' ? PARALLAX_GUIDANCE : SCENE_GUIDANCE;
+      insertGrid.run(p.name, 'background', p.genre, p.gridSize, cols, rows,
+        p.layerLabels, JSON.stringify(cellGroups), guidance, p.bgMode);
+      const gridId = Number(db.prepare("SELECT last_insert_rowid() as id").get().id);
+      insertLink.run(p.id, gridId, p.layerGuidance || '');
     }
   });
   linkAll();
-  console.log(`[DB] Created ${backgrounds.length} background grid links.`);
+  console.log(`[DB] Created ${PRESETS.length} background grid presets + links.`);
 }
