@@ -7,15 +7,20 @@
 import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
-import { BUILDING_GRIDS } from '../../lib/gridConfig';
+import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 
 export function GeneratingOverlay() {
   const { state } = useAppContext();
   const { cancelGeneration } = useGridWorkflow();
 
-  const cellCount = state.spriteType === 'building'
-    ? (BUILDING_GRIDS[state.building.gridSize]?.totalCells ?? 9)
-    : 36;
+  let cellCount = 36;
+  if (state.spriteType === 'building') {
+    cellCount = BUILDING_GRIDS[state.building.gridSize]?.totalCells ?? 9;
+  } else if (state.spriteType === 'terrain') {
+    cellCount = TERRAIN_GRIDS[state.terrain.gridSize]?.totalCells ?? 16;
+  } else if (state.spriteType === 'background') {
+    cellCount = BACKGROUND_GRIDS[state.background.gridSize]?.totalCells ?? 4;
+  }
 
   return (
     <div className="generating-overlay">
