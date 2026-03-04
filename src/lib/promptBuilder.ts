@@ -12,6 +12,7 @@ export interface CharacterConfig {
   rowGuidance: string;
 }
 
+/** @deprecated Fallback only — source of truth is grid_presets.generic_guidance. */
 const GENERIC_ROW_GUIDANCE = `\
 Each cell in the grid has a WHITE TEXT HEADER that names the pose. Match each
 cell's sprite to the header label printed above it. The labels and their
