@@ -253,6 +253,83 @@ app.delete('/api/grid-presets/:id', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Grid link endpoints
+const VALID_LINK_TYPES = ['character', 'building', 'terrain', 'background'];
+
+app.get('/api/presets/:type/:id/grid-links', (req, res, next) => {
+  try {
+    const { type, id } = req.params;
+    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    const table = `${type}_grid_links`;
+    const fk = `${type}_preset_id`;
+    const links = db.prepare(`
+      SELECT l.*, g.name as grid_name, g.grid_size, g.cols, g.rows,
+             g.cell_labels, g.cell_groups, g.generic_guidance, g.bg_mode
+      FROM ${table} l
+      JOIN grid_presets g ON g.id = l.grid_preset_id
+      WHERE l.${fk} = ?
+      ORDER BY l.sort_order
+    `).all(id);
+    res.json(links.map(l => ({
+      id: l.id,
+      gridPresetId: l.grid_preset_id,
+      guidanceOverride: l.guidance_override,
+      sortOrder: l.sort_order,
+      gridName: l.grid_name,
+      gridSize: l.grid_size,
+      cols: l.cols,
+      rows: l.rows,
+      cellLabels: JSON.parse(l.cell_labels),
+      cellGroups: JSON.parse(l.cell_groups),
+      genericGuidance: l.generic_guidance,
+      bgMode: l.bg_mode,
+    })));
+  } catch (err) { next(err); }
+});
+
+app.post('/api/presets/:type/:id/grid-links', (req, res, next) => {
+  try {
+    const { type, id } = req.params;
+    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    const { gridPresetId, guidanceOverride, sortOrder } = req.body;
+    if (!gridPresetId) return res.status(400).json({ error: 'Missing gridPresetId' });
+    const table = `${type}_grid_links`;
+    const fk = `${type}_preset_id`;
+    const result = db.prepare(`
+      INSERT INTO ${table} (${fk}, grid_preset_id, guidance_override, sort_order)
+      VALUES (?, ?, ?, ?)
+    `).run(id, gridPresetId, guidanceOverride || '', sortOrder || 0);
+    res.json({ id: Number(result.lastInsertRowid) });
+  } catch (err) { next(err); }
+});
+
+app.put('/api/grid-links/:type/:id', (req, res, next) => {
+  try {
+    const { type, id } = req.params;
+    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    const linkId = parseIntParam(id);
+    if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
+    const { guidanceOverride, sortOrder } = req.body;
+    const table = `${type}_grid_links`;
+    const result = db.prepare(`UPDATE ${table} SET guidance_override=?, sort_order=? WHERE id=?`)
+      .run(guidanceOverride || '', sortOrder || 0, linkId);
+    if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json({ success: true });
+  } catch (err) { next(err); }
+});
+
+app.delete('/api/grid-links/:type/:id', (req, res, next) => {
+  try {
+    const { type, id } = req.params;
+    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    const linkId = parseIntParam(id);
+    if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
+    const table = `${type}_grid_links`;
+    db.prepare(`DELETE FROM ${table} WHERE id=?`).run(linkId);
+    res.json({ success: true });
+  } catch (err) { next(err); }
+});
+
 // Set thumbnail cell for a generation (with processed image data)
 app.put('/api/history/:id/thumbnail', (req, res, next) => {
   try {
