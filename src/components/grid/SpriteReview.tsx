@@ -12,7 +12,8 @@ import { useBackgroundWorkflow } from '../../hooks/useBackgroundWorkflow';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
-import { ANIMATIONS, DIR_WALK, DIR_IDLE } from '../../lib/poses';
+import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
+import type { CellGroup } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
@@ -113,13 +114,25 @@ async function detectPalette(sprites: ExtractedSprite[], maxColors = 144): Promi
     .map((e) => [Math.round(e.r / e.n), Math.round(e.g / e.n), Math.round(e.b / e.n)]);
 }
 
-export function SpriteReview() {
+interface SpriteReviewProps {
+  cellGroups?: CellGroup[];
+}
+
+export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const { state, dispatch, reExtract: charReExtract, setStep } = useGridWorkflow();
   const { reExtract: buildingReExtract } = useBuildingWorkflow();
   const { reExtract: terrainReExtract } = useTerrainWorkflow();
   const { reExtract: backgroundReExtract } = useBackgroundWorkflow();
   const { sprites } = state;
   const isCharacter = state.spriteType === 'character';
+
+  const animations: AnimationDef[] = useMemo(
+    () => cellGroups?.length
+      ? cellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
+      : ANIMATIONS,
+    [cellGroups],
+  );
+  const hasAnimGroups = isCharacter || (cellGroups?.length ?? 0) > 0;
   const reExtract =
     state.spriteType === 'building' ? buildingReExtract :
     state.spriteType === 'terrain' ? terrainReExtract :
@@ -221,8 +234,8 @@ export function SpriteReview() {
     () => Array.from({ length: cellCount }, (_, i) => i),
     [cellCount],
   );
-  const currentAnim = !isCharacter ? null : ANIMATIONS[selectedAnim];
-  const currentFrames = !isCharacter ? allCellFrames : currentAnim!.frames;
+  const currentAnim = !hasAnimGroups ? null : animations[selectedAnim];
+  const currentFrames = !hasAnimGroups ? allCellFrames : currentAnim!.frames;
 
   // Build sprite lookup from display-ordered sprites
   const spriteMap = new Map<number, ExtractedSprite>();
@@ -237,7 +250,7 @@ export function SpriteReview() {
       return;
     }
 
-    const shouldLoop = !isCharacter || currentAnim?.loop;
+    const shouldLoop = !hasAnimGroups || currentAnim?.loop;
     const tick = () => {
       setFrameIndex((prev) => {
         const next = prev + 1;
@@ -250,7 +263,7 @@ export function SpriteReview() {
 
     animTimerRef.current = window.setInterval(tick, speed);
     return () => window.clearInterval(animTimerRef.current);
-  }, [currentFrames.length, currentAnim?.loop, speed, selectedAnim, isCharacter]);
+  }, [currentFrames.length, currentAnim?.loop, speed, selectedAnim, hasAnimGroups]);
 
   // Reset frame on anim change
   useEffect(() => {
@@ -335,15 +348,15 @@ export function SpriteReview() {
     [displayOrder],
   );
 
-  // Arrow key navigation (character mode only)
+  // Arrow key navigation (when animation groups available)
   useEffect(() => {
-    if (!isCharacter) return;
+    if (!hasAnimGroups) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (DIR_WALK[e.key]) {
         e.preventDefault();
         const walkName = DIR_WALK[e.key];
-        const idx = ANIMATIONS.findIndex((a) => a.name === walkName);
+        const idx = animations.findIndex((a) => a.name === walkName);
         if (idx !== -1) {
           setSelectedAnim(idx);
           lastKeyRef.current = e.key;
@@ -354,7 +367,7 @@ export function SpriteReview() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (DIR_IDLE[e.key] && e.key === lastKeyRef.current) {
         const idleName = DIR_IDLE[e.key];
-        const idx = ANIMATIONS.findIndex((a) => a.name === idleName);
+        const idx = animations.findIndex((a) => a.name === idleName);
         if (idx !== -1) setSelectedAnim(idx);
       }
     };
@@ -365,7 +378,7 @@ export function SpriteReview() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isCharacter]);
+  }, [hasAnimGroups, animations]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -616,12 +629,12 @@ export function SpriteReview() {
 
       {/* Right: Sidebar */}
       <aside className="review-sidebar">
-        {/* Animation Groups (character only) */}
-        {isCharacter && (
+        {/* Animation Groups */}
+        {hasAnimGroups && (
           <div className="sidebar-section">
             <h3>Animation</h3>
             <div className="anim-group-grid">
-              {ANIMATIONS.map((anim, idx) => (
+              {animations.map((anim, idx) => (
                 <button
                   key={anim.name}
                   className={`anim-group-btn ${idx === selectedAnim ? 'active' : ''}`}

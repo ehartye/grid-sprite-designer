@@ -6,10 +6,15 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
-import { ANIMATIONS, DIR_WALK, DIR_IDLE } from '../../lib/poses';
+import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
+import type { CellGroup } from '../../context/AppContext';
 
-export function AnimationPreview() {
+interface AnimationPreviewProps {
+  cellGroups?: CellGroup[];
+}
+
+export function AnimationPreview({ cellGroups }: AnimationPreviewProps) {
   const { state, setStep } = useGridWorkflow();
   const { sprites } = state;
 
@@ -21,7 +26,14 @@ export function AnimationPreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastKeyRef = useRef<string>('ArrowDown');
 
-  const currentAnim = ANIMATIONS[selectedAnim];
+  const animations: AnimationDef[] = useMemo(
+    () => cellGroups?.length
+      ? cellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
+      : ANIMATIONS,
+    [cellGroups],
+  );
+
+  const currentAnim = animations[selectedAnim];
   const currentFrames = currentAnim.frames;
 
   // Build sprite lookup
@@ -117,7 +129,7 @@ export function AnimationPreview() {
       if (DIR_WALK[e.key]) {
         e.preventDefault();
         const walkName = DIR_WALK[e.key];
-        const idx = ANIMATIONS.findIndex((a) => a.name === walkName);
+        const idx = animations.findIndex((a) => a.name === walkName);
         if (idx !== -1) {
           setSelectedAnim(idx);
           lastKeyRef.current = e.key;
@@ -128,7 +140,7 @@ export function AnimationPreview() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (DIR_IDLE[e.key] && e.key === lastKeyRef.current) {
         const idleName = DIR_IDLE[e.key];
-        const idx = ANIMATIONS.findIndex((a) => a.name === idleName);
+        const idx = animations.findIndex((a) => a.name === idleName);
         if (idx !== -1) setSelectedAnim(idx);
       }
     };
@@ -139,7 +151,7 @@ export function AnimationPreview() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [setStep]);
+  }, [setStep, animations]);
 
   return (
     <div className="preview-panel">
@@ -157,7 +169,7 @@ export function AnimationPreview() {
       <canvas ref={canvasRef} />
 
       <div className="anim-group-grid" style={{ justifyContent: 'center' }}>
-        {ANIMATIONS.map((anim, idx) => (
+        {animations.map((anim, idx) => (
           <button
             key={anim.name}
             className={`anim-group-btn ${idx === selectedAnim ? 'active' : ''}`}
