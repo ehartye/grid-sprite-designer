@@ -16,6 +16,7 @@ import { GeneratingOverlay } from './components/shared/GeneratingOverlay';
 import { StatusBanner } from './components/shared/StatusBanner';
 import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
+import { AdminPage } from './components/admin/AdminPage';
 import { extractSprites } from './lib/spriteExtractor';
 import { CONFIG_2K } from './lib/templateGenerator';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from './lib/gridConfig';
@@ -202,6 +203,8 @@ function AppContent() {
         {tab === 'gallery' && (
           <GalleryPage onSwitchToDesigner={switchToDesigner} />
         )}
+
+        {tab === 'admin' && <AdminPage />}
       </div>
 
       <StatusBanner />

@@ -1,0 +1,317 @@
+/* Admin page styles — matches the Pixel Studio dark theme */
+
+.admin-page {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 60px);
+}
+
+/* Tab navigation */
+.admin-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+  margin-bottom: 1rem;
+}
+
+.admin-tab-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.admin-tab-btn:hover {
+  color: var(--text);
+}
+
+.admin-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* Content area */
+.admin-content {
+  min-height: 400px;
+}
+
+.admin-placeholder {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Toolbar (filter + actions) */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.admin-filter-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.admin-filter-btn {
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: inherit;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.admin-filter-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text);
+}
+
+.admin-filter-btn.active {
+  background: var(--surface);
+  border-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* Split layout: list + form */
+.admin-split {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* List */
+.admin-list {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.admin-empty {
+  padding: 2rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.admin-list-item {
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.admin-list-item:last-child {
+  border-bottom: none;
+}
+
+.admin-list-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.admin-list-item.active {
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+}
+
+.admin-list-item-name {
+  font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.admin-list-item-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+/* Form */
+.admin-form {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  padding: 1rem;
+}
+
+.admin-form h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+.admin-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.admin-input,
+.admin-select {
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.admin-input:focus,
+.admin-select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.admin-input:disabled {
+  opacity: 0.5;
+}
+
+.admin-textarea {
+  padding: 0.5rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-family: 'Courier New', monospace;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.admin-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.admin-row > .admin-label {
+  flex: 1;
+}
+
+/* Sections within form */
+.admin-section {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.admin-section h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.admin-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.admin-section-header h4 {
+  margin: 0;
+}
+
+/* Cell labels grid */
+.admin-cell-labels-grid {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.admin-cell-label-input {
+  padding: 0.3rem 0.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text);
+  font-size: 0.7rem;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.admin-cell-label-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+/* Cell groups */
+.admin-cell-group {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.admin-cell-group-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.admin-cell-group-header .admin-input {
+  flex: 1;
+}
+
+.admin-cell-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.admin-cell-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.admin-cell-checkbox:hover {
+  background: var(--bg-card-hover);
+}
+
+.admin-cell-checkbox input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+/* Form actions */
+.admin-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
