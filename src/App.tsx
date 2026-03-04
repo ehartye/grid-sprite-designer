@@ -9,6 +9,8 @@ import { AppProvider, useAppContext } from './context/AppContext';
 import { AppHeader, AppTab } from './components/layout/AppHeader';
 import { ConfigPanel } from './components/config/ConfigPanel';
 import { BuildingConfigPanel } from './components/config/BuildingConfigPanel';
+import { TerrainConfigPanel } from './components/config/TerrainConfigPanel';
+import { BackgroundConfigPanel } from './components/config/BackgroundConfigPanel';
 import { SpriteReview } from './components/grid/SpriteReview';
 import { GeneratingOverlay } from './components/shared/GeneratingOverlay';
 import { StatusBanner } from './components/shared/StatusBanner';
@@ -16,7 +18,7 @@ import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
 import { extractSprites } from './lib/spriteExtractor';
 import { CONFIG_2K } from './lib/templateGenerator';
-import { getBuildingGridConfig, type BuildingGridSize } from './lib/gridConfig';
+import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from './lib/gridConfig';
 
 function AppContent() {
   const { state, dispatch } = useAppContext();
@@ -61,6 +63,35 @@ function AppContent() {
               cellLabels: spriteLabels,
             },
           });
+        } else if (spriteType === 'terrain' && data.gridSize) {
+          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+          dispatch({
+            type: 'SET_TERRAIN',
+            terrain: {
+              name: data.character?.name || '',
+              description: data.character?.description || '',
+              colorNotes: '',
+              styleNotes: '',
+              tileGuidance: '',
+              gridSize: data.gridSize,
+              cellLabels: spriteLabels,
+            },
+          });
+        } else if (spriteType === 'background' && data.gridSize) {
+          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+          dispatch({
+            type: 'SET_BACKGROUND',
+            background: {
+              name: data.character?.name || '',
+              description: data.character?.description || '',
+              colorNotes: '',
+              styleNotes: '',
+              layerGuidance: '',
+              bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
+              gridSize: data.gridSize,
+              cellLabels: spriteLabels,
+            },
+          });
         } else if (data.character) {
           dispatch({ type: 'SET_CHARACTER', character: data.character });
         }
@@ -82,10 +113,40 @@ function AppContent() {
           };
 
           if (spriteType === 'building' && data.gridSize) {
-            // For buildings, derive extraction params from the grid config
-            // Cell labels from sprites are enough for display
             const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
             const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
+            const templateParams = gridConfig.templates['2K'];
+            extractionConfig = {
+              headerH: templateParams.headerH,
+              border: templateParams.border,
+              templateCellW: templateParams.cellW,
+              templateCellH: templateParams.cellH,
+              gridOverride: {
+                cols: gridConfig.cols,
+                rows: gridConfig.rows,
+                totalCells: gridConfig.totalCells,
+                cellLabels: gridConfig.cellLabels,
+              },
+            };
+          } else if (spriteType === 'terrain' && data.gridSize) {
+            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+            const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, spriteLabels);
+            const templateParams = gridConfig.templates['2K'];
+            extractionConfig = {
+              headerH: templateParams.headerH,
+              border: templateParams.border,
+              templateCellW: templateParams.cellW,
+              templateCellH: templateParams.cellH,
+              gridOverride: {
+                cols: gridConfig.cols,
+                rows: gridConfig.rows,
+                totalCells: gridConfig.totalCells,
+                cellLabels: gridConfig.cellLabels,
+              },
+            };
+          } else if (spriteType === 'background' && data.gridSize) {
+            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+            const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, spriteLabels);
             const templateParams = gridConfig.templates['2K'];
             extractionConfig = {
               headerH: templateParams.headerH,
@@ -124,9 +185,14 @@ function AppContent() {
       <div className="app-layout">
         {tab === 'designer' && (
           <>
-            {state.step === 'configure' && (
-              state.spriteType === 'building' ? <BuildingConfigPanel /> : <ConfigPanel />
-            )}
+            {state.step === 'configure' && (() => {
+              switch (state.spriteType) {
+                case 'building': return <BuildingConfigPanel />;
+                case 'terrain': return <TerrainConfigPanel />;
+                case 'background': return <BackgroundConfigPanel />;
+                default: return <ConfigPanel />;
+              }
+            })()}
             {state.step === 'generating' && <GeneratingOverlay />}
             {state.step === 'review' && <SpriteReview />}
             {state.step === 'preview' && <AnimationPreview />}
