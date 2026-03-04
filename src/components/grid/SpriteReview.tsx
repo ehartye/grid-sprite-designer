@@ -7,12 +7,14 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { useBuildingWorkflow } from '../../hooks/useBuildingWorkflow';
+import { useTerrainWorkflow } from '../../hooks/useTerrainWorkflow';
+import { useBackgroundWorkflow } from '../../hooks/useBackgroundWorkflow';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE } from '../../lib/poses';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
-import { BUILDING_GRIDS } from '../../lib/gridConfig';
+import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 
@@ -114,11 +116,21 @@ async function detectPalette(sprites: ExtractedSprite[], maxColors = 144): Promi
 export function SpriteReview() {
   const { state, dispatch, reExtract: charReExtract, setStep } = useGridWorkflow();
   const { reExtract: buildingReExtract } = useBuildingWorkflow();
+  const { reExtract: terrainReExtract } = useTerrainWorkflow();
+  const { reExtract: backgroundReExtract } = useBackgroundWorkflow();
   const { sprites } = state;
-  const isBuilding = state.spriteType === 'building';
-  const reExtract = isBuilding ? buildingReExtract : charReExtract;
-  const buildingGrid = isBuilding ? BUILDING_GRIDS[state.building.gridSize] : null;
-  const cellCount = isBuilding && buildingGrid ? buildingGrid.cols * buildingGrid.rows : 36;
+  const isCharacter = state.spriteType === 'character';
+  const reExtract =
+    state.spriteType === 'building' ? buildingReExtract :
+    state.spriteType === 'terrain' ? terrainReExtract :
+    state.spriteType === 'background' ? backgroundReExtract :
+    charReExtract;
+  const activeGrid =
+    state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize] :
+    state.spriteType === 'terrain' ? TERRAIN_GRIDS[state.terrain.gridSize] :
+    state.spriteType === 'background' ? BACKGROUND_GRIDS[state.background.gridSize] :
+    null;
+  const cellCount = activeGrid ? activeGrid.cols * activeGrid.rows : 36;
 
   const [selectedAnim, setSelectedAnim] = useState(0);
   const [frameIndex, setFrameIndex] = useState(0);
@@ -204,13 +216,13 @@ export function SpriteReview() {
     }).filter(Boolean) as ExtractedSprite[];
   }, [processedSprites, displayOrder]);
 
-  // For buildings, cycle through all cells; for characters, use animation definitions
-  const buildingFrames = useMemo(
+  // For non-character types, cycle through all cells; for characters, use animation definitions
+  const allCellFrames = useMemo(
     () => Array.from({ length: cellCount }, (_, i) => i),
     [cellCount],
   );
-  const currentAnim = isBuilding ? null : ANIMATIONS[selectedAnim];
-  const currentFrames = isBuilding ? buildingFrames : currentAnim!.frames;
+  const currentAnim = !isCharacter ? null : ANIMATIONS[selectedAnim];
+  const currentFrames = !isCharacter ? allCellFrames : currentAnim!.frames;
 
   // Build sprite lookup from display-ordered sprites
   const spriteMap = new Map<number, ExtractedSprite>();
@@ -225,7 +237,7 @@ export function SpriteReview() {
       return;
     }
 
-    const shouldLoop = isBuilding || currentAnim?.loop;
+    const shouldLoop = !isCharacter || currentAnim?.loop;
     const tick = () => {
       setFrameIndex((prev) => {
         const next = prev + 1;
@@ -238,7 +250,7 @@ export function SpriteReview() {
 
     animTimerRef.current = window.setInterval(tick, speed);
     return () => window.clearInterval(animTimerRef.current);
-  }, [currentFrames.length, currentAnim?.loop, speed, selectedAnim, isBuilding]);
+  }, [currentFrames.length, currentAnim?.loop, speed, selectedAnim, isCharacter]);
 
   // Reset frame on anim change
   useEffect(() => {
@@ -325,7 +337,7 @@ export function SpriteReview() {
 
   // Arrow key navigation (character mode only)
   useEffect(() => {
-    if (isBuilding) return;
+    if (!isCharacter) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (DIR_WALK[e.key]) {
@@ -353,7 +365,7 @@ export function SpriteReview() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isBuilding]);
+  }, [isCharacter]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -391,10 +403,18 @@ export function SpriteReview() {
     if (displaySprites.length === 0) return;
     try {
       const exportSprites = await getExportSprites();
-      const gridCols = state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols : undefined;
+      const gridCols =
+        state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols :
+        state.spriteType === 'terrain' ? TERRAIN_GRIDS[state.terrain.gridSize]?.cols :
+        state.spriteType === 'background' ? BACKGROUND_GRIDS[state.background.gridSize]?.cols :
+        undefined;
       const { base64 } = await composeSpriteSheet(exportSprites, gridCols);
       const link = document.createElement('a');
-      const exportName = state.spriteType === 'building' ? state.building.name : state.character.name;
+      const exportName =
+        state.spriteType === 'building' ? state.building.name :
+        state.spriteType === 'terrain' ? state.terrain.name :
+        state.spriteType === 'background' ? state.background.name :
+        state.character.name;
       link.href = `data:image/png;base64,${base64}`;
       link.download = `${exportName || 'sprites'}-sheet.png`;
       link.click();
@@ -402,13 +422,17 @@ export function SpriteReview() {
     } catch (err: any) {
       dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
     }
-  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.spriteType, state.building.gridSize, dispatch]);
+  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, state.building.gridSize, state.terrain.gridSize, state.background.gridSize, dispatch]);
 
   // Export individual PNGs
   const handleExportIndividual = useCallback(async () => {
     if (displaySprites.length === 0) return;
     const exportSprites = await getExportSprites();
-    const baseName = state.spriteType === 'building' ? state.building.name : state.character.name;
+    const baseName =
+      state.spriteType === 'building' ? state.building.name :
+      state.spriteType === 'terrain' ? state.terrain.name :
+      state.spriteType === 'background' ? state.background.name :
+      state.character.name;
     for (const sprite of exportSprites) {
       const link = document.createElement('a');
       link.href = `data:${sprite.mimeType};base64,${sprite.imageData}`;
@@ -417,7 +441,7 @@ export function SpriteReview() {
       link.click();
     }
     dispatch({ type: 'SET_STATUS', message: `Exported ${exportSprites.length} individual sprites!`, statusType: 'success' });
-  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.spriteType, dispatch]);
+  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dispatch]);
 
   // Load all persisted editor state when historyId changes.
   // Resets to defaults first, then overwrites from DB — merged into one effect
@@ -562,8 +586,18 @@ export function SpriteReview() {
           thumbnailCell={thumbnailCell}
           onThumbnailSet={state.historyId ? handleThumbnailSet : undefined}
           onZoomClick={handleZoomClick}
-          gridCols={state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols : undefined}
-          cellLabels={state.spriteType === 'building' ? state.building.cellLabels : undefined}
+          gridCols={
+            state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols :
+            state.spriteType === 'terrain' ? TERRAIN_GRIDS[state.terrain.gridSize]?.cols :
+            state.spriteType === 'background' ? BACKGROUND_GRIDS[state.background.gridSize]?.cols :
+            undefined
+          }
+          cellLabels={
+            state.spriteType === 'building' ? state.building.cellLabels :
+            state.spriteType === 'terrain' ? state.terrain.cellLabels :
+            state.spriteType === 'background' ? state.background.cellLabels :
+            undefined
+          }
         />
         {isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
@@ -583,7 +617,7 @@ export function SpriteReview() {
       {/* Right: Sidebar */}
       <aside className="review-sidebar">
         {/* Animation Groups (character only) */}
-        {!isBuilding && (
+        {isCharacter && (
           <div className="sidebar-section">
             <h3>Animation</h3>
             <div className="anim-group-grid">
@@ -637,7 +671,7 @@ export function SpriteReview() {
         </div>
 
         {/* Arrow Key Hint (character only) */}
-        {!isBuilding && (
+        {isCharacter && (
           <div className="sidebar-section">
             <h3>Movement</h3>
             <div className="arrow-hint">
