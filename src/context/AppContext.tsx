@@ -94,7 +94,17 @@ export interface BackgroundPreset {
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview';
+export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview' | 'run-builder' | 'run-active';
+
+export interface RunState {
+  active: boolean;
+  contentPresetId: string | null;
+  spriteType: SpriteType;
+  selectedGridLinks: GridLink[];
+  currentGridIndex: number;
+  referenceSheet: string | null;
+  imageSize: '2K' | '4K';
+}
 
 export interface AppState {
   step: WorkflowStep;
@@ -181,6 +191,9 @@ export interface AppState {
 
   /** Grid presets */
   gridPresets: GridPreset[];
+
+  /** Multi-grid run state */
+  run: RunState | null;
 }
 
 const initialState: AppState = {
@@ -239,6 +252,7 @@ const initialState: AppState = {
   terrainPresets: [],
   backgroundPresets: [],
   gridPresets: [],
+  run: null,
 };
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -268,6 +282,10 @@ type Action =
   | { type: 'SET_BACKGROUND_PRESETS'; presets: BackgroundPreset[] }
   | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
   | { type: 'SET_GRID_PRESETS'; presets: GridPreset[] }
+  | { type: 'START_RUN'; payload: { contentPresetId: string; spriteType: SpriteType; gridLinks: GridLink[]; imageSize: '2K' | '4K' } }
+  | { type: 'COMPLETE_GRID'; payload: { filledGridImage: string } }
+  | { type: 'NEXT_GRID' }
+  | { type: 'END_RUN' }
   | { type: 'RESET' };
 
 /** Get the default cell label count for a building grid size */
@@ -415,6 +433,46 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_GRID_PRESETS':
       return { ...state, gridPresets: action.presets };
+    case 'START_RUN':
+      return {
+        ...state,
+        step: 'run-active',
+        run: {
+          active: true,
+          contentPresetId: action.payload.contentPresetId,
+          spriteType: action.payload.spriteType,
+          selectedGridLinks: action.payload.gridLinks,
+          currentGridIndex: 0,
+          referenceSheet: null,
+          imageSize: action.payload.imageSize,
+        },
+      };
+    case 'COMPLETE_GRID': {
+      if (!state.run) return state;
+      return {
+        ...state,
+        run: {
+          ...state.run,
+          // Store the first completed grid as the reference sheet
+          referenceSheet: state.run.referenceSheet || action.payload.filledGridImage,
+        },
+      };
+    }
+    case 'NEXT_GRID': {
+      if (!state.run) return state;
+      const nextIndex = state.run.currentGridIndex + 1;
+      if (nextIndex >= state.run.selectedGridLinks.length) {
+        // Run complete
+        return { ...state, step: 'configure', run: null };
+      }
+      return {
+        ...state,
+        step: 'run-active',
+        run: { ...state.run, currentGridIndex: nextIndex },
+      };
+    }
+    case 'END_RUN':
+      return { ...state, step: 'configure', run: null };
     case 'RESET':
       return {
         ...initialState,

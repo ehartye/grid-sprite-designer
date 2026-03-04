@@ -17,6 +17,7 @@ import { StatusBanner } from './components/shared/StatusBanner';
 import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
 import { AdminPage } from './components/admin/AdminPage';
+import { RunBuilderPage } from './components/run/RunBuilderPage';
 import { extractSprites } from './lib/spriteExtractor';
 import { CONFIG_2K } from './lib/templateGenerator';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from './lib/gridConfig';
@@ -175,6 +176,13 @@ function AppContent() {
     })();
   }, [dispatch]);
 
+  // Auto-switch to designer tab when a run becomes active
+  useEffect(() => {
+    if (state.step === 'run-active' && tab !== 'designer') {
+      setTab('designer');
+    }
+  }, [state.step, tab]);
+
   const switchToDesigner = useCallback(() => {
     setTab('designer');
   }, []);
@@ -197,12 +205,32 @@ function AppContent() {
             {state.step === 'generating' && <GeneratingOverlay />}
             {state.step === 'review' && <SpriteReview />}
             {state.step === 'preview' && <AnimationPreview />}
+            {state.step === 'run-active' && state.run && (
+              <div className="config-panel" style={{ textAlign: 'center' }}>
+                <h2>Run in Progress</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
+                  Grid {state.run.currentGridIndex + 1} of {state.run.selectedGridLinks.length}
+                </p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  Waiting for generation orchestration...
+                </p>
+                <button
+                  className="btn btn-danger"
+                  style={{ marginTop: 20 }}
+                  onClick={() => dispatch({ type: 'END_RUN' })}
+                >
+                  Cancel Run
+                </button>
+              </div>
+            )}
           </>
         )}
 
         {tab === 'gallery' && (
           <GalleryPage onSwitchToDesigner={switchToDesigner} />
         )}
+
+        {tab === 'run' && <RunBuilderPage />}
 
         {tab === 'admin' && <AdminPage />}
       </div>

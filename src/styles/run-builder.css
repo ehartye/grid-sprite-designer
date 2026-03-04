@@ -1,0 +1,182 @@
+/* Run Builder page — matches Pixel Studio dark theme */
+
+.run-builder {
+  max-width: 620px;
+  margin: 40px auto;
+  padding: 32px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp 0.45s ease both;
+}
+
+.run-builder-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.run-builder-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* Sections */
+.run-section {
+  margin-bottom: 22px;
+}
+
+.run-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.run-label-count {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.run-loading,
+.run-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 12px;
+  text-align: center;
+}
+
+/* Grid link list */
+.run-grid-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-base);
+  padding: 4px;
+}
+
+.run-grid-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.run-grid-item.checked {
+  border-color: var(--accent-dim);
+  background: var(--surface);
+}
+
+/* Reorder buttons */
+.run-grid-item-reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.run-reorder-btn {
+  width: 20px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+  padding: 0;
+  line-height: 1;
+}
+
+.run-reorder-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-card-hover);
+}
+
+.run-reorder-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Checkbox */
+.run-grid-item-check {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.run-grid-item-check input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Grid info */
+.run-grid-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.run-grid-item-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.run-grid-item-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.run-grid-item-ref {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+.run-grid-item-override {
+  font-size: 0.65rem;
+  color: var(--info);
+  white-space: nowrap;
+}
+
+/* Actions */
+.run-actions {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.btn-lg {
+  padding: 12px 32px;
+  font-size: 0.95rem;
+}
