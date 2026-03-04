@@ -4,23 +4,19 @@
  * cell labels, and generates the building sprite grid.
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useBuildingWorkflow } from '../../hooks/useBuildingWorkflow';
-import { BuildingPreset, BuildingGridSize, SpriteType } from '../../context/AppContext';
+import { BuildingPreset, SpriteType, GridLink } from '../../context/AppContext';
 import { buildBuildingPrompt } from '../../lib/buildingPromptBuilder';
-import { getBuildingGridConfig, BUILDING_GRIDS } from '../../lib/gridConfig';
+import { getBuildingGridConfig } from '../../lib/gridConfig';
 
-type BuildingField = 'name' | 'description' | 'details' | 'colorNotes' | 'styleNotes' | 'cellGuidance';
-
-const GRID_SIZE_OPTIONS: { value: BuildingGridSize; label: string; cells: number }[] = [
-  { value: '3x3', label: '3\u00d73', cells: 9 },
-  { value: '2x3', label: '2\u00d73', cells: 6 },
-  { value: '2x2', label: '2\u00d72', cells: 4 },
-];
+type BuildingField = 'name' | 'description' | 'details' | 'colorNotes' | 'styleNotes';
 
 export function BuildingConfigPanel() {
   const { state, dispatch, generate } = useBuildingWorkflow();
   const { building, imageSize, buildingPresets } = state;
+  const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   // Fetch building presets on mount
   useEffect(() => {
@@ -32,6 +28,15 @@ export function BuildingConfigPanel() {
       .catch(() => {});
   }, [dispatch]);
 
+  // Fetch grid links when preset changes
+  useEffect(() => {
+    if (!selectedPresetId) { setGridLinks([]); return; }
+    fetch(`/api/presets/building/${selectedPresetId}/grid-links`)
+      .then(res => res.json())
+      .then(setGridLinks)
+      .catch(() => setGridLinks([]));
+  }, [selectedPresetId]);
+
   const updateBuilding = useCallback(
     (field: BuildingField, value: string) => {
       dispatch({
@@ -42,39 +47,11 @@ export function BuildingConfigPanel() {
     [building, dispatch],
   );
 
-  const updateCellLabel = useCallback(
-    (idx: number, value: string) => {
-      const labels = [...building.cellLabels];
-      labels[idx] = value;
-      dispatch({
-        type: 'SET_BUILDING',
-        building: { ...building, cellLabels: labels },
-      });
-    },
-    [building, dispatch],
-  );
-
-  const handleGridSizeChange = useCallback(
-    (gridSize: BuildingGridSize) => {
-      const cells = GRID_SIZE_OPTIONS.find(o => o.value === gridSize)!.cells;
-      const labels = Array(cells).fill('');
-      // Preserve existing labels where possible
-      for (let i = 0; i < Math.min(building.cellLabels.length, cells); i++) {
-        labels[i] = building.cellLabels[i];
-      }
-      dispatch({
-        type: 'SET_BUILDING',
-        building: { ...building, gridSize, cellLabels: labels },
-      });
-    },
-    [building, dispatch],
-  );
-
   const handlePresetChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const presetId = e.target.value;
+      setSelectedPresetId(presetId);
       if (presetId === '') {
-        const cells = GRID_SIZE_OPTIONS.find(o => o.value === building.gridSize)!.cells;
         dispatch({
           type: 'SET_BUILDING',
           building: {
@@ -85,7 +62,7 @@ export function BuildingConfigPanel() {
             styleNotes: '',
             cellGuidance: '',
             gridSize: building.gridSize,
-            cellLabels: Array(cells).fill(''),
+            cellLabels: [],
           },
         });
         return;
@@ -119,8 +96,6 @@ export function BuildingConfigPanel() {
     }, {}),
     [buildingPresets],
   );
-
-  const gridSizeInfo = GRID_SIZE_OPTIONS.find(o => o.value === building.gridSize)!;
 
   return (
     <div className="config-panel">
@@ -157,23 +132,6 @@ export function BuildingConfigPanel() {
             </optgroup>
           ))}
         </select>
-      </div>
-
-      {/* Grid Size Selector */}
-      <div className="config-field">
-        <label>Grid Size</label>
-        <div className="segmented-control">
-          {GRID_SIZE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              className={building.gridSize === opt.value ? 'active' : ''}
-              onClick={() => handleGridSizeChange(opt.value)}
-            >
-              {opt.label} ({opt.cells} cells)
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="preset-divider" />
@@ -238,42 +196,22 @@ export function BuildingConfigPanel() {
         />
       </div>
 
-      {/* Cell Labels */}
-      <div className="config-field">
-        <label>Cell Labels ({gridSizeInfo.cells} cells)</label>
-        <div className="cell-labels-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${BUILDING_GRIDS[building.gridSize].cols}, 1fr)`,
-          gap: '6px',
-        }}>
-          {building.cellLabels.map((label, idx) => {
-            const row = Math.floor(idx / BUILDING_GRIDS[building.gridSize].cols);
-            const col = idx % BUILDING_GRIDS[building.gridSize].cols;
-            return (
-              <input
-                key={idx}
-                type="text"
-                placeholder={`(${row},${col})`}
-                value={label}
-                onChange={(e) => updateCellLabel(idx, e.target.value)}
-                className="cell-label-input"
-              />
-            );
-          })}
+      {/* Linked Grid Presets */}
+      {gridLinks.length > 0 && (
+        <div className="config-field">
+          <label>Linked Grids</label>
+          <div className="config-grid-badges">
+            {gridLinks.map(link => (
+              <span key={link.id} className="config-grid-badge">
+                {link.gridName} ({link.gridSize})
+              </span>
+            ))}
+          </div>
+          <span className="config-admin-link" onClick={() => dispatch({ type: 'SET_STEP', step: 'configure' })}>
+            Edit in Admin
+          </span>
         </div>
-      </div>
-
-      {/* Cell Guidance */}
-      <div className="config-field row-guidance">
-        <label htmlFor="building-guidance">Cell Guidance</label>
-        <textarea
-          id="building-guidance"
-          rows={6}
-          placeholder="Per-cell descriptions (loaded from preset or enter custom)..."
-          value={building.cellGuidance}
-          onChange={(e) => updateBuilding('cellGuidance', e.target.value)}
-        />
-      </div>
+      )}
 
       {/* Image Size */}
       <div className="config-field">
@@ -308,9 +246,9 @@ export function BuildingConfigPanel() {
           type="button"
           className="btn btn-accent btn-lg w-full"
           disabled={!canGenerate}
-          onClick={() => generate()}
+          onClick={() => generate(gridLinks[0])}
         >
-          Generate All {gridSizeInfo.cells} Sprites
+          Generate Sprites{gridLinks.length > 0 ? ` (${gridLinks[0].gridSize})` : ''}
         </button>
       </div>
     </div>

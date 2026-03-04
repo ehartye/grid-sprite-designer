@@ -4,24 +4,19 @@
  * tile labels, and generates the terrain sprite grid.
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTerrainWorkflow } from '../../hooks/useTerrainWorkflow';
-import { TerrainPreset, SpriteType } from '../../context/AppContext';
-import type { TerrainGridSize } from '../../lib/gridConfig';
+import { TerrainPreset, SpriteType, GridLink } from '../../context/AppContext';
 import { buildTerrainPrompt } from '../../lib/terrainPromptBuilder';
-import { getTerrainGridConfig, TERRAIN_GRIDS } from '../../lib/gridConfig';
+import { getTerrainGridConfig } from '../../lib/gridConfig';
 
-type TerrainField = 'name' | 'description' | 'colorNotes' | 'styleNotes' | 'tileGuidance';
-
-const GRID_SIZE_OPTIONS: { value: TerrainGridSize; label: string; cells: number }[] = [
-  { value: '3x3', label: '3\u00d73', cells: 9 },
-  { value: '4x4', label: '4\u00d74', cells: 16 },
-  { value: '5x5', label: '5\u00d75', cells: 25 },
-];
+type TerrainField = 'name' | 'description' | 'colorNotes' | 'styleNotes';
 
 export function TerrainConfigPanel() {
   const { state, dispatch, generate } = useTerrainWorkflow();
   const { terrain, imageSize, terrainPresets } = state;
+  const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   // Fetch terrain presets on mount
   useEffect(() => {
@@ -33,6 +28,15 @@ export function TerrainConfigPanel() {
       .catch(() => {});
   }, [dispatch]);
 
+  // Fetch grid links when preset changes
+  useEffect(() => {
+    if (!selectedPresetId) { setGridLinks([]); return; }
+    fetch(`/api/presets/terrain/${selectedPresetId}/grid-links`)
+      .then(res => res.json())
+      .then(setGridLinks)
+      .catch(() => setGridLinks([]));
+  }, [selectedPresetId]);
+
   const updateTerrain = useCallback(
     (field: TerrainField, value: string) => {
       dispatch({
@@ -43,38 +47,11 @@ export function TerrainConfigPanel() {
     [terrain, dispatch],
   );
 
-  const updateCellLabel = useCallback(
-    (idx: number, value: string) => {
-      const labels = [...terrain.cellLabels];
-      labels[idx] = value;
-      dispatch({
-        type: 'SET_TERRAIN',
-        terrain: { ...terrain, cellLabels: labels },
-      });
-    },
-    [terrain, dispatch],
-  );
-
-  const handleGridSizeChange = useCallback(
-    (gridSize: TerrainGridSize) => {
-      const cells = GRID_SIZE_OPTIONS.find(o => o.value === gridSize)!.cells;
-      const labels = Array(cells).fill('');
-      for (let i = 0; i < Math.min(terrain.cellLabels.length, cells); i++) {
-        labels[i] = terrain.cellLabels[i];
-      }
-      dispatch({
-        type: 'SET_TERRAIN',
-        terrain: { ...terrain, gridSize, cellLabels: labels },
-      });
-    },
-    [terrain, dispatch],
-  );
-
   const handlePresetChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const presetId = e.target.value;
+      setSelectedPresetId(presetId);
       if (presetId === '') {
-        const cells = GRID_SIZE_OPTIONS.find(o => o.value === terrain.gridSize)!.cells;
         dispatch({
           type: 'SET_TERRAIN',
           terrain: {
@@ -84,7 +61,7 @@ export function TerrainConfigPanel() {
             styleNotes: '',
             tileGuidance: '',
             gridSize: terrain.gridSize,
-            cellLabels: Array(cells).fill(''),
+            cellLabels: [],
           },
         });
         return;
@@ -118,8 +95,6 @@ export function TerrainConfigPanel() {
     }, {}),
     [terrainPresets],
   );
-
-  const gridSizeInfo = GRID_SIZE_OPTIONS.find(o => o.value === terrain.gridSize)!;
 
   return (
     <div className="config-panel">
@@ -156,23 +131,6 @@ export function TerrainConfigPanel() {
             </optgroup>
           ))}
         </select>
-      </div>
-
-      {/* Grid Size Selector */}
-      <div className="config-field">
-        <label>Grid Size</label>
-        <div className="segmented-control">
-          {GRID_SIZE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              className={terrain.gridSize === opt.value ? 'active' : ''}
-              onClick={() => handleGridSizeChange(opt.value)}
-            >
-              {opt.label} ({opt.cells} cells)
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="preset-divider" />
@@ -225,42 +183,22 @@ export function TerrainConfigPanel() {
         />
       </div>
 
-      {/* Tile Labels */}
-      <div className="config-field">
-        <label>Tile Labels ({gridSizeInfo.cells} cells)</label>
-        <div className="cell-labels-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${TERRAIN_GRIDS[terrain.gridSize].cols}, 1fr)`,
-          gap: '6px',
-        }}>
-          {terrain.cellLabels.map((label, idx) => {
-            const row = Math.floor(idx / TERRAIN_GRIDS[terrain.gridSize].cols);
-            const col = idx % TERRAIN_GRIDS[terrain.gridSize].cols;
-            return (
-              <input
-                key={idx}
-                type="text"
-                placeholder={`(${row},${col})`}
-                value={label}
-                onChange={(e) => updateCellLabel(idx, e.target.value)}
-                className="cell-label-input"
-              />
-            );
-          })}
+      {/* Linked Grid Presets */}
+      {gridLinks.length > 0 && (
+        <div className="config-field">
+          <label>Linked Grids</label>
+          <div className="config-grid-badges">
+            {gridLinks.map(link => (
+              <span key={link.id} className="config-grid-badge">
+                {link.gridName} ({link.gridSize})
+              </span>
+            ))}
+          </div>
+          <span className="config-admin-link" onClick={() => dispatch({ type: 'SET_STEP', step: 'configure' })}>
+            Edit in Admin
+          </span>
         </div>
-      </div>
-
-      {/* Tile Guidance */}
-      <div className="config-field row-guidance">
-        <label htmlFor="terrain-guidance">Tile Guidance</label>
-        <textarea
-          id="terrain-guidance"
-          rows={6}
-          placeholder="Per-tile descriptions (loaded from preset or enter custom)..."
-          value={terrain.tileGuidance}
-          onChange={(e) => updateTerrain('tileGuidance', e.target.value)}
-        />
-      </div>
+      )}
 
       {/* Image Size */}
       <div className="config-field">
@@ -295,9 +233,9 @@ export function TerrainConfigPanel() {
           type="button"
           className="btn btn-accent btn-lg w-full"
           disabled={!canGenerate}
-          onClick={() => generate()}
+          onClick={() => generate(gridLinks[0])}
         >
-          Generate All {gridSizeInfo.cells} Sprites
+          Generate Sprites{gridLinks.length > 0 ? ` (${gridLinks[0].gridSize})` : ''}
         </button>
       </div>
     </div>

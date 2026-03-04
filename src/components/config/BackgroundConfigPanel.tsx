@@ -4,32 +4,19 @@
  * grid size, layer/scene labels, and generates the background sprite grid.
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useBackgroundWorkflow } from '../../hooks/useBackgroundWorkflow';
-import { BackgroundPreset, SpriteType } from '../../context/AppContext';
-import type { BackgroundGridSize, BackgroundMode } from '../../lib/gridConfig';
+import { BackgroundPreset, SpriteType, GridLink } from '../../context/AppContext';
 import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
-import { getBackgroundGridConfig, BACKGROUND_GRIDS } from '../../lib/gridConfig';
+import { getBackgroundGridConfig } from '../../lib/gridConfig';
 
-type BackgroundField = 'name' | 'description' | 'colorNotes' | 'styleNotes' | 'layerGuidance';
-
-const PARALLAX_OPTIONS: { value: BackgroundGridSize; label: string; cells: number }[] = [
-  { value: '1x3', label: '1\u00d73', cells: 3 },
-  { value: '1x4', label: '1\u00d74', cells: 4 },
-  { value: '1x5', label: '1\u00d75', cells: 5 },
-];
-
-const SCENE_OPTIONS: { value: BackgroundGridSize; label: string; cells: number }[] = [
-  { value: '2x2', label: '2\u00d72', cells: 4 },
-  { value: '3x2', label: '3\u00d72', cells: 6 },
-  { value: '3x3-scene', label: '3\u00d73', cells: 9 },
-];
+type BackgroundField = 'name' | 'description' | 'colorNotes' | 'styleNotes';
 
 export function BackgroundConfigPanel() {
   const { state, dispatch, generate } = useBackgroundWorkflow();
   const { background, imageSize, backgroundPresets } = state;
-
-  const gridSizeOptions = background.bgMode === 'parallax' ? PARALLAX_OPTIONS : SCENE_OPTIONS;
+  const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   // Fetch background presets on mount
   useEffect(() => {
@@ -41,6 +28,15 @@ export function BackgroundConfigPanel() {
       .catch(() => {});
   }, [dispatch]);
 
+  // Fetch grid links when preset changes
+  useEffect(() => {
+    if (!selectedPresetId) { setGridLinks([]); return; }
+    fetch(`/api/presets/background/${selectedPresetId}/grid-links`)
+      .then(res => res.json())
+      .then(setGridLinks)
+      .catch(() => setGridLinks([]));
+  }, [selectedPresetId]);
+
   const updateBackground = useCallback(
     (field: BackgroundField, value: string) => {
       dispatch({
@@ -51,51 +47,11 @@ export function BackgroundConfigPanel() {
     [background, dispatch],
   );
 
-  const updateCellLabel = useCallback(
-    (idx: number, value: string) => {
-      const labels = [...background.cellLabels];
-      labels[idx] = value;
-      dispatch({
-        type: 'SET_BACKGROUND',
-        background: { ...background, cellLabels: labels },
-      });
-    },
-    [background, dispatch],
-  );
-
-  const handleModeChange = useCallback(
-    (bgMode: BackgroundMode) => {
-      const options = bgMode === 'parallax' ? PARALLAX_OPTIONS : SCENE_OPTIONS;
-      const gridSize = options[0].value;
-      const cells = options[0].cells;
-      dispatch({
-        type: 'SET_BACKGROUND',
-        background: { ...background, bgMode, gridSize, cellLabels: Array(cells).fill('') },
-      });
-    },
-    [background, dispatch],
-  );
-
-  const handleGridSizeChange = useCallback(
-    (gridSize: BackgroundGridSize) => {
-      const cells = gridSizeOptions.find(o => o.value === gridSize)!.cells;
-      const labels = Array(cells).fill('');
-      for (let i = 0; i < Math.min(background.cellLabels.length, cells); i++) {
-        labels[i] = background.cellLabels[i];
-      }
-      dispatch({
-        type: 'SET_BACKGROUND',
-        background: { ...background, gridSize, cellLabels: labels },
-      });
-    },
-    [background, gridSizeOptions, dispatch],
-  );
-
   const handlePresetChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const presetId = e.target.value;
+      setSelectedPresetId(presetId);
       if (presetId === '') {
-        const cells = gridSizeOptions.find(o => o.value === background.gridSize)!.cells;
         dispatch({
           type: 'SET_BACKGROUND',
           background: {
@@ -106,7 +62,7 @@ export function BackgroundConfigPanel() {
             layerGuidance: '',
             bgMode: background.bgMode,
             gridSize: background.gridSize,
-            cellLabels: Array(cells).fill(''),
+            cellLabels: [],
           },
         });
         return;
@@ -116,7 +72,7 @@ export function BackgroundConfigPanel() {
         dispatch({ type: 'LOAD_BACKGROUND_PRESET', preset });
       }
     },
-    [backgroundPresets, background.bgMode, background.gridSize, gridSizeOptions, dispatch],
+    [backgroundPresets, background.bgMode, background.gridSize, dispatch],
   );
 
   const gridConfig = useMemo(
@@ -140,9 +96,6 @@ export function BackgroundConfigPanel() {
     }, {}),
     [backgroundPresets],
   );
-
-  const gridSizeInfo = gridSizeOptions.find(o => o.value === background.gridSize)!;
-  const labelNoun = background.bgMode === 'parallax' ? 'Layer' : 'Scene';
 
   return (
     <div className="config-panel">
@@ -179,44 +132,6 @@ export function BackgroundConfigPanel() {
             </optgroup>
           ))}
         </select>
-      </div>
-
-      {/* Background Mode Selector */}
-      <div className="config-field">
-        <label>Background Mode</label>
-        <div className="segmented-control">
-          <button
-            type="button"
-            className={background.bgMode === 'parallax' ? 'active' : ''}
-            onClick={() => handleModeChange('parallax')}
-          >
-            Parallax Layers
-          </button>
-          <button
-            type="button"
-            className={background.bgMode === 'scene' ? 'active' : ''}
-            onClick={() => handleModeChange('scene')}
-          >
-            Scene Variations
-          </button>
-        </div>
-      </div>
-
-      {/* Grid Size Selector */}
-      <div className="config-field">
-        <label>Grid Size</label>
-        <div className="segmented-control">
-          {gridSizeOptions.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              className={background.gridSize === opt.value ? 'active' : ''}
-              onClick={() => handleGridSizeChange(opt.value)}
-            >
-              {opt.label} ({opt.cells} cells)
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="preset-divider" />
@@ -269,42 +184,22 @@ export function BackgroundConfigPanel() {
         />
       </div>
 
-      {/* Layer/Scene Labels */}
-      <div className="config-field">
-        <label>{labelNoun} Labels ({gridSizeInfo.cells} cells)</label>
-        <div className="cell-labels-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${BACKGROUND_GRIDS[background.gridSize].cols}, 1fr)`,
-          gap: '6px',
-        }}>
-          {background.cellLabels.map((label, idx) => {
-            const row = Math.floor(idx / BACKGROUND_GRIDS[background.gridSize].cols);
-            const col = idx % BACKGROUND_GRIDS[background.gridSize].cols;
-            return (
-              <input
-                key={idx}
-                type="text"
-                placeholder={`(${row},${col})`}
-                value={label}
-                onChange={(e) => updateCellLabel(idx, e.target.value)}
-                className="cell-label-input"
-              />
-            );
-          })}
+      {/* Linked Grid Presets */}
+      {gridLinks.length > 0 && (
+        <div className="config-field">
+          <label>Linked Grids</label>
+          <div className="config-grid-badges">
+            {gridLinks.map(link => (
+              <span key={link.id} className="config-grid-badge">
+                {link.gridName} ({link.gridSize})
+              </span>
+            ))}
+          </div>
+          <span className="config-admin-link" onClick={() => dispatch({ type: 'SET_STEP', step: 'configure' })}>
+            Edit in Admin
+          </span>
         </div>
-      </div>
-
-      {/* Layer/Scene Guidance */}
-      <div className="config-field row-guidance">
-        <label htmlFor="background-guidance">{labelNoun} Guidance</label>
-        <textarea
-          id="background-guidance"
-          rows={6}
-          placeholder={`Per-${labelNoun.toLowerCase()} descriptions (loaded from preset or enter custom)...`}
-          value={background.layerGuidance}
-          onChange={(e) => updateBackground('layerGuidance', e.target.value)}
-        />
-      </div>
+      )}
 
       {/* Image Size */}
       <div className="config-field">
@@ -339,9 +234,9 @@ export function BackgroundConfigPanel() {
           type="button"
           className="btn btn-accent btn-lg w-full"
           disabled={!canGenerate}
-          onClick={() => generate()}
+          onClick={() => generate(gridLinks[0])}
         >
-          Generate All {gridSizeInfo.cells} Sprites
+          Generate Sprites{gridLinks.length > 0 ? ` (${gridLinks[0].gridSize})` : ''}
         </button>
       </div>
     </div>

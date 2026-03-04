@@ -6,20 +6,22 @@
  * Model is hardcoded to nano-banana-pro-preview (no selector).
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
-import { CharacterPreset, SpriteType } from '../../context/AppContext';
+import { CharacterPreset, SpriteType, GridLink } from '../../context/AppContext';
 import { buildGridFillPrompt } from '../../lib/promptBuilder';
 
 // ── Character field union ────────────────────────────────────────────────────
 
-type CharacterField = 'name' | 'description' | 'equipment' | 'colorNotes' | 'styleNotes' | 'rowGuidance';
+type CharacterField = 'name' | 'description' | 'equipment' | 'colorNotes' | 'styleNotes';
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function ConfigPanel() {
   const { state, dispatch, generate } = useGridWorkflow();
   const { character, imageSize, presets } = state;
+  const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   // Fetch presets on mount
   useEffect(() => {
@@ -28,10 +30,17 @@ export function ConfigPanel() {
       .then((data: CharacterPreset[]) => {
         dispatch({ type: 'SET_PRESETS', presets: data });
       })
-      .catch(() => {
-        // Presets are non-critical; silently ignore fetch errors
-      });
+      .catch(() => {});
   }, [dispatch]);
+
+  // Fetch grid links when preset changes
+  useEffect(() => {
+    if (!selectedPresetId) { setGridLinks([]); return; }
+    fetch(`/api/presets/character/${selectedPresetId}/grid-links`)
+      .then(res => res.json())
+      .then(setGridLinks)
+      .catch(() => setGridLinks([]));
+  }, [selectedPresetId]);
 
   const updateCharacter = useCallback(
     (field: CharacterField, value: string) => {
@@ -46,8 +55,8 @@ export function ConfigPanel() {
   const handlePresetChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const presetId = e.target.value;
+      setSelectedPresetId(presetId);
       if (presetId === '') {
-        // "Custom Character" — clear fields
         dispatch({
           type: 'SET_CHARACTER',
           character: {
@@ -186,17 +195,22 @@ export function ConfigPanel() {
         />
       </div>
 
-      {/* 7. Row Guidance */}
-      <div className="config-field row-guidance">
-        <label htmlFor="char-rows">Row Guidance</label>
-        <textarea
-          id="char-rows"
-          rows={6}
-          placeholder="Per-row pose descriptions (loaded from preset or enter custom)..."
-          value={character.rowGuidance}
-          onChange={(e) => updateCharacter('rowGuidance', e.target.value)}
-        />
-      </div>
+      {/* 7. Linked Grid Presets (read-only badges) */}
+      {gridLinks.length > 0 && (
+        <div className="config-field">
+          <label>Linked Grids</label>
+          <div className="config-grid-badges">
+            {gridLinks.map(link => (
+              <span key={link.id} className="config-grid-badge">
+                {link.gridName} ({link.gridSize})
+              </span>
+            ))}
+          </div>
+          <span className="config-admin-link" onClick={() => dispatch({ type: 'SET_STEP', step: 'configure' })}>
+            Edit in Admin
+          </span>
+        </div>
+      )}
 
       {/* 8. Image Size (2K / 4K) */}
       <div className="config-field">
@@ -231,9 +245,9 @@ export function ConfigPanel() {
           type="button"
           className="btn btn-accent btn-lg w-full"
           disabled={!canGenerate}
-          onClick={() => generate()}
+          onClick={() => generate(gridLinks[0])}
         >
-          Generate All 36 Sprites
+          Generate Sprites{gridLinks.length > 0 ? ` (${gridLinks[0].gridSize})` : ''}
         </button>
       </div>
     </div>
