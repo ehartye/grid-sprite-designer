@@ -26,11 +26,17 @@ export function AnimationPreview({ cellGroups }: AnimationPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastKeyRef = useRef<string>('ArrowDown');
 
+  // Derive cellGroups from props, run state, or fall back to default ANIMATIONS
+  const currentGridLink = state.run?.active
+    ? state.run.selectedGridLinks[state.run.currentGridIndex] ?? null
+    : null;
+  const effectiveCellGroups = cellGroups ?? currentGridLink?.cellGroups;
+
   const animations: AnimationDef[] = useMemo(
-    () => cellGroups?.length
-      ? cellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
+    () => effectiveCellGroups?.length
+      ? effectiveCellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
       : ANIMATIONS,
-    [cellGroups],
+    [effectiveCellGroups],
   );
 
   const currentAnim = animations[selectedAnim];
