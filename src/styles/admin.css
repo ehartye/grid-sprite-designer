@@ -307,6 +307,55 @@
   accent-color: var(--accent);
 }
 
+/* Linked grid presets */
+.admin-grid-link {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.admin-grid-link-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.admin-grid-link-info {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.admin-grid-link-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.admin-grid-link-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.admin-grid-link-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.admin-grid-link-add {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  align-items: center;
+}
+
+.admin-grid-link-add .admin-select {
+  flex: 1;
+}
+
 /* Form actions */
 .admin-form-actions {
   display: flex;

@@ -5,6 +5,10 @@
 
 import React, { useState } from 'react';
 import { GridPresetsTab } from './GridPresetsTab';
+import { CharacterPresetsTab } from './CharacterPresetsTab';
+import { BuildingPresetsTab } from './BuildingPresetsTab';
+import { TerrainPresetsTab } from './TerrainPresetsTab';
+import { BackgroundPresetsTab } from './BackgroundPresetsTab';
 import '../../styles/admin.css';
 
 type AdminTab = 'grid-presets' | 'characters' | 'buildings' | 'terrain' | 'backgrounds';
@@ -35,10 +39,10 @@ export function AdminPage() {
       </nav>
       <main className="admin-content">
         {activeTab === 'grid-presets' && <GridPresetsTab />}
-        {activeTab === 'characters' && <div className="admin-placeholder">Character preset management (Task 13)</div>}
-        {activeTab === 'buildings' && <div className="admin-placeholder">Building preset management (Task 13)</div>}
-        {activeTab === 'terrain' && <div className="admin-placeholder">Terrain preset management (Task 13)</div>}
-        {activeTab === 'backgrounds' && <div className="admin-placeholder">Background preset management (Task 13)</div>}
+        {activeTab === 'characters' && <CharacterPresetsTab />}
+        {activeTab === 'buildings' && <BuildingPresetsTab />}
+        {activeTab === 'terrain' && <TerrainPresetsTab />}
+        {activeTab === 'backgrounds' && <BackgroundPresetsTab />}
       </main>
     </div>
   );
