@@ -181,6 +181,78 @@ app.get('/api/presets', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Grid preset CRUD endpoints
+app.get('/api/grid-presets', (req, res, next) => {
+  try {
+    const { sprite_type } = req.query;
+    let rows;
+    if (sprite_type) {
+      rows = db.prepare('SELECT * FROM grid_presets WHERE sprite_type = ? ORDER BY name').all(sprite_type);
+    } else {
+      rows = db.prepare('SELECT * FROM grid_presets ORDER BY sprite_type, name').all();
+    }
+    res.json(rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      spriteType: r.sprite_type,
+      genre: r.genre,
+      gridSize: r.grid_size,
+      cols: r.cols,
+      rows: r.rows,
+      cellLabels: JSON.parse(r.cell_labels),
+      cellGroups: JSON.parse(r.cell_groups),
+      genericGuidance: r.generic_guidance,
+      bgMode: r.bg_mode,
+      isPreset: r.is_preset,
+    })));
+  } catch (err) { next(err); }
+});
+
+app.post('/api/grid-presets', (req, res, next) => {
+  try {
+    const { name, spriteType, genre, gridSize, cols, rows, cellLabels, cellGroups, genericGuidance, bgMode } = req.body;
+    if (!name || !spriteType || !gridSize || !cols || !rows) {
+      return res.status(400).json({ error: 'Missing required fields: name, spriteType, gridSize, cols, rows' });
+    }
+    const result = db.prepare(`
+      INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+    `).run(name, spriteType, genre || '', gridSize, cols, rows,
+      JSON.stringify(cellLabels || []), JSON.stringify(cellGroups || []), genericGuidance || '', bgMode || null);
+    res.json({ id: Number(result.lastInsertRowid) });
+  } catch (err) { next(err); }
+});
+
+app.put('/api/grid-presets/:id', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+    const { name, genre, gridSize, cols, rows, cellLabels, cellGroups, genericGuidance, bgMode } = req.body;
+    const result = db.prepare(`
+      UPDATE grid_presets SET name=?, genre=?, grid_size=?, cols=?, rows=?, cell_labels=?, cell_groups=?, generic_guidance=?, bg_mode=?
+      WHERE id=?
+    `).run(name, genre || '', gridSize, cols, rows,
+      JSON.stringify(cellLabels || []), JSON.stringify(cellGroups || []), genericGuidance || '', bgMode || null, id);
+    if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json({ success: true });
+  } catch (err) { next(err); }
+});
+
+app.delete('/api/grid-presets/:id', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+    const linkCount = db.prepare(`
+      SELECT (SELECT COUNT(*) FROM character_grid_links WHERE grid_preset_id=?) +
+             (SELECT COUNT(*) FROM building_grid_links WHERE grid_preset_id=?) +
+             (SELECT COUNT(*) FROM terrain_grid_links WHERE grid_preset_id=?) +
+             (SELECT COUNT(*) FROM background_grid_links WHERE grid_preset_id=?) as total
+    `).get(id, id, id, id);
+    db.prepare('DELETE FROM grid_presets WHERE id=?').run(id);
+    res.json({ success: true, unlinked: linkCount.total });
+  } catch (err) { next(err); }
+});
+
 // Set thumbnail cell for a generation (with processed image data)
 app.put('/api/history/:id/thumbnail', (req, res, next) => {
   try {
