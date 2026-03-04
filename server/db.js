@@ -128,6 +128,67 @@ function createSchema(db) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS grid_presets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      sprite_type TEXT NOT NULL CHECK(sprite_type IN ('character','building','terrain','background')),
+      genre TEXT DEFAULT '',
+      grid_size TEXT NOT NULL,
+      cols INTEGER NOT NULL,
+      rows INTEGER NOT NULL,
+      cell_labels TEXT NOT NULL DEFAULT '[]',
+      cell_groups TEXT NOT NULL DEFAULT '[]',
+      generic_guidance TEXT DEFAULT '',
+      bg_mode TEXT DEFAULT NULL,
+      is_preset INTEGER DEFAULT 1
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS character_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      character_preset_id TEXT NOT NULL REFERENCES character_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(character_preset_id, grid_preset_id)
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS building_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      building_preset_id TEXT NOT NULL REFERENCES building_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(building_preset_id, grid_preset_id)
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS terrain_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      terrain_preset_id TEXT NOT NULL REFERENCES terrain_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(terrain_preset_id, grid_preset_id)
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS background_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      background_preset_id TEXT NOT NULL REFERENCES background_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(background_preset_id, grid_preset_id)
+    )
+  `);
 }
 
 function migrateSchema(db) {

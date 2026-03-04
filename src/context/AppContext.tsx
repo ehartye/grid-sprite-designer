@@ -13,6 +13,40 @@ import { TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../lib/gridConfig';
 export type SpriteType = 'character' | 'building' | 'terrain' | 'background';
 export type BuildingGridSize = '3x3' | '2x3' | '2x2';
 
+export interface CellGroup {
+  name: string;
+  cells: number[];
+}
+
+export interface GridPreset {
+  id: number;
+  name: string;
+  spriteType: 'character' | 'building' | 'terrain' | 'background';
+  genre: string;
+  gridSize: string;
+  cols: number;
+  rows: number;
+  cellLabels: string[];
+  cellGroups: CellGroup[];
+  genericGuidance: string;
+  bgMode?: 'parallax' | 'scene' | null;
+}
+
+export interface GridLink {
+  id: number;
+  gridPresetId: number;
+  guidanceOverride: string;
+  sortOrder: number;
+  gridName: string;
+  gridSize: string;
+  cols: number;
+  rows: number;
+  cellLabels: string[];
+  cellGroups: CellGroup[];
+  genericGuidance: string;
+  bgMode?: 'parallax' | 'scene' | null;
+}
+
 export interface CharacterPreset {
   id: string;
   name: string;
@@ -144,6 +178,9 @@ export interface AppState {
 
   /** Background presets */
   backgroundPresets: BackgroundPreset[];
+
+  /** Grid presets */
+  gridPresets: GridPreset[];
 }
 
 const initialState: AppState = {
@@ -201,6 +238,7 @@ const initialState: AppState = {
   buildingPresets: [],
   terrainPresets: [],
   backgroundPresets: [],
+  gridPresets: [],
 };
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -229,6 +267,7 @@ type Action =
   | { type: 'LOAD_TERRAIN_PRESET'; preset: TerrainPreset }
   | { type: 'SET_BACKGROUND_PRESETS'; presets: BackgroundPreset[] }
   | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
+  | { type: 'SET_GRID_PRESETS'; payload: GridPreset[] }
   | { type: 'RESET' };
 
 /** Get the default cell label count for a building grid size */
@@ -374,6 +413,8 @@ function reducer(state: AppState, action: Action): AppState {
         },
       };
     }
+    case 'SET_GRID_PRESETS':
+      return { ...state, gridPresets: action.payload };
     case 'RESET':
       return {
         ...initialState,
@@ -381,6 +422,7 @@ function reducer(state: AppState, action: Action): AppState {
         buildingPresets: state.buildingPresets,
         terrainPresets: state.terrainPresets,
         backgroundPresets: state.backgroundPresets,
+        gridPresets: state.gridPresets,
       };
     default:
       return state;
