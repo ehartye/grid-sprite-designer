@@ -180,3 +180,29 @@
   padding: 12px 32px;
   font-size: 0.95rem;
 }
+
+/* Run review bar — shown below SpriteReview during active runs */
+.run-review-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 12px auto 0;
+  padding: 10px 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  animation: fadeUp 0.3s ease both;
+}
+
+.run-review-progress {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.run-review-actions {
+  display: flex;
+  gap: 8px;
+}

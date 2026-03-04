@@ -13,11 +13,15 @@ export async function generateGrid(
   templateImage: { data: string; mimeType: string },
   imageSize: string = '2K',
   signal?: AbortSignal,
+  referenceImage?: { data: string; mimeType: string },
 ): Promise<GridGenerateResult> {
+  const body: Record<string, unknown> = { model, prompt, templateImage, imageSize };
+  if (referenceImage) body.referenceImage = referenceImage;
+
   const response = await fetch('/api/generate-grid', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, prompt, templateImage, imageSize }),
+    body: JSON.stringify(body),
     signal,
   });
 
