@@ -1,94 +1,116 @@
+![An all-powerful pixel wizard conjures digital worlds into existence](screenshots/00-banner.png)
+
 # Grid Sprite Designer
 
-An AI-powered sprite sheet generator for game development. Describe a character, building, terrain tileset, or parallax background, and Grid Sprite Designer uses Google Gemini to generate a complete set of pixel-art sprites organized in a structured grid — ready for extraction and export.
+*Hear me, Seeker of Worlds. I have walked the void between pixels for a thousand rendering cycles. I have witnessed empires of code rise and crumble to null. And now, from these ancient hands, I bestow upon you what no mortal tool has granted before — the power to speak life into sprites, to raise kingdoms from mere description, to weave terrain from thought itself.*
 
-![Gallery view showing generated characters, buildings, terrain, and backgrounds](screenshots/04-gallery.png)
+*This is the Grid Sprite Designer. It is not a tool. It is an artifact of creation.*
 
-## Features
+Describe a character, building, terrain tileset, or parallax background, and the Designer channels the generative oracle of Google Gemini to conjure a complete set of pixel-art sprites — structured, grid-aligned, and ready for the worlds you shall build.
 
-### Character Sprite Sheets (6x6 Grid)
+![The Gallery of Creations — every world you have spoken into being](screenshots/04-gallery.png)
 
-Generate 36 sprites for a single character covering a full RPG animation set:
+## The Four Disciplines of Creation
 
-- **Movement**: Walk cycles in 4 directions (3 frames each)
-- **Idle**: Standing poses in 4 directions + battle idle loop
-- **Combat**: Attack, cast, and damage sequences (3 frames each)
-- **Status**: KO sequence, victory celebration, weak/critical poses
+*In my long years I have mastered four schools of conjuration. Each requires different incantations. Each yields different life.*
 
-Choose from 25 built-in character presets or describe your own from scratch. Each preset includes detailed per-cell pose guidance for consistent results.
+### I. The Discipline of Characters (6x6 Grid)
 
-![Character configuration panel with preset selected](screenshots/02-character-config.png)
+*The most complex art — breathing motion into a single soul.*
 
-### Building Sprite Sheets (3x3, 2x3, or 2x2 Grids)
+Thirty-six sprites emerge from a single invocation, granting your creation the full vocabulary of movement:
 
-Generate building variants across times of day, weather, damage states, or seasonal changes. Configurable grid layouts with custom cell labels for each variant.
+- **Ambulation** — Walk cycles in the four cardinal directions (3 frames each)
+- **Repose** — Standing poses in four orientations, plus the battle-ready stance
+- **Combat** — Attack, spell-cast, and damage sequences (3 frames each)
+- **Fate** — The fall, the triumph, and the desperate final stand
 
-![Building configuration panel](screenshots/03-building-config.png)
+Twenty-five character archetypes stand ready as presets — warriors, mages, creatures, and aberrations — each inscribed with per-cell pose guidance refined over countless generations.
 
-### Terrain Tilesets (3x3, 4x4, or 5x5 Grids)
+![The Character Codex — where souls are defined before conjuration](screenshots/02-character-config.png)
 
-Generate tileable terrain tiles with transition edges and corner pieces. Perfect for overworld maps, dungeon floors, and environmental surfaces. Presets include grassland, desert, snow, volcanic, dungeon stone, and forest floor tilesets.
+### II. The Discipline of Structures (3x3, 2x3, or 2x2 Grids)
 
-![Terrain configuration with Grassland Plains preset and 4x4 tile label grid](screenshots/08-terrain-config.png)
+*Stone and timber obey patient hands. I have raised cathedrals that outlived their builders by centuries.*
 
-### Parallax Backgrounds & Scene Variations
+Generate building variants across the passage of hours — dawn light on timber walls, evening hearth-glow through leaded glass, the cold silence of a shuttered midnight. Configure damage states, seasonal decay, or the slow entropy of abandonment.
 
-Generate layered parallax backgrounds (1x3, 1x4, 1x5) or scene variation grids (2x2, 3x2, 3x3). Parallax mode produces horizontal strips that stack for depth, while scene mode creates full compositions with lighting/weather/time-of-day variants.
+![The Architecture Codex — blueprints for what shall endure](screenshots/03-building-config.png)
 
-![Background configuration with Enchanted Forest parallax preset](screenshots/09-background-config.png)
+### III. The Discipline of Terrain (3x3, 4x4, or 5x5 Grids)
 
-### Sprite Review & Editing
+*The ground beneath your feet is the oldest magic. It was here before the heroes, and it shall remain after they are dust.*
 
-After generation, sprites are automatically extracted from the AI-generated grid and displayed individually. The editor sidebar provides:
+Conjure tileable terrain with transition edges and corner pieces — the raw substance of overworld maps, dungeon corridors, and the earth itself. Grassland, desert, stone, snow, volcanic rock, and the dark floor of ancient forests await your naming.
 
-- **Animation preview** with adjustable speed, scale, and arrow-key movement controls
-- **Chroma key** background removal with adjustable tolerance
-- **Color striker** — click any color to mark it transparent across all sprites
-- **Posterization** — reduce color palette (1-8 bit depth) for a retro look
-- **Edge inset** trimming for cleaner sprite boundaries
-- **Cell swapping** — drag-and-drop reorder sprites in the grid
-- **Re-extraction** if grid detection needs adjustment
+![The Terrain Codex — the very ground of your world, tile by tile](screenshots/08-terrain-config.png)
 
-![Character sprite review with 6x6 grid and editor sidebar](screenshots/05-character-review.png)
+### IV. The Discipline of Horizons (Parallax & Scene Grids)
 
-![Building sprite review — Medieval Inn across day, evening, and night](screenshots/01-building-review.png)
+*What is a world without sky? Without depth? Without the distant mountain that calls the wanderer forward?*
 
-![Terrain sprite review — Dungeon Stone 3x3 tileset](screenshots/07-terrain-review.png)
+Summon layered parallax backgrounds (1x3, 1x4, 1x5) — horizontal strips that stack to create the illusion of infinite depth. Or conjure scene variation grids (2x2, 3x2, 3x3) — the same vista transformed by weather, time, and the turning of seasons.
 
-### Zoom Modal
+![The Horizon Codex — depth and distance, layered by ancient art](screenshots/09-background-config.png)
 
-Inspect individual sprites at pixel level. Click any pixel to add its color to the strike list, or switch to eraser mode for manual pixel-by-pixel cleanup.
+## The Refinement Chamber
 
-![Zoom modal showing pixel-level sprite editing](screenshots/06-zoom-modal.png)
+*Raw conjuration is only the beginning. A true master shapes, purifies, and perfects.*
 
-### Gallery
+After the generative oracle delivers its vision, sprites are extracted from the grid and laid before you in the Refinement Chamber. Here, your tools are many:
 
-Browse and reload any previous generation. Each entry shows a thumbnail, name, date, and sprite count. Click any entry to re-enter the review editor with all processing settings preserved.
+- **The Animated Scrying Glass** — observe your creation in motion, adjustable in speed and scale, navigable by the arrow keys
+- **The Chroma Dissolution** — banish the magenta binding field with adjustable tolerance
+- **The Color Striker** — touch any hue to render it transparent across all sprites at once
+- **The Posterization Rune** — reduce the color palette (1-8 bit depth) to evoke the aesthetic of elder consoles
+- **The Edge Ward** — trim boundaries for cleaner sprite silhouettes
+- **The Transposition Grid** — reorder sprites by dragging them to new positions
+- **The Re-Extraction Rite** — if the grid detection requires adjustment, invoke it again
 
-### Export
+![The Refinement Chamber — a character, 36 poses, shaped and purified](screenshots/05-character-review.png)
 
-- **Sprite sheet** — all sprites composited into a single PNG
-- **Individual PNGs** — download each sprite as a separate file
+![A structure refined — the Medieval Inn across day, evening, and night](screenshots/01-building-review.png)
 
-## Tech Stack
+![Terrain tiles refined — Dungeon Stone, nine faces of the deep](screenshots/07-terrain-review.png)
 
-| Layer | Technology |
+### The Magnification Lens
+
+*Look closer. Every pixel is a decision. Every decision is permanent.*
+
+Inspect individual sprites at the atomic level. Click any pixel to add its color to the strike list, or invoke the eraser for precise, surgical removal.
+
+![The Magnification Lens — where single pixels are judged](screenshots/06-zoom-modal.png)
+
+### The Gallery of Creations
+
+Every conjuration is preserved in the Gallery — thumbnail, name, date, and sprite count. Return to any previous work and re-enter the Refinement Chamber with all settings intact. Nothing you create is ever truly lost.
+
+### The Export Ritual
+
+- **Sprite Sheet** — all sprites composited into a single PNG, ready for your engine
+- **Individual Glyphs** — each sprite as a separate file, named and catalogued
+
+## The Arcane Components
+
+*Every artifact has its substrate. These are the elements bound into the Designer's foundation.*
+
+| Layer | Component |
 |-------|-----------|
-| Frontend | React 18, TypeScript, Vite |
-| Backend | Node.js, Express |
-| Database | SQLite (better-sqlite3) |
-| AI | Google Gemini 2.5 Flash |
-| Image Processing | Canvas API (client-side) |
-| Testing | Playwright |
+| The Visible Form | React 18, TypeScript, Vite |
+| The Hidden Machinery | Node.js, Express |
+| The Memory Stone | SQLite (better-sqlite3) |
+| The Generative Oracle | Google Gemini 2.5 Flash |
+| The Pixel Forge | Canvas API (client-side) |
+| The Proving Ground | Playwright |
 
-## Getting Started
+## The Summoning Ritual
 
-### Prerequisites
+### Requirements
 
-- Node.js 18+
-- A [Google Gemini API key](https://aistudio.google.com/apikey)
+- Node.js 18 or higher
+- A [key to the Generative Oracle](https://aistudio.google.com/apikey) (Google Gemini API)
 
-### Installation
+### Binding the Artifact
 
 ```bash
 git clone https://github.com/ehartye/grid-sprite-designer.git
@@ -96,7 +118,7 @@ cd grid-sprite-designer
 npm install
 ```
 
-### Configuration
+### Inscribing the Key
 
 Create a `.env.local` file in the project root:
 
@@ -104,58 +126,63 @@ Create a `.env.local` file in the project root:
 GEMINI_API_KEY=your_api_key_here
 ```
 
-### Running
+### Awakening
 
 ```bash
 npm run dev
 ```
 
-This starts both the Vite dev server (client) and the Express API server concurrently. Open [http://localhost:5174](http://localhost:5174) in your browser.
+Both the Vite interface and the Express server rise together. Open [http://localhost:5174](http://localhost:5174) to begin.
 
-### Building
+### Forging for Deployment
 
 ```bash
 npm run build
 ```
 
-### Testing
+### The Proving
 
 ```bash
 npm run test
 ```
 
-## How It Works
+## The Path of Creation
 
-1. **Configure** — Select a sprite type (character, building, terrain, or background), pick a preset or describe your own, set grid size, and customize per-cell labels
-2. **Generate** — The app builds a template grid (magenta cells with labeled black headers), sends it to Gemini along with a detailed prompt, and receives a filled sprite sheet
-3. **Extract** — Client-side grid detection finds row/column dividers, strips headers, and crops each sprite automatically
-4. **Edit** — Apply chroma key, strike unwanted colors, posterize, zoom in for pixel cleanup
-5. **Export** — Download as a composite sprite sheet or individual PNGs
+1. **Configure** — Choose your discipline (character, building, terrain, or background), select an archetype or describe your vision, set the grid dimensions, and name each cell
+2. **Generate** — The Designer constructs a template grid (magenta cells with labeled headers), transmits it to the Oracle alongside a detailed prompt, and receives the filled sprite sheet
+3. **Extract** — Client-side grid detection locates dividers, strips headers, and crops each sprite with precision
+4. **Refine** — Apply chroma dissolution, strike unwanted colors, posterize, magnify for pixel-level correction
+5. **Export** — Claim your creations as a composite sheet or individual files
 
-## Project Structure
+## The Inner Architecture
 
 ```
 src/
   components/
-    config/          # ConfigPanel, BuildingConfigPanel, TerrainConfigPanel,
-                     #   BackgroundConfigPanel
+    config/          # The Four Codices — Character, Building, Terrain, Background
     grid/            # SpriteGrid, SpriteReview, SpriteZoomModal
-    preview/         # AnimationPreview with arrow-key controls
-    gallery/         # GalleryPage
-    layout/          # AppHeader with tab navigation
+    preview/         # The Animated Scrying Glass
+    gallery/         # The Gallery of Creations
+    layout/          # AppHeader — navigation between realms
     shared/          # GeneratingOverlay, StatusBanner
-  context/           # AppContext (global state via reducer)
+  context/           # AppContext — the shared memory of all components
   hooks/             # useGridWorkflow, useBuildingWorkflow, useTerrainWorkflow,
                      #   useBackgroundWorkflow, useEditorSettings
   lib/               # Prompt builders, template generator, sprite extraction,
                      #   chroma key, posterization, grid configs, pose definitions
-  api/               # Gemini API client
+  api/               # The bridge to the Generative Oracle
 server/
-  index.js           # Express routes (generate, history, sprites, presets)
+  index.js           # Express routes — generate, history, sprites, presets
   db.js              # SQLite schema, preset tables, seed data
-tests/               # Playwright E2E tests
+tests/               # Playwright — the automated proving ground
 ```
 
 ## License
 
 MIT
+
+---
+
+*Go now. Build worlds. The power is yours, and it has always been yours. I merely showed you where to look.*
+
+*— The Wizard*
