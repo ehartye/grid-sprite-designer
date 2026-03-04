@@ -13,9 +13,8 @@ import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
-import type { CellGroup } from '../../context/AppContext';
+import type { CellGroup, GridLink } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
-import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 
@@ -126,24 +125,31 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const { sprites } = state;
   const isCharacter = state.spriteType === 'character';
 
+  // Derive current grid link from run state (if active)
+  const currentGridLink: GridLink | null = state.run?.active
+    ? state.run.selectedGridLinks[state.run.currentGridIndex] ?? null
+    : null;
+
+  // Dynamic grid dimensions: prefer run's grid link, then fall back to character default (6x6=36)
+  const dynamicCols = currentGridLink?.cols ?? (isCharacter ? 6 : undefined);
+  const dynamicRows = currentGridLink?.rows ?? (isCharacter ? 6 : undefined);
+  const cellCount = (dynamicCols && dynamicRows) ? dynamicCols * dynamicRows : 36;
+  const dynamicCellLabels = currentGridLink?.cellLabels;
+
+  // Use cellGroups from props, or from current grid link, or fall back to default ANIMATIONS
+  const effectiveCellGroups = cellGroups ?? currentGridLink?.cellGroups;
   const animations: AnimationDef[] = useMemo(
-    () => cellGroups?.length
-      ? cellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
+    () => effectiveCellGroups?.length
+      ? effectiveCellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
       : ANIMATIONS,
-    [cellGroups],
+    [effectiveCellGroups],
   );
-  const hasAnimGroups = isCharacter || (cellGroups?.length ?? 0) > 0;
+  const hasAnimGroups = isCharacter || (effectiveCellGroups?.length ?? 0) > 0;
   const reExtract =
     state.spriteType === 'building' ? buildingReExtract :
     state.spriteType === 'terrain' ? terrainReExtract :
     state.spriteType === 'background' ? backgroundReExtract :
     charReExtract;
-  const activeGrid =
-    state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize] :
-    state.spriteType === 'terrain' ? TERRAIN_GRIDS[state.terrain.gridSize] :
-    state.spriteType === 'background' ? BACKGROUND_GRIDS[state.background.gridSize] :
-    null;
-  const cellCount = activeGrid ? activeGrid.cols * activeGrid.rows : 36;
 
   const [selectedAnim, setSelectedAnim] = useState(0);
   const [frameIndex, setFrameIndex] = useState(0);
@@ -416,11 +422,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     if (displaySprites.length === 0) return;
     try {
       const exportSprites = await getExportSprites();
-      const gridCols =
-        state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols :
-        state.spriteType === 'terrain' ? TERRAIN_GRIDS[state.terrain.gridSize]?.cols :
-        state.spriteType === 'background' ? BACKGROUND_GRIDS[state.background.gridSize]?.cols :
-        undefined;
+      const gridCols = dynamicCols;
       const { base64 } = await composeSpriteSheet(exportSprites, gridCols);
       const link = document.createElement('a');
       const exportName =
@@ -435,7 +437,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     } catch (err: any) {
       dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
     }
-  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, state.building.gridSize, state.terrain.gridSize, state.background.gridSize, dispatch]);
+  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dynamicCols, dispatch]);
 
   // Export individual PNGs
   const handleExportIndividual = useCallback(async () => {
@@ -599,18 +601,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           thumbnailCell={thumbnailCell}
           onThumbnailSet={state.historyId ? handleThumbnailSet : undefined}
           onZoomClick={handleZoomClick}
-          gridCols={
-            state.spriteType === 'building' ? BUILDING_GRIDS[state.building.gridSize]?.cols :
-            state.spriteType === 'terrain' ? TERRAIN_GRIDS[state.terrain.gridSize]?.cols :
-            state.spriteType === 'background' ? BACKGROUND_GRIDS[state.background.gridSize]?.cols :
-            undefined
-          }
-          cellLabels={
-            state.spriteType === 'building' ? state.building.cellLabels :
-            state.spriteType === 'terrain' ? state.terrain.cellLabels :
-            state.spriteType === 'background' ? state.background.cellLabels :
-            undefined
-          }
+          gridCols={dynamicCols}
+          cellLabels={dynamicCellLabels}
         />
         {isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
