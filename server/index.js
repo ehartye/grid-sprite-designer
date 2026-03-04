@@ -141,6 +141,31 @@ app.get('/api/presets', (req, res, next) => {
         cellLabels: JSON.parse(r.cell_labels || '[]'),
         cellGuidance: r.cell_guidance,
       })));
+    } else if (type === 'terrain') {
+      const rows = db.prepare('SELECT * FROM terrain_presets WHERE is_preset = 1 ORDER BY name').all();
+      res.json(rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        genre: r.genre,
+        gridSize: r.grid_size,
+        description: r.description,
+        colorNotes: r.color_notes,
+        tileLabels: JSON.parse(r.tile_labels || '[]'),
+        tileGuidance: r.tile_guidance,
+      })));
+    } else if (type === 'background') {
+      const rows = db.prepare('SELECT * FROM background_presets WHERE is_preset = 1 ORDER BY name').all();
+      res.json(rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        genre: r.genre,
+        gridSize: r.grid_size,
+        bgMode: r.bg_mode,
+        description: r.description,
+        colorNotes: r.color_notes,
+        layerLabels: JSON.parse(r.layer_labels || '[]'),
+        layerGuidance: r.layer_guidance,
+      })));
     } else {
       const rows = db.prepare('SELECT * FROM character_presets WHERE is_preset = 1 ORDER BY name').all();
       res.json(rows.map(r => ({

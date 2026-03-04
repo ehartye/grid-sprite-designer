@@ -89,23 +89,19 @@ export function ConfigPanel() {
 
   return (
     <div className="config-panel">
-      {/* Mode Toggle: Character / Building */}
+      {/* Mode Toggle: Character / Building / Terrain / Background */}
       <div className="config-field">
         <div className="segmented-control">
-          <button
-            type="button"
-            className={state.spriteType === 'character' ? 'active' : ''}
-            onClick={() => dispatch({ type: 'SET_SPRITE_TYPE', spriteType: 'character' as SpriteType })}
-          >
-            Character
-          </button>
-          <button
-            type="button"
-            className={state.spriteType === 'building' ? 'active' : ''}
-            onClick={() => dispatch({ type: 'SET_SPRITE_TYPE', spriteType: 'building' as SpriteType })}
-          >
-            Building
-          </button>
+          {(['character', 'building', 'terrain', 'background'] as SpriteType[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={state.spriteType === t ? 'active' : ''}
+              onClick={() => dispatch({ type: 'SET_SPRITE_TYPE', spriteType: t })}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 

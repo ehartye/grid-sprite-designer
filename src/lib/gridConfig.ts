@@ -103,3 +103,136 @@ export function getBuildingGridConfig(
   const base = BUILDING_GRIDS[gridSize];
   return { ...base, cellLabels: cellLabels.slice(0, base.totalCells) };
 }
+
+// ── Terrain grids ──────────────────────────────────────────────────────────
+
+/**
+ * Terrain grid definitions — square cells for tileable ground tiles.
+ * Cell labels populated at runtime from user state.
+ *
+ * Cell size math (fills full 2048/4096 canvas):
+ *   3x3: 680×680 (2K), 1360×1360 (4K) — same as building 3x3
+ *   4x4: 509×509 (2K), 1018×1018 (4K)
+ *   5x5: 406×406 (2K), 812×812 (4K)
+ */
+export const TERRAIN_GRIDS: Record<string, GridConfig> = {
+  '3x3': {
+    id: 'terrain-3x3',
+    label: 'Terrain 3\u00d73',
+    cols: 3, rows: 3, totalCells: 9, cellLabels: [],
+    templates: {
+      '2K': { cellW: 680, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
+      '4K': { cellW: 1360, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
+    },
+  },
+  '4x4': {
+    id: 'terrain-4x4',
+    label: 'Terrain 4\u00d74',
+    cols: 4, rows: 4, totalCells: 16, cellLabels: [],
+    templates: {
+      '2K': { cellW: 509, cellH: 509, headerH: 18, border: 2, fontSize: 11 },
+      '4K': { cellW: 1018, cellH: 1018, headerH: 30, border: 4, fontSize: 18 },
+    },
+  },
+  '5x5': {
+    id: 'terrain-5x5',
+    label: 'Terrain 5\u00d75',
+    cols: 5, rows: 5, totalCells: 25, cellLabels: [],
+    templates: {
+      '2K': { cellW: 406, cellH: 406, headerH: 16, border: 2, fontSize: 10 },
+      '4K': { cellW: 812, cellH: 812, headerH: 26, border: 4, fontSize: 16 },
+    },
+  },
+};
+
+export type TerrainGridSize = '3x3' | '4x4' | '5x5';
+
+// ── Background grids ───────────────────────────────────────────────────────
+
+/**
+ * Background grid definitions.
+ *
+ * Parallax mode: 1-column wide rectangular cells stacked vertically.
+ *   1x3: 3 layers, 1x4: 4 layers, 1x5: 5 layers
+ *   Cells are ~3:1 wide (full canvas width, height divided by rows).
+ *
+ * Scene mode: square/slightly-wide cells for full scene variants.
+ *   2x2: 4 scenes, 3x2: 6 scenes, 3x3: 9 scenes
+ */
+export const BACKGROUND_GRIDS: Record<string, GridConfig> = {
+  // Parallax layers — wide horizontal strips
+  '1x3': {
+    id: 'bg-parallax-1x3',
+    label: 'Parallax 1\u00d73',
+    cols: 1, rows: 3, totalCells: 3, cellLabels: [],
+    templates: {
+      '2K': { cellW: 2044, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
+      '4K': { cellW: 4088, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
+    },
+  },
+  '1x4': {
+    id: 'bg-parallax-1x4',
+    label: 'Parallax 1\u00d74',
+    cols: 1, rows: 4, totalCells: 4, cellLabels: [],
+    templates: {
+      '2K': { cellW: 2044, cellH: 509, headerH: 18, border: 2, fontSize: 11 },
+      '4K': { cellW: 4088, cellH: 1018, headerH: 30, border: 4, fontSize: 18 },
+    },
+  },
+  '1x5': {
+    id: 'bg-parallax-1x5',
+    label: 'Parallax 1\u00d75',
+    cols: 1, rows: 5, totalCells: 5, cellLabels: [],
+    templates: {
+      '2K': { cellW: 2044, cellH: 406, headerH: 16, border: 2, fontSize: 10 },
+      '4K': { cellW: 4088, cellH: 812, headerH: 26, border: 4, fontSize: 16 },
+    },
+  },
+  // Scene variations — square cells
+  '2x2': {
+    id: 'bg-scene-2x2',
+    label: 'Scene 2\u00d72',
+    cols: 2, rows: 2, totalCells: 4, cellLabels: [],
+    templates: {
+      '2K': { cellW: 1021, cellH: 1021, headerH: 28, border: 2, fontSize: 18 },
+      '4K': { cellW: 2042, cellH: 2042, headerH: 44, border: 4, fontSize: 28 },
+    },
+  },
+  '3x2': {
+    id: 'bg-scene-3x2',
+    label: 'Scene 3\u00d72',
+    cols: 3, rows: 2, totalCells: 6, cellLabels: [],
+    templates: {
+      '2K': { cellW: 680, cellH: 1021, headerH: 22, border: 2, fontSize: 14 },
+      '4K': { cellW: 1360, cellH: 2042, headerH: 36, border: 4, fontSize: 22 },
+    },
+  },
+  '3x3-scene': {
+    id: 'bg-scene-3x3',
+    label: 'Scene 3\u00d73',
+    cols: 3, rows: 3, totalCells: 9, cellLabels: [],
+    templates: {
+      '2K': { cellW: 680, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
+      '4K': { cellW: 1360, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
+    },
+  },
+};
+
+export type BackgroundGridSize = '1x3' | '1x4' | '1x5' | '2x2' | '3x2' | '3x3-scene';
+export type BackgroundMode = 'parallax' | 'scene';
+
+export function getTerrainGridConfig(
+  gridSize: TerrainGridSize,
+  cellLabels: string[],
+): GridConfig {
+  const base = TERRAIN_GRIDS[gridSize];
+  return { ...base, cellLabels: cellLabels.slice(0, base.totalCells) };
+}
+
+export function getBackgroundGridConfig(
+  gridSize: BackgroundGridSize,
+  cellLabels: string[],
+): GridConfig {
+  const base = BACKGROUND_GRIDS[gridSize];
+  return { ...base, cellLabels: cellLabels.slice(0, base.totalCells) };
+}

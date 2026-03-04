@@ -22,6 +22,8 @@ export function getDb() {
   migrateSchema(db);
   seedPresets(db);
   seedBuildingPresets(db);
+  seedTerrainPresets(db);
+  seedBackgroundPresets(db);
   return db;
 }
 
@@ -95,6 +97,33 @@ function createSchema(db) {
       color_notes TEXT NOT NULL DEFAULT '',
       cell_labels TEXT NOT NULL DEFAULT '[]',
       cell_guidance TEXT NOT NULL DEFAULT '',
+      is_preset INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS terrain_presets (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      genre TEXT NOT NULL DEFAULT '',
+      grid_size TEXT NOT NULL DEFAULT '4x4',
+      description TEXT NOT NULL DEFAULT '',
+      color_notes TEXT NOT NULL DEFAULT '',
+      tile_labels TEXT NOT NULL DEFAULT '[]',
+      tile_guidance TEXT NOT NULL DEFAULT '',
+      is_preset INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS background_presets (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      genre TEXT NOT NULL DEFAULT '',
+      grid_size TEXT NOT NULL DEFAULT '1x4',
+      bg_mode TEXT NOT NULL DEFAULT 'parallax',
+      description TEXT NOT NULL DEFAULT '',
+      color_notes TEXT NOT NULL DEFAULT '',
+      layer_labels TEXT NOT NULL DEFAULT '[]',
+      layer_guidance TEXT NOT NULL DEFAULT '',
       is_preset INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -1778,4 +1807,364 @@ ROW 2 — Environmental:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} building presets.`);
+}
+
+function seedTerrainPresets(db) {
+  const PRESETS = [
+    {
+      id: 'grassland-plains',
+      name: 'Grassland Plains',
+      genre: 'Nature',
+      gridSize: '4x4',
+      description: 'Lush green grassland tiles with dirt paths, wildflowers, and natural ground variations for an overworld map.',
+      colorNotes: 'Vibrant greens for grass, warm brown for dirt, yellow-green for dry patches, tiny wildflower accents in white and yellow.',
+      tileLabels: JSON.stringify([
+        'Base Grass 1', 'Base Grass 2', 'Base Grass 3', 'Tall Grass',
+        'Dirt Path H', 'Dirt Path V', 'Dirt Crossroad', 'Dirt Patch',
+        'Grass-Dirt Edge N', 'Grass-Dirt Edge S', 'Grass-Dirt Edge E', 'Grass-Dirt Edge W',
+        'Grass-Dirt Corner NE', 'Grass-Dirt Corner NW', 'Grass-Dirt Corner SE', 'Grass-Dirt Corner SW'
+      ]),
+      tileGuidance: `ROW 0 — Base Grass Tiles (seamlessly tileable with each other):
+  Header "Base Grass 1" (0,0): Standard grass tile — short green blades with subtle shade variation. A few tiny wildflowers. This is the most common ground tile.
+  Header "Base Grass 2" (0,1): Grass variant with slightly different blade pattern and a small bare soil patch. Tiles seamlessly with Base Grass 1.
+  Header "Base Grass 3" (0,2): Grass variant with a tiny rock or two embedded in the soil. Different blade arrangement from 1 and 2.
+  Header "Tall Grass" (0,3): Taller, denser grass blades reaching upward. Darker green. Represents overgrown or wild areas.
+
+ROW 1 — Dirt Path Tiles:
+  Header "Dirt Path H" (1,0): Horizontal dirt path — packed brown earth running left to right, grass on top and bottom edges. Path edges are slightly ragged.
+  Header "Dirt Path V" (1,1): Vertical dirt path — packed brown earth running top to bottom, grass on left and right edges.
+  Header "Dirt Crossroad" (1,2): Four-way dirt intersection — paths extend to all four edges. Center is well-worn brown earth.
+  Header "Dirt Patch" (1,3): A bare dirt area with no grass — full tile of packed earth with small pebbles. Used for clearings.
+
+ROW 2 — Grass-to-Dirt Edge Transitions (straight edges):
+  Header "Grass-Dirt Edge N" (2,0): Grass on the north half, dirt on the south half. Clean natural transition line running horizontally.
+  Header "Grass-Dirt Edge S" (2,1): Dirt on the north half, grass on the south half. Reverse of Edge N.
+  Header "Grass-Dirt Edge E" (2,2): Grass on the east half, dirt on the west half. Transition line runs vertically.
+  Header "Grass-Dirt Edge W" (2,3): Dirt on the east half, grass on the west half. Reverse of Edge E.
+
+ROW 3 — Grass-to-Dirt Corner Transitions:
+  Header "Grass-Dirt Corner NE" (3,0): Grass fills the northeast quarter, dirt fills the rest. The grass-dirt boundary curves from the north edge to the east edge.
+  Header "Grass-Dirt Corner NW" (3,1): Grass fills the northwest quarter, dirt fills the rest.
+  Header "Grass-Dirt Corner SE" (3,2): Grass fills the southeast quarter, dirt fills the rest.
+  Header "Grass-Dirt Corner SW" (3,3): Grass fills the southwest quarter, dirt fills the rest.`,
+    },
+    {
+      id: 'dungeon-stone',
+      name: 'Dungeon Stone',
+      genre: 'Dungeon',
+      gridSize: '3x3',
+      description: 'Dark stone floor tiles for dungeon interiors with cracks, moss, and wear patterns.',
+      colorNotes: 'Dark grey and charcoal stone, green-grey moss accents, brown-black cracks, subtle blue-grey highlights on wet surfaces.',
+      tileLabels: JSON.stringify([
+        'Stone Floor 1', 'Stone Floor 2', 'Cracked Stone',
+        'Mossy Stone', 'Wet Stone', 'Rubble',
+        'Wall Base N', 'Wall Base S', 'Wall Corner'
+      ]),
+      tileGuidance: `ROW 0 — Base Stone Floors (seamlessly tileable):
+  Header "Stone Floor 1" (0,0): Clean-cut dark grey stone blocks in a regular pattern. Thin mortar lines between blocks. The standard dungeon floor tile.
+  Header "Stone Floor 2" (0,1): Variant stone floor with slightly different block sizes and arrangement. Same color palette as Floor 1 for seamless tiling.
+  Header "Cracked Stone" (0,2): Stone floor with visible cracks running through several blocks. Some blocks are slightly displaced. Signs of age and damage.
+
+ROW 1 — Environmental Variants:
+  Header "Mossy Stone" (1,0): Stone floor with patches of dark green moss growing in the mortar lines and across some block surfaces. Damp atmosphere.
+  Header "Wet Stone" (1,1): Stone floor with a wet sheen — subtle blue-grey reflective highlights on the surface. Small puddle in one corner.
+  Header "Rubble" (1,2): Broken stone floor with scattered debris — crumbled blocks, small rock fragments, dust. A partially collapsed area.
+
+ROW 2 — Wall Transition Tiles:
+  Header "Wall Base N" (2,0): Stone floor on the south half transitioning to a wall base on the north half. The wall is darker, taller stone blocks with a visible baseboard ledge.
+  Header "Wall Base S" (2,1): Wall base on the south half, stone floor on the north half. Reverse of Wall Base N.
+  Header "Wall Corner" (2,2): Corner tile where two walls meet — wall base on the north and west edges, stone floor in the southeast quarter. An interior corner piece.`,
+    },
+    {
+      id: 'desert-dunes',
+      name: 'Desert Dunes',
+      genre: 'Desert',
+      gridSize: '4x4',
+      description: 'Sandy desert tiles with dunes, rocky outcrops, and oasis transitions for arid environments.',
+      colorNotes: 'Warm sandy tan and golden yellow for sand, reddish-brown for rock, dark brown shadows in dune valleys, blue-green for oasis water edges.',
+      tileLabels: JSON.stringify([
+        'Flat Sand 1', 'Flat Sand 2', 'Rippled Sand', 'Wind Swept',
+        'Dune Crest N', 'Dune Crest S', 'Dune Shadow', 'Sand-Rock Mix',
+        'Rocky Ground', 'Sandstone', 'Cracked Earth', 'Fossil',
+        'Sand-Oasis Edge N', 'Sand-Oasis Edge S', 'Sand-Oasis Edge E', 'Sand-Oasis Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Sand Tiles (seamlessly tileable):
+  Header "Flat Sand 1" (0,0): Smooth flat sand with subtle grain texture. Warm tan color. The default desert ground tile.
+  Header "Flat Sand 2" (0,1): Sand variant with slightly different grain pattern and a few small pebbles. Tiles with Flat Sand 1.
+  Header "Rippled Sand" (0,2): Sand with visible wind ripple patterns running diagonally. Small parallel ridges across the surface.
+  Header "Wind Swept" (0,3): Sand with wind-blown streaks and a thin layer of fine dust. Slightly lighter color with movement lines.
+
+ROW 1 — Dune Features:
+  Header "Dune Crest N" (1,0): A sand dune crest running across the north portion — elevated lighter sand catching light on the north side, darker shadow on the south side.
+  Header "Dune Crest S" (1,1): Dune crest on the south portion. Shadow falls northward. Reverse lighting of Dune Crest N.
+  Header "Dune Shadow" (1,2): The shadowed valley between dunes — darker warm brown sand. Tiles between Dune Crest tiles.
+  Header "Sand-Rock Mix" (1,3): Sand with small rocks and pebbles scattered across the surface. Transition between pure sand and rocky areas.
+
+ROW 2 — Rocky Desert Tiles:
+  Header "Rocky Ground" (2,0): Hard-packed desert floor with exposed reddish-brown rock. Minimal sand. Rough texture.
+  Header "Sandstone" (2,1): Flat sandstone surface with natural layered patterns visible. Warm reddish-tan. Smooth but weathered.
+  Header "Cracked Earth" (2,2): Dried, cracked mud or clay surface — a polygon pattern of cracks revealing dry soil beneath. Parched and arid.
+  Header "Fossil" (2,3): Sandy ground with a partially exposed fossil — a small spiral shell or bone fragment embedded in sandstone. A rare decorative tile.
+
+ROW 3 — Sand-to-Oasis Edges:
+  Header "Sand-Oasis Edge N" (3,0): Sand on the north half transitioning to wet dark earth and sparse grass on the south half. The edge of an oasis.
+  Header "Sand-Oasis Edge S" (3,1): Wet earth and grass on the north half, sand on the south half. Reverse of Edge N.
+  Header "Sand-Oasis Edge E" (3,2): Sand on the east half, oasis vegetation on the west half. Transition runs vertically.
+  Header "Sand-Oasis Edge W" (3,3): Oasis vegetation on the east half, sand on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'snow-tundra',
+      name: 'Snow Tundra',
+      genre: 'Arctic',
+      gridSize: '3x3',
+      description: 'Frozen tundra tiles with snow, ice, and frozen ground for arctic and winter environments.',
+      colorNotes: 'Pure white and blue-white for snow, light cyan and blue for ice, dark blue-grey for frozen rock, pale blue shadows.',
+      tileLabels: JSON.stringify([
+        'Snow 1', 'Snow 2', 'Deep Snow',
+        'Ice Patch', 'Frozen Ground', 'Snow-Ice Edge',
+        'Snowdrift N', 'Snowdrift S', 'Frozen Puddle'
+      ]),
+      tileGuidance: `ROW 0 — Base Snow Tiles (seamlessly tileable):
+  Header "Snow 1" (0,0): Clean white snow with subtle blue shadow variation. Smooth, undisturbed surface. The default winter ground tile.
+  Header "Snow 2" (0,1): Snow variant with a slightly different texture — some crystalline sparkle highlights. Tiles seamlessly with Snow 1.
+  Header "Deep Snow" (0,2): Thicker snow with visible depth — softer, fluffier appearance with deeper blue-white shadows in depressions.
+
+ROW 1 — Ice and Frozen Ground:
+  Header "Ice Patch" (1,0): A frozen ice surface — smooth, reflective light cyan with white highlight streaks. Slippery appearance. Some hairline cracks visible.
+  Header "Frozen Ground" (1,1): Hard frozen earth with a thin dusting of snow. Dark blue-grey ground showing through white frost. Rocky texture beneath.
+  Header "Snow-Ice Edge" (1,2): Snow on one half transitioning to smooth ice on the other half. Natural boundary where snow meets a frozen lake or river.
+
+ROW 2 — Features:
+  Header "Snowdrift N" (2,0): A snowdrift piled against the north edge — deeper white snow mounded up, thinner on the south side. Wind-sculpted shape.
+  Header "Snowdrift S" (2,1): Snowdrift against the south edge. Reverse of Snowdrift N. Mounded snow with wind-carved curves.
+  Header "Frozen Puddle" (2,2): Snow ground with a small frozen puddle in the center — smooth ice circle surrounded by snow. A few bubbles trapped under the ice.`,
+    },
+    {
+      id: 'volcanic-rock',
+      name: 'Volcanic Rock',
+      genre: 'Elemental',
+      gridSize: '4x4',
+      description: 'Volcanic terrain tiles with obsidian, lava flows, ash, and cooled magma for fiery environments.',
+      colorNotes: 'Black and dark grey obsidian, bright orange-red for active lava, dark red for cooling lava, grey ash, amber ember glow.',
+      tileLabels: JSON.stringify([
+        'Obsidian 1', 'Obsidian 2', 'Basalt', 'Pumice',
+        'Lava Flow H', 'Lava Flow V', 'Lava Pool', 'Cooling Lava',
+        'Ash Ground', 'Scorched Earth', 'Ember Glow', 'Lava Crack',
+        'Rock-Lava Edge N', 'Rock-Lava Edge S', 'Rock-Lava Edge E', 'Rock-Lava Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Volcanic Rock (seamlessly tileable):
+  Header "Obsidian 1" (0,0): Smooth black obsidian with glassy reflective highlights. The standard volcanic floor tile. Subtle purple-black sheen.
+  Header "Obsidian 2" (0,1): Obsidian variant with slightly rougher texture and small embedded crystals. Tiles with Obsidian 1.
+  Header "Basalt" (0,2): Rough dark grey basalt with columnar texture. Hexagonal crack patterns. Matte finish unlike obsidian.
+  Header "Pumice" (0,3): Light grey porous volcanic rock with many tiny holes. Lighter and rougher than basalt.
+
+ROW 1 — Active Lava Tiles:
+  Header "Lava Flow H" (1,0): A horizontal stream of bright orange-red molten lava flowing left to right. Dark cooled edges frame the bright center channel.
+  Header "Lava Flow V" (1,1): Vertical lava stream flowing top to bottom. Same bright orange-red molten center with dark crusted edges.
+  Header "Lava Pool" (1,2): A bubbling pool of lava filling most of the tile. Bright orange center, darker red-black crust around edges. A bubble of gas bursting on the surface.
+  Header "Cooling Lava" (1,3): Partially cooled lava — dark red-black surface with bright orange cracks showing molten rock beneath. A transitional state between flow and solid.
+
+ROW 2 — Ash and Ember Tiles:
+  Header "Ash Ground" (2,0): Grey volcanic ash covering the ground. Fine powdery texture. Footprint-like impressions visible. Muted and desolate.
+  Header "Scorched Earth" (2,1): Blackened earth with char marks and heat distortion. Former vegetation reduced to ash outlines. Dark and devastated.
+  Header "Ember Glow" (2,2): Dark ground with scattered glowing embers — small orange-red points of light in the cracks. Smoldering aftermath.
+  Header "Lava Crack" (2,3): Solid dark rock with a bright orange lava crack running through it diagonally. Molten rock visible through the fissure.
+
+ROW 3 — Rock-to-Lava Edge Transitions:
+  Header "Rock-Lava Edge N" (3,0): Solid obsidian on the north half, lava flow on the south half. The rock edge is crumbling and glowing where it meets the molten lava.
+  Header "Rock-Lava Edge S" (3,1): Lava on the north half, solid rock on the south half. Reverse of Edge N.
+  Header "Rock-Lava Edge E" (3,2): Rock on the east half, lava on the west half. Vertical transition with glowing edge.
+  Header "Rock-Lava Edge W" (3,3): Lava on the east half, rock on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'forest-floor',
+      name: 'Forest Floor',
+      genre: 'Nature',
+      gridSize: '5x5',
+      description: 'Dense forest floor tiles with moss, roots, leaf litter, clearings, and path transitions for woodland environments.',
+      colorNotes: 'Deep greens for moss, rich browns for soil and roots, amber-gold for leaf litter, dappled yellow-green for light patches.',
+      tileLabels: JSON.stringify([
+        'Moss 1', 'Moss 2', 'Leaf Litter', 'Pine Needles', 'Fern Patch',
+        'Root Tangle', 'Root Cross', 'Root Line H', 'Root Line V', 'Bare Soil',
+        'Clearing 1', 'Clearing 2', 'Mushroom Ring', 'Fallen Log', 'Rock Outcrop',
+        'Path H', 'Path V', 'Path Fork', 'Path Curve NE', 'Path Curve NW',
+        'Forest-Grass Edge N', 'Forest-Grass Edge S', 'Forest-Grass Edge E', 'Forest-Grass Edge W', 'Forest-Grass Corner'
+      ]),
+      tileGuidance: `ROW 0 — Base Forest Floor (seamlessly tileable):
+  Header "Moss 1" (0,0): Thick green moss covering the ground with tiny details — small sprouts, leaf fragments. The primary forest floor tile. Rich emerald green.
+  Header "Moss 2" (0,1): Moss variant with slightly different pattern and a few fallen twigs. Tiles seamlessly with Moss 1.
+  Header "Leaf Litter" (0,2): Fallen leaves in amber, gold, and brown scattered over dark soil. Autumn forest floor feel.
+  Header "Pine Needles" (0,3): A carpet of brown-orange pine needles over dark soil. Conifer forest ground. Linear texture direction.
+  Header "Fern Patch" (0,4): Small fern fronds growing from mossy ground. Bright green ferns add vertical texture interest to the forest floor.
+
+ROW 1 — Root and Soil Tiles:
+  Header "Root Tangle" (1,0): Thick tree roots crossing the tile in multiple directions. Dark brown roots over mossy soil. Complex interwoven pattern.
+  Header "Root Cross" (1,1): Two large roots crossing in an X pattern. Dark brown over green-brown soil. Used at path intersections in root-heavy areas.
+  Header "Root Line H" (1,2): A single thick root running horizontally across the tile. Mossy soil above and below.
+  Header "Root Line V" (1,3): A single thick root running vertically. Mossy soil on both sides.
+  Header "Bare Soil" (1,4): Exposed dark brown forest soil with minimal vegetation. A few small pebbles and leaf fragments. Used for clearings.
+
+ROW 2 — Feature Tiles:
+  Header "Clearing 1" (2,0): A sunlit clearing — lighter green grass with dappled light patches. Surrounded by darker forest floor tones at edges.
+  Header "Clearing 2" (2,1): Clearing variant with a few wildflowers and lighter soil. Different dappled light pattern from Clearing 1.
+  Header "Mushroom Ring" (2,2): Forest floor with a semicircle of small mushrooms — brown caps with white spots. Mossy ground. A fairy ring.
+  Header "Fallen Log" (2,3): A section of fallen tree trunk lying across the tile. Moss-covered bark, decomposing. Soil visible beneath.
+  Header "Rock Outcrop" (2,4): A flat stone surface breaking through the forest floor. Grey rock with moss at edges. Leaf litter collects around it.
+
+ROW 3 — Forest Path Tiles:
+  Header "Path H" (3,0): A worn dirt path running horizontally through forest floor. Packed brown earth, forest floor on top and bottom.
+  Header "Path V" (3,1): Vertical dirt path through forest. Mossy edges, packed earth center.
+  Header "Path Fork" (3,2): A path that splits into two directions — T-junction or Y-fork. Worn earth with forest floor in the gaps.
+  Header "Path Curve NE" (3,3): Path curving from south to east. Packed earth follows a natural curve through mossy ground.
+  Header "Path Curve NW" (3,4): Path curving from south to west. Mirror of Path Curve NE.
+
+ROW 4 — Forest-to-Grassland Edge Transitions:
+  Header "Forest-Grass Edge N" (4,0): Dense forest floor on the north half transitioning to open grass on the south half. Tree shadow fades into sunlight.
+  Header "Forest-Grass Edge S" (4,1): Open grass on the north half, forest floor on the south half. Reverse of Edge N.
+  Header "Forest-Grass Edge E" (4,2): Forest floor on the east half, grass on the west half. Vertical transition.
+  Header "Forest-Grass Edge W" (4,3): Grass on the east half, forest floor on the west half. Reverse of Edge E.
+  Header "Forest-Grass Corner" (4,4): Forest floor in the northeast corner, grass filling the rest. A convex corner transition where forest meets grassland.`,
+    },
+  ];
+
+  const insert = db.prepare(
+    `INSERT OR REPLACE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, tile_guidance, is_preset)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
+  );
+
+  const insertAll = db.transaction(() => {
+    for (const p of PRESETS) {
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.colorNotes, p.tileLabels, p.tileGuidance);
+    }
+  });
+
+  insertAll();
+  console.log(`[DB] Seeded ${PRESETS.length} terrain presets.`);
+}
+
+function seedBackgroundPresets(db) {
+  const PRESETS = [
+    {
+      id: 'enchanted-forest',
+      name: 'Enchanted Forest',
+      genre: 'Fantasy',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A mystical enchanted forest with glowing flora, ancient trees, and magical atmosphere. Four parallax layers from sky canopy to forest floor.',
+      colorNotes: 'Deep emerald and teal greens, magical cyan-blue glow accents, warm golden dappled light, purple-blue mystical haze in distant layers.',
+      layerLabels: JSON.stringify([
+        'Sky & Canopy', 'Mid Canopy & Light Rays', 'Undergrowth & Trunks', 'Forest Floor & Roots'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Sky & Canopy" (0,0): The topmost parallax layer. Dense treetop canopy filtering light — overlapping leaf clusters in deep greens with golden light breaking through gaps. Fills the ENTIRE cell. No magenta visible. A purple-blue haze creates depth. Tiny glowing motes float among the leaves.
+  Header "Mid Canopy & Light Rays" (1,0): Middle layer with tree trunks and mid-level branches. Shafts of golden light beam diagonally through the canopy from upper left. Magical sparkle particles in the light beams. Magenta background visible at the top where sky/upper canopy shows through. Trees and branches fill the lower two-thirds.
+  Header "Undergrowth & Trunks" (2,0): Foreground tree trunks — large, ancient, gnarled. Thick moss covers their bases. Glowing mushrooms and magical flowers dot the undergrowth between trunks. Magenta background visible in upper portion. Content fills from bottom up.
+  Header "Forest Floor & Roots" (3,0): Nearest layer — massive twisted roots, fallen logs, and lush ground cover. Bioluminescent fungi glow cyan-blue along root surfaces. Ferns and magical flowers in the foreground. Magenta visible in upper half. Ground detail fills the bottom portion.`,
+    },
+    {
+      id: 'mountain-range',
+      name: 'Mountain Range',
+      genre: 'Nature',
+      gridSize: '1x5',
+      bgMode: 'parallax',
+      description: 'A majestic mountain landscape with five parallax layers creating deep atmospheric perspective from distant peaks to nearby rocky ground.',
+      colorNotes: 'Pale blue-grey for distant mountains, medium slate blue for mid-range, deep grey-brown for near mountains, warm green for foothills, rich earth tones for foreground.',
+      layerLabels: JSON.stringify([
+        'Sky & Far Peaks', 'Distant Mountains', 'Near Mountains', 'Foothills & Trees', 'Rocky Foreground'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Sky & Far Peaks" (0,0): Topmost layer. A gradient sky from light blue at top to warm peach at the horizon. Very distant mountain silhouettes in pale blue-grey with snow-capped peaks barely visible through atmospheric haze. Fills the ENTIRE cell. No magenta visible.
+  Header "Distant Mountains" (1,0): Second layer. A range of mountains in medium slate blue, more detailed than the sky peaks but still softened by atmospheric perspective. Snow patches visible. Magenta above where sky shows through. Mountains fill the lower two-thirds.
+  Header "Near Mountains" (2,0): Third layer. Closer mountain range in deeper grey-brown tones with visible rock texture, cliff faces, and sparse vegetation. More detail and contrast. Magenta in upper portion. Mountains fill from bottom, roughly half the cell.
+  Header "Foothills & Trees" (3,0): Fourth layer. Rolling green foothills with clusters of evergreen trees. Warm greens and browns. Individual trees distinguishable. Magenta in upper half. Hills and trees fill the lower portion.
+  Header "Rocky Foreground" (4,0): Nearest layer. Large rocks, boulders, and scattered wildflowers in the immediate foreground. Rich brown and grey tones. Grass tufts between rocks. Magenta fills the upper two-thirds. Ground content at the very bottom of the cell.`,
+    },
+    {
+      id: 'haunted-graveyard',
+      name: 'Haunted Graveyard',
+      genre: 'Horror',
+      gridSize: '3x2',
+      bgMode: 'scene',
+      description: 'A spooky graveyard with tombstones, dead trees, and iron fencing. Six scene variants showing different atmospheric conditions.',
+      colorNotes: 'Muted greys and dark blues for night, warm orange for dusk, sickly green for fog, purple for supernatural. Desaturated palette throughout.',
+      layerLabels: JSON.stringify([
+        'Day - Overcast', 'Dusk - Orange Sky', 'Night - Moonlit',
+        'Fog - Dense', 'Rain - Storm', 'Haunted - Spirits'
+      ]),
+      layerGuidance: `SCENE DESIGN — Same graveyard composition across all 6 variants. Layout: iron fence in foreground, rows of tombstones in mid-ground, a large dead oak tree right of center, a small chapel silhouette on the left horizon, rolling hill skyline.
+
+  Header "Day - Overcast" (0,0): Daytime but under heavy grey overcast clouds. Flat, even lighting. The graveyard looks abandoned and neglected but not supernatural. Muted green-grey grass, weathered grey tombstones. Fill the ENTIRE cell.
+  Header "Dusk - Orange Sky" (0,1): Sunset with a vivid orange-red sky. Long dark shadows stretch toward the viewer. The dead oak tree is silhouetted dramatically. Warm light hits the tops of tombstones. Ominous mood building.
+  Header "Night - Moonlit" (0,2): Full moon high in a dark blue-black sky. Silver moonlight casts sharp shadows. Tombstones gleam pale. The dead oak has an eerie silver outline. Stars visible. Classic horror atmosphere.
+  Header "Fog - Dense" (1,0): Same scene enveloped in thick greenish-grey fog. Only the nearest tombstones and fence are clearly visible. The chapel and tree fade into fog. Ground-level mist obscures the grass. Visibility decreases with distance.
+  Header "Rain - Storm" (1,1): Heavy rainstorm with dark purple-grey clouds. Lightning illuminates the scene in a flash — dramatic hard shadows. Rain streaks across the frame. Puddles form between tombstones reflecting the lightning. The tree bends in wind.
+  Header "Haunted - Spirits" (1,2): Night scene with supernatural activity. Ghostly translucent figures hover above tombstones. An eerie green-purple glow emanates from the ground. The dead oak's branches reach like claws. Spectral orbs float in the air. The chapel window glows ominously.`,
+    },
+    {
+      id: 'ocean-sunset',
+      name: 'Ocean Sunset',
+      genre: 'Nature',
+      gridSize: '1x3',
+      bgMode: 'parallax',
+      description: 'A serene ocean sunset with three parallax layers — dramatic sky, distant horizon, and rolling waves.',
+      colorNotes: 'Warm orange, pink, and purple for sunset sky, deep blue ocean, golden reflections on water, white foam on wave crests.',
+      layerLabels: JSON.stringify([
+        'Sunset Sky', 'Horizon & Distant Water', 'Waves & Foreground'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Sunset Sky" (0,0): The full sky layer — a gradient from deep purple-blue at the top through pink and orange to golden yellow at the horizon line. Wispy clouds catch the sunset light in warm pink and orange. The sun is a bright golden-white disc near the bottom center. Fills the ENTIRE cell. No magenta visible.
+  Header "Horizon & Distant Water" (1,0): The ocean horizon and middle-distance water. Calm deep blue sea with golden-orange sun reflection creating a bright path on the water surface. Gentle wave texture. Magenta visible at the top where sky shows through. Water fills the lower two-thirds.
+  Header "Waves & Foreground" (2,0): Nearest water layer — larger rolling waves with white foam crests. Deeper blue-green water with warm sunset reflections. Spray particles catch the golden light. Magenta fills the upper half. Waves and water fill the bottom portion.`,
+    },
+    {
+      id: 'cyberpunk-city',
+      name: 'Cyberpunk City',
+      genre: 'Sci-Fi',
+      gridSize: '2x2',
+      bgMode: 'scene',
+      description: 'A neon-drenched cyberpunk cityscape with towering megastructures, holographic advertisements, and atmospheric pollution. Four scene variants.',
+      colorNotes: 'Dark blue-grey base, hot pink and cyan neon accents, purple atmospheric haze, yellow-orange artificial lighting, green holographic displays.',
+      layerLabels: JSON.stringify([
+        'Day - Smog', 'Night - Neon',
+        'Rain - Reflections', 'Blackout - Emergency'
+      ]),
+      layerGuidance: `SCENE DESIGN — Same cityscape composition across all 4 variants. Layout: a narrow street canyon between towering megastructures, dense overhead cables and pipes, holographic billboards on building faces, a distant skyline of corporate towers, street-level shops and stalls at the very bottom.
+
+  Header "Day - Smog" (0,0): Daytime but the sky is a hazy yellow-orange from industrial smog. Buildings are visible but muted. Holographic ads are dim, barely visible in daylight. The street is grey and utilitarian. A thin crowd moves below. Fill the ENTIRE cell.
+  Header "Night - Neon" (0,1): Nighttime — the city comes alive. Neon signs blaze hot pink and cyan. Holographic ads project vivid images. The buildings are dark silhouettes lit by countless colored lights. The wet street reflects neon colors. Vibrant and electric.
+  Header "Rain - Reflections" (1,0): Night with heavy rain. All the neon colors bleed and streak in the rain. Massive puddles on the street create perfect reflections of the signs above. Steam rises from grates. Umbrellas in the crowd below. Atmospheric and moody.
+  Header "Blackout - Emergency" (1,1): Power outage — all neon and holographic displays are dark. Only red emergency lights pulse on the buildings. The street is nearly pitch black with sparse flashlight beams. A single emergency vehicle's blue-red lights cut through the darkness. Tense and ominous.`,
+    },
+    {
+      id: 'underwater-reef',
+      name: 'Underwater Reef',
+      genre: 'Fantasy',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A vibrant underwater coral reef with four parallax layers from the sunlit surface to the deep ocean floor.',
+      colorNotes: 'Bright turquoise and teal for shallow water, deep navy for depths, vibrant coral pinks and oranges, bioluminescent cyan-green accents, golden surface light rays.',
+      layerLabels: JSON.stringify([
+        'Surface Light & Open Water', 'Mid Water & Fish Schools', 'Coral Formations', 'Seafloor & Anemones'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Surface Light & Open Water" (0,0): The topmost layer. Bright turquoise water with golden light rays streaming down from the surface above. Small bubbles rise. The water is clear and luminous. A faint surface ripple pattern at the very top. Fills the ENTIRE cell. No magenta. Color grades from bright turquoise at top to deeper blue at bottom.
+  Header "Mid Water & Fish Schools" (1,0): Middle distance. Schools of small colorful tropical fish swim in formation. A sea turtle silhouette glides in the background. Water is a medium blue. Magenta visible at the top. Fish and creatures occupy the lower two-thirds of the cell.
+  Header "Coral Formations" (2,0): Coral reef structures — branching coral in pinks and purples, brain coral in green, fan coral swaying. Bright orange clownfish dart among the formations. Bioluminescent accents glow cyan. Magenta above. Coral fills from the bottom up through roughly half the cell.
+  Header "Seafloor & Anemones" (3,0): The nearest layer — the ocean floor with sea anemones waving their tentacles, colorful starfish, scattered shells, and sandy patches between rocks. Rich detail and saturated colors. Magenta fills the upper two-thirds. Seafloor content at the very bottom of the cell.`,
+    },
+  ];
+
+  const insert = db.prepare(
+    `INSERT OR REPLACE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, layer_guidance, is_preset)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+  );
+
+  const insertAll = db.transaction(() => {
+    for (const p of PRESETS) {
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.bgMode, p.description, p.colorNotes, p.layerLabels, p.layerGuidance);
+    }
+  });
+
+  insertAll();
+  console.log(`[DB] Seeded ${PRESETS.length} background presets.`);
 }
