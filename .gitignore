@@ -8,4 +8,5 @@ server/*.db
 output/
 .playwright-mcp/
 *.png
+!screenshots/*.png
 test-fixtures/*.b64
