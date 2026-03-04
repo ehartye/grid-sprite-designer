@@ -1871,6 +1871,23 @@ ROW 5 — KO 3, Victory, Status Poses:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} character presets.`);
+
+  // Link character presets to RPG Full 6x6 grid preset
+  const rpgFullGrid = db.prepare("SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character'").get();
+  if (rpgFullGrid) {
+    const insertLink = db.prepare(`
+      INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, guidance_override, sort_order)
+      VALUES (?, ?, ?, 0)
+    `);
+    const chars = db.prepare('SELECT id, row_guidance FROM character_presets').all();
+    const linkAll = db.transaction(() => {
+      for (const char of chars) {
+        insertLink.run(char.id, rpgFullGrid.id, char.row_guidance || '');
+      }
+    });
+    linkAll();
+    console.log(`[DB] Created ${chars.length} character grid links.`);
+  }
 }
 
 function seedBuildingPresets(db) {
@@ -2198,6 +2215,23 @@ ROW 2 — Environmental:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} building presets.`);
+
+  // Link building presets to matching grid presets by grid_size
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, 0)
+  `);
+  const buildings = db.prepare('SELECT id, grid_size, cell_guidance FROM building_presets').all();
+  const linkAll = db.transaction(() => {
+    for (const b of buildings) {
+      const gridPreset = db.prepare("SELECT id FROM grid_presets WHERE grid_size = ? AND sprite_type = 'building'").get(b.grid_size);
+      if (gridPreset) {
+        insertLink.run(b.id, gridPreset.id, b.cell_guidance || '');
+      }
+    }
+  });
+  linkAll();
+  console.log(`[DB] Created ${buildings.length} building grid links.`);
 }
 
 function seedTerrainPresets(db) {
@@ -2431,6 +2465,23 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} terrain presets.`);
+
+  // Link terrain presets to matching grid presets by grid_size
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, 0)
+  `);
+  const terrains = db.prepare('SELECT id, grid_size, tile_guidance FROM terrain_presets').all();
+  const linkAll = db.transaction(() => {
+    for (const t of terrains) {
+      const gridPreset = db.prepare("SELECT id FROM grid_presets WHERE grid_size = ? AND sprite_type = 'terrain'").get(t.grid_size);
+      if (gridPreset) {
+        insertLink.run(t.id, gridPreset.id, t.tile_guidance || '');
+      }
+    }
+  });
+  linkAll();
+  console.log(`[DB] Created ${terrains.length} terrain grid links.`);
 }
 
 function seedBackgroundPresets(db) {
@@ -2558,4 +2609,21 @@ function seedBackgroundPresets(db) {
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} background presets.`);
+
+  // Link background presets to matching grid presets by grid_size and bg_mode
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, 0)
+  `);
+  const backgrounds = db.prepare('SELECT id, grid_size, bg_mode, layer_guidance FROM background_presets').all();
+  const linkAll = db.transaction(() => {
+    for (const bg of backgrounds) {
+      const gridPreset = db.prepare("SELECT id FROM grid_presets WHERE grid_size = ? AND bg_mode = ? AND sprite_type = 'background'").get(bg.grid_size, bg.bg_mode);
+      if (gridPreset) {
+        insertLink.run(bg.id, gridPreset.id, bg.layer_guidance || '');
+      }
+    }
+  });
+  linkAll();
+  console.log(`[DB] Created ${backgrounds.length} background grid links.`);
 }
