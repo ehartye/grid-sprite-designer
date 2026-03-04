@@ -267,7 +267,7 @@ type Action =
   | { type: 'LOAD_TERRAIN_PRESET'; preset: TerrainPreset }
   | { type: 'SET_BACKGROUND_PRESETS'; presets: BackgroundPreset[] }
   | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
-  | { type: 'SET_GRID_PRESETS'; payload: GridPreset[] }
+  | { type: 'SET_GRID_PRESETS'; presets: GridPreset[] }
   | { type: 'RESET' };
 
 /** Get the default cell label count for a building grid size */
@@ -414,7 +414,7 @@ function reducer(state: AppState, action: Action): AppState {
       };
     }
     case 'SET_GRID_PRESETS':
-      return { ...state, gridPresets: action.payload };
+      return { ...state, gridPresets: action.presets };
     case 'RESET':
       return {
         ...initialState,
