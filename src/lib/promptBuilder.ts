@@ -136,9 +136,20 @@ ROW 5 — KO 3, Victory Sequence, Status Poses:
     edge of collapse but still fighting.`;
 
 /**
- * Build the full prompt that tells Gemini how to fill the 6×6 grid template.
+ * Build the full prompt that tells Gemini how to fill a character grid template.
+ * Accepts optional grid-preset-sourced guidance for the layered guidance model.
+ * Falls back to GENERIC_ROW_GUIDANCE and character.rowGuidance when grid preset params are not provided.
  */
-export function buildGridFillPrompt(character: CharacterConfig): string {
+export function buildGridFillPrompt(
+  character: CharacterConfig,
+  gridGenericGuidance?: string,
+  guidanceOverride?: string,
+  cellLabels?: string[],
+): string {
+  const totalCells = cellLabels?.length ?? 36;
+  const cols = cellLabels ? Math.min(Math.ceil(Math.sqrt(totalCells)), 6) : 6;
+  const rows = cellLabels ? Math.ceil(totalCells / cols) : 6;
+
   const charBlock = [
     `Fill every pink cell area with an SNES-era 16-bit pixel-art sprite of a`,
     `${character.name.toUpperCase()} character.`,
@@ -149,16 +160,19 @@ export function buildGridFillPrompt(character: CharacterConfig): string {
     character.styleNotes ? `Additional style notes: ${character.styleNotes}` : '',
     ``,
     `  • Style reference: Final Fantasy VI / Chrono Trigger overworld + battle sprites`,
-    `  • Consistent proportions and palette across ALL 36 cells`,
+    `  • Consistent proportions and palette across ALL ${totalCells} cells`,
   ].filter(Boolean).join('\n');
 
-  const characterGuidance = character.rowGuidance.trim()
-    ? `\nCHARACTER-SPECIFIC POSE NOTES (use these to refine each cell):\n${character.rowGuidance.trim()}\n`
+  // Use grid preset guidance if provided, otherwise fall back to hardcoded constants
+  const genericGuidance = gridGenericGuidance?.trim() || GENERIC_ROW_GUIDANCE;
+  const overrideText = (guidanceOverride?.trim() || character.rowGuidance.trim());
+  const characterGuidance = overrideText
+    ? `\nCHARACTER-SPECIFIC POSE NOTES (use these to refine each cell):\n${overrideText}\n`
     : '';
 
   return `\
-You are filling in a sprite sheet template. The attached image is a 6×6 grid
-(36 cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
+You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid
+(${totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
 a thin black header strip with white text labeling the pose. You MUST preserve
 every header strip and its text exactly as-is — do not erase, move, or redraw
 them.
@@ -199,7 +213,32 @@ Below is the exact layout. Each entry begins with the HEADER text printed in
 that cell — use it to identify which cell you are filling. The (row, col)
 coordinates are 0-indexed. Every sprite must match its header's pose exactly.
 
-${GENERIC_ROW_GUIDANCE}
+${genericGuidance}
 ${characterGuidance}
 Return the completed sprite sheet as a single image. Preserve ALL header text exactly.`;
+}
+
+/**
+ * Build the prompt for subsequent grids in a multi-grid run.
+ * Adds explicit IMAGE 1 (reference sheet) / IMAGE 2 (template) instructions.
+ */
+export function buildGridFillPromptWithReference(
+  character: CharacterConfig,
+  gridGenericGuidance: string,
+  guidanceOverride: string,
+  cellLabels: string[],
+): string {
+  const basePrompt = buildGridFillPrompt(character, gridGenericGuidance, guidanceOverride, cellLabels);
+
+  const referencePrefix = `\
+You are given two images.
+IMAGE 1 is a previously completed sprite sheet for this character — use it as
+your visual reference to maintain consistent proportions, color palette, art
+style, and character identity.
+IMAGE 2 is a blank template grid — fill each labeled cell according to the
+guidance below.
+
+`;
+
+  return referencePrefix + basePrompt;
 }
