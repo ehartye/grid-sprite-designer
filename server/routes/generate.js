@@ -55,27 +55,43 @@ export function createGenerateRouter(apiKey) {
 
   /**
    * POST /api/generate-grid
-   * Body: { model, prompt, templateImage: { data, mimeType }, imageSize }
+   * Body: { model, prompt, templateImage: { data, mimeType }, imageSize,
+   *         referenceImage?: { data, mimeType } }
    *
    * Sends the template grid image + prompt to Gemini and returns the filled grid.
+   * When referenceImage is provided (multi-grid runs), it is sent as the first
+   * image part so subsequent grids maintain visual consistency with the first.
    */
   router.post('/generate-grid', async (req, res) => {
     try {
-      const { model, prompt, templateImage, imageSize = '2K' } = req.body;
+      const { model, prompt, templateImage, imageSize = '2K', referenceImage } = req.body;
 
       if (!model || !prompt || !templateImage) {
         return res.status(400).json({ error: 'model, prompt, and templateImage are required' });
       }
 
-      const parts = [
-        {
+      const parts = [];
+
+      // If reference image provided (subsequent runs in multi-grid), add it first
+      if (referenceImage) {
+        parts.push({
           inline_data: {
-            mime_type: templateImage.mimeType,
-            data: templateImage.data,
+            mime_type: referenceImage.mimeType || 'image/png',
+            data: referenceImage.data,
           },
+        });
+      }
+
+      // Template image (always present)
+      parts.push({
+        inline_data: {
+          mime_type: templateImage.mimeType,
+          data: templateImage.data,
         },
-        { text: prompt },
-      ];
+      });
+
+      // Prompt text
+      parts.push({ text: prompt });
 
       const generationConfig = {
         responseModalities: ['TEXT', 'IMAGE'],
