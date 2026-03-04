@@ -231,7 +231,7 @@ export function ConfigPanel() {
           type="button"
           className="btn btn-accent btn-lg w-full"
           disabled={!canGenerate}
-          onClick={generate}
+          onClick={() => generate()}
         >
           Generate All 36 Sprites
         </button>

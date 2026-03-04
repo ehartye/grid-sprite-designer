@@ -259,14 +259,29 @@ function getTemplateParams(gridSize: string, spriteType: string): GridConfig['te
   };
 }
 
-export function gridPresetToConfig(preset: GridPreset): GridConfig {
+export function gridPresetToConfig(preset: GridPreset): GridConfig;
+export function gridPresetToConfig(preset: {
+  id?: number;
+  gridPresetId?: number;
+  gridName?: string;
+  name?: string;
+  cols: number;
+  rows: number;
+  gridSize: string;
+  cellLabels: string[];
+  spriteType?: string;
+}, spriteType?: string): GridConfig;
+export function gridPresetToConfig(preset: any, spriteType?: string): GridConfig {
+  const resolvedSpriteType = spriteType || preset.spriteType || 'character';
+  const label = preset.name || preset.gridName || `Grid ${preset.gridSize}`;
+  const id = preset.gridPresetId || preset.id;
   return {
-    id: `preset-${preset.id}`,
-    label: preset.name,
+    id: `preset-${id}`,
+    label,
     cols: preset.cols,
     rows: preset.rows,
     totalCells: preset.cols * preset.rows,
     cellLabels: preset.cellLabels,
-    templates: getTemplateParams(preset.gridSize, preset.spriteType),
+    templates: getTemplateParams(preset.gridSize, resolvedSpriteType),
   };
 }

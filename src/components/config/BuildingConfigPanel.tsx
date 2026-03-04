@@ -308,7 +308,7 @@ export function BuildingConfigPanel() {
           type="button"
           className="btn btn-accent btn-lg w-full"
           disabled={!canGenerate}
-          onClick={generate}
+          onClick={() => generate()}
         >
           Generate All {gridSizeInfo.cells} Sprites
         </button>

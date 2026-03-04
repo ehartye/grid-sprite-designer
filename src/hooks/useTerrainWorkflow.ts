@@ -4,12 +4,12 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext, type GridLink } from '../context/AppContext';
 import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
 import { buildTerrainPrompt } from '../lib/terrainPromptBuilder';
 import { generateGrid } from '../api/geminiClient';
-import { getTerrainGridConfig } from '../lib/gridConfig';
+import { getTerrainGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 
 export function useTerrainWorkflow() {
   const { state, dispatch } = useAppContext();
@@ -25,7 +25,7 @@ export function useTerrainWorkflow() {
     dispatch({ type: 'RESET' });
   }, [dispatch]);
 
-  const generate = useCallback(async () => {
+  const generate = useCallback(async (gridLink?: GridLink) => {
     if (!state.terrain.name.trim() || !state.terrain.description.trim()) {
       dispatch({ type: 'SET_STATUS', message: 'Please enter a terrain name and description.', statusType: 'warning' });
       return;
@@ -38,16 +38,23 @@ export function useTerrainWorkflow() {
     abortRef.current = abort;
 
     try {
-      // 1. Build grid config with runtime cell labels
-      const gridConfig = getTerrainGridConfig(state.terrain.gridSize, state.terrain.cellLabels);
+      // 1. Build grid config — use dynamic grid preset when gridLink is provided
+      const gridConfig = gridLink
+        ? gridPresetToConfig(gridLink, 'terrain')
+        : getTerrainGridConfig(state.terrain.gridSize, state.terrain.cellLabels);
       const templateParams = gridConfig.templates[state.imageSize as '2K' | '4K'];
 
       // 2. Generate template grid
       const template = generateTemplate(templateParams, gridConfig);
       dispatch({ type: 'GENERATE_START', templateImage: template.base64 });
 
-      // 3. Build prompt
-      const prompt = buildTerrainPrompt(state.terrain, gridConfig);
+      // 3. Build prompt with layered guidance
+      const prompt = buildTerrainPrompt(
+        state.terrain,
+        gridConfig,
+        gridLink?.genericGuidance,
+        gridLink?.guidanceOverride,
+      );
 
       // 4. Call Gemini API
       const result = await generateGrid(
