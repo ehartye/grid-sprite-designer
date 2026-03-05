@@ -3190,6 +3190,117 @@ ROW 3 — Road-to-Dirt Edge Transitions:
   Header "Road-Dirt Edge E" (3,2): Asphalt on the east half, dirt on the west half. Vertical transition with crumbling road shoulder. Gravel scatter at the boundary.
   Header "Road-Dirt Edge W" (3,3): Dirt on the east half, asphalt on the west half. Reverse of Edge E. The road edge is defined by a line of broken concrete chunks.`,
     },
+    {
+      id: 'organic-hive-floor',
+      name: 'Organic Hive Floor',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x4',
+      description: 'Resin-coated metal floor tiles with organic alien growth, acid burn marks, and cocooned debris for xenomorph hive interiors.',
+      colorNotes: 'Dark brown-black hardened resin over gunmetal grating, ridged organic growths in dark grey-brown, acid-green burn marks and residue, pale grey-white cocoon material, dim amber bioluminescent patches.',
+      tileLabels: JSON.stringify([
+        'Resin Floor 1', 'Resin Floor 2', 'Metal Grating', 'Resin-Metal Mix',
+        'Organic Ridge H', 'Organic Ridge V', 'Ridge Junction', 'Acid Burn',
+        'Cocoon Debris', 'Egg Base', 'Bioluminescent Patch', 'Secretion Pool',
+        'Hive-Metal Edge N', 'Hive-Metal Edge S', 'Hive-Metal Edge E', 'Hive-Metal Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Floor Tiles (seamlessly tileable):
+  Header "Resin Floor 1" (0,0): Dark brown-black hardened resin coating over a metal floor. The resin surface is smooth and glossy with subtle organic texture. The standard hive floor tile. Occasionally a glint of metal shows through thin spots.
+  Header "Resin Floor 2" (0,1): Variant resin floor with slightly different organic texture and a few small bumps of hardened secretion. Tiles seamlessly with Resin Floor 1. Slightly thicker resin coating.
+  Header "Metal Grating" (0,2): Exposed gunmetal industrial grating — the metal floor before organic takeover. Grid pattern with dark gaps between bars. Clean but cold and industrial.
+  Header "Resin-Metal Mix" (0,3): Transition tile — metal grating partially covered by encroaching resin. The organic material creeps across the metal in tendrils. The boundary between civilization and infestation.
+
+ROW 1 — Organic Growth Features:
+  Header "Organic Ridge H" (1,0): A raised ridge of hardened organic growth running horizontally across the tile. Dark grey-brown with ribbed texture. The ridge rises from the resin floor like a biological pipeline.
+  Header "Organic Ridge V" (1,1): A vertical organic ridge running top to bottom. Same ribbed dark grey-brown texture. These ridges form the structural supports of the hive.
+  Header "Ridge Junction" (1,2): A junction where multiple organic ridges meet — an intersection of ribbed growths forming a biomechanical node. Slightly larger mound at the center. A structural nexus.
+  Header "Acid Burn" (1,3): Resin floor with acid-green burn marks — sizzling holes melted through the resin and into the metal below. Acid blood residue drips. Evidence of combat or injury. The burn edges glow faintly green.
+
+ROW 2 — Feature Tiles:
+  Header "Cocoon Debris" (2,0): Fragments of broken cocoon material scattered on the resin floor — pale grey-white fibrous strands and hardened resin chunks. Someone or something broke free. Disturbing evidence.
+  Header "Egg Base" (2,1): The resin floor prepared for egg placement — a shallow depression with a textured organic base. Amber bioluminescent spots mark the prepared area. An egg may have been here or is coming.
+  Header "Bioluminescent Patch" (2,2): A patch of the resin floor that glows with dim amber bioluminescence. The organic material pulses with faint light. These patches serve as the hive's lighting system. Warm but unsettling.
+  Header "Secretion Pool" (2,3): A small pool of fresh organic secretion on the resin floor — translucent amber-brown liquid with a viscous surface. Fresh resin not yet hardened. The hive is actively growing.
+
+ROW 3 — Hive-to-Metal Edge Transitions:
+  Header "Hive-Metal Edge N" (3,0): Organic resin hive floor on the north half transitioning to clean metal grating on the south half. The resin edge creeps outward with tendrils reaching across the metal. The infestation boundary.
+  Header "Hive-Metal Edge S" (3,1): Clean metal on the north half, organic hive floor on the south half. Reverse of Edge N. The organic growth is advancing northward.
+  Header "Hive-Metal Edge E" (3,2): Hive floor on the east half, metal on the west half. Vertical transition with organic tendrils crossing the boundary.
+  Header "Hive-Metal Edge W" (3,3): Metal on the east half, hive floor on the west half. Reverse of Edge E. The clean industrial world giving way to alien biology.`,
+    },
+    {
+      id: 'industrial-grating',
+      name: 'Industrial Grating',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x4',
+      description: 'Metal walkway and utility corridor floor tiles with steam vents, dripping condensation, and cable runs for space station and industrial horror environments.',
+      colorNotes: 'Gunmetal grey and dark steel grating, yellow-black hazard stripes, white steam wisps, blue-grey condensation drips, dark cable insulation, amber warning light patches.',
+      tileLabels: JSON.stringify([
+        'Grating 1', 'Grating 2', 'Solid Plate', 'Diamond Plate',
+        'Steam Vent', 'Drain Grate', 'Cable Run H', 'Cable Run V',
+        'Hazard Stripe H', 'Hazard Stripe V', 'Access Hatch', 'Condensation Pool',
+        'Grating-Plate Edge N', 'Grating-Plate Edge S', 'Grating-Plate Edge E', 'Grating-Plate Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Floor Tiles (seamlessly tileable):
+  Header "Grating 1" (0,0): Standard gunmetal grey industrial grating — parallel bars with dark gaps showing pipes and conduits below. The standard corridor floor. Clean but industrial. Slight blue-grey sheen from overhead lighting.
+  Header "Grating 2" (0,1): Variant grating with slightly different bar spacing and a few water drops on the surface. Tiles seamlessly with Grating 1. One bar is slightly bent.
+  Header "Solid Plate" (0,2): A solid dark steel floor plate — smooth with bolt heads at the corners. Used for heavy equipment areas. No gaps. Darker than the grating.
+  Header "Diamond Plate" (0,3): Raised diamond-pattern anti-slip floor plate. The standard industrial anti-slip surface. Subtle texture catch from overhead light. Heavier duty than basic grating.
+
+ROW 1 — Utility Features:
+  Header "Steam Vent" (1,0): A circular steam vent grate in the floor — a cloud of white steam wisps rising upward. The vent grate is a circular pattern of holes. The steam partially obscures the surrounding floor. Hot and humid.
+  Header "Drain Grate" (1,1): A larger drain grate set into the floor — dark recessed grid with condensation dripping in. Slight rust around the edges. Water collects and drips through the gaps.
+  Header "Cable Run H" (1,2): Grating with a bundle of insulated cables running horizontally across the surface. Cables are dark with colored bands at intervals. Secured with metal clamps to the grating.
+  Header "Cable Run V" (1,3): Cable bundle running vertically top to bottom across the grating. Same dark insulated cables with clamps. Used for wiring-heavy corridor sections.
+
+ROW 2 — Feature Tiles:
+  Header "Hazard Stripe H" (2,0): Floor with a yellow-black hazard stripe band running horizontally across the center. Warning paint on either grating or solid plate. Marks a danger zone boundary.
+  Header "Hazard Stripe V" (2,1): Vertical yellow-black hazard stripe running top to bottom. Same industrial warning paint marking a boundary or restricted area.
+  Header "Access Hatch" (2,2): A square access hatch in the floor — a hinged plate with a recessed handle and locking mechanism. Yellow-black hazard marking around the edge. Leads to maintenance areas below.
+  Header "Condensation Pool" (2,3): Grating with a shallow pool of collected condensation — blue-grey water reflecting overhead lights. The surrounding grating is wet and slightly discolored. Dripping from above.
+
+ROW 3 — Grating-to-Plate Edge Transitions:
+  Header "Grating-Plate Edge N" (3,0): Open grating on the north half transitioning to solid plate on the south half. A structural beam marks the boundary. The grating shows pipes below while the plate is sealed.
+  Header "Grating-Plate Edge S" (3,1): Solid plate on the north half, grating on the south half. Reverse of Edge N. The transition from sealed to open flooring.
+  Header "Grating-Plate Edge E" (3,2): Grating on the east half, solid plate on the west half. Vertical transition with a structural beam.
+  Header "Grating-Plate Edge W" (3,3): Solid plate on the east half, grating on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'alien-planet-surface',
+      name: 'Alien Planet Surface',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x4',
+      description: 'Hostile extraterrestrial landscape tiles with jagged dark rock, bioluminescent pools, alien vegetation, and toxic atmospheric effects.',
+      colorNotes: 'Dark charcoal and purple-black jagged rock, bright cyan-blue bioluminescent pools, alien magenta and teal vegetation, toxic yellow-green atmosphere wisps, pale bone-white mineral deposits.',
+      tileLabels: JSON.stringify([
+        'Alien Rock 1', 'Alien Rock 2', 'Jagged Formation', 'Smooth Basalt',
+        'Bioluminescent Pool', 'Toxic Vent', 'Alien Fungi', 'Tendril Growth',
+        'Mineral Deposit', 'Fossil Imprint', 'Spore Cluster', 'Acid Erosion',
+        'Rock-Pool Edge N', 'Rock-Pool Edge S', 'Rock-Pool Edge E', 'Rock-Pool Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Rock Tiles (seamlessly tileable):
+  Header "Alien Rock 1" (0,0): Dark charcoal alien rock with a subtle purple-black sheen. The texture is unlike earthly stone — angular fractures with glassy smooth surfaces between them. The standard alien ground tile. Cold and lifeless.
+  Header "Alien Rock 2" (0,1): Variant alien rock with different fracture pattern and a few pale mineral veins running through the surface. Tiles seamlessly with Alien Rock 1. Slightly more purple tint.
+  Header "Jagged Formation" (0,2): Sharp, upward-pointing rock formations jutting from the surface. Dark charcoal spires with crystalline tips. The ground between the formations is rough. Treacherous terrain.
+  Header "Smooth Basalt" (0,3): Polished-smooth alien basalt — very dark with a glassy surface reflecting faint light. Unlike rough rock, this surface is eerily perfect. As if melted and resolidified.
+
+ROW 1 — Hazard and Life Tiles:
+  Header "Bioluminescent Pool" (1,0): A small pool of bright cyan-blue glowing liquid in a rock depression. The light illuminates the surrounding dark rock. The liquid surface is perfectly still and reflective. Beautiful but of unknown origin.
+  Header "Toxic Vent" (1,1): A crack in the alien rock releasing yellow-green toxic gas wisps. The gas rises from below and the rock edges are stained and corroded. The atmosphere is poisonous. Stay clear.
+  Header "Alien Fungi" (1,2): Clusters of alien mushroom-like growths sprouting from the rock. Magenta caps with teal bioluminescent gills. Short, thick stalks. Unlike any earthly organism. Possibly dangerous.
+  Header "Tendril Growth" (1,3): Dark organic tendrils growing across the rock surface — biomechanical vines that seem to be exploring the terrain. Teal-green with segmented ridges. Are they plant or animal? They pulse faintly.
+
+ROW 2 — Feature Tiles:
+  Header "Mineral Deposit" (2,0): A cluster of pale bone-white crystalline minerals erupting from the dark rock. The crystals glow faintly from within. Possibly valuable or possibly a trap. Sharp-edged and geometric.
+  Header "Fossil Imprint" (2,1): The dark rock surface shows a large fossil imprint — the outline of an alien creature preserved in stone. Multiple limbs, an elongated skull. Ancient. The shape is disturbingly familiar.
+  Header "Spore Cluster" (2,2): Small bioluminescent spore pods scattered across the rock surface. Each pod is a tiny magenta sphere that releases invisible spores. The air above shimmers faintly with released particles.
+  Header "Acid Erosion" (2,3): Alien rock that has been eroded by natural acid — smooth, flowing channels cut into the dark surface revealing lighter purple-grey stone beneath. The acid is gone but its marks remain.
+
+ROW 3 — Rock-to-Pool Edge Transitions:
+  Header "Rock-Pool Edge N" (3,0): Dark alien rock on the north half transitioning to bioluminescent pool on the south half. The rock edge glows cyan where it meets the luminous liquid. Crystals form at the waterline.
+  Header "Rock-Pool Edge S" (3,1): Bioluminescent pool on the north half, alien rock on the south half. Reverse of Edge N. The glowing liquid laps at the dark stone.
+  Header "Rock-Pool Edge E" (3,2): Rock on the east half, glowing pool on the west half. Vertical transition with cyan light illuminating the nearby rock face.
+  Header "Rock-Pool Edge W" (3,3): Glowing pool on the east half, rock on the west half. Reverse of Edge E. The cyan light creates an eerie glow on the dark stone surface.`,
+    },
   ];
 
   const insert = db.prepare(
@@ -3347,6 +3458,59 @@ function seedBackgroundPresets(db) {
   Header "Mid Water & Fish Schools" (1,0): Middle distance. Schools of small colorful tropical fish swim in formation. A sea turtle silhouette glides in the background. Water is a medium blue. Magenta visible at the top. Fish and creatures occupy the lower two-thirds of the cell.
   Header "Coral Formations" (2,0): Coral reef structures — branching coral in pinks and purples, brain coral in green, fan coral swaying. Bright orange clownfish dart among the formations. Bioluminescent accents glow cyan. Magenta above. Coral fills from the bottom up through roughly half the cell.
   Header "Seafloor & Anemones" (3,0): The nearest layer — the ocean floor with sea anemones waving their tentacles, colorful starfish, scattered shells, and sandy patches between rocks. Rich detail and saturated colors. Magenta fills the upper two-thirds. Seafloor content at the very bottom of the cell.`,
+    },
+    {
+      id: 'nuclear-sunset-skyline',
+      name: 'Nuclear Sunset Skyline',
+      genre: 'Post-Apocalyptic',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A ruined city silhouette against an orange-red sky with a mushroom cloud remnant on the horizon. Four parallax layers from irradiated sky to cracked foreground earth.',
+      colorNotes: 'Intense orange-red and amber sky, black and dark grey silhouettes, sickly yellow radiation glow, dusty brown earth tones, muted rust and ash grey.',
+      layerLabels: JSON.stringify([
+        'Irradiated Sky & Mushroom Cloud', 'Ruined City Silhouette', 'Mid-Ground Rubble & Dead Trees', 'Cracked Earth & Debris'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Irradiated Sky & Mushroom Cloud" (0,0): The topmost layer. A dramatic gradient from deep blood-red at the top through intense orange to sickly yellow at the horizon. The remnant of a mushroom cloud dominates the upper right — a towering column of grey-brown smoke and ash spreading into the characteristic mushroom cap. Wispy radioactive clouds glow with unnatural orange-yellow light. Ash particles drift across the sky. Fills the ENTIRE cell. No magenta visible.
+  Header "Ruined City Silhouette" (1,0): Distant ruined cityscape in dark silhouette. Broken skyscrapers — some snapped in half, others leaning at precarious angles. Collapsed overpasses and shattered bridge supports. The skyline is jagged and irregular. Fires burn in a few buildings, casting small orange glows. The sunset backlights everything in deep orange-red. Magenta visible at the top where sky shows through. City fills the lower two-thirds.
+  Header "Mid-Ground Rubble & Dead Trees" (2,0): Closer devastation. Skeletal dead trees with no leaves, just blackened trunks and bare branches reaching upward. Piles of concrete rubble, twisted rebar, and crushed vehicles. A toppled water tower or radio antenna lies across the scene. Dust hangs in the air catching orange sunset light. Magenta above. Content fills the lower half.
+  Header "Cracked Earth & Debris" (3,0): Nearest layer — severely cracked and parched earth. Deep fissures run through sun-baked mud. Scattered debris: a rusted car door, broken concrete chunks, shattered glass, a faded warning sign. Small fires or smoldering embers in debris piles. A radiation hazard symbol partially buried in dirt. Magenta fills the upper two-thirds. Ground detail at the very bottom.`,
+    },
+    {
+      id: 'underground-vault-interior',
+      name: 'Underground Vault Interior',
+      genre: 'Post-Apocalyptic',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A clean but aging underground survival vault with metal walls, flickering fluorescent lights, and a massive vault door visible in the distance. Four parallax layers from far wall to foreground equipment.',
+      colorNotes: 'Cool blue-grey metal surfaces, warm yellow-white fluorescent light, green screen glow from terminals, chrome and brushed steel, faded safety yellow markings.',
+      layerLabels: JSON.stringify([
+        'Far Wall & Vault Door', 'Mid Equipment & Lockers', 'Foreground Desks & Terminals', 'Floor Details & Overhead Pipes'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Far Wall & Vault Door" (0,0): The topmost/farthest layer. A massive circular vault door dominates the center-left — heavy reinforced steel with a central locking mechanism, partially open revealing a dark corridor beyond. The surrounding wall is riveted metal panels painted institutional blue-grey. A large painted vault number (e.g., "42") beside the door. Fluorescent tube lights along the ceiling cast even white light. A faded "VAULT-TEC" logo on the wall. Fills the ENTIRE cell. No magenta visible.
+  Header "Mid Equipment & Lockers" (1,0): Middle distance. Rows of metal lockers along the walls — some open, some dented. Equipment racks hold tools, hazmat suits, and emergency supplies. A water purification unit with gauges and pipes. A bulletin board with faded notices and schedules. Overhead fluorescent lights flicker — one tube is dead, casting a shadow. Magenta visible at the top. Equipment fills the lower two-thirds.
+  Header "Foreground Desks & Terminals" (2,0): Work stations with metal desks. Computer terminals display green text on black screens — system status readouts. A desk lamp provides warm pool of light. Scattered papers, coffee mugs, and personal items. A wall-mounted intercom speaker. Safety posters on the wall. Swivel chairs pushed back as if recently vacated. Magenta above. Content fills the lower half.
+  Header "Floor Details & Overhead Pipes" (3,0): Nearest layer — the vault floor and low-hanging overhead infrastructure. Metal grate flooring with visible subfloor pipes beneath. Overhead runs of conduit, ventilation ducts, and bundled cables. A floor-standing fan oscillates. Condensation drips from a pipe joint. Yellow caution stripes painted on floor edges. A small puddle reflects the fluorescent light above. Magenta fills the upper two-thirds. Floor detail at the very bottom.`,
+    },
+    {
+      id: 'wasteland-trading-post',
+      name: 'Wasteland Trading Post',
+      genre: 'Post-Apocalyptic',
+      gridSize: '2x2',
+      bgMode: 'scene',
+      description: 'A scrap-built trading post and market in the wasteland. Four scene variants showing the same location under different conditions — bustling day, quiet day, night with campfire, and abandoned night.',
+      colorNotes: 'Dusty earth tones and sun-bleached colors for day, warm orange campfire glow for night, cool blue moonlight, rust browns and faded canvas tans.',
+      layerLabels: JSON.stringify([
+        'Day - Bustling', 'Day - Quiet',
+        'Night - Campfire', 'Night - Abandoned'
+      ]),
+      layerGuidance: `SCENE DESIGN — Same trading post composition across all 4 variants. Layout: A central open-air market area with scrap-metal stalls and canvas awnings. A converted shipping container serves as the main shop on the right. Strings of salvaged lights hang overhead between poles. A makeshift bar/counter on the left with stools. A guard tower built from scaffolding in the background. Barbed wire perimeter fencing visible at the edges. A hand-painted "TRADE" sign over the entrance.
+
+  Header "Day - Bustling" (0,0): Bright harsh desert sunlight. The trading post is alive with activity — traders displaying scrap goods on tables, a merchant haggling at the counter, armed guards patrolling. Dust kicked up by foot traffic. Canvas awnings provide shade. Goods piled on tables: canned food, ammunition boxes, water jugs, mechanical parts. A pack brahmin (two-headed cow) stands near the entrance. Fill the ENTIRE cell.
+  Header "Day - Quiet" (0,1): Same harsh sunlight but the post is nearly empty. Most stalls are closed with tarps pulled down. A single shopkeeper tends the main container store. A lone traveler sits at the bar counter drinking from a canteen. A sleeping dog curls under a table. Wind blows dust across the empty market. An "OPEN" sign creaks on one hinge. Peaceful but desolate.
+  Header "Night - Campfire" (1,0): Nighttime with a large campfire burning in the center of the market area. Warm orange firelight illuminates the stalls and faces of a small group gathered around it. A guard silhouetted in the tower against a starry sky. Salvaged string lights glow dimly overhead. Shadows dance on the shipping container walls. Someone plays a makeshift guitar. The bar is lit by a lantern.
+  Header "Night - Abandoned" (1,1): Nighttime, no campfire — the trading post appears abandoned. Cool blue moonlight casts long shadows. Stalls are empty, tarps flapping in the wind. The bar stools are knocked over. A tumbleweed rolls through. The guard tower is unmanned. An ominous silence suggested by the stillness. A single flickering light in the container store suggests someone hiding inside. Unsettling and post-apocalyptic.`,
     },
   ];
 
