@@ -20,7 +20,6 @@ import { AdminPage } from './components/admin/AdminPage';
 
 import { useRunWorkflow } from './hooks/useRunWorkflow';
 import { extractSprites } from './lib/spriteExtractor';
-import { CONFIG_2K } from './lib/templateGenerator';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from './lib/gridConfig';
 
 function AppContent() {
@@ -108,22 +107,12 @@ function AppContent() {
           });
 
           // Use the correct extraction config based on sprite type
-          let extractionConfig: Parameters<typeof extractSprites>[2] = {
-            headerH: CONFIG_2K.headerH,
-            border: CONFIG_2K.border,
-            templateCellW: CONFIG_2K.cellW,
-            templateCellH: CONFIG_2K.cellH,
-          };
+          let extractionConfig: Parameters<typeof extractSprites>[2] = {};
 
           if (spriteType === 'building' && data.gridSize) {
             const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
             const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
-            const templateParams = gridConfig.templates['2K'];
             extractionConfig = {
-              headerH: templateParams.headerH,
-              border: templateParams.border,
-              templateCellW: templateParams.cellW,
-              templateCellH: templateParams.cellH,
               gridOverride: {
                 cols: gridConfig.cols,
                 rows: gridConfig.rows,
@@ -134,12 +123,7 @@ function AppContent() {
           } else if (spriteType === 'terrain' && data.gridSize) {
             const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
             const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, spriteLabels);
-            const templateParams = gridConfig.templates['2K'];
             extractionConfig = {
-              headerH: templateParams.headerH,
-              border: templateParams.border,
-              templateCellW: templateParams.cellW,
-              templateCellH: templateParams.cellH,
               gridOverride: {
                 cols: gridConfig.cols,
                 rows: gridConfig.rows,
@@ -150,12 +134,7 @@ function AppContent() {
           } else if (spriteType === 'background' && data.gridSize) {
             const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
             const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, spriteLabels);
-            const templateParams = gridConfig.templates['2K'];
             extractionConfig = {
-              headerH: templateParams.headerH,
-              border: templateParams.border,
-              templateCellW: templateParams.cellW,
-              templateCellH: templateParams.cellH,
               gridOverride: {
                 cols: gridConfig.cols,
                 rows: gridConfig.rows,
