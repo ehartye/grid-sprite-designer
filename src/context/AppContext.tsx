@@ -30,6 +30,8 @@ export interface GridPreset {
   cellGroups: CellGroup[];
   genericGuidance: string;
   bgMode?: 'parallax' | 'scene' | null;
+  aspectRatio: string;
+  tileShape: 'square' | 'diamond';
 }
 
 export interface GridLink {
@@ -45,6 +47,8 @@ export interface GridLink {
   cellGroups: CellGroup[];
   genericGuidance: string;
   bgMode?: 'parallax' | 'scene' | null;
+  aspectRatio: string;
+  tileShape: 'square' | 'diamond';
 }
 
 export interface CharacterPreset {
@@ -155,6 +159,7 @@ export interface AppState {
 
   model: string;
   imageSize: string;
+  aspectRatio: string;
 
   /** Grid config used for the current/last generation */
   activeGridConfig: {
@@ -246,6 +251,7 @@ const initialState: AppState = {
   },
   model: 'nano-banana-pro-preview',
   imageSize: '2K',
+  aspectRatio: '1:1',
   activeGridConfig: null,
   templateImage: null,
   filledGridImage: null,
@@ -272,6 +278,7 @@ type Action =
   | { type: 'SET_BUILDING'; building: AppState['building'] }
   | { type: 'SET_MODEL'; model: string }
   | { type: 'SET_IMAGE_SIZE'; imageSize: string }
+  | { type: 'SET_ASPECT_RATIO'; payload: string }
   | { type: 'GENERATE_START'; templateImage: string; gridConfig?: { cols: number; rows: number; cellLabels: string[]; cellGroups?: CellGroup[] } }
   | { type: 'GENERATE_COMPLETE'; filledGridImage: string; filledGridMimeType: string; geminiText: string }
   | { type: 'GENERATE_ERROR'; error: string }
@@ -319,6 +326,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, model: action.model };
     case 'SET_IMAGE_SIZE':
       return { ...state, imageSize: action.imageSize };
+    case 'SET_ASPECT_RATIO':
+      return { ...state, aspectRatio: action.payload };
     case 'GENERATE_START':
       return {
         ...state,
