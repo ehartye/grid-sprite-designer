@@ -45,10 +45,6 @@
 
     const gridCols = manifest?.cols ?? (params.get('cols') ? Number(params.get('cols')) : null);
     const gridRows = manifest?.rows ?? (params.get('rows') ? Number(params.get('rows')) : null);
-    const gridCellW = manifest?.templateCellW ?? (params.get('cellW') ? Number(params.get('cellW')) : null);
-    const gridCellH = manifest?.templateCellH ?? (params.get('cellH') ? Number(params.get('cellH')) : null);
-    const gridHeaderH = manifest?.headerH ?? (params.get('headerH') ? Number(params.get('headerH')) : null);
-    const gridBorder = manifest?.border ?? (params.get('border') ? Number(params.get('border')) : null);
     const gridLabels = manifest?.cellLabels ?? (params.get('labels') ? params.get('labels').split(',') : null);
 
     async function run() {
@@ -82,11 +78,6 @@
         const labels = gridLabels || Array.from({ length: totalCells }, (_, i) => `Cell ${Math.floor(i / gridCols)},${i % gridCols}`);
         extractionConfig.gridOverride = { cols: gridCols, rows: gridRows, totalCells, cellLabels: labels };
       }
-      if (gridCellW) extractionConfig.templateCellW = gridCellW;
-      if (gridCellH) extractionConfig.templateCellH = gridCellH;
-      if (gridHeaderH != null) extractionConfig.headerH = gridHeaderH;
-      if (gridBorder != null) extractionConfig.border = gridBorder;
-
       // Call the REAL extractSprites from production code
       const sprites = await extractSprites(base64, mimeType, Object.keys(extractionConfig).length > 0 ? extractionConfig : undefined);
 

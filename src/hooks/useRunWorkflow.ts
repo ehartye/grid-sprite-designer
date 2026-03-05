@@ -221,10 +221,6 @@ export function useRunWorkflow() {
 
       // Extract sprites
       const extractionConfig = {
-        headerH: templateParams.headerH,
-        border: templateParams.border,
-        templateCellW: templateParams.cellW,
-        templateCellH: templateParams.cellH,
         gridOverride: {
           cols: gridConfig.cols,
           rows: gridConfig.rows,

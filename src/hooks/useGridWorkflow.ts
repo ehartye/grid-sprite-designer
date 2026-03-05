@@ -87,10 +87,6 @@ export function useGridWorkflow() {
       // 4. Extract sprites from the filled grid
       const extractionConfig = gridConfig
         ? {
-            headerH: templateConfig.headerH,
-            border: templateConfig.border,
-            templateCellW: templateConfig.cellW,
-            templateCellH: templateConfig.cellH,
             gridOverride: {
               cols: gridConfig.cols,
               rows: gridConfig.rows,
@@ -98,12 +94,7 @@ export function useGridWorkflow() {
               cellLabels: gridConfig.cellLabels,
             },
           }
-        : {
-            headerH: templateConfig.headerH,
-            border: templateConfig.border,
-            templateCellW: templateConfig.cellW,
-            templateCellH: templateConfig.cellH,
-          };
+        : {};
       const sprites = await extractSprites(
         result.image.data,
         result.image.mimeType,
@@ -187,21 +178,16 @@ export function useGridWorkflow() {
 
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
 
-    const templateConfig = state.imageSize === '4K' ? CONFIG_4K : CONFIG_2K;
     const sprites = await extractSprites(
       state.filledGridImage,
       state.filledGridMimeType,
       {
-        headerH: templateConfig.headerH,
-        border: templateConfig.border,
-        templateCellW: templateConfig.cellW,
-        templateCellH: templateConfig.cellH,
         ...overrides,
       },
     );
 
     dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-  }, [state.filledGridImage, state.filledGridMimeType, state.imageSize, dispatch]);
+  }, [state.filledGridImage, state.filledGridMimeType, dispatch]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
