@@ -95,7 +95,7 @@ function main() {
 
   // Build lookup: normalized name -> preset data
   const presetsByName = new Map<string, any>();
-  for (const [type, query] of Object.entries(presetQueries)) {
+  for (const [, query] of Object.entries(presetQueries)) {
     const rows = db.prepare(query).all();
     for (const row of rows) {
       const key = (row as any).name.toLowerCase().replace(/\s+/g, '-');
@@ -161,7 +161,9 @@ function main() {
         if (Array.isArray(labels) && labels.length > 0) {
           manifest.cellLabels = labels;
         }
-      } catch {}
+      } catch (e) {
+        console.warn(`  WARN: ${imageFile} — invalid cell_labels JSON: ${e}`);
+      }
     }
 
     manifest.contentPreset = name;
