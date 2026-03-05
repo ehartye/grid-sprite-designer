@@ -134,10 +134,12 @@ function computeColDividerScore(
 
 const DIVIDER_THRESHOLD = 0.80;
 const MIN_CUT_RUN = 1;
+const MERGE_GAP = 5;
 
 /**
  * Find contiguous bands of rows/columns whose divider score exceeds the threshold.
  * Each band represents a full-width/height cut (header bar, row divider, or column divider).
+ * Nearby bands separated by gaps <= MERGE_GAP are merged into a single band.
  *
  * @param scores - Per-row or per-column divider scores from computeRow/ColDividerScore
  * @param threshold - Minimum score to qualify as a divider pixel row/column (default 0.80)
@@ -149,26 +151,48 @@ function findCutBands(
   threshold: number = DIVIDER_THRESHOLD,
   minRun: number = MIN_CUT_RUN,
 ): Band[] {
-  const bands: Band[] = [];
+  // Find raw bands
+  const raw: Band[] = [];
   let i = 0;
   while (i < scores.length) {
     if (scores[i] >= threshold) {
       const start = i;
       while (i < scores.length && scores[i] >= threshold) i++;
       if (i - start >= minRun) {
-        bands.push({ start, end: i - 1 });
+        raw.push({ start, end: i - 1 });
       }
     } else {
       i++;
     }
   }
-  return bands;
+
+  // Merge nearby bands (handles JPEG artifacts and anti-aliased splits)
+  if (raw.length === 0) return raw;
+  const merged: Band[] = [{ ...raw[0] }];
+  for (let j = 1; j < raw.length; j++) {
+    const last = merged[merged.length - 1];
+    if (raw[j].start - last.end <= MERGE_GAP) {
+      last.end = raw[j].end;
+    } else {
+      merged.push({ ...raw[j] });
+    }
+  }
+
+  return merged;
 }
+
+/**
+ * Minimum content span size in pixels. Gaps smaller than this between
+ * cuts are artifacts (anti-aliased edges, thin gaps between header
+ * and first grid line) not real content regions.
+ */
+const MIN_CONTENT_SPAN = 20;
 
 /**
  * Convert cut bands into content spans (the gaps between cuts).
  * Content spans start after a cut's end and extend to the next cut's start,
- * with aaInset trimmed from each edge.
+ * with aaInset trimmed from each edge. Spans smaller than MIN_CONTENT_SPAN
+ * are discarded as artifacts.
  */
 function cutBandsToContentSpans(
   cuts: Band[],
@@ -184,7 +208,7 @@ function cutBandsToContentSpans(
     const start = prevEnd + 1 + aaInset;
     const end = cut.start - aaInset;
     const size = end - start;
-    if (size > 0) {
+    if (size >= MIN_CONTENT_SPAN) {
       spans.push({ start, size });
     }
     prevEnd = cut.end;
@@ -193,7 +217,7 @@ function cutBandsToContentSpans(
   // Content after the last cut
   const lastStart = prevEnd + 1 + aaInset;
   const lastSize = totalSize - lastStart - aaInset;
-  if (lastSize > 0) {
+  if (lastSize >= MIN_CONTENT_SPAN) {
     spans.push({ start: lastStart, size: lastSize });
   }
 
@@ -227,49 +251,69 @@ function detectCuts(
   console.log(`[CutDetect] Vertical cuts: ${vCuts.length}`, vCuts.map(b => `${b.start}-${b.end} (${b.end - b.start + 1}px)`));
 
   // ── Compute content spans between cuts ──
-  const hSpans = cutBandsToContentSpans(hCuts, height, aaInset);
-  const vSpans = cutBandsToContentSpans(vCuts, width, aaInset);
+  let hSpans = cutBandsToContentSpans(hCuts, height, aaInset);
+  let vSpans = cutBandsToContentSpans(vCuts, width, aaInset);
   console.log(`[CutDetect] Content regions: ${hSpans.length} rows x ${vSpans.length} cols`);
 
+  // If we have too many content spans, keep only the N largest.
+  // Extra small spans come from false-positive edge cuts or artifacts.
+  if (hSpans.length > gridRows) {
+    const sorted = [...hSpans].sort((a, b) => b.size - a.size);
+    hSpans = sorted.slice(0, gridRows).sort((a, b) => a.start - b.start);
+    console.log(`[CutDetect] Pruned rows: kept ${gridRows} largest of ${sorted.length}`);
+  }
+  if (vSpans.length > gridCols) {
+    const sorted = [...vSpans].sort((a, b) => b.size - a.size);
+    vSpans = sorted.slice(0, gridCols).sort((a, b) => a.start - b.start);
+    console.log(`[CutDetect] Pruned cols: kept ${gridCols} largest of ${sorted.length}`);
+  }
+
+  const rowsOk = hSpans.length === gridRows;
+  const colsOk = vSpans.length === gridCols;
+
+  // ── Rows: use detected spans or fall back to symmetrical ──
   let finalRows: Array<{ start: number; size: number }>;
-  let finalCols: Array<{ start: number; size: number }>;
-
-  if (hSpans.length === gridRows && vSpans.length === gridCols) {
-    // Full detection succeeded
+  if (rowsOk) {
     finalRows = hSpans;
-    finalCols = vSpans;
   } else {
-    // Fallback to symmetrical cuts
-    console.warn(
-      `[CutDetect] FALLBACK: detected ${hSpans.length} rows (expected ${gridRows}), ` +
-      `${vSpans.length} cols (expected ${gridCols}). Using symmetrical cuts.`
-    );
-
     // Check if we at least found a header band at the top
     let headerEnd = 0;
     if (hCuts.length > 0 && hCuts[0].start < height * 0.1) {
       headerEnd = hCuts[0].end + 1;
       console.log(`[CutDetect] Stripping detected header: rows 0-${hCuts[0].end} (${headerEnd}px)`);
     }
-
     const contentHeight = height - headerEnd;
-    const contentWidth = width;
     const rowSize = Math.floor(contentHeight / gridRows);
-    const colSize = Math.floor(contentWidth / gridCols);
-
     finalRows = [];
     for (let r = 0; r < gridRows; r++) {
       const start = headerEnd + r * rowSize + aaInset;
       const size = rowSize - 2 * aaInset;
       finalRows.push({ start, size: Math.max(size, 1) });
     }
+    console.warn(`[CutDetect] ROW FALLBACK: detected ${hSpans.length} rows (expected ${gridRows}), using symmetrical.`);
+  }
 
+  // ── Cols: use detected spans or fall back to symmetrical ──
+  let finalCols: Array<{ start: number; size: number }>;
+  if (colsOk) {
+    finalCols = vSpans;
+  } else {
+    const colSize = Math.floor(width / gridCols);
     finalCols = [];
     for (let c = 0; c < gridCols; c++) {
       const start = c * colSize + aaInset;
       const size = colSize - 2 * aaInset;
       finalCols.push({ start, size: Math.max(size, 1) });
     }
+    console.warn(`[CutDetect] COL FALLBACK: detected ${vSpans.length} cols (expected ${gridCols}), using symmetrical.`);
+  }
+
+  if (rowsOk && colsOk) {
+    console.log(`[CutDetect] Full detection succeeded.`);
+  } else if (rowsOk) {
+    console.log(`[CutDetect] HYBRID: detected rows + symmetrical columns.`);
+  } else if (colsOk) {
+    console.log(`[CutDetect] HYBRID: symmetrical rows + detected columns.`);
   }
 
   // ── Build cell rects ──
