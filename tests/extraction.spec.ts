@@ -196,10 +196,10 @@ test.describe('Sprite Extraction', () => {
   }
 
   test('posterization: 5-bit output has SNES-conformant colors', async ({ page }) => {
-    const fixturePath = join(ROOT, 'test-fixtures', 'filled-grid.jpg');
-    expect(existsSync(fixturePath), 'Test fixture filled-grid.jpg must exist').toBeTruthy();
+    const fixturePath = join(ROOT, 'test-fixtures', 'mosskin-spirit.png');
+    expect(existsSync(fixturePath), 'Test fixture mosskin-spirit.png must exist').toBeTruthy();
 
-    await page.goto('/tests/extraction-harness.html?fixture=filled-grid.jpg', {
+    await page.goto('/tests/extraction-harness.html?fixture=mosskin-spirit.png', {
       waitUntil: 'domcontentloaded',
     });
 
@@ -210,7 +210,7 @@ test.describe('Sprite Extraction', () => {
 
     // Extract sprites (original pixels), then posterize client-side and analyze
     const result = await page.evaluate(async () => {
-      const resp = await fetch('/test-fixtures/filled-grid.jpg');
+      const resp = await fetch('/test-fixtures/mosskin-spirit.png');
       const blob = await resp.blob();
       const base64: string = await new Promise(resolve => {
         const reader = new FileReader();
@@ -222,7 +222,7 @@ test.describe('Sprite Extraction', () => {
       const { posterize } = await import('/src/lib/imagePreprocess.ts');
 
       // Extract with 5-bit detection (sprites always come from original)
-      const sprites = await extractSprites(base64, 'image/jpeg', {
+      const sprites = await extractSprites(base64, 'image/png', {
         posterizeBits: 5,
       });
 
@@ -300,7 +300,7 @@ test.describe('Sprite Extraction', () => {
 
     // Export posterized sprite sheet to file for visual inspection
     const pngBase64 = await page.evaluate(async () => {
-      const resp = await fetch('/test-fixtures/filled-grid.jpg');
+      const resp = await fetch('/test-fixtures/mosskin-spirit.png');
       const blob = await resp.blob();
       const base64: string = await new Promise(resolve => {
         const reader = new FileReader();
@@ -311,7 +311,7 @@ test.describe('Sprite Extraction', () => {
       const { extractSprites, composeSpriteSheet } = await import('/src/lib/spriteExtractor.ts');
       const { posterize } = await import('/src/lib/imagePreprocess.ts');
 
-      const sprites = await extractSprites(base64, 'image/jpeg', { posterizeBits: 5 });
+      const sprites = await extractSprites(base64, 'image/png', { posterizeBits: 5 });
       const posterizedSprites = await Promise.all(sprites.map(async (sprite) => {
         const img = new Image();
         await new Promise<void>((resolve) => {
