@@ -50,6 +50,7 @@ const WHITE = '#FFFFFF';
 export function generateTemplate(
   config: TemplateConfig = CONFIG_2K,
   gridConfig?: GridConfig,
+  aspectRatio: string = '1:1',
 ): { canvas: HTMLCanvasElement; base64: string; width: number; height: number } {
   const { cellW, cellH, headerH, border, fontSize } = config;
 
@@ -60,21 +61,34 @@ export function generateTemplate(
   const gridW = cols * cellW + (cols + 1) * border;
   const gridH = rows * cellH + (rows + 1) * border;
 
-  // Canvas is always square (max of grid dimensions) to stay within 1:1 format
-  const canvasSize = Math.max(gridW, gridH);
+  // Parse aspect ratio to calculate canvas dimensions
+  const [arW, arH] = aspectRatio.split(':').map(Number);
+  const arFactor = (arW && arH) ? arW / arH : 1;
+
+  let canvasW: number;
+  let canvasH: number;
+  if (arFactor >= 1) {
+    // Landscape or square: width is the larger dimension
+    canvasW = Math.max(gridW, Math.ceil(gridH * arFactor));
+    canvasH = Math.max(gridH, Math.ceil(gridW / arFactor));
+  } else {
+    // Portrait: height is the larger dimension
+    canvasW = Math.max(gridW, Math.ceil(gridH * arFactor));
+    canvasH = Math.max(gridH, Math.ceil(gridW / arFactor));
+  }
 
   const canvas = document.createElement('canvas');
-  canvas.width = canvasSize;
-  canvas.height = canvasSize;
+  canvas.width = canvasW;
+  canvas.height = canvasH;
   const ctx = canvas.getContext('2d')!;
 
   // Fill entire canvas with black
   ctx.fillStyle = BLACK;
-  ctx.fillRect(0, 0, canvasSize, canvasSize);
+  ctx.fillRect(0, 0, canvasW, canvasH);
 
   // Offset to center the grid on the canvas
-  const offsetX = Math.floor((canvasSize - gridW) / 2);
-  const offsetY = Math.floor((canvasSize - gridH) / 2);
+  const offsetX = Math.floor((canvasW - gridW) / 2);
+  const offsetY = Math.floor((canvasH - gridH) / 2);
 
   // Font for headers
   ctx.font = `bold ${fontSize}px Arial, sans-serif`;
@@ -106,7 +120,7 @@ export function generateTemplate(
   const dataUrl = canvas.toDataURL('image/png');
   const base64 = dataUrl.split(',')[1];
 
-  return { canvas, base64, width: canvasSize, height: canvasSize };
+  return { canvas, base64, width: canvasW, height: canvasH };
 }
 
 /**
@@ -116,15 +130,28 @@ export function getCellBounds(
   cellIndex: number,
   config: TemplateConfig = CONFIG_2K,
   gridConfig?: GridConfig,
+  aspectRatio: string = '1:1',
 ): { x: number; y: number; w: number; h: number } {
   const cols = gridConfig?.cols ?? COLS;
   const rows = gridConfig?.rows ?? ROWS;
 
   const gridW = cols * config.cellW + (cols + 1) * config.border;
   const gridH = rows * config.cellH + (rows + 1) * config.border;
-  const canvasSize = Math.max(gridW, gridH);
-  const offsetX = Math.floor((canvasSize - gridW) / 2);
-  const offsetY = Math.floor((canvasSize - gridH) / 2);
+
+  const [arW, arH] = aspectRatio.split(':').map(Number);
+  const arFactor = (arW && arH) ? arW / arH : 1;
+  let canvasW: number;
+  let canvasH: number;
+  if (arFactor >= 1) {
+    canvasW = Math.max(gridW, Math.ceil(gridH * arFactor));
+    canvasH = Math.max(gridH, Math.ceil(gridW / arFactor));
+  } else {
+    canvasW = Math.max(gridW, Math.ceil(gridH * arFactor));
+    canvasH = Math.max(gridH, Math.ceil(gridW / arFactor));
+  }
+
+  const offsetX = Math.floor((canvasW - gridW) / 2);
+  const offsetY = Math.floor((canvasH - gridH) / 2);
 
   const col = cellIndex % cols;
   const row = Math.floor(cellIndex / cols);
