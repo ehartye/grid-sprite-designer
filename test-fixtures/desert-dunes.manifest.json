@@ -1,0 +1,30 @@
+{
+  "spriteType": "terrain",
+  "gridSize": "4x4",
+  "cols": 4,
+  "rows": 4,
+  "totalCells": 16,
+  "templateCellW": 509,
+  "templateCellH": 509,
+  "headerH": 18,
+  "border": 2,
+  "generationId": 38,
+  "cellLabels": [
+    "Flat Sand 1",
+    "Flat Sand 2",
+    "Rippled Sand",
+    "Wind Swept",
+    "Dune Crest N",
+    "Dune Crest S",
+    "Dune Shadow",
+    "Sand-Rock Mix",
+    "Rocky Ground",
+    "Sandstone",
+    "Cracked Earth",
+    "Fossil",
+    "Sand-Oasis Edge N",
+    "Sand-Oasis Edge S",
+    "Sand-Oasis Edge E",
+    "Sand-Oasis Edge W"
+  ]
+}

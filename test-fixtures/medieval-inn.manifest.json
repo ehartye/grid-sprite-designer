@@ -1,0 +1,23 @@
+{
+  "spriteType": "building",
+  "gridSize": "3x3",
+  "cols": 3,
+  "rows": 3,
+  "totalCells": 9,
+  "templateCellW": 680,
+  "templateCellH": 680,
+  "headerH": 22,
+  "border": 2,
+  "generationId": 35,
+  "cellLabels": [
+    "Day - Idle",
+    "Day - Smoke Rising",
+    "Day - Sign Swaying",
+    "Evening - Lights On",
+    "Evening - Chimney Glow",
+    "Evening - Busy",
+    "Night - Lantern Lit",
+    "Night - Quiet",
+    "Night - Closed"
+  ]
+}

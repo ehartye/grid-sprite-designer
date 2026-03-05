@@ -1,0 +1,23 @@
+{
+  "spriteType": "terrain",
+  "gridSize": "3x3",
+  "cols": 3,
+  "rows": 3,
+  "totalCells": 9,
+  "templateCellW": 680,
+  "templateCellH": 680,
+  "headerH": 18,
+  "border": 2,
+  "generationId": 40,
+  "cellLabels": [
+    "Stone Floor 1",
+    "Stone Floor 2",
+    "Cracked Stone",
+    "Mossy Stone",
+    "Wet Stone",
+    "Rubble",
+    "Wall Base N",
+    "Wall Base S",
+    "Wall Corner"
+  ]
+}
