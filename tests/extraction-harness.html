@@ -33,14 +33,23 @@
     const params = new URLSearchParams(window.location.search);
     const fixture = params.get('fixture') || 'filled-grid.jpg';
 
-    // Grid override params for non-6x6 grids (e.g. building 2x3)
-    const gridCols = params.get('cols') ? Number(params.get('cols')) : null;
-    const gridRows = params.get('rows') ? Number(params.get('rows')) : null;
-    const gridCellW = params.get('cellW') ? Number(params.get('cellW')) : null;
-    const gridCellH = params.get('cellH') ? Number(params.get('cellH')) : null;
-    const gridHeaderH = params.get('headerH') ? Number(params.get('headerH')) : null;
-    const gridBorder = params.get('border') ? Number(params.get('border')) : null;
-    const gridLabels = params.get('labels') ? params.get('labels').split(',') : null;
+    // Parse manifest (preferred) or individual params (legacy)
+    let manifest = null;
+    if (params.get('manifest')) {
+      try {
+        manifest = JSON.parse(params.get('manifest'));
+      } catch (e) {
+        console.error('Failed to parse manifest:', e);
+      }
+    }
+
+    const gridCols = manifest?.cols ?? (params.get('cols') ? Number(params.get('cols')) : null);
+    const gridRows = manifest?.rows ?? (params.get('rows') ? Number(params.get('rows')) : null);
+    const gridCellW = manifest?.templateCellW ?? (params.get('cellW') ? Number(params.get('cellW')) : null);
+    const gridCellH = manifest?.templateCellH ?? (params.get('cellH') ? Number(params.get('cellH')) : null);
+    const gridHeaderH = manifest?.headerH ?? (params.get('headerH') ? Number(params.get('headerH')) : null);
+    const gridBorder = manifest?.border ?? (params.get('border') ? Number(params.get('border')) : null);
+    const gridLabels = manifest?.cellLabels ?? (params.get('labels') ? params.get('labels').split(',') : null);
 
     async function run() {
       const info = document.getElementById('info');
