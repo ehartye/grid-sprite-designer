@@ -37,7 +37,10 @@ export function ConfigPanel() {
 
   const handleGridSelectionChange = useCallback((selected: GridLink[]) => {
     setSelectedGridLinks(selected);
-  }, []);
+    if (selected.length > 0) {
+      dispatch({ type: 'SET_ASPECT_RATIO', payload: selected[0].aspectRatio || '1:1' });
+    }
+  }, [dispatch]);
 
   const updateCharacter = useCallback(
     (field: CharacterField, value: string) => {
@@ -218,6 +221,20 @@ export function ConfigPanel() {
             4K (4096px)
           </button>
         </div>
+      </div>
+
+      {/* 8b. Aspect Ratio */}
+      <div className="config-field">
+        <label>Aspect Ratio</label>
+        <select
+          className="admin-select"
+          value={state.aspectRatio}
+          onChange={e => dispatch({ type: 'SET_ASPECT_RATIO', payload: e.target.value })}
+        >
+          {['1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'].map(r =>
+            <option key={r} value={r}>{r}</option>
+          )}
+        </select>
       </div>
 
       {/* 9. Prompt Preview */}
