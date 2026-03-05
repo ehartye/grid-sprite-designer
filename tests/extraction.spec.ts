@@ -105,44 +105,33 @@ test.describe('Sprite Extraction', () => {
         fullPage: true,
       });
 
-      // ── Assertions ──
+      // ── Run assertions, collecting failures ──
+      const failures: string[] = [];
 
       // 1. Sprite count
-      expect(
-        results.length,
-        `${name}: expected ${manifest.totalCells} sprites, got ${results.length}`,
-      ).toBe(manifest.totalCells);
+      if (results.length !== manifest.totalCells) {
+        failures.push(`Expected ${manifest.totalCells} sprites, got ${results.length}`);
+      }
 
       // 2. Header bleed
-      const bleedFailures: string[] = [];
       for (const r of results) {
         if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
-          bleedFailures.push(`${r.label}: ${r.headerBleedPct}% header bleed`);
+          failures.push(`${r.label}: ${r.headerBleedPct}% header bleed (max ${MAX_ALLOWED_BLEED}%)`);
         }
       }
-      expect(
-        bleedFailures,
-        `${name}: header bleed failures:\n${bleedFailures.join('\n')}`,
-      ).toHaveLength(0);
 
       // 3. Dark bands (threshold varies by sprite type)
       const darkThreshold = MAX_DARK_BAND_PCT[manifest.spriteType] ?? 80;
-      const darkBandFailures: string[] = [];
       for (const r of results) {
         if (r.worstDarkBandPct > darkThreshold) {
-          darkBandFailures.push(`${r.label}: ${r.worstDarkBandPct}% dark at row ${r.worstDarkBandRow}`);
+          const msg = `${r.label}: ${r.worstDarkBandPct}% dark at row ${r.worstDarkBandRow} (max ${darkThreshold}%)`;
+          // Buildings/backgrounds: informational only
+          if (manifest.spriteType === 'building' || manifest.spriteType === 'background') {
+            console.log(`${name} — dark band (informational): ${msg}`);
+          } else {
+            failures.push(msg);
+          }
         }
-      }
-      // Buildings/backgrounds: log as info only
-      if (manifest.spriteType === 'building' || manifest.spriteType === 'background') {
-        if (darkBandFailures.length > 0) {
-          console.log(`${name} — dark bands (informational):\n  ${darkBandFailures.join('\n  ')}`);
-        }
-      } else {
-        expect(
-          darkBandFailures,
-          `${name}: dark band failures:\n${darkBandFailures.join('\n')}`,
-        ).toHaveLength(0);
       }
 
       // 4. Row height uniformity
@@ -151,23 +140,26 @@ test.describe('Sprite Extraction', () => {
         if (rowSprites.length === 0) continue;
         const heights = rowSprites.map(r => r.cellH);
         const spread = Math.max(...heights) - Math.min(...heights);
-        expect(
-          spread,
-          `${name} row ${row}: height spread ${spread}px`,
-        ).toBeLessThanOrEqual(MAX_HEIGHT_SPREAD);
+        if (spread > MAX_HEIGHT_SPREAD) {
+          failures.push(`Row ${row}: height spread ${spread}px (max ${MAX_HEIGHT_SPREAD}px)`);
+        }
       }
 
       // 5. Dimension uniformity (post-normalization)
       const widths = results.map(r => r.cellW);
       const heights = results.map(r => r.cellH);
-      expect(Math.max(...widths) - Math.min(...widths), `${name}: width spread`).toBe(0);
-      expect(Math.max(...heights) - Math.min(...heights), `${name}: height spread`).toBe(0);
+      const wSpread = Math.max(...widths) - Math.min(...widths);
+      const hSpread = Math.max(...heights) - Math.min(...heights);
+      if (wSpread > 0) failures.push(`Width spread: ${wSpread}px (expected 0)`);
+      if (hSpread > 0) failures.push(`Height spread: ${hSpread}px (expected 0)`);
 
-      // ── Save results for report ──
+      // ── Save results for report (BEFORE asserting, so failures are included) ──
+      const pass = failures.length === 0;
       const fixtureResult = {
         name,
         manifest,
-        pass: true, // will be set to false by the report generator if assertions above threw
+        pass,
+        failures,
         metrics: {
           spriteCount: results.length,
           maxBleed: Math.max(...results.map(r => r.headerBleedPct)),
@@ -198,8 +190,12 @@ test.describe('Sprite Extraction', () => {
         `${name} — ${manifest.spriteType} ${manifest.gridSize}: ` +
         `${results.length} sprites, max bleed: ${fixtureResult.metrics.maxBleed}%, ` +
         `max dark band: ${fixtureResult.metrics.maxDarkBand}%, ` +
-        `cell: ${results[0]?.cellW}x${results[0]?.cellH}`,
+        `cell: ${results[0]?.cellW}x${results[0]?.cellH}` +
+        (pass ? '' : ` — FAIL: ${failures.length} issues`),
       );
+
+      // Now assert — result JSON is already written regardless of outcome
+      expect(failures, `${name}: ${failures.join('; ')}`).toHaveLength(0);
     });
   }
 

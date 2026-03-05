@@ -26,6 +26,7 @@ interface FixtureResult {
     totalCells: number;
   };
   pass: boolean;
+  failures?: string[];
   metrics: {
     spriteCount: number;
     maxBleed: number;
@@ -108,8 +109,12 @@ function main() {
         </div>`;
     }).join('\n');
 
+    const failureList = r.failures && r.failures.length > 0
+      ? `<div class="failure-list">${r.failures.map(f => `<div class="failure-item">${f}</div>`).join('')}</div>`
+      : '';
+
     return `
-      <div class="fixture-card">
+      <div class="fixture-card${r.pass ? '' : ' fixture-fail'}">
         <div class="fixture-header">
           <div class="fixture-title">
             ${statusBadge}
@@ -124,8 +129,9 @@ function main() {
             Max dark: <span style="color:${metricColor(r.metrics.maxDarkBand, 70, 80)}">${r.metrics.maxDarkBand}%</span> &middot;
             Cell: ${r.metrics.cellW}&times;${r.metrics.cellH}
           </div>
+          ${failureList}
         </div>
-        <details>
+        <details${r.pass ? '' : ' open'}>
           <summary>Sprite Grid (${r.manifest.cols}&times;${r.manifest.rows})</summary>
           <div class="sprite-grid" style="grid-template-columns: repeat(${r.manifest.cols}, 1fr)">
             ${spriteGrid}
@@ -170,6 +176,11 @@ function main() {
     .sprite-label { font-size: 0.65rem; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sprite-metrics { font-size: 0.6rem; display: flex; gap: 8px; margin-top: 2px; }
     .no-img { padding: 20px; text-align: center; color: #555; font-size: 0.7rem; }
+    .fixture-fail { border-color: #7f1d1d; }
+    .fixture-fail .fixture-header { border-bottom-color: #7f1d1d; }
+    .failure-list { margin-top: 8px; padding: 8px; background: #1a0a0a; border: 1px solid #7f1d1d; border-radius: 4px; }
+    .failure-item { font-size: 0.75rem; color: #fca5a5; padding: 2px 0; }
+    .failure-item::before { content: "\\2717 "; color: #ef4444; }
   </style>
 </head>
 <body>
