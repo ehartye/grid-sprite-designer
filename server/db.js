@@ -2606,6 +2606,110 @@ ROW 2 — Environmental:
   Header "Lava Night" (2,1): Night scene — the temple is silhouetted against the dark sky, lit only by the lava glow from channels and forge. Runes provide accent lighting. The volcanic rock absorbs all other light. Dramatic and ominous.
   Header "Destroyed" (2,2): The temple has been destroyed by a catastrophic eruption. Obsidian pillars shattered, forge entrance collapsed. Cooled black lava covers the steps. Some channels still glow faintly. Ruins and rubble.`,
     },
+    {
+      id: 'ruined-gas-station',
+      name: 'Ruined Gas Station',
+      genre: 'Post-Apocalyptic',
+      gridSize: '3x3',
+      description: 'A collapsed roadside gas station with a caved-in canopy, rusted fuel pumps, and boarded-up windows. Faded pre-war signage barely readable.',
+      details: 'Metal canopy collapsed on one side, supported by a single bent pole. Two rusted fuel pumps on cracked concrete. Boarded windows with plywood and nails. Faded price sign with missing letters. Overgrown parking lot with weeds through cracks. A rusted car hulk sits abandoned nearby.',
+      colorNotes: 'Rust orange and brown for corroded metal, faded white and red for old signage, cracked grey concrete, dusty tan for sand and dirt, dark green weeds, dull yellow for faded road markings.',
+      cellLabels: JSON.stringify([
+        'Day - Abandoned', 'Day - Scavengers', 'Day - Dust Storm',
+        'Dusk - Campfire', 'Dusk - Lookout', 'Dusk - Quiet',
+        'Night - Moonlit', 'Night - Occupied', 'Night - Raider Attack'
+      ]),
+      cellGuidance: `ROW 0 — Daytime States:
+  Header "Day - Abandoned" (0,0): The gas station in harsh daylight. The collapsed canopy casts a jagged shadow. Rusted pumps stand amid cracked concrete. Faded signage is sun-bleached. Weeds push through every crack. The rusted car hulk bakes in the heat. Empty and desolate.
+  Header "Day - Scavengers" (0,1): Same daytime scene but small figure silhouettes are visible near the pumps, checking for remaining fuel. One boards are pried from a window. A pack of salvaged goods sits by the rusted car. Active scavenging.
+  Header "Day - Dust Storm" (0,2): A dust storm sweeps across the station. Dense tan-brown dust obscures the lower half. The canopy creaks in the wind. Only the top of the faded sign is visible through the swirling sand. Debris flies past.
+
+ROW 1 — Dusk Transition:
+  Header "Dusk - Campfire" (1,0): Orange-purple dusk sky. A small campfire burns inside the station under the remaining canopy. Warm orange firelight spills from the boarded windows. Smoke mixes with the dusky air. Feels temporarily inhabited.
+  Header "Dusk - Lookout" (1,1): Dusk with a small figure silhouette standing on the collapsed canopy edge, scanning the horizon. The fading light casts long shadows from the rusted pumps. A watchful, tense atmosphere.
+  Header "Dusk - Quiet" (1,2): Peaceful dusk — the orange sky behind the station silhouette. No activity. The rusted pumps cast long shadows and the faded sign is backlit. A melancholy beauty to the abandoned ruin.
+
+ROW 2 — Nighttime States:
+  Header "Night - Moonlit" (2,0): Pale moonlight illuminates the station. The rusted metal has a blue-silver sheen. Deep shadows under the canopy. The boarded windows are dark voids. The car hulk is a dark silhouette. Eerie and still.
+  Header "Night - Occupied" (2,1): Night with warm light from inside — a lantern or fire visible through gaps in the boarded windows. Someone has set up shelter. Bedroll silhouette visible through the doorway. A watch-fire outside.
+  Header "Night - Raider Attack" (2,2): Night action scene — muzzle flashes from behind the rusted pumps. Small explosions of sparks. The canopy is being used as cover. Figures in combat silhouettes. Orange tracer lines against the dark. Chaos.`,
+    },
+    {
+      id: 'fortified-settlement-gate',
+      name: 'Fortified Settlement Gate',
+      genre: 'Post-Apocalyptic',
+      gridSize: '3x3',
+      description: 'A makeshift community entrance built from scrap metal walls, featuring a watchtower, barbed wire barriers, and a heavy gate assembled from car doors and sheet metal.',
+      details: 'Walls made from corrugated metal sheets, car hoods, and sheet metal welded together. A wooden watchtower with a tin roof rises above the left wall. Barbed wire coils top the walls. The gate is two car doors hinged on pipe frames. A guard post with sandbags flanks the right side. Painted warning signs.',
+      colorNotes: 'Rust red and gunmetal grey for scrap metal walls, weathered brown wood for the watchtower, silver barbed wire, faded yellow and black warning signs, olive drab sandbags, dusty brown ground.',
+      cellLabels: JSON.stringify([
+        'Day - Open', 'Day - Closed', 'Day - Market',
+        'Alert - Lockdown', 'Alert - Under Attack', 'Alert - Burning',
+        'Night - Guarded', 'Night - All Clear', 'Night - Breach'
+      ]),
+      cellGuidance: `ROW 0 — Daytime Operations:
+  Header "Day - Open" (0,0): The settlement gate in daylight with the car-door gates swung open. Traders and survivors pass through. The watchtower has a guard silhouette. Barbed wire glints in the sun. The scrap walls look sturdy despite their makeshift construction.
+  Header "Day - Closed" (0,1): Gates shut tight, car doors sealed and barred from inside. The watchtower guard is alert with a visible rifle silhouette. Warning signs face outward. Barbed wire is prominent. The settlement is locked down but not under threat.
+  Header "Day - Market" (0,2): Gates open with a bustling market scene just inside. Small stalls visible through the gateway. Barter goods displayed. Multiple figure silhouettes. The watchtower flies a trade flag. Lively and welcoming.
+
+ROW 1 — Alert States:
+  Header "Alert - Lockdown" (1,0): Emergency lockdown — gates barred with extra barricades. The watchtower has multiple armed guards. Additional barbed wire deployed in front of the gate. Warning signs lit with red flares. Tense and defensive.
+  Header "Alert - Under Attack" (1,1): Active combat — muzzle flashes from the watchtower and guard post. Bullet impacts spark on the scrap metal walls. The gate shudders from impacts. Smoke rises from behind the walls. Desperate defense.
+  Header "Alert - Burning" (1,2): The settlement is on fire — flames engulf the watchtower roof and lick along the scrap walls. The gate hangs broken and open. Black smoke billows upward. Barbed wire melts and sags. Devastation.
+
+ROW 2 — Nighttime States:
+  Header "Night - Guarded" (2,0): Night with the gates closed. A lantern hangs from the watchtower and a torch burns at the guard post. The scrap walls are dark silhouettes with barbed wire visible against the moonlit sky. Watchful and secure.
+  Header "Night - All Clear" (2,1): Quiet night — the guard in the watchtower is relaxed. A small fire burns inside the guard post. The gates are closed but not barred. Peaceful. Distant campfire light glows from within the settlement behind the walls.
+  Header "Night - Breach" (2,2): Night attack aftermath — a section of the scrap wall has been torn open. The watchtower leans at an angle. The gate is smashed inward. Fires burn inside the settlement visible through the breach. The barbed wire is scattered.`,
+    },
+    {
+      id: 'underground-bunker-entrance',
+      name: 'Underground Bunker Entrance',
+      genre: 'Post-Apocalyptic',
+      gridSize: '2x2',
+      description: 'A concealed hillside entrance to an underground survival bunker, featuring a heavy blast door, radiation warning signs, and camouflage netting.',
+      details: 'A reinforced concrete frame set into a grass-covered hillside. A thick steel blast door with a large wheel lock mechanism. Faded yellow radiation warning signs on either side. Torn camouflage netting partially covering the entrance. A ventilation pipe protrudes from the hillside above. Sandbag emplacements flank the approach.',
+      colorNotes: 'Dark concrete grey frame, rusted steel blast door, faded yellow radiation trefoil signs, green-brown camouflage netting, olive grass on the hillside, dull metal ventilation pipe.',
+      cellLabels: JSON.stringify([
+        'Sealed - Day', 'Open - Day',
+        'Sealed - Night', 'Open - Night'
+      ]),
+      cellGuidance: `ROW 0 — Daytime States:
+  Header "Sealed - Day" (0,0): Daylight view of the sealed bunker entrance. The heavy blast door is shut tight, the wheel lock rusted in place. Faded radiation signs flank the concrete frame. Camouflage netting is torn but still partially covers the entrance. Grass grows over the hillside. The ventilation pipe releases a thin wisp of filtered air. Quiet and seemingly abandoned.
+  Header "Open - Day" (0,1): The blast door is swung open, revealing a lit interior corridor with concrete walls and flickering fluorescent lights. The wheel lock hangs loose. A figure silhouette stands in the doorway. Fresh tracks in the dirt approach. The camouflage netting is pulled aside. Someone is home.
+
+ROW 1 — Nighttime States:
+  Header "Sealed - Night" (1,0): Night view of the sealed entrance. Moonlight catches the rusted blast door and concrete frame. The radiation signs are barely visible in the dark. The camouflage netting is a dark mass. The ventilation pipe is a dark silhouette against the sky. A faint hum from underground is the only sign of life.
+  Header "Open - Night" (1,1): Night with the blast door open — warm fluorescent light spills from the corridor onto the dark hillside. The interior is brightly lit in contrast to the dark exterior. A guard sits on the sandbags with a lantern. The open door is a beacon in the darkness.`,
+    },
+    {
+      id: 'irradiated-church',
+      name: 'Irradiated Church',
+      genre: 'Post-Apocalyptic',
+      gridSize: '3x3',
+      description: 'A crumbling pre-war church with a broken steeple, partially collapsed roof, and an eerie green radioactive glow emanating from the interior through shattered stained glass windows.',
+      details: 'White clapboard walls now grey and peeling. The steeple leans at an angle with the cross bent. Half the roof has caved in exposing wooden rafters. Stained glass windows are shattered, some with jagged colorful fragments remaining. A green radioactive glow pulses from inside. An overgrown graveyard with tilted headstones surrounds the building.',
+      colorNotes: 'Peeling grey-white clapboard, dark exposed wooden rafters, sickly green radioactive glow, remaining stained glass fragments in red/blue/gold, overgrown dark green vegetation, grey tilted headstones, rusty brown exposed metal.',
+      cellLabels: JSON.stringify([
+        'Day - Exterior', 'Day - Glow Pulse', 'Day - Overgrown',
+        'Dusk - Silhouette', 'Dusk - Green Beacon', 'Dusk - Fog',
+        'Night - Dormant', 'Night - Active', 'Night - Meltdown'
+      ]),
+      cellGuidance: `ROW 0 — Daytime States:
+  Header "Day - Exterior" (0,0): The church in daylight showing its decay. Grey peeling clapboard walls, leaning steeple with bent cross, collapsed roof section. The green glow is faint in daylight, barely visible through the shattered windows. The overgrown graveyard with tilted headstones surrounds the building. Sad and decrepit.
+  Header "Day - Glow Pulse" (0,1): Same daytime view but the green radioactive glow pulses brighter — clearly visible even in daylight through the broken windows and collapsed roof. The glow casts faint green light on the ground around the church. Something inside is active.
+  Header "Day - Overgrown" (0,2): The church nearly consumed by mutant vegetation. Thick vines with sickly green leaves crawl up the walls. The graveyard headstones are buried in overgrowth. Only the leaning steeple protrudes above the vegetation. Nature reclaiming the ruin.
+
+ROW 1 — Dusk Transition:
+  Header "Dusk - Silhouette" (1,0): Orange-purple dusk sky with the church as a dark silhouette. The leaning steeple and bent cross are dramatic against the sunset. The green glow begins to become more visible through the windows. The graveyard headstones cast long shadows.
+  Header "Dusk - Green Beacon" (1,1): Dusk with the green radioactive glow now clearly visible and bright. The church becomes a green beacon against the darkening sky. Light streams from every window and the collapsed roof. The surrounding ground is bathed in eerie green.
+  Header "Dusk - Fog" (1,2): Dusk with a thick fog rolling through the graveyard. The fog glows faintly green near the church. Headstones emerge from the mist. The steeple pierces above the fog layer. Atmospheric and haunting.
+
+ROW 2 — Nighttime States:
+  Header "Night - Dormant" (2,0): Dark night with the church barely visible. The green glow is reduced to a faint pulse from within. Moonlight catches the leaning steeple. The graveyard is dark with headstones as pale shapes. Quiet and ominous.
+  Header "Night - Active" (2,1): Night with the green glow at full intensity — the church blazes with radioactive light. Green beams shoot from the shattered windows. The collapsed roof is an open cauldron of green energy. The graveyard is lit in sickly green. Radiation readings would be lethal.
+  Header "Night - Meltdown" (2,2): Critical radioactive event — the church's green glow is blinding. Cracks of green energy split the remaining walls. The steeple is surrounded by a green corona. The ground around the church glows and cracks. The headstones themselves glow. An atomic nightmare.`,
+    },
   ];
 
   const insert = db.prepare(
