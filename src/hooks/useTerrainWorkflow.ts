@@ -86,10 +86,6 @@ export function useTerrainWorkflow() {
         result.image.data,
         result.image.mimeType,
         {
-          headerH: templateParams.headerH,
-          border: templateParams.border,
-          templateCellW: templateParams.cellW,
-          templateCellH: templateParams.cellH,
           gridOverride: {
             cols: gridConfig.cols,
             rows: gridConfig.rows,
@@ -179,16 +175,11 @@ export function useTerrainWorkflow() {
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
 
     const gridConfig = getTerrainGridConfig(state.terrain.gridSize, state.terrain.cellLabels);
-    const templateParams = gridConfig.templates[state.imageSize as '2K' | '4K'];
 
     const sprites = await extractSprites(
       state.filledGridImage,
       state.filledGridMimeType,
       {
-        headerH: templateParams.headerH,
-        border: templateParams.border,
-        templateCellW: templateParams.cellW,
-        templateCellH: templateParams.cellH,
         gridOverride: {
           cols: gridConfig.cols,
           rows: gridConfig.rows,
