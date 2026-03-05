@@ -10,6 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "playwright test",
+    "test:report": "npx tsx tests/report-generator.ts",
     "test:sync-manifests": "npx tsx scripts/sync-fixture-manifests.ts"
   },
   "dependencies": {
