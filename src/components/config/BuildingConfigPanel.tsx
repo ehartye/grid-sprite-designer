@@ -32,7 +32,10 @@ export function BuildingConfigPanel() {
 
   const handleGridSelectionChange = useCallback((selected: GridLink[]) => {
     setSelectedGridLinks(selected);
-  }, []);
+    if (selected.length > 0) {
+      dispatch({ type: 'SET_ASPECT_RATIO', payload: selected[0].aspectRatio || '1:1' });
+    }
+  }, [dispatch]);
 
   const updateBuilding = useCallback(
     (field: BuildingField, value: string) => {

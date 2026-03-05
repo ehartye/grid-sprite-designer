@@ -46,7 +46,8 @@ export function useBackgroundWorkflow() {
       const templateParams = gridConfig.templates[state.imageSize as '2K' | '4K'];
 
       // 2. Generate template grid
-      const template = generateTemplate(templateParams, gridConfig);
+      const aspectRatio = gridConfig.aspectRatio || state.aspectRatio;
+      const template = generateTemplate(templateParams, gridConfig, aspectRatio);
       dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } });
 
       // 3. Build prompt with layered guidance
@@ -64,6 +65,8 @@ export function useBackgroundWorkflow() {
         { data: template.base64, mimeType: 'image/png' },
         state.imageSize,
         abort.signal,
+        undefined,
+        aspectRatio,
       );
 
       if (abort.signal.aborted) return;
@@ -165,7 +168,7 @@ export function useBackgroundWorkflow() {
       isGeneratingRef.current = false;
       abortRef.current = null;
     }
-  }, [state.background, state.model, state.imageSize, dispatch]);
+  }, [state.background, state.model, state.imageSize, state.aspectRatio, dispatch]);
 
   const reExtract = useCallback(async (overrides?: {
     aaInset?: number;

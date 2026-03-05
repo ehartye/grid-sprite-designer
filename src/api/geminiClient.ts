@@ -14,8 +14,9 @@ export async function generateGrid(
   imageSize: string = '2K',
   signal?: AbortSignal,
   referenceImage?: { data: string; mimeType: string },
+  aspectRatio: string = '1:1',
 ): Promise<GridGenerateResult> {
-  const body: Record<string, unknown> = { model, prompt, templateImage, imageSize };
+  const body: Record<string, unknown> = { model, prompt, templateImage, imageSize, aspectRatio };
   if (referenceImage) body.referenceImage = referenceImage;
 
   const response = await fetch('/api/generate-grid', {

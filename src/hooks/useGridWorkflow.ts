@@ -47,7 +47,8 @@ export function useGridWorkflow() {
       } else {
         templateConfig = state.imageSize === '4K' ? CONFIG_4K : CONFIG_2K;
       }
-      const template = generateTemplate(templateConfig, gridConfig);
+      const aspectRatio = gridConfig?.aspectRatio || state.aspectRatio;
+      const template = generateTemplate(templateConfig, gridConfig, aspectRatio);
 
       dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: gridConfig ? { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } : undefined });
 
@@ -66,6 +67,8 @@ export function useGridWorkflow() {
         { data: template.base64, mimeType: 'image/png' },
         state.imageSize,
         abort.signal,
+        undefined,
+        aspectRatio,
       );
 
       if (abort.signal.aborted) return;
@@ -168,7 +171,7 @@ export function useGridWorkflow() {
       isGeneratingRef.current = false;
       abortRef.current = null;
     }
-  }, [state.character, state.model, state.imageSize, dispatch]);
+  }, [state.character, state.model, state.imageSize, state.aspectRatio, dispatch]);
 
   const reExtract = useCallback(async (overrides?: {
     aaInset?: number;

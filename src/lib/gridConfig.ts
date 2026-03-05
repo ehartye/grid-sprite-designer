@@ -22,6 +22,8 @@ export interface GridConfig {
   rows: number;
   totalCells: number;
   cellLabels: string[];
+  aspectRatio?: string;
+  tileShape?: 'square' | 'diamond';
   templates: {
     '2K': TemplateParams;
     '4K': TemplateParams;
@@ -240,19 +242,36 @@ export function getBackgroundGridConfig(
 
 // ── Grid preset conversion ─────────────────────────────────────────────────
 
-function getTemplateParams(gridSize: string, spriteType: string): GridConfig['templates'] {
+function getTemplateParams(gridSize: string, spriteType: string, aspectRatio: string = '1:1'): GridConfig['templates'] {
   if (spriteType === 'character' && gridSize === '6x6') return CHARACTER_GRID.templates;
   if (spriteType === 'building' && BUILDING_GRIDS[gridSize]) return BUILDING_GRIDS[gridSize].templates;
   if (spriteType === 'terrain' && TERRAIN_GRIDS[gridSize]) return TERRAIN_GRIDS[gridSize].templates;
   if (spriteType === 'background' && BACKGROUND_GRIDS[gridSize]) return BACKGROUND_GRIDS[gridSize].templates;
+
   // Fallback: calculate proportional cell sizes for unknown grid sizes
   const [colStr, rowStr] = gridSize.split('x');
   const cols = parseInt(colStr, 10) || 3;
   const rows = parseInt(rowStr, 10) || 3;
-  const cellW2K = Math.floor(2044 / cols);
-  const cellH2K = Math.floor(2044 / rows);
-  const cellW4K = Math.floor(4088 / cols);
-  const cellH4K = Math.floor(4088 / rows);
+
+  // Parse aspect ratio for canvas size calculation
+  const [arW, arH] = aspectRatio.split(':').map(Number);
+  const arFactor = (arW && arH) ? arW / arH : 1;
+
+  // Base sizes: 2048 for 2K, 4096 for 4K
+  const base2K = 2048;
+  const base4K = 4096;
+
+  const canvasW2K = arFactor >= 1 ? base2K : Math.round(base2K * arFactor);
+  const canvasH2K = arFactor >= 1 ? Math.round(base2K / arFactor) : base2K;
+  const canvasW4K = arFactor >= 1 ? base4K : Math.round(base4K * arFactor);
+  const canvasH4K = arFactor >= 1 ? Math.round(base4K / arFactor) : base4K;
+
+  // Subtract border space: (cols+1)*2 for 2K, (cols+1)*4 for 4K
+  const cellW2K = Math.floor((canvasW2K - (cols + 1) * 2) / cols);
+  const cellH2K = Math.floor((canvasH2K - (rows + 1) * 2) / rows);
+  const cellW4K = Math.floor((canvasW4K - (cols + 1) * 4) / cols);
+  const cellH4K = Math.floor((canvasH4K - (rows + 1) * 4) / rows);
+
   return {
     '2K': { cellW: cellW2K, cellH: cellH2K, headerH: 22, border: 2, fontSize: 14 },
     '4K': { cellW: cellW4K, cellH: cellH4K, headerH: 36, border: 4, fontSize: 22 },
@@ -275,6 +294,8 @@ export function gridPresetToConfig(preset: any, spriteType?: string): GridConfig
   const resolvedSpriteType = spriteType || preset.spriteType || 'character';
   const label = preset.name || preset.gridName || `Grid ${preset.gridSize}`;
   const id = preset.gridPresetId || preset.id;
+  const aspectRatio = preset.aspectRatio || '1:1';
+  const tileShape = preset.tileShape || 'square';
   return {
     id: `preset-${id}`,
     label,
@@ -282,6 +303,8 @@ export function gridPresetToConfig(preset: any, spriteType?: string): GridConfig
     rows: preset.rows,
     totalCells: preset.cols * preset.rows,
     cellLabels: preset.cellLabels,
-    templates: getTemplateParams(preset.gridSize, resolvedSpriteType),
+    aspectRatio,
+    tileShape,
+    templates: getTemplateParams(preset.gridSize, resolvedSpriteType, aspectRatio),
   };
 }

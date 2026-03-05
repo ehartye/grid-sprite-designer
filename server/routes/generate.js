@@ -64,7 +64,7 @@ export function createGenerateRouter(apiKey) {
    */
   router.post('/generate-grid', async (req, res) => {
     try {
-      const { model, prompt, templateImage, imageSize = '2K', referenceImage } = req.body;
+      const { model, prompt, templateImage, imageSize = '2K', referenceImage, aspectRatio = '1:1' } = req.body;
 
       if (!model || !prompt || !templateImage) {
         return res.status(400).json({ error: 'model, prompt, and templateImage are required' });
@@ -97,7 +97,7 @@ export function createGenerateRouter(apiKey) {
         responseModalities: ['TEXT', 'IMAGE'],
         temperature: 1.0,
         imageConfig: {
-          aspectRatio: '1:1',
+          aspectRatio,
           imageSize,
         },
       };

@@ -25,6 +25,8 @@ export function getDb() {
   seedBuildingPresets(db);
   seedTerrainPresets(db);
   seedBackgroundPresets(db);
+  seedIsometricGridPresets(db);
+  seedAnimationSeries(db);
   return db;
 }
 
@@ -143,6 +145,8 @@ function createSchema(db) {
       cell_groups TEXT NOT NULL DEFAULT '[]',
       generic_guidance TEXT DEFAULT '',
       bg_mode TEXT DEFAULT NULL,
+      aspect_ratio TEXT DEFAULT '1:1',
+      tile_shape TEXT DEFAULT 'square',
       is_preset INTEGER DEFAULT 1,
       UNIQUE(name, sprite_type, grid_size)
     )
@@ -200,6 +204,9 @@ function migrateSchema(db) {
     'ALTER TABLE generations ADD COLUMN thumbnail_mime TEXT DEFAULT NULL',
     "ALTER TABLE generations ADD COLUMN sprite_type TEXT NOT NULL DEFAULT 'character'",
     "ALTER TABLE generations ADD COLUMN grid_size TEXT DEFAULT NULL",
+    "ALTER TABLE grid_presets ADD COLUMN aspect_ratio TEXT DEFAULT '1:1'",
+    "ALTER TABLE grid_presets ADD COLUMN tile_shape TEXT DEFAULT 'square'",
+    "ALTER TABLE generations ADD COLUMN aspect_ratio TEXT DEFAULT '1:1'",
   ];
   for (const sql of migrations) {
     try { db.exec(sql); } catch (_) { /* column already exists */ }
@@ -1705,6 +1712,556 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Ronin sits cross-legged on the ground, sashimi blade across his lap, chopstick daggers arranged neatly beside him. He sips from the soy sauce dish in serene contemplation, wasabi topknot perfect.
   Header "Weak Pose" (5,4): His rice body is thin and loosely packed, grains falling steadily. The nori cloak is more hole than seaweed, the wasabi topknot is drooping, and he uses the sashimi blade as a walking stick. His ginger eyes are faded.
   Header "Critical Pose" (5,5): Barely a fistful of rice held together by a single strip of nori, the Ronin somehow still stands. The sashimi blade trembles in his grip, the wasabi has nearly dissolved, and only one faint ginger eye remains — but his stance is still perfect.`,
+    },
+    {
+      id: 'wasteland-wanderer',
+      name: "Wasteland Wanderer",
+      genre: "Post-Apocalyptic",
+      description: "A lone survivor with sun-weathered skin, a full-face gas mask with round tinted lenses, and a tattered leather duster over layered scavenged clothing. Medium wiry build with a cautious, hunched posture.",
+      equipment: "A long leather duster over mismatched layered clothing, a rubber-strapped gas mask, a crude makeshift spear fashioned from a stop sign and pipe, and a bulging salvaged backpack covered in dangling trinkets.",
+      colorNotes: "Dusty brown leather duster, faded olive under-layers, rust orange accents on salvaged gear. Gas mask is dark rubber with amber-tinted lenses. Spear shaft is dull grey pipe with a faded red stop-sign blade. Backpack is patched tan canvas.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Wanderer steps forward on his left foot, leather duster swaying to the right. The makeshift spear is held upright in his right hand and the salvaged backpack bounces with dangling trinkets. His gas mask's amber lenses catch the light.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, duster hanging straight. The round amber lenses of the gas mask stare directly ahead and the stop-sign spear rests at his side.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, duster swaying left. The trinkets on the backpack jingle and the faded olive under-layers peek through the open duster front.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the bulging salvaged backpack dominates the view with its patched tan canvas and hanging trinkets. The leather duster drapes around the pack and the spear extends above his shoulder.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the backpack and duster filling the frame. The dull grey pipe shaft of the spear rises over his right shoulder and the faded red stop-sign blade peeks at the top.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, backpack shifting with the stride. Trinkets swing and the leather duster tail flaps behind his legs.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Wanderer faces left with his left foot forward in a cautious stride. The spear extends ahead in his leading hand and the duster trails behind, revealing the layered olive clothing beneath. The gas mask profile shows the protruding filter canister.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, feet aligned. The hunched posture is evident in profile and the backpack's bulk rises behind his shoulders. Amber lenses gleam from the mask.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, duster swinging forward. The stop-sign spear blade catches a dull red glint.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the spear leading his advance. The duster flows behind and the backpack trinkets sway. His gas mask filter canister protrudes from the far side.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the wiry build visible beneath the heavy duster. The rust orange accents on the salvaged buckles and straps catch dim light.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, duster trailing. The backpack bounces and the amber mask lenses reflect the wasteland ahead.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Wanderer stands in a slightly hunched stance facing the viewer, spear resting on his shoulder and one hand on a hip strap. The gas mask's amber lenses stare out beneath the duster's raised collar. Trinkets hang still from the backpack.
+  Header "Idle Up" (2,1): Facing away at rest, the patched backpack and dangling trinkets fill the view. The leather duster hangs loosely and the spear extends upward past his shoulder. The rubber gas mask straps cross the back of his head.
+  Header "Idle Left" (2,2): Facing left in a watchful hunched stance, one hand resting on the spear shaft planted beside him. The gas mask filter and amber lens are visible in profile. The duster drapes heavily.
+  Header "Idle Right" (2,3): Facing right at rest, the spear leaning against his shoulder. The duster collar is turned up and the backpack's silhouette extends behind him. The mask's breathing creates a faint haze from the filter.
+  Header "Battle Idle 1" (2,4): The Wanderer drops into a low defensive crouch, the stop-sign spear held horizontally at waist level with both hands. The duster pulls back from his arms and the amber lenses narrow with focus behind the mask.
+  Header "Battle Idle 2" (2,5): He shifts his weight in the crouch, the spear tip tracking an unseen threat. The backpack straps creak and the trinkets clink softly. His gas mask breathing quickens, visible as a faint pulse from the filter.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Wanderer holds the defensive crouch, spear angled forward. The duster flares behind him and the amber lenses reflect a harsh wasteland glare. His knuckles are white on the pipe shaft.
+  Header "Attack 1" (3,1): Wind-up — he pulls the stop-sign spear back over his right shoulder, body coiling. The duster wraps around his torso from the twist and the backpack shifts heavily.
+  Header "Attack 2" (3,2): The spear thrusts forward in a savage jab, the faded red stop-sign blade punching outward. His body extends into the strike and the duster flares from the motion.
+  Header "Attack 3" (3,3): Follow-through — the spear is fully extended, the stop-sign blade at maximum reach. The duster whips from the rotational force and the Wanderer's hunched posture straightens into the lunge.
+  Header "Cast 1" (3,4): The Wanderer reaches into the backpack and pulls out a crude Molotov cocktail — a glass bottle stuffed with an oily rag. He holds a salvaged lighter in his other hand, spear tucked under his arm.
+  Header "Cast 2" (3,5): The rag ignites, casting orange firelight across his gas mask. The amber lenses glow warm and the bottle's contents slosh with volatile liquid. Smoke trails from the burning rag.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Wanderer hurls the Molotov forward — a small arc of fire trails the spinning bottle as it shatters at the cell edge, erupting in a compact burst of flame. He shields his mask with one arm.
+  Header "Damage 1" (4,1): The Wanderer staggers backward from a hit, the spear wavering in his grip. One gas mask lens cracks in a spiderweb pattern and trinkets scatter from the jostled backpack.
+  Header "Damage 2" (4,2): Stumbling further, the duster tears at the shoulder and salvaged gear spills from a ruptured backpack pocket. The cracked mask lens distorts the amber glow and his breathing rasps louder through the filter.
+  Header "Damage 3" (4,3): Recovery — the Wanderer plants the spear butt into the ground for balance, steadying himself. He presses the torn duster against his side and the remaining mask lens refocuses on the threat.
+  Header "KO 1" (4,4): His grip on the spear loosens as his knees buckle. The gas mask straps slip and the mask tilts sideways on his face. The backpack drags him backward with its weight.
+  Header "KO 2" (4,5): The Wanderer collapses onto the backpack, the spear clattering beside him. The gas mask pulls free, revealing sun-weathered, scarred skin beneath. Trinkets scatter across the ground.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Wanderer lies sprawled on the ground atop the crushed backpack, the gas mask beside his weathered face. The stop-sign spear rests nearby and scattered trinkets and salvage surround his still form.
+  Header "Victory 1" (5,1): The Wanderer plants the stop-sign spear into the ground and leans on it, pushing the gas mask up onto his forehead. His weathered face shows a rare, tired grin beneath.
+  Header "Victory 2" (5,2): He raises the spear overhead with one hand, the faded red stop-sign blade catching the light. The duster billows and trinkets jingle in a metallic cheer from the backpack.
+  Header "Victory 3" (5,3): The Wanderer slings the spear across his shoulders behind his neck, arms draped over it casually. The gas mask hangs loosely at his collar and he surveys the aftermath with amber-tinted goggles pushed up.
+  Header "Weak Pose" (5,4): The Wanderer leans heavily on the spear as a crutch, one hand clutching his side. The duster is torn and caked with dust, the mask filter is clogged with soot, and the backpack hangs by a single strap.
+  Header "Critical Pose" (5,5): Barely standing, the Wanderer grips the spear with trembling hands. The gas mask is cracked and wheezing, the duster is shredded, and his desperate amber lenses scan for any escape route.`,
+    },
+    {
+      id: 'vault-dweller',
+      name: "Vault Dweller",
+      genre: "Post-Apocalyptic",
+      description: "A young, clean-cut survivor freshly emerged from an underground vault. Short brown hair, wide blue eyes, and an expression of cautious wonder. Lean build in a fitted jumpsuit with an upright, slightly nervous posture.",
+      equipment: "A bright blue jumpsuit with a yellow number '42' on the back, a chunky Pip-Boy wrist computer on the left arm with a green screen, a compact laser pistol holstered at the hip, and a small utility belt with pouches.",
+      colorNotes: "Bright blue jumpsuit with yellow trim and number. Pip-Boy is dark grey-green with a glowing green screen. Laser pistol is chrome with a red energy cell. Utility belt is brown leather with brass buckles.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Vault Dweller steps forward on his left foot, the bright blue jumpsuit crisp and visible with yellow trim along the seams. The chunky Pip-Boy on his left wrist glows green and the laser pistol sits snug in the hip holster.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together. His wide blue eyes look ahead with cautious wonder and the yellow '42' is partially visible on his chest pocket. The Pip-Boy screen flickers with data.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads. The utility belt pouches bounce and the chrome laser pistol handle catches light at his hip. His short brown hair is neat and clean.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the large yellow '42' on the back of the blue jumpsuit is prominently displayed. The Pip-Boy is visible on his trailing left wrist and the utility belt wraps his waist.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the blue jumpsuit and yellow number filling the view. The brown leather utility belt pouches are visible at his sides and his short hair shows his clean-cut profile.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the jumpsuit shifting with the stride. The laser pistol holster is visible at his right hip from behind.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Vault Dweller faces left with his left foot forward in a careful step, Pip-Boy arm leading and its green screen visible. The blue jumpsuit is neat and the laser pistol rides at his far hip.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his lean profile showing the yellow jumpsuit trim running down his side. The Pip-Boy is prominent on his near wrist and his nervous expression is visible.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The utility belt pouches sway and the chrome pistol handle glints behind his hip.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the laser pistol holster visible at his near hip. The Pip-Boy trails on his far arm and his wide blue eyes scan the unfamiliar world ahead.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, jumpsuit creasing at the joints. The brown leather belt and brass buckles are visible and the Pip-Boy glows green on his far wrist.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. His slightly nervous posture shows in the way his shoulders hunch forward, Pip-Boy swinging.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Vault Dweller stands facing the viewer in a slightly stiff, uncertain stance. His left arm is raised to check the Pip-Boy screen, which glows green with readouts. The blue jumpsuit is pristine and the laser pistol is holstered.
+  Header "Idle Up" (2,1): Facing away, the yellow '42' on the blue jumpsuit is clear. His posture is upright but tense, hands at his sides with the Pip-Boy arm slightly raised. The utility belt hangs neatly.
+  Header "Idle Left" (2,2): Facing left, the Vault Dweller taps at the Pip-Boy screen with his right hand. The green display casts a soft glow on his chin and the blue jumpsuit drapes cleanly on his lean frame.
+  Header "Idle Right" (2,3): Facing right, hand resting near the holstered laser pistol. His wide blue eyes peer cautiously ahead and the yellow trim on the jumpsuit catches ambient light.
+  Header "Battle Idle 1" (2,4): The Vault Dweller draws the chrome laser pistol in a two-handed grip, feet apart in a textbook shooting stance. The Pip-Boy screen switches to a targeting display and the red energy cell glows at the pistol's base.
+  Header "Battle Idle 2" (2,5): He adjusts his aim nervously, the laser pistol wavering slightly in his grip. The Pip-Boy targeting display blinks with distance readings and his blue eyes narrow with determined focus.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Vault Dweller steadies the laser pistol with both hands, settling into a firmer stance. The Pip-Boy beeps with a target lock and the red energy cell hums. His expression hardens behind the sights.
+  Header "Attack 1" (3,1): Wind-up — he squares his shoulders and sights down the laser pistol, the red energy cell brightening as it charges. The Pip-Boy arm supports the shooting hand and his blue eyes lock on the target.
+  Header "Attack 2" (3,2): A bright red laser beam fires from the chrome pistol with a flash at the barrel. The recoil pushes his hands up slightly and the red beam streaks across the cell. The jumpsuit creases from the brace.
+  Header "Attack 3" (3,3): Follow-through — the laser beam terminates at the cell edge in a small red impact flash. The pistol barrel vents heat and the Vault Dweller steadies himself for another shot, Pip-Boy recalibrating.
+  Header "Cast 1" (3,4): The Vault Dweller raises his Pip-Boy arm and activates a special function, the green screen projecting a small holographic map. The laser pistol is holstered as he focuses on the device.
+  Header "Cast 2" (3,5): The Pip-Boy projects a wider holographic field, a targeting grid expanding outward. The device whirs and clicks, the green screen blazing bright, and his wide eyes reflect the holographic data.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Pip-Boy activates a V.A.T.S.-like targeting burst — a brief pulse of green energy radiates outward from the device, highlighting weak points. Time seems to slow around him momentarily before normalizing.
+  Header "Damage 1" (4,1): The Vault Dweller flinches from a hit, the laser pistol nearly slipping from his grip. A scorch mark appears on the blue jumpsuit sleeve and the Pip-Boy screen flickers with static.
+  Header "Damage 2" (4,2): Stumbling backward, the jumpsuit tears at the shoulder revealing a white undershirt. The Pip-Boy sparks at a cracked hinge and a utility pouch spills its contents. His expression shows genuine fear.
+  Header "Damage 3" (4,3): Recovery — the Vault Dweller steadies himself, checking the Pip-Boy which reboots with a green flash. He picks up the laser pistol and forces a brave expression, though his hands tremble.
+  Header "KO 1" (4,4): The laser pistol drops from his limp fingers as his knees give out. The Pip-Boy screen displays a flatline readout and the bright blue jumpsuit is stained and torn. His eyes go wide with shock.
+  Header "KO 2" (4,5): The Vault Dweller collapses forward, the Pip-Boy arm outstretched with a fading green screen. The chrome laser pistol slides away and the yellow '42' on his back is now scuffed and dirty.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Vault Dweller lies face-down on the ground, the Pip-Boy screen dark and the blue jumpsuit torn and dirtied. The laser pistol rests nearby and scattered utility belt contents surround him.
+  Header "Victory 1" (5,1): The Vault Dweller holds the laser pistol up triumphantly, blowing imaginary smoke from the barrel. The Pip-Boy beeps a cheerful victory jingle and his wide blue eyes beam with surprised pride.
+  Header "Victory 2" (5,2): He holsters the laser pistol with a spin and checks the Pip-Boy, which displays a smiley face and XP gained. His nervous expression is replaced by a confident grin and the jumpsuit is still clean.
+  Header "Victory 3" (5,3): The Vault Dweller gives a thumbs-up with his Pip-Boy hand, the green screen showing a thumbs-up icon in return. He stands tall with an awkward but genuine confidence, blue jumpsuit gleaming.
+  Header "Weak Pose" (5,4): The Vault Dweller hunches over with hands on knees, panting. The jumpsuit is torn and stained, the Pip-Boy screen flickers with warning readouts, and the laser pistol dangles loosely from one hand.
+  Header "Critical Pose" (5,5): Barely standing, the Vault Dweller clutches the laser pistol with both hands. The Pip-Boy screen flashes red emergency warnings, the jumpsuit is in tatters, and his blue eyes are wide with terrified determination.`,
+    },
+    {
+      id: 'raider-warlord',
+      name: "Raider Warlord",
+      genre: "Post-Apocalyptic",
+      description: "A brutal scavenger leader with a shaved head sporting a tall crimson mohawk, heavy war paint across the eyes, and a scarred, muscular build. Aggressive forward-leaning stance radiating menace.",
+      equipment: "Spiked shoulder armor welded from scrap metal and car parts, a heavy chain weapon ending in a spiked ball, bone-and-tooth trophies on a necklace, and crude war paint in red and black streaks.",
+      colorNotes: "Bare scarred skin with red and black war paint. Crimson mohawk. Armor is rust red and gunmetal scrap metal with bone white trophy accents. Chain is dark iron and the spiked ball is pitted steel. Pants are torn black leather.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Raider Warlord stomps forward on his left foot, the heavy chain weapon swinging at his right side with the spiked ball dragging. The spiked scrap-metal shoulder armor juts aggressively and his crimson mohawk stands tall above red and black war paint.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet planted wide. His scarred muscular torso is visible between scrap armor plates and the bone-and-tooth necklace rattles against his chest. War-painted eyes glare forward.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, chain swinging to the left. The spiked ball scrapes the ground and the rust red armor plates clank with each heavy step.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the massive spiked shoulder armor dominates the back view. The chain weapon trails behind and the crimson mohawk rises like a fin above the gunmetal scrap plates.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the scarred back visible between armor gaps. Bone trophies dangle from armor hooks and the chain weapon hangs at his side. The mohawk is a sharp crimson ridge.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the spiked ball dragging behind. The torn black leather pants and heavy boots complete the brutal silhouette.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Warlord faces left with his left foot forward in an aggressive advance. The spiked shoulder armor leads and the chain weapon trails behind, spiked ball bouncing. His mohawk profile is sharp and the war paint streaks are vivid.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his scarred muscular profile visible. The bone-tooth necklace hangs across his chest and the scrap armor plates overlap with crude welds. Eyes narrow with menace.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, chain swinging forward. The rust red armor catches harsh light and the spiked ball arcs ahead.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, chain weapon leading and spiked ball swinging outward. The crimson mohawk trails like a war banner and the scrap shoulder armor bristles with welded spikes.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the aggressive forward lean evident. The war paint streaks frame his scarred face in profile and the bone trophies click against the armor.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, the chain weapon trailing. The torn black leather pants and heavy stomping boots are prominent.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Warlord stands with legs apart facing the viewer, the chain weapon coiled in one fist. The spiked armor gleams dull rust red and his war-painted face glares with open hostility. The bone necklace hangs over his scarred chest.
+  Header "Idle Up" (2,1): Facing away, the spiked shoulder armor and bare scarred back fill the view. The chain weapon hangs at his side and bone trophies are hooked to the back of his armor. The crimson mohawk is a bold ridge.
+  Header "Idle Left" (2,2): Facing left, the Warlord rests the spiked ball on the ground with the chain taut in his fist. His profile shows the prominent mohawk, sharp war paint, and the menacing scrap armor silhouette.
+  Header "Idle Right" (2,3): Facing right, he holds the chain loosely, letting the spiked ball swing lazily. His aggressive forward lean and scarred muscular arms are prominent beneath the rust red armor plates.
+  Header "Battle Idle 1" (2,4): The Warlord begins swinging the chain weapon overhead in a wide arc, the spiked ball whirring. He drops into a wide combat stance and bares his teeth with a snarl. The war paint makes his eyes look like burning embers.
+  Header "Battle Idle 2" (2,5): The chain swings faster, the spiked ball a blur above his head. He shifts his weight aggressively and the scrap armor clanks and sparks. His crimson mohawk whips in the self-made wind.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Warlord holds the whirring chain at peak speed, muscles straining beneath the scrap armor. His war-painted face is locked in a battle snarl and the spiked ball hums with lethal momentum.
+  Header "Attack 1" (3,1): Wind-up — he pulls the chain back over his shoulder, the spiked ball swinging behind him. His body coils with raw power and the scrap armor groans under the tension. War paint glistens with sweat.
+  Header "Attack 2" (3,2): The chain lashes forward — the spiked ball rockets outward in a savage overhead slam. His entire body follows the arc and the scrap armor sparks from the violent motion.
+  Header "Attack 3" (3,3): Impact — the spiked ball crashes down at the cell edge with a burst of sparks and debris. The chain snaps taut and the Warlord is pulled forward by the momentum, boots skidding.
+  Header "Cast 1" (3,4): The Warlord reaches to his belt and produces a crude frag grenade — a tin can packed with scrap metal and a fuse. He bites the pull ring with his teeth while holding the chain weapon in the other hand.
+  Header "Cast 2" (3,5): The fuse sparks and sizzles as he holds the grenade overhead, the orange glow reflecting off his war paint and spiked armor. Scrap shrapnel is visible inside the crude casing.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Warlord hurls the frag grenade — it tumbles through the air and detonates at the cell edge in a small burst of fire and flying scrap metal shards. He shields himself with the spiked shoulder armor.
+  Header "Damage 1" (4,1): The Warlord reels from a hit, a scrap armor plate cracking and flying off his shoulder. The chain weapon jerks in his grip and his mohawk flattens from the impact. War paint smears with blood.
+  Header "Damage 2" (4,2): Staggering back, more armor plates buckle and fall. His scarred torso takes a visible wound and the bone necklace snaps, sending trophies scattering. The chain weapon drags on the ground.
+  Header "Damage 3" (4,3): Recovery — the Warlord plants his feet and roars with rage, swinging the chain weapon back up. His remaining armor is battered but he forces himself upright, war paint streaked with blood and fury in his eyes.
+  Header "KO 1" (4,4): The chain weapon slips from his weakening grip, the spiked ball thudding to the ground. His massive frame sways and the remaining scrap armor hangs loose. The mohawk droops and the war paint is smeared.
+  Header "KO 2" (4,5): The Warlord crashes to his knees, then falls forward onto the broken scrap armor. The chain weapon lies coiled beside him and bone trophies scatter. His crimson mohawk is flattened against the ground.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Warlord lies face-down amid scattered scrap armor plates, broken bone trophies, and the tangled chain weapon. His crimson mohawk is matted and the war paint is unrecognizable. The spiked ball rests near his open hand.
+  Header "Victory 1" (5,1): The Warlord raises the chain weapon overhead and roars, spiked ball swinging triumphantly. His war-painted face splits into a savage grin and he beats his scarred chest with his free fist. The mohawk bristles.
+  Header "Victory 2" (5,2): He slams the spiked ball into the ground with a thunderous crash and stands over it, one boot on the chain. The scrap armor gleams with battle damage and he throws his head back in a primal howl.
+  Header "Victory 3" (5,3): The Warlord coils the chain weapon around his arm and crosses his armored arms, glaring forward with contemptuous superiority. The bone necklace clicks and the crimson mohawk stands perfectly erect.
+  Header "Weak Pose" (5,4): The Warlord hunches forward, chain weapon dragging on the ground. Half his scrap armor is gone, the war paint is faded with dried blood, and the mohawk wilts. He snarls through gritted teeth, refusing to fall.
+  Header "Critical Pose" (5,5): Barely standing, the Warlord swings the chain weapon in weak, desperate arcs. His armor is destroyed, the bone necklace is gone, and his body is covered in wounds — but his war-painted eyes still burn with unbroken fury.`,
+    },
+    {
+      id: 'mutant-enforcer',
+      name: "Mutant Enforcer",
+      genre: "Post-Apocalyptic",
+      description: "An oversized irradiated brute standing a head taller than a normal human. Sickly green-tinged skin with purple bruising and visible radiation scars. Hunched, top-heavy build with massive arms and a small, angry head.",
+      equipment: "A crude super sledge — an oversized sledgehammer with a car engine block as the head, torn remnants of pre-war clothing barely covering the torso, and heavy chains wrapped around the forearms as makeshift bracers.",
+      colorNotes: "Sickly green skin with mottled purple bruising and grey radiation scars. Torn clothing is faded grey-blue. Super sledge head is dark steel with rust. Chain bracers are dark iron. Eyes are a dim, angry yellow.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Mutant Enforcer lumbers forward on his left foot, the ground seeming to shake with his weight. The massive super sledge drags at his right side, its car-engine head scraping the ground. His sickly green skin is mottled with purple bruises and his dim yellow eyes glare ahead.
+  Header "Walk Down 2" (0,1): Neutral mid-step with feet planted wide to support his top-heavy frame. The torn grey-blue clothing barely covers his barrel chest and the chain bracers on his massive forearms clink. His small angry head sits atop bulging shoulders.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the super sledge dragging on the other side. Grey radiation scars are visible across his green arms and the purple bruising shifts with muscle movement.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the Enforcer's massive hunched back fills the view. The torn clothing hangs in strips and radiation scars crisscross his green skin. The super sledge shaft extends upward past his shoulder.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the top-heavy build evident. Chain-wrapped forearms hang at his sides and the car-engine sledge head protrudes above his right shoulder. The purple bruising is visible on his back.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the massive frame lumbering. The torn clothing flaps and the dark iron chains on his wrists catch dull light.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Enforcer faces left with his left foot forward in a heavy, ground-shaking stride. The super sledge is held low in his massive right hand, engine-block head trailing. His hunched profile shows the disproportion between his huge body and small head.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his enormous silhouette looming. The chain bracers hang heavily on forearms thicker than a normal man's thighs. Sickly green skin glistens with an unhealthy sheen.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, sledge swinging forward. The torn grey-blue clothing rips further with the motion and radiation scars catch the light.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the super sledge leading in his massive grip. The chain bracers jingle and his dim yellow eyes squint ahead. Purple bruising marks his near arm and shoulder.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the top-heavy hunched frame evident. The car-engine sledge head rests on the ground and his small angry head peers forward from between massive shoulders.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The ground cracks under his weight and the torn clothing flutters with each thunderous step.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Enforcer stands hunched facing the viewer, the super sledge resting on his shoulder with the engine-block head behind his back. His massive chain-wrapped arms hang forward and his small head peers out with dim yellow eyes. Green skin pulses faintly with radiation.
+  Header "Idle Up" (2,1): Facing away, the enormous hunched back and massive shoulders fill the frame. The super sledge rests across the back of his neck like a yoke. Chain bracers dangle and the torn clothing barely covers his lower back.
+  Header "Idle Left" (2,2): Facing left, the Enforcer rests both hands on top of the upright super sledge handle, the engine-block head on the ground. His hunched profile and small angry head create a looming silhouette. Radiation scars mark his visible arm.
+  Header "Idle Right" (2,3): Facing right, the sledge hangs loosely in one massive hand. His top-heavy posture leans forward and the purple bruising on his green skin creates a sickly pattern. The chain bracers are prominent on his near arm.
+  Header "Battle Idle 1" (2,4): The Enforcer hoists the super sledge with both hands, raising the car-engine head overhead. He drops into a wide aggressive stance and roars, revealing jagged, yellowed teeth. His green skin darkens with rage and the yellow eyes blaze.
+  Header "Battle Idle 2" (2,5): He swings the super sledge in slow, menacing figure-eights, the engine-block head whooshing through the air. The chain bracers rattle and his massive frame shifts with surprising control for his size.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Enforcer holds the super sledge cocked behind his right shoulder, muscles bulging. His small head is lowered like a charging bull and the dim yellow eyes lock on the target with brute focus. Chains rattle on his tensed forearms.
+  Header "Attack 1" (3,1): Wind-up — the Enforcer heaves the super sledge high overhead with both hands, the engine-block head at its peak. His green body stretches to full height, momentarily towering, and the torn clothing tears further from the strain.
+  Header "Attack 2" (3,2): The super sledge crashes downward in a devastating overhead slam, the engine-block head a blur of dark steel and rust. The impact is enormous and his massive frame follows the arc with full commitment.
+  Header "Attack 3" (3,3): Impact — the engine-block head hits the ground at the cell edge, sending a shockwave of cracks through the surface. Dust and debris erupt outward and the Enforcer is buried to the wrists in the crater. Chains spark against stone.
+  Header "Cast 1" (3,4): The Enforcer's radiation scars begin to glow — a sickly green luminescence pulses beneath his skin. He drops the sledge and clutches his head as the radiation within him surges, purple bruises intensifying.
+  Header "Cast 2" (3,5): His entire body radiates green light, the scars becoming bright veins of toxic energy. His yellow eyes blaze and a shockwave of radioactive air distorts the space around him. The chains on his arms heat and glow.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Enforcer releases a burst of radiation — a green shockwave erupts outward from his body, distorting the air. His skin cracks momentarily with the energy release before sealing. He collapses to one knee afterward, drained.
+  Header "Damage 1" (4,1): The Enforcer is knocked back a step — a remarkable feat given his size. A chunk of green skin tears revealing raw purple tissue beneath. The super sledge dips but he holds on, growling.
+  Header "Damage 2" (4,2): Staggering, a chain bracer snaps and falls from his wrist. More skin tears open showing the purple bruised tissue and his torn clothing disintegrates further. The sledge handle cracks under his stressed grip.
+  Header "Damage 3" (4,3): Recovery — the Enforcer steadies himself with a ground-shaking stomp. He hoists the damaged super sledge and roars, the radiation scars pulsing with renewed dim green light. His yellow eyes refocus with animal determination.
+  Header "KO 1" (4,4): The super sledge slips from his massive hands and thuds to the ground. The Enforcer sways, his green skin losing its glow, and the yellow eyes dim. His enormous frame lists to one side.
+  Header "KO 2" (4,5): The Enforcer topples like a felled tree, crashing to the ground with earth-shaking impact. The super sledge lies beside him and the chain bracers splay outward. His green skin is pale and the radiation scars are dark.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Enforcer lies in a small crater from his own impact, the super sledge nearby and chain bracers spread around him. His sickly green skin is faded to grey-green and the yellow eyes are closed. The torn clothing is now just rags.
+  Header "Victory 1" (5,1): The Enforcer lifts the super sledge overhead with one hand and pounds his chest with the other, roaring victoriously. The engine-block head catches light above him and his green skin blazes with renewed radiation glow.
+  Header "Victory 2" (5,2): He slams the super sledge down and stands over it, flexing his massive arms. The chain bracers jingle and his small head throws back in a triumphant bellow. The radiation scars pulse a bright, healthy green.
+  Header "Victory 3" (5,3): The Enforcer sits on the super sledge engine-block head as a throne, massive arms resting on his knees. His dim yellow eyes show a rare, dull satisfaction and the purple bruises have faded slightly.
+  Header "Weak Pose" (5,4): The Enforcer leans heavily on the upright super sledge, his massive frame sagging. The green skin is pale and the radiation scars are dim. Chain bracers drag on the ground and his yellow eyes are half-closed, flickering.
+  Header "Critical Pose" (5,5): Barely standing, the Enforcer clutches the super sledge handle with both trembling hands. His green skin is almost grey, the radiation scars are completely dark, and his massive body shakes. Only a faint angry glow in his yellow eyes remains.`,
+    },
+    {
+      id: 'caravan-trader',
+      name: "Caravan Trader",
+      genre: "Post-Apocalyptic",
+      description: "A pragmatic traveling merchant with a weathered face, a wide-brimmed cowboy hat, and shrewd hazel eyes. Medium build wrapped in practical layers and a pack harness distributing heavy trade goods across the body.",
+      equipment: "A wide-brimmed leather cowboy hat, a heavy pack harness with goods strapped across chest and back, barter items dangling from hooks (bottles, ammo boxes, canned food), a worn revolver in a thigh holster, and a walking staff made from a twisted rebar rod.",
+      colorNotes: "Tan wide-brimmed hat and outer layers. Brown leather harness and holster. Brass-colored buckles, bullet casings, and barter goods. Gunmetal revolver. Dark brown boots. Rebar staff is rust-grey.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Caravan Trader steps forward on his left foot, barter goods jingling on the pack harness. The wide-brimmed hat shades his weathered face and the rebar walking staff plants ahead. Bottles and ammo boxes sway from harness hooks.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together. His shrewd hazel eyes peer from beneath the hat brim and the pack harness distributes heavy goods across his chest. The revolver sits snug in the thigh holster.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, barter goods swinging to the opposite side. Canned food and brass bullet casings dangle and clatter. The rebar staff catches rust-grey light.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the heavy pack harness and trade goods dominate the back view. Strapped bundles, bottles, and ammo boxes create a merchant's profile. The hat brim is visible from above.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full weight of the pack visible. Brown leather straps crisscross the tan outer layers and the rebar staff rises past his right shoulder. Brass buckles catch dim light.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, goods shifting with the stride. The thigh holster and revolver handle peek from beneath the layered pack.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Trader faces left with his left foot forward, leaning on the rebar staff. The pack harness goods — bottles, cans, ammo boxes — jingle and sway. His weathered profile beneath the hat brim shows shrewd concentration.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the pack harness creating a bulky side profile. The revolver holster is visible at his near thigh and the hat brim casts a shadow across his face.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, the rebar staff swinging. Barter goods bounce and the brass buckles on the harness glint.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the rebar staff leading. The pack harness goods trail behind and the wide-brimmed hat tilts forward. The worn revolver holster is on his far thigh.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the practical layers and harness creating a distinctive merchant silhouette. Hazel eyes scan the path ahead and trade goods clink softly.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, goods swaying. The dark brown boots are worn smooth and the rebar staff taps the ground with each step.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Trader stands with the rebar staff planted beside him, one hand resting on a dangling ammo box. His wide-brimmed hat tilts back showing his weathered face and hazel eyes. The pack harness hangs heavily but comfortably. The revolver is holstered.
+  Header "Idle Up" (2,1): Facing away, the full pack harness load is visible — bottles, cans, ammo, and various barter goods strapped in organized chaos. The leather straps and brass buckles hold everything secure. The hat brim is visible at the top.
+  Header "Idle Left" (2,2): Facing left, the Trader adjusts a strap on the harness with one hand, rebar staff tucked under his arm. His shrewd expression shows he is calculating something. Trade goods dangle from his near side.
+  Header "Idle Right" (2,3): Facing right, he rests both hands on top of the rebar staff planted before him. The hat shades his profile and the revolver holster and barter goods create a distinctive merchant outline.
+  Header "Battle Idle 1" (2,4): The Trader drops the rebar staff and draws the worn revolver from the thigh holster in a practiced quick-draw. He crouches behind the pack harness goods using them as improvised cover. Hazel eyes are sharp above the revolver sights.
+  Header "Battle Idle 2" (2,5): He shifts behind the hanging pack goods, revolver tracking a target. The bottles and cans sway as he moves and the brass bullet casings on the harness clink. His weathered face is calm and calculating.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Trader holds steady with the revolver, one eye closed for aim. The wide-brimmed hat shadows his face and the pack harness goods shift as he breathes. His thigh holster hangs empty and his trigger finger is steady.
+  Header "Attack 1" (3,1): Wind-up — the Trader thumbs back the revolver hammer with a click, sighting down the barrel. His hazel eyes narrow and the hat brim dips with his focused lean forward. The pack goods go still.
+  Header "Attack 2" (3,2): The revolver fires — a small muzzle flash erupts from the barrel and the Trader's arm recoils upward. Smoke trails from the chamber and the barter goods rattle from the concussive blast.
+  Header "Attack 3" (3,3): Follow-through — the bullet streaks to the cell edge as spent powder smoke drifts. The Trader steadies the revolver for another shot and an empty brass casing arcs through the air from the chamber.
+  Header "Cast 1" (3,4): The Trader reaches into the pack harness and produces a bundle of dynamite sticks — salvaged mining explosives tied together with a long fuse. He bites a match head and strikes it on his hat brim.
+  Header "Cast 2" (3,5): The fuse sizzles and sparks, casting orange light on the Trader's weathered face beneath the hat. The dynamite bundle crackles and he winds up for the throw, pack goods swaying from the motion.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Trader hurls the dynamite bundle — it tumbles end over end, fuse burning, and detonates at the cell edge in a thundering explosion of dust and fire. He ducks behind the pack harness from the blast wave.
+  Header "Damage 1" (4,1): The Trader stumbles from a hit, barter goods flying from the harness. A bottle shatters and an ammo box spills open. The revolver wavers and the hat tilts askew. His hazel eyes show surprise.
+  Header "Damage 2" (4,2): Staggering further, the pack harness snaps a strap and goods cascade — cans, bottles, and brass casings scatter. The hat flies off revealing thinning grey-brown hair. The revolver dips in his weakening grip.
+  Header "Damage 3" (4,3): Recovery — the Trader catches his hat and jams it back on. He kicks a few scattered goods aside, steadies the revolver, and adjusts the damaged harness with one hand. His expression shifts from surprise to hardened resolve.
+  Header "KO 1" (4,4): The revolver drops from his limp hand as the Trader's knees buckle. The pack harness tears free and goods spill everywhere — a cascade of bottles, cans, and ammo boxes. The hat falls over his eyes.
+  Header "KO 2" (4,5): The Trader collapses amid his scattered merchandise, the rebar staff rolling away. Barter goods surround him like a halo of commerce — bottles, cans, ammo, and brass buckles. The hat lies beside his weathered face.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Trader lies among his scattered goods — bottles, canned food, ammo boxes, and brass casings spread around him. The revolver rests in his open palm, the hat covers his face, and the broken pack harness is draped across his legs.
+  Header "Victory 1" (5,1): The Trader spins the revolver and holsters it with a practiced flourish. He tips the wide-brimmed hat with a satisfied smirk and adjusts the pack harness, which still holds most of its goods. Business is good.
+  Header "Victory 2" (5,2): He plants the rebar staff and leans on it with casual confidence, one hand tipping the hat. The barter goods jingle merrily and his shrewd hazel eyes survey the spoils. A small grin creases his weathered face.
+  Header "Victory 3" (5,3): The Trader pulls a bottle from the harness and uncorks it, raising it in a toast to himself. The revolver is holstered, the hat tilted back, and the remaining barter goods dangle with the satisfaction of a deal well done.
+  Header "Weak Pose" (5,4): The Trader leans on the rebar staff, the pack harness half-empty and hanging by one strap. The hat droops and the revolver dangles loosely from one hand. Most of his barter goods are lost and his hazel eyes are weary.
+  Header "Critical Pose" (5,5): Barely standing amid his scattered goods, the Trader clutches the revolver with his last round. The hat is torn, the harness is destroyed, and he stands guard over what remains of his trade goods with desperate, calculating eyes.`,
+    },
+    {
+      id: 'xenomorph-drone',
+      name: "Xenomorph Drone",
+      genre: "Sci-Fi Horror",
+      description: "A sleek, biomechanical predator with an elongated smooth skull, no visible eyes, and a lipless mouth hiding a deadly inner jaw. Tall, gaunt frame with a segmented exoskeleton, digitigrade legs, and a long segmented tail ending in a blade tip.",
+      equipment: "Natural weapons only — razor-sharp claws, a bladed tail tip, dorsal tubes running along the back, and a telescoping inner mouth with silver teeth. No artificial equipment.",
+      colorNotes: "Obsidian black exoskeleton with dark blue reflective highlights on curved surfaces. Silver metallic teeth on both outer and inner jaws. Dorsal tubes are dark steel grey. Saliva is translucent silver. Tail blade is polished dark steel.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Xenomorph Drone stalks forward on its left digitigrade foot, the elongated smooth skull tilted slightly downward. Its obsidian black exoskeleton catches dark blue highlights and the segmented tail curves behind with the blade tip raised. Clawed hands are held at its sides in a predatory stance.
+  Header "Walk Down 2" (0,1): Neutral mid-step with both feet planted, the gaunt frame crouched low. The lipless mouth is slightly parted revealing silver teeth and the dorsal tubes along its back are visible above the shoulders. Translucent saliva drips from the jaw.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the tail blade swaying to the opposite side. The dark blue highlights ripple across the segmented exoskeleton and the clawed hands flex with silent menace.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the elongated skull rises above the hunched shoulders. The dorsal tubes run prominently down the spine and the segmented tail extends outward with its blade tip. The obsidian exoskeleton is smooth and insectoid.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full length of the dorsal tubes visible from skull crest to lower back. The dark steel grey tubes contrast against the obsidian body. The tail hangs in a low curve.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, tail swaying. The digitigrade legs flex with alien musculature and the dark blue highlights trace the joints.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Drone faces left with its left foot forward in a silent, low stalk. The elongated skull extends far forward and the tail stretches out behind for balance. The profile shows the gaunt biomechanical ribbing of the torso.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the entire silhouette visible — elongated head, hunched shoulders, dorsal tubes, thin waist, and the long bladed tail. Silver teeth glint in the partially open mouth.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, the tail curving forward slightly. Clawed hands reach ahead and the obsidian exoskeleton catches dark blue light along the limbs.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the elongated skull leading the advance. The dorsal tubes create a ridged silhouette and the tail extends far behind with its blade tip raised. Translucent saliva trails from the jaw.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, digitigrade legs visible in profile. The biomechanical ribbing of the torso and the smooth cranium create an unmistakable alien silhouette.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The tail whips behind and the razor claws catch dim reflections. The dark blue highlights trace the segmented spine.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Drone crouches facing the viewer, the elongated skull tilted as if sensing the air. The lipless mouth is closed with silver teeth barely visible. The tail coils loosely behind and the clawed hands rest on the ground in a spider-like stance. Dorsal tubes rise above the shoulders.
+  Header "Idle Up" (2,1): Crouched facing away, the dorsal tubes and segmented spine dominate the view. The tail curls to one side with the blade tip resting on the ground. The elongated skull is barely visible above the hunched shoulders.
+  Header "Idle Left" (2,2): Facing left in a low crouch, the elongated skull extends horizontally. One clawed hand rests on the ground and the tail coils behind. The dark blue highlights on the obsidian exoskeleton catch ambient light.
+  Header "Idle Right" (2,3): Facing right, crouched and still. The biomechanical ribbing of the torso is visible and the silver teeth are barely parted. The tail blade rests on the ground and translucent saliva hangs from the jaw.
+  Header "Battle Idle 1" (2,4): The Drone rises to full height — towering and gaunt, the elongated skull tilting back. The inner jaw telescopes outward briefly in a threat display, silver teeth gleaming. The tail arches overhead like a scorpion and the claws spread wide.
+  Header "Battle Idle 2" (2,5): It sways in the aggressive stance, the inner jaw retracting. The tail blade circles menacingly overhead and the dorsal tubes pulse with subtle movement. The dark blue highlights intensify across the black exoskeleton.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Drone holds its full-height aggressive stance, the tail poised overhead. The elongated skull tilts forward as if locking onto prey and the clawed hands open and close with anticipation. Silver teeth drip with translucent saliva.
+  Header "Attack 1" (3,1): Wind-up — the Drone coils its gaunt body, pulling both clawed hands back and arching the tail high. The inner jaw begins extending from the lipless mouth and the dorsal tubes flatten against the spine.
+  Header "Attack 2" (3,2): The Drone lunges forward with both claws slashing in a rapid double-strike, the inner jaw shooting outward at maximum extension. The obsidian body is a blur of dark blue streaks and the tail lashes forward simultaneously.
+  Header "Attack 3" (3,3): Follow-through — the claws are fully extended from the dual slash and the inner jaw snaps at the cell edge, silver teeth biting. The tail blade stabs forward past the body. Translucent saliva sprays from the extended inner mouth.
+  Header "Cast 1" (3,4): The Drone drops to all fours and raises the tail high, the blade tip vibrating. A small bead of acid-green substance forms at the tip of the inner jaw as it opens wide. The dorsal tubes flare outward.
+  Header "Cast 2" (3,5): The acid builds — a viscous green glob grows at the inner jaw tip, dripping and sizzling. The Drone's body tenses and the tail arches forward, poised to catapult the acid. The exoskeleton steams where acid touches it.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Drone spits the acid glob forward — a compact blob of sizzling green that arcs to the cell edge and splatters, dissolving the surface with steaming hisses. The inner jaw retracts and the tail lowers after the release.
+  Header "Damage 1" (4,1): The Drone recoils from a hit, the obsidian exoskeleton cracking at the impact point revealing dark blue inner tissue. Acid-green blood spurts from the wound, sizzling on the ground. The tail lashes in pain.
+  Header "Damage 2" (4,2): Staggering, more cracks spider-web across the exoskeleton plates. Acid blood flows freely, burning anything it touches. The elongated skull shakes violently and the inner jaw extends in an involuntary pain response.
+  Header "Damage 3" (4,3): Recovery — the Drone steadies on all fours, acid blood still dripping and sizzling. The cracked exoskeleton plates resettle and the inner jaw retracts. The tail blade rises again and the creature hisses through silver teeth.
+  Header "KO 1" (4,4): The Drone collapses to its knees, the elongated skull drooping forward. Acid blood pools around the cracked exoskeleton, dissolving the ground. The tail goes limp and the clawed hands splay on the ground.
+  Header "KO 2" (4,5): Falling onto its side, the Drone's exoskeleton shatters further, releasing more acid blood. The inner jaw hangs slack and the dorsal tubes lie flat. The obsidian body loses its dark blue highlights.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Drone lies motionless in a pool of sizzling acid blood, the obsidian exoskeleton cracked and dull. The elongated skull rests on the ground, inner jaw partially extended, and the tail blade lies flat. The acid slowly dissolves the surrounding surface.
+  Header "Victory 1" (5,1): The Drone rises to full height and throws the elongated skull back, the inner jaw extending in a triumphant silent scream. Acid saliva sprays from the silver teeth and the tail lashes violently. The obsidian body gleams with dark blue highlights.
+  Header "Victory 2" (5,2): It slams the tail blade into the ground and spreads the clawed hands wide, the dorsal tubes flaring. The inner jaw snaps in and out rapidly in a display of dominance. The exoskeleton ripples with predatory energy.
+  Header "Victory 3" (5,3): The Drone drops to a low, satisfied crouch, the tail coiling around its body. The elongated skull tilts and the lipless mouth closes over the silver teeth. It is still and watchful — the perfect predator at rest.
+  Header "Weak Pose" (5,4): The Drone crouches low, exoskeleton cracked and leaking acid blood. The tail drags limply and the claws barely grip the ground. The elongated skull hangs and the inner jaw extends weakly, silver teeth barely visible.
+  Header "Critical Pose" (5,5): Barely alive, the Drone lies on its side with cracked, dull exoskeleton and acid blood pooling. The tail blade twitches and the inner jaw extends one last time in a feeble threat. Even dying, the creature remains terrifying.`,
+    },
+    {
+      id: 'xenomorph-warrior',
+      name: "Xenomorph Warrior",
+      genre: "Sci-Fi Horror",
+      description: "A larger, more heavily armored variant with a distinctive ridged head crest rising from the skull. Broader, more muscular build with thicker chitinous armor plates across the chest and limbs. More aggressive, upright stance than the drone.",
+      equipment: "Natural weapons — larger, heavier claws, a thicker armored tail with a wider blade tip, reinforced chitinous chest plates, and a more powerful inner jaw. No artificial equipment.",
+      colorNotes: "Primary black exoskeleton with dark brown undertones in the chitin plates. Head crest is glossy black with brown ridges. Acid-green blood visible at joints. Teeth are bone-white. Chest plates have a dark brown, almost woody texture.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Xenomorph Warrior advances on its left foot with a heavier, more deliberate stride than a drone. The ridged head crest rises prominently above the broader shoulders. Thick chitinous chest plates overlap like dark brown armor and the armored tail swings behind with its wide blade.
+  Header "Walk Down 2" (0,1): Neutral mid-step with feet planted wide, the muscular frame upright and imposing. The glossy black head crest with brown ridges catches the light. Bone-white teeth are visible in the slightly open mouth and acid-green blood traces the joint seams.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the heavier tail swaying opposite. The chitinous chest plates shift with the stride and the larger claws flex. Dark brown undertones show in the thicker chitin.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the ridged head crest and massive shoulders fill the upper view. The thick armored tail extends prominently and the dark brown chitinous back plates overlap in a segmented pattern.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full breadth of the Warrior's back visible — wider and more muscular than a drone. The head crest ridges run in parallel lines and the tail hangs heavily.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the armored tail swaying. Acid-green blood is faintly visible at the leg joints and the dark brown chitin plates clank softly.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Warrior faces left with its left foot forward in a powerful stride. The ridged head crest extends the skull profile dramatically and the thick chitinous chest plates are visible. The heavy armored tail counterbalances the massive build.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full silhouette showing the broader, more upright posture. The dark brown chitin plates layer across the torso like segmented armor and the head crest ridges are sharp in profile.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The larger claws reach forward and the tail blade arcs behind. Acid-green blood traces are visible at the wrist joints.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the head crest leading the advance like a battering ram. The chitinous chest plates are in full profile and the armored tail trails heavily behind. Bone-white teeth are bared.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the muscular, upright frame filling the cell. The dark brown undertones in the chitin are visible and the head crest ridges cast small shadows.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The tail swings forward and the heavier claws are prominent. The glossy black exoskeleton contrasts with the brown chitin texture.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Warrior stands nearly upright facing the viewer, the ridged head crest towering above. The chitinous chest plates are displayed prominently and the larger claws hang at its sides. The armored tail coils on the ground and bone-white teeth gleam in a closed-mouth expression.
+  Header "Idle Up" (2,1): Facing away, the massive back and head crest fill the view. The armored tail lies in a heavy curve and the dark brown chitin plates overlap down the spine. The broader frame is noticeably bulkier than a drone.
+  Header "Idle Left" (2,2): Facing left in an upright stance, the head crest extends far forward. One massive clawed hand rests at its side and the tail blade rests on the ground. The dark brown chitin plate texture is visible on the near flank.
+  Header "Idle Right" (2,3): Facing right, standing tall with the head crest prominent. The chitinous chest plates and bone-white teeth create an armored, predatory profile. Acid-green blood traces at the joints mark its alien biology.
+  Header "Battle Idle 1" (2,4): The Warrior drops into a wider, more aggressive stance than a drone, both massive claws raised and spread. The head crest tilts forward and the inner jaw extends partially, bone-white teeth bared in both jaws. The armored tail rises with the wide blade poised.
+  Header "Battle Idle 2" (2,5): It shifts in the combat stance, the heavier frame moving with surprising speed. The chitinous chest plates expand with deep breathing and the head crest ridges seem to bristle. The tail blade circles in a wider, deadlier arc.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Warrior holds the aggressive stance, the inner jaw retracting as it coils for a strike. The head crest angles downward like a charging bull and the massive claws open wide. The armored tail is raised to maximum height.
+  Header "Attack 1" (3,1): Wind-up — the Warrior pulls back its right arm, the massive claw clenched. The chitinous chest plates shift to allow the rotation and the head crest tilts with the torso. The tail arches for a secondary strike.
+  Header "Attack 2" (3,2): A devastating claw swipe — the massive right claw rakes forward, tearing through the air. The head crest leads the body rotation and the inner jaw snaps outward simultaneously. The tail lashes from behind.
+  Header "Attack 3" (3,3): Follow-through — the claw strike reaches maximum extension while the tail blade stabs forward from behind, creating a dual attack. The Warrior's body is fully rotated and the inner jaw is at full extension, bone-white teeth snapping.
+  Header "Cast 1" (3,4): The Warrior rears back, the chitinous chest plates expanding as it inhales deeply. Acid-green fluid builds visibly behind the bone-white teeth, bubbling and sizzling. The head crest tilts back and the tail braces on the ground.
+  Header "Cast 2" (3,5): The acid builds to a critical mass — the Warrior's throat bulges with the pressurized acid-green fluid. The chitin plates vibrate and the head crest ridges flatten. It aims the elongated skull forward like a cannon barrel.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Warrior launches a pressurized spray of acid-green blood from its mouth — a wide cone of sizzling fluid that fans out to the cell edge, dissolving everything it contacts. The recoil rocks its massive body backward and the head crest shakes.
+  Header "Damage 1" (4,1): The Warrior staggers from a hit, a chitinous chest plate cracking and falling away. Acid-green blood spurts from the exposed area, sizzling on the ground. The head crest sways and the tail lashes in rage.
+  Header "Damage 2" (4,2): More chitin plates shatter, exposing the dark brown inner tissue. Acid blood flows freely, creating a hazardous pool. The inner jaw extends in a pained screech and the massive claws clutch at the wounds.
+  Header "Damage 3" (4,3): Recovery — the Warrior roars and slams both claws on the ground, forcing itself upright. Broken chitin plates hang loose and acid blood still drips, but the head crest rises defiantly. The tail blade rises again.
+  Header "KO 1" (4,4): The Warrior's legs buckle under its massive frame. The head crest droops and the chitinous armor hangs in shattered pieces. Acid-green blood pools widely, dissolving the ground. The tail blade scrapes along the surface.
+  Header "KO 2" (4,5): Crashing to the ground, the Warrior's armored body creates a heavy impact. The head crest cracks against the surface and acid blood seeps from multiple wounds. The massive claws splay outward and the tail goes still.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Warrior lies in a wide pool of sizzling acid-green blood, its shattered chitin plates scattered around the body. The head crest is cracked and the bone-white teeth are visible in the slack jaw. The armored tail lies flat and the claws are open and still.
+  Header "Victory 1" (5,1): The Warrior rears to full height and roars, the inner jaw extending in a triumphant shriek. The head crest towers above and the massive claws spread wide. Acid-green blood drips from the bone-white teeth and the tail blade stabs the air.
+  Header "Victory 2" (5,2): It slams both clawed fists on the ground in a display of dominance, the chitinous chest plates expanding. The head crest dips and rises in a predatory nod and the tail lashes in a wide, aggressive sweep.
+  Header "Victory 3" (5,3): The Warrior stands tall and crosses its massive clawed arms over the chitinous chest plates. The head crest tilts with an almost regal bearing and the tail coils around its feet. Even in stillness, it radiates lethal power.
+  Header "Weak Pose" (5,4): The Warrior hunches forward, broken chitin plates hanging loose. Acid blood drips steadily and the head crest droops. The massive claws grip the ground for support and the tail drags limply. The inner jaw hangs partially extended.
+  Header "Critical Pose" (5,5): Barely standing, the Warrior sways with most of its chitin armor destroyed. Acid-green blood pools around its feet. The head crest is cracked but still raised and the bone-white teeth are bared in a final, defiant snarl.`,
+    },
+    {
+      id: 'facehugger-swarm',
+      name: "Facehugger Swarm",
+      genre: "Sci-Fi Horror",
+      description: "A group of 3-4 spider-like parasitic creatures moving as a unit. Each has a pale, fleshy body with long gripping finger-legs, a muscular whip-like tail, and a ventral proboscis. They scuttle and leap in unsettling coordinated motion.",
+      equipment: "Natural weapons only — gripping finger-legs for latching, a muscular tail for constriction, and a ventral proboscis for implantation. No artificial equipment.",
+      colorNotes: "Pale flesh bodies with pink-grey undersides. Finger-legs are slightly darker flesh tone with visible tendons. Tails are pink-grey and muscular. Ventral side has translucent membranes revealing pulsing internals. Overall wet, organic appearance.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Three facehuggers scuttle forward as a swarm, the lead creature on the left with finger-legs splayed and the others following in a staggered formation. Their pale flesh bodies are low to the ground and the muscular tails trail behind. The wet, organic sheen catches the light.
+  Header "Walk Down 2" (0,1): The swarm pauses in a tight cluster, finger-legs interleaving. The lead facehugger raises its front legs sensing the air while the others press close beneath. Pink-grey undersides are partially visible and the translucent membranes pulse.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — the swarm shifts right, the lead creature now on the right side. Finger-legs scrabble across the ground in unsettling coordinated motion. Tails whip and coil.
+  Header "Walk Up 1" (0,3): The swarm scuttles away, showing the top of their pale fleshy bodies. The finger-legs push from behind and the muscular tails lead the way. Three distinct bodies move in formation with visible tendons flexing on the legs.
+  Header "Walk Up 2" (0,4): Facing away in a cluster, the swarm's pale dorsal surfaces are visible — smooth flesh domes with the bases of the finger-legs radiating outward. Tails coil together briefly before separating.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — the swarm shifts direction, scuttling away with the formation reversed. The finger-legs move in a disturbing wave pattern and the translucent undersides flash occasionally.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The swarm scuttles left, three facehuggers in a line with finger-legs reaching. The lead creature's profile shows the gripping legs, whip tail, and the fleshy body in full side view. The others follow in rapid, spider-like pursuit.
+  Header "Walk Left 2" (1,1): Clustered facing left, the swarm huddles with finger-legs interleaved. The side view shows the translucent ventral membranes and the muscular tails curling upward. The pale flesh glistens with moisture.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — the swarm moves left with altered formation, some creatures climbing over others. Finger-legs tangle and separate in disturbing coordination. Pink-grey undersides flash.
+  Header "Walk Right 1" (1,3): The swarm scuttles right, finger-legs reaching ahead. The lead facehugger leaps slightly while the others rush below. Muscular tails whip for balance and the pale bodies ripple with effort.
+  Header "Walk Right 2" (1,4): Clustered facing right, the swarm presses together. The fleshy bodies stack slightly and the finger-legs grip each other as well as the ground. The wet organic appearance is at its most unsettling.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — altered formation scuttling right. One facehugger rides atop another briefly, finger-legs spread wide. The translucent membranes on the ventral side pulse with internal movement.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The swarm rests in a loose cluster facing the viewer, finger-legs slowly flexing in place. The lead facehugger raises its front legs periodically as if sensing. Pink-grey undersides are visible and the muscular tails lie in lazy coils. The pale flesh rises and falls with breathing.
+  Header "Idle Up" (2,1): Resting in a cluster facing away, the smooth flesh domes of the facehugger bodies are visible. Finger-legs splay outward and tails intertwine. The pale bodies pulse gently with internal movement.
+  Header "Idle Left" (2,2): The swarm rests facing left, two creatures on the ground and one perched atop them. Finger-legs grip each other and the ground. The side view shows the layered fleshy bodies and trailing tails.
+  Header "Idle Right" (2,3): Facing right in a resting cluster, the finger-legs slowly open and close. The translucent ventral membranes pulse and the muscular tails curl and uncurl with idle motion. The wet surface of the bodies glistens.
+  Header "Battle Idle 1" (2,4): The swarm springs to alertness — all three facehuggers raise their front finger-legs high and the tails whip upright. They spread into an attack formation, each creature slightly separated and oriented toward the threat. The ventral proboscises extend partially.
+  Header "Battle Idle 2" (2,5): The swarm shifts in the attack formation, creatures circling each other in a disturbing dance. Finger-legs flex rapidly and the muscular tails vibrate with tension. The translucent membranes reveal quickened internal pulsing.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The swarm holds the attack formation, three sets of finger-legs spread wide and ready. The lead facehugger's ventral proboscis is fully extended and the muscular tails coil tight like springs. The pale flesh darkens slightly with arousal.
+  Header "Attack 1" (3,1): Wind-up — the lead facehugger coils its finger-legs beneath its body and the tail whips backward, preparing to leap. The other two creatures press flat to the ground, clearing a launch path. The pale body compresses like a spring.
+  Header "Attack 2" (3,2): The lead facehugger launches into a leaping attack, finger-legs spread wide and reaching forward. The ventral proboscis extends fully and the tail streams behind. The other two creatures rush forward on the ground in support.
+  Header "Attack 3" (3,3): The lead facehugger latches on at the cell edge — finger-legs wrapping tight around an invisible target while the tail constricts. The two ground facehuggers attack the base, finger-legs gripping and tails whipping. The swarm strikes as one.
+  Header "Cast 1" (3,4): The swarm clusters tightly together, finger-legs interlocking into a single mass. The bodies press together and the tails wrap around the group, forming a pulsing organic orb. The translucent membranes glow with combined internal energy.
+  Header "Cast 2" (3,5): The orb of intertwined facehuggers pulses faster, the pale flesh darkening to pink as blood rushes through the combined mass. The finger-legs vibrate at the surface and a high-frequency tremor makes the ground around them ripple.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The swarm explodes outward — all three facehuggers launch in different directions simultaneously, each trailing a spray of pink-grey fluid. They arc to the cell edges in a burst of gripping finger-legs and whipping tails, covering maximum area.
+  Header "Damage 1" (4,1): A hit scatters the swarm — one facehugger is knocked tumbling, its finger-legs curling protectively. The other two scatter sideways, tails lashing. The struck creature oozes pink fluid from a wound on its pale flesh.
+  Header "Damage 2" (4,2): The swarm regroups in disarray — one creature drags a damaged leg and another has a torn translucent membrane leaking fluid. They cluster defensively, finger-legs interweaving for protection. The tails coil tightly.
+  Header "Damage 3" (4,3): Recovery — the swarm rights itself, the damaged creatures pulling their wounded parts inward. They reform the attack formation with the healthiest facehugger in the lead. Finger-legs extend cautiously and tails rise again.
+  Header "KO 1" (4,4): The swarm collapses — one facehugger goes limp, finger-legs curling inward in a death pose. The others slow and cluster around the fallen creature, finger-legs touching it. The pale flesh of all three goes a sickly grey.
+  Header "KO 2" (4,5): Two facehuggers are now motionless with curled finger-legs, lying on their backs showing the translucent ventral membranes no longer pulsing. The last one crawls weakly before collapsing beside them, tail going slack.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): All three facehuggers lie motionless — finger-legs curled inward, tails limp, ventral membranes still and translucent. The pale flesh has gone grey and a small pool of pink fluid surrounds the cluster. They look like discarded organic husks.
+  Header "Victory 1" (5,1): The swarm scurries in a celebratory circle, finger-legs clicking rapidly on the ground. The lead facehugger leaps and lands atop the others in a dominant display. Tails whip with energy and the pale flesh pulses a healthy pink.
+  Header "Victory 2" (5,2): All three facehuggers rear up on their hind legs simultaneously, front finger-legs spread wide in a coordinated display. The ventral proboscises extend and retract and the tails lash in unison. A disturbing, synchronized victory.
+  Header "Victory 3" (5,3): The swarm settles into a satisfied cluster, finger-legs intertwined. They breathe in synchronized pulses, the pale flesh rising and falling together. Tails coil lazily and the translucent membranes glow with contented internal warmth.
+  Header "Weak Pose" (5,4): The swarm huddles in a weakened cluster — one creature is barely moving, finger-legs limp. The others press close protectively, their own finger-legs sluggish. The pale flesh is mottled grey and the tails hang without energy.
+  Header "Critical Pose" (5,5): Only one facehugger remains functional, dragging itself forward with weakening finger-legs. The other two lie motionless behind it. Its translucent membrane barely pulses and the tail trails limply, but it still reaches toward the threat with desperate, instinctual gripping.`,
+    },
+    {
+      id: 'biomechanical-entity',
+      name: "Biomechanical Entity",
+      genre: "Sci-Fi Horror",
+      description: "An HR Giger-inspired fusion of organic tissue and mechanical structure. A humanoid frame where flesh merges seamlessly with chrome pipes, ribbed tubing, and exposed vertebral columns. Smooth, elongated skull-like head with no visible eyes, connected by cables and tubes to the torso.",
+      equipment: "Integrated body-weapons — retractable chrome blade-arms that extend from forearm housings, ribbed pipes that vent steam, exposed vertebrae that flex and strike, and chrome-plated chest panels over raw flesh. No separate equipment.",
+      colorNotes: "Chrome silver mechanical components contrasting with exposed flesh pink organic tissue. Dark steel ribbed pipes and tubes. Bone-white exposed vertebrae. The skull-head is smooth dark steel with chrome accents. Fluids are dark reddish-black.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Entity steps forward on its left foot — the leg is a fusion of chrome pistons and exposed flesh-pink muscle. The smooth dark steel skull-head tilts slightly and ribbed tubes connect the neck to the chrome-plated chest panels. A thin hiss of steam vents from a shoulder pipe.
+  Header "Walk Down 2" (0,1): Neutral mid-step with both feet planted, the full biomechanical horror visible. Chrome-plated chest panels reveal raw flesh beneath at the seams. Cables and tubes run from the skull-head to the torso and the exposed vertebrae are visible through a gap in the back.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the other leg's fusion of chrome and flesh visible. The ribbed pipes along the shoulders vent steam from the opposite side. Dark reddish-black fluid traces the chrome joints.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the exposed vertebral column runs prominently down the center of the back, each bone visible and connected by cables. Dark steel ribbed pipes flank the spine and chrome panels cover the lower back over flesh.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full spinal horror visible — bone-white vertebrae flexing with each step, cables and tubes pulsing with dark fluid. The smooth skull-head rises above on its tube-connected neck.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. Steam vents from the dorsal ribbed pipes and the chrome pistons in the legs extend and contract with mechanical precision over exposed flesh.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Entity faces left with its left foot forward, the full profile showing the nightmare fusion. The skull-head extends on its tube-laden neck, the chrome chest panels transition to exposed flesh at the waist, and the ribbed pipes run along the arm and shoulder.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the side view revealing the depth of the biomechanical integration. Chrome blade-arm housings are visible on the forearms and the exposed vertebrae peek through the back. Dark fluid drips from cable connections.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. Steam hisses from the near shoulder pipe and the chrome pistons in the leading leg extend. The flesh-pink tissue pulses visibly between chrome plates.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the skull-head leading the advance. The chrome-plated chest panels catch light and the ribbed tubes running to the arm housings are visible. The leg pistons drive the stride with mechanical precision.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the bone-white vertebrae visible through the back gap. Chrome and flesh merge in unsettling harmony along the profile and dark reddish-black fluid traces the joint seams.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The far arm's blade housing catches light and the ribbed pipes along the spine release a small steam vent.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Entity stands facing the viewer in an unsettling stillness, the smooth skull-head tilted slightly. Chrome chest panels gleam over exposed flesh and the ribbed tubes pulse with dark fluid. The forearm blade housings are retracted and steam drifts from shoulder pipes.
+  Header "Idle Up" (2,1): Facing away, the exposed vertebral column is fully displayed — bone-white vertebrae connected by cables and tubes, flanked by ribbed pipes and chrome panels. The skull-head is barely visible above the mechanical nightmare of the back.
+  Header "Idle Left" (2,2): Facing left in biomechanical stillness, the profile shows the smooth skull-head connected by tubes to the torso. Chrome panels reflect light while flesh-pink tissue pulses between them. The blade arm housing is dormant on the near forearm.
+  Header "Idle Right" (2,3): Facing right, the ribbed tubes and chrome panels create a disturbing silhouette. Steam drifts lazily from shoulder pipes and dark fluid traces the cable connections. The bone-white vertebrae are visible through the back.
+  Header "Battle Idle 1" (2,4): The Entity activates — chrome blade-arms extend from both forearm housings, sliding out with a mechanical hiss. The skull-head snaps forward and the ribbed pipes flare with pressurized steam. The exposed vertebrae arch aggressively and the flesh between the chrome plates pulses faster.
+  Header "Battle Idle 2" (2,5): It shifts in the combat stance, the extended chrome blades catching light. The cables and tubes connecting the skull-head to the torso tighten and the vertebral column undulates. Dark reddish-black fluid drips from the blade housing seams.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Entity holds the combat stance, chrome blades forward and the skull-head locked in a targeting orientation. Steam vents from multiple ribbed pipes and the flesh-pink tissue between chrome plates darkens with blood flow. The vertebrae flex like a coiled serpent.
+  Header "Attack 1" (3,1): Wind-up — the Entity pulls both chrome blade-arms back, the forearm housings retracting to extend the blades to maximum length. The skull-head tilts back and the vertebral column arches, storing kinetic energy.
+  Header "Attack 2" (3,2): Dual blade strike — both chrome blades slash forward in a crossing arc, the mechanical arms driving with piston force. The skull-head snaps forward and the vertebrae release their stored energy. Steam bursts from every pipe.
+  Header "Attack 3" (3,3): Follow-through — the chrome blades are fully extended in an X-pattern, dark reddish-black fluid spraying from the blade edges. The skull-head tilts with the motion and the ribbed pipes vent a powerful steam blast from the exertion.
+  Header "Cast 1" (3,4): The Entity retracts the blade-arms and spreads its chrome-and-flesh hands. The ribbed pipes along the spine begin glowing with internal heat and the skull-head tilts back. The cables and tubes connecting to the torso pulse with accelerated dark fluid.
+  Header "Cast 2" (3,5): The internal heat builds — the chrome panels begin radiating visible heat shimmer and the exposed flesh between them glows reddish-pink. The vertebrae pulse with energy and the skull-head emits a low mechanical drone. Every ribbed pipe vents superheated steam.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Entity releases a biomechanical shockwave — a burst of superheated steam and dark fluid erupts from every pipe and cable, creating a concussive ring of force. The chrome panels flash and the flesh pulses. The skull-head emits a piercing mechanical shriek.
+  Header "Damage 1" (4,1): The Entity staggers, a chrome chest panel cracking and peeling back to reveal the raw flesh beneath. Dark reddish-black fluid sprays from severed tubes and the ribbed pipes sputter. The skull-head jerks sideways.
+  Header "Damage 2" (4,2): More chrome panels shatter, exposing large areas of vulnerable flesh-pink tissue. Cables snap and flail, leaking dark fluid. The blade-arms retract involuntarily and the vertebral column locks in a pained arch. Steam vents erratically.
+  Header "Damage 3" (4,3): Recovery — the Entity's damaged systems stabilize with mechanical clicks and hydraulic hisses. Severed tubes seal themselves and the blade-arms re-extend. The skull-head realigns and the vertebrae unlock. Dark fluid still drips but the chrome components realign.
+  Header "KO 1" (4,4): Systems cascade failure — chrome panels fall away and the blade-arms retract permanently. The ribbed pipes stop venting and go silent. The cables connecting the skull-head go slack and the vertebral column collapses. The entity sinks to its knees.
+  Header "KO 2" (4,5): The Entity collapses in a heap of chrome and flesh — mechanical components grinding to a halt and organic tissue going limp. Dark fluid pools around the body and the skull-head rests on the ground with disconnected tubes trailing. The silence is worse than the noise.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Entity lies motionless — a pile of chrome plates, exposed flesh, disconnected tubes, and silent ribbed pipes. The skull-head stares blankly and the exposed vertebrae have locked in a contorted position. Dark reddish-black fluid pools beneath the body. A final wisp of steam escapes one pipe.
+  Header "Victory 1" (5,1): The Entity extends both chrome blade-arms and crosses them overhead, the skull-head tilting back in a mechanical roar. Every ribbed pipe vents steam in a coordinated blast and the vertebrae undulate in a display of biomechanical dominance. The chrome panels gleam.
+  Header "Victory 2" (5,2): The blade-arms retract and the Entity stands tall, the chrome-plated chest expanding as cables and tubes pulse with fresh dark fluid. The skull-head scans slowly and the vertebrae ripple in a satisfied wave. It is a machine that has completed its function.
+  Header "Victory 3" (5,3): The Entity returns to unsettling stillness — blade-arms retracted, ribbed pipes gently steaming, vertebrae settled. The skull-head tilts at an almost curious angle and the chrome panels gleam. It waits for the next directive with terrifying patience.
+  Header "Weak Pose" (5,4): The Entity hunches with failing systems — chrome panels loose and hanging, blade-arms partially extended and sparking. Several tubes are disconnected and leaking dark fluid. The skull-head droops and the vertebral column sags. Only the faintest steam escapes the pipes.
+  Header "Critical Pose" (5,5): Barely operational, the Entity stands on locked pistons. Most chrome plates are gone, exposing vulnerable flesh that pulses weakly. The blade-arms twitch and the skull-head hangs by a few cables. A single ribbed pipe still vents thin steam in a last mechanical breath.`,
+    },
+    {
+      id: 'space-marine',
+      name: "Space Marine",
+      genre: "Sci-Fi Horror",
+      description: "A hardened colonial marine in heavy tactical armor with a full-face helmet featuring an amber visor HUD. Athletic, combat-ready build with military bearing. Battle-scarred armor tells the story of encounters with alien threats.",
+      equipment: "Olive drab tactical armor with gunmetal-grey reinforced plates, a pulse rifle with an underslung grenade launcher, a motion tracker mounted on the left forearm, a chest-mounted tactical lamp, and a tactical helmet with an amber-tinted visor.",
+      colorNotes: "Olive drab primary armor with gunmetal-grey reinforced plates. Amber-tinted visor with HUD glow. Pulse rifle is dark gunmetal with olive grips. Motion tracker screen is green. Chest lamp casts white light. Boot soles are worn dark rubber.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Space Marine advances on his left foot with a disciplined, combat-ready stride. The pulse rifle is held at the ready across his chest and the amber visor glows with HUD data. The olive drab armor and gunmetal plates catch harsh light and the chest lamp casts a white beam forward.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, the pulse rifle shouldered. The tactical helmet's amber visor reflects the environment and the motion tracker on the left forearm shows a green screen with a sweeping line. Gunmetal plates protect the shoulders and chest.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the pulse rifle shifting sides. The underslung grenade launcher is visible beneath the barrel and the olive drab armor clanks softly with the disciplined stride.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the reinforced gunmetal back plates and tactical equipment are visible. The pulse rifle barrel extends over the right shoulder and the helmet's rear ventilation ports are prominent. The olive drab armor is scuffed with battle damage.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full back armor visible — olive drab with gunmetal reinforcement plates. The motion tracker arm hangs at the left side and the chest lamp's mounting bracket is visible from behind.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. The pulse rifle shifts and the amber visor glow is faintly visible around the helmet edges. Battle scars mark the back armor plates.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Marine faces left with his left foot forward, pulse rifle aimed ahead with steady hands. The motion tracker on the near forearm sweeps with a green display. The amber visor shows targeting data and the chest lamp illuminates the path. Olive drab armor is tight and functional.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full tactical profile visible — helmet with amber visor, reinforced shoulder plates, pulse rifle at port arms, and the motion tracker screen facing the viewer. The gunmetal plates overlap the olive armor.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The underslung grenade launcher is visible in profile and the chest lamp beam cuts forward. Battle scars mark the near shoulder plate.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, pulse rifle leading the advance. The amber visor scans ahead and the chest lamp beam extends forward. The motion tracker is on the far arm and the olive drab armor shows combat wear.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the gunmetal reinforced plates visible on the near side. The helmet profile shows the amber visor and ventilation ports. The pulse rifle rests at a ready angle.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The motion tracker screen is visible on the far forearm and the pulse rifle barrel catches dull light.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Marine stands at combat rest facing the viewer, pulse rifle shouldered with the barrel up. The amber visor glows steadily with a green HUD readout. The chest lamp is on low and the motion tracker shows a clear green screen. Military bearing is evident in every line.
+  Header "Idle Up" (2,1): Facing away at combat rest, the back armor plates and equipment webbing are visible. The pulse rifle barrel extends over the right shoulder and the tactical helmet's rear shows communication equipment. Olive drab armor is well-maintained despite battle scars.
+  Header "Idle Left" (2,2): Facing left at rest, pulse rifle at port arms. The amber visor shows in profile and the motion tracker on the near arm displays the green sweep. The chest lamp is dimmed and the reinforced shoulder plate shows a deep scratch from an alien encounter.
+  Header "Idle Right" (2,3): Facing right at combat rest, the pulse rifle resting against the shoulder. The amber visor casts a faint glow on the olive drab armor and the chest lamp is on standby. The military bearing remains sharp and the gunmetal plates are well-seated.
+  Header "Battle Idle 1" (2,4): The Marine snaps to combat stance — pulse rifle aimed forward in a two-handed grip, the amber visor tracking with targeting data. The motion tracker beeps with contacts and the chest lamp blazes to full power. Every gunmetal plate locks tight and the grenade launcher safety clicks off.
+  Header "Battle Idle 2" (2,5): He shifts in the combat stance, the pulse rifle tracking. The motion tracker blips increase and the amber visor flickers with multiple contacts. The chest lamp sweeps and the olive drab armor is taut against his combat-ready muscles. Sweat is visible on the chin beneath the visor.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Marine holds the firing stance, pulse rifle locked on target. The amber visor displays range and target data. The motion tracker sweeps rapidly and the chest lamp illuminates the kill zone. His finger is on the trigger and the grenade launcher is armed.
+  Header "Attack 1" (3,1): Wind-up — the Marine braces the pulse rifle stock against his gunmetal shoulder plate, sighting through the amber visor. The weapon charges with a building whine and the chest lamp focuses on the target zone. The motion tracker confirms target lock.
+  Header "Attack 2" (3,2): The pulse rifle fires — a rapid burst of bright muzzle flashes erupts from the barrel with spent casings ejecting. The recoil pushes against the shoulder plate and the amber visor flickers with each flash. The chest lamp illuminates the tracer paths.
+  Header "Attack 3" (3,3): Follow-through — the burst impacts at the cell edge with small explosions of sparks. Spent casings litter the ground and the pulse rifle barrel steams. The Marine steadies for another burst, the motion tracker still sweeping.
+  Header "Cast 1" (3,4): The Marine flips the pulse rifle to the underslung grenade launcher, the selector clicking to secondary fire. He crouches slightly and the amber visor switches to a grenade trajectory arc display. The chest lamp dims to reduce his profile.
+  Header "Cast 2" (3,5): The grenade launcher charges — the Marine sights the arc through the amber visor's trajectory display, compensating for range. His body braces for the recoil and the motion tracker shows the target cluster.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The grenade launches with a heavy thump — a small explosive round arcs to the cell edge and detonates in a burst of fire and shrapnel. The recoil rocks the Marine backward and the amber visor flashes with the explosion. Smoke rolls across the ground.
+  Header "Damage 1" (4,1): The Marine staggers from a hit, a gunmetal plate denting inward. The pulse rifle wavers and the amber visor flickers with static. Acid burns appear on the olive drab armor from alien contact and the chest lamp sputters.
+  Header "Damage 2" (4,2): Stumbling back, a shoulder plate cracks and falls away. The motion tracker sparks and the screen goes dark. The amber visor shows damage warnings and the pulse rifle is gripped with trembling, blood-smeared gloves. The chest lamp flickers.
+  Header "Damage 3" (4,3): Recovery — the Marine plants his feet and raises the pulse rifle, forcing himself back into firing stance. The amber visor reboots with a flash and the chest lamp steadies. The motion tracker is dead but his training keeps him focused through the pain.
+  Header "KO 1" (4,4): The pulse rifle drops from weakening hands as the Marine's knees buckle. The amber visor dims and the chest lamp dies. The damaged armor sags on his failing body and the motion tracker arm hangs limp.
+  Header "KO 2" (4,5): The Marine collapses forward, the tactical helmet cracking against the ground. The pulse rifle lies beside his outstretched arm and the amber visor goes completely dark. The olive drab armor is battered and acid-scarred. The chest lamp gives one final flicker.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Marine lies face-down in battered armor — the pulse rifle beside his arm, the amber visor dark, and the chest lamp dead. Acid scars mark the olive drab plates and the cracked motion tracker shows a blank screen. Spent casings surround the body. Game over, man.
+  Header "Victory 1" (5,1): The Marine raises the pulse rifle overhead with one arm, the amber visor blazing with a victory readout. The chest lamp flashes in celebration and the motion tracker shows a clear screen — all contacts eliminated. He lets out a triumphant battle cry behind the helmet.
+  Header "Victory 2" (5,2): He taps the motion tracker and confirms all clear, then slings the pulse rifle over one shoulder. The amber visor switches to standard mode and the chest lamp dims to normal. He gives a sharp military nod of satisfaction — mission accomplished.
+  Header "Victory 3" (5,3): The Marine plants the pulse rifle butt on the ground and leans on it, pushing the amber visor up on the helmet. His face is revealed — exhausted but alive, with a grim, satisfied expression. The motion tracker beeps a steady all-clear and the chest lamp casts a warm glow.
+  Header "Weak Pose" (5,4): The Marine leans on the pulse rifle as a crutch, the amber visor cracked and flickering. The chest lamp is dead, the motion tracker sparks intermittently, and acid scars cover the olive drab armor. He breathes heavily behind the damaged helmet.
+  Header "Critical Pose" (5,5): Barely standing, the Marine grips the pulse rifle one-handed, the other arm limp. The amber visor shows critical damage warnings, most armor plates are gone or cracked, and the chest lamp is shattered. His last magazine is loaded and his finger is on the trigger — he will not go quietly.`,
     }
   ];
 
@@ -2050,6 +2607,214 @@ ROW 2 — Environmental:
   Header "Lava Night" (2,1): Night scene — the temple is silhouetted against the dark sky, lit only by the lava glow from channels and forge. Runes provide accent lighting. The volcanic rock absorbs all other light. Dramatic and ominous.
   Header "Destroyed" (2,2): The temple has been destroyed by a catastrophic eruption. Obsidian pillars shattered, forge entrance collapsed. Cooled black lava covers the steps. Some channels still glow faintly. Ruins and rubble.`,
     },
+    {
+      id: 'ruined-gas-station',
+      name: 'Ruined Gas Station',
+      genre: 'Post-Apocalyptic',
+      gridSize: '3x3',
+      description: 'A collapsed roadside gas station with a caved-in canopy, rusted fuel pumps, and boarded-up windows. Faded pre-war signage barely readable.',
+      details: 'Metal canopy collapsed on one side, supported by a single bent pole. Two rusted fuel pumps on cracked concrete. Boarded windows with plywood and nails. Faded price sign with missing letters. Overgrown parking lot with weeds through cracks. A rusted car hulk sits abandoned nearby.',
+      colorNotes: 'Rust orange and brown for corroded metal, faded white and red for old signage, cracked grey concrete, dusty tan for sand and dirt, dark green weeds, dull yellow for faded road markings.',
+      cellLabels: JSON.stringify([
+        'Day - Abandoned', 'Day - Scavengers', 'Day - Dust Storm',
+        'Dusk - Campfire', 'Dusk - Lookout', 'Dusk - Quiet',
+        'Night - Moonlit', 'Night - Occupied', 'Night - Raider Attack'
+      ]),
+      cellGuidance: `ROW 0 — Daytime States:
+  Header "Day - Abandoned" (0,0): The gas station in harsh daylight. The collapsed canopy casts a jagged shadow. Rusted pumps stand amid cracked concrete. Faded signage is sun-bleached. Weeds push through every crack. The rusted car hulk bakes in the heat. Empty and desolate.
+  Header "Day - Scavengers" (0,1): Same daytime scene but small figure silhouettes are visible near the pumps, checking for remaining fuel. One boards are pried from a window. A pack of salvaged goods sits by the rusted car. Active scavenging.
+  Header "Day - Dust Storm" (0,2): A dust storm sweeps across the station. Dense tan-brown dust obscures the lower half. The canopy creaks in the wind. Only the top of the faded sign is visible through the swirling sand. Debris flies past.
+
+ROW 1 — Dusk Transition:
+  Header "Dusk - Campfire" (1,0): Orange-purple dusk sky. A small campfire burns inside the station under the remaining canopy. Warm orange firelight spills from the boarded windows. Smoke mixes with the dusky air. Feels temporarily inhabited.
+  Header "Dusk - Lookout" (1,1): Dusk with a small figure silhouette standing on the collapsed canopy edge, scanning the horizon. The fading light casts long shadows from the rusted pumps. A watchful, tense atmosphere.
+  Header "Dusk - Quiet" (1,2): Peaceful dusk — the orange sky behind the station silhouette. No activity. The rusted pumps cast long shadows and the faded sign is backlit. A melancholy beauty to the abandoned ruin.
+
+ROW 2 — Nighttime States:
+  Header "Night - Moonlit" (2,0): Pale moonlight illuminates the station. The rusted metal has a blue-silver sheen. Deep shadows under the canopy. The boarded windows are dark voids. The car hulk is a dark silhouette. Eerie and still.
+  Header "Night - Occupied" (2,1): Night with warm light from inside — a lantern or fire visible through gaps in the boarded windows. Someone has set up shelter. Bedroll silhouette visible through the doorway. A watch-fire outside.
+  Header "Night - Raider Attack" (2,2): Night action scene — muzzle flashes from behind the rusted pumps. Small explosions of sparks. The canopy is being used as cover. Figures in combat silhouettes. Orange tracer lines against the dark. Chaos.`,
+    },
+    {
+      id: 'fortified-settlement-gate',
+      name: 'Fortified Settlement Gate',
+      genre: 'Post-Apocalyptic',
+      gridSize: '3x3',
+      description: 'A makeshift community entrance built from scrap metal walls, featuring a watchtower, barbed wire barriers, and a heavy gate assembled from car doors and sheet metal.',
+      details: 'Walls made from corrugated metal sheets, car hoods, and sheet metal welded together. A wooden watchtower with a tin roof rises above the left wall. Barbed wire coils top the walls. The gate is two car doors hinged on pipe frames. A guard post with sandbags flanks the right side. Painted warning signs.',
+      colorNotes: 'Rust red and gunmetal grey for scrap metal walls, weathered brown wood for the watchtower, silver barbed wire, faded yellow and black warning signs, olive drab sandbags, dusty brown ground.',
+      cellLabels: JSON.stringify([
+        'Day - Open', 'Day - Closed', 'Day - Market',
+        'Alert - Lockdown', 'Alert - Under Attack', 'Alert - Burning',
+        'Night - Guarded', 'Night - All Clear', 'Night - Breach'
+      ]),
+      cellGuidance: `ROW 0 — Daytime Operations:
+  Header "Day - Open" (0,0): The settlement gate in daylight with the car-door gates swung open. Traders and survivors pass through. The watchtower has a guard silhouette. Barbed wire glints in the sun. The scrap walls look sturdy despite their makeshift construction.
+  Header "Day - Closed" (0,1): Gates shut tight, car doors sealed and barred from inside. The watchtower guard is alert with a visible rifle silhouette. Warning signs face outward. Barbed wire is prominent. The settlement is locked down but not under threat.
+  Header "Day - Market" (0,2): Gates open with a bustling market scene just inside. Small stalls visible through the gateway. Barter goods displayed. Multiple figure silhouettes. The watchtower flies a trade flag. Lively and welcoming.
+
+ROW 1 — Alert States:
+  Header "Alert - Lockdown" (1,0): Emergency lockdown — gates barred with extra barricades. The watchtower has multiple armed guards. Additional barbed wire deployed in front of the gate. Warning signs lit with red flares. Tense and defensive.
+  Header "Alert - Under Attack" (1,1): Active combat — muzzle flashes from the watchtower and guard post. Bullet impacts spark on the scrap metal walls. The gate shudders from impacts. Smoke rises from behind the walls. Desperate defense.
+  Header "Alert - Burning" (1,2): The settlement is on fire — flames engulf the watchtower roof and lick along the scrap walls. The gate hangs broken and open. Black smoke billows upward. Barbed wire melts and sags. Devastation.
+
+ROW 2 — Nighttime States:
+  Header "Night - Guarded" (2,0): Night with the gates closed. A lantern hangs from the watchtower and a torch burns at the guard post. The scrap walls are dark silhouettes with barbed wire visible against the moonlit sky. Watchful and secure.
+  Header "Night - All Clear" (2,1): Quiet night — the guard in the watchtower is relaxed. A small fire burns inside the guard post. The gates are closed but not barred. Peaceful. Distant campfire light glows from within the settlement behind the walls.
+  Header "Night - Breach" (2,2): Night attack aftermath — a section of the scrap wall has been torn open. The watchtower leans at an angle. The gate is smashed inward. Fires burn inside the settlement visible through the breach. The barbed wire is scattered.`,
+    },
+    {
+      id: 'underground-bunker-entrance',
+      name: 'Underground Bunker Entrance',
+      genre: 'Post-Apocalyptic',
+      gridSize: '2x2',
+      description: 'A concealed hillside entrance to an underground survival bunker, featuring a heavy blast door, radiation warning signs, and camouflage netting.',
+      details: 'A reinforced concrete frame set into a grass-covered hillside. A thick steel blast door with a large wheel lock mechanism. Faded yellow radiation warning signs on either side. Torn camouflage netting partially covering the entrance. A ventilation pipe protrudes from the hillside above. Sandbag emplacements flank the approach.',
+      colorNotes: 'Dark concrete grey frame, rusted steel blast door, faded yellow radiation trefoil signs, green-brown camouflage netting, olive grass on the hillside, dull metal ventilation pipe.',
+      cellLabels: JSON.stringify([
+        'Sealed - Day', 'Open - Day',
+        'Sealed - Night', 'Open - Night'
+      ]),
+      cellGuidance: `ROW 0 — Daytime States:
+  Header "Sealed - Day" (0,0): Daylight view of the sealed bunker entrance. The heavy blast door is shut tight, the wheel lock rusted in place. Faded radiation signs flank the concrete frame. Camouflage netting is torn but still partially covers the entrance. Grass grows over the hillside. The ventilation pipe releases a thin wisp of filtered air. Quiet and seemingly abandoned.
+  Header "Open - Day" (0,1): The blast door is swung open, revealing a lit interior corridor with concrete walls and flickering fluorescent lights. The wheel lock hangs loose. A figure silhouette stands in the doorway. Fresh tracks in the dirt approach. The camouflage netting is pulled aside. Someone is home.
+
+ROW 1 — Nighttime States:
+  Header "Sealed - Night" (1,0): Night view of the sealed entrance. Moonlight catches the rusted blast door and concrete frame. The radiation signs are barely visible in the dark. The camouflage netting is a dark mass. The ventilation pipe is a dark silhouette against the sky. A faint hum from underground is the only sign of life.
+  Header "Open - Night" (1,1): Night with the blast door open — warm fluorescent light spills from the corridor onto the dark hillside. The interior is brightly lit in contrast to the dark exterior. A guard sits on the sandbags with a lantern. The open door is a beacon in the darkness.`,
+    },
+    {
+      id: 'irradiated-church',
+      name: 'Irradiated Church',
+      genre: 'Post-Apocalyptic',
+      gridSize: '3x3',
+      description: 'A crumbling pre-war church with a broken steeple, partially collapsed roof, and an eerie green radioactive glow emanating from the interior through shattered stained glass windows.',
+      details: 'White clapboard walls now grey and peeling. The steeple leans at an angle with the cross bent. Half the roof has caved in exposing wooden rafters. Stained glass windows are shattered, some with jagged colorful fragments remaining. A green radioactive glow pulses from inside. An overgrown graveyard with tilted headstones surrounds the building.',
+      colorNotes: 'Peeling grey-white clapboard, dark exposed wooden rafters, sickly green radioactive glow, remaining stained glass fragments in red/blue/gold, overgrown dark green vegetation, grey tilted headstones, rusty brown exposed metal.',
+      cellLabels: JSON.stringify([
+        'Day - Exterior', 'Day - Glow Pulse', 'Day - Overgrown',
+        'Dusk - Silhouette', 'Dusk - Green Beacon', 'Dusk - Fog',
+        'Night - Dormant', 'Night - Active', 'Night - Meltdown'
+      ]),
+      cellGuidance: `ROW 0 — Daytime States:
+  Header "Day - Exterior" (0,0): The church in daylight showing its decay. Grey peeling clapboard walls, leaning steeple with bent cross, collapsed roof section. The green glow is faint in daylight, barely visible through the shattered windows. The overgrown graveyard with tilted headstones surrounds the building. Sad and decrepit.
+  Header "Day - Glow Pulse" (0,1): Same daytime view but the green radioactive glow pulses brighter — clearly visible even in daylight through the broken windows and collapsed roof. The glow casts faint green light on the ground around the church. Something inside is active.
+  Header "Day - Overgrown" (0,2): The church nearly consumed by mutant vegetation. Thick vines with sickly green leaves crawl up the walls. The graveyard headstones are buried in overgrowth. Only the leaning steeple protrudes above the vegetation. Nature reclaiming the ruin.
+
+ROW 1 — Dusk Transition:
+  Header "Dusk - Silhouette" (1,0): Orange-purple dusk sky with the church as a dark silhouette. The leaning steeple and bent cross are dramatic against the sunset. The green glow begins to become more visible through the windows. The graveyard headstones cast long shadows.
+  Header "Dusk - Green Beacon" (1,1): Dusk with the green radioactive glow now clearly visible and bright. The church becomes a green beacon against the darkening sky. Light streams from every window and the collapsed roof. The surrounding ground is bathed in eerie green.
+  Header "Dusk - Fog" (1,2): Dusk with a thick fog rolling through the graveyard. The fog glows faintly green near the church. Headstones emerge from the mist. The steeple pierces above the fog layer. Atmospheric and haunting.
+
+ROW 2 — Nighttime States:
+  Header "Night - Dormant" (2,0): Dark night with the church barely visible. The green glow is reduced to a faint pulse from within. Moonlight catches the leaning steeple. The graveyard is dark with headstones as pale shapes. Quiet and ominous.
+  Header "Night - Active" (2,1): Night with the green glow at full intensity — the church blazes with radioactive light. Green beams shoot from the shattered windows. The collapsed roof is an open cauldron of green energy. The graveyard is lit in sickly green. Radiation readings would be lethal.
+  Header "Night - Meltdown" (2,2): Critical radioactive event — the church's green glow is blinding. Cracks of green energy split the remaining walls. The steeple is surrounded by a green corona. The ground around the church glows and cracks. The headstones themselves glow. An atomic nightmare.`,
+    },
+    {
+      id: 'hive-chamber',
+      name: 'Hive Chamber',
+      genre: 'Sci-Fi Horror',
+      gridSize: '3x3',
+      description: 'An organic alien nest chamber with resin-coated walls, cocooned victims along the walls, and a thick layer of biomechanical secretion covering every surface. Dim amber lighting from bioluminescent growths.',
+      details: 'Walls made of hardened organic resin with ribbed textures. Cocooned human figures are embedded in the walls, encased in translucent resin showing vague silhouettes. Egg clusters sit on the organic floor. Dripping resin strands hang from the ceiling. Small bioluminescent growths provide dim amber light. A central passage leads deeper into the hive.',
+      colorNotes: 'Dark brown-black resin walls, amber bioluminescent glow, translucent grey-white cocoon resin, dark organic floor with green-black sheen, pale flesh visible through cocoon material.',
+      cellLabels: JSON.stringify([
+        'Empty - Dim', 'Empty - Active', 'Egg Cluster',
+        'Cocooned Victims', 'Hatching', 'Drone Present',
+        'Warrior Patrolling', 'Queen Nearby', 'Infestation Peak'
+      ]),
+      cellGuidance: `ROW 0 — Chamber States:
+  Header "Empty - Dim" (0,0): The hive chamber in its dormant state. Resin-coated walls glisten with a dark sheen. Bioluminescent growths cast faint amber pools of light. Dripping resin strands hang from above. The chamber is empty and quiet but deeply unsettling. Organic textures cover every surface.
+  Header "Empty - Active" (0,1): The chamber is more active — bioluminescent growths pulse brighter. Fresh resin drips are visible. The ribbed walls seem to breathe with subtle expansion. The floor has fresh organic secretion. Something has been here recently.
+  Header "Egg Cluster" (0,2): A cluster of leathery alien eggs sits in the center of the chamber. The eggs are waist-high, pale and mottled, with a cross-shaped opening at the top. They pulse gently with internal movement. Mist hugs the floor around them. The amber light catches the moist egg surfaces.
+
+ROW 1 — Infestation Progress:
+  Header "Cocooned Victims" (1,0): The walls are lined with cocooned figures — human silhouettes visible through layers of translucent hardened resin. Some figures show signs of chest-burst trauma. The cocoon material is grey-white and veined. The scene is deeply horrifying.
+  Header "Hatching" (1,1): An egg in the foreground is opening — the cross-shaped top peeling back to reveal movement inside. A pale facehugger finger-leg reaches from within. Other eggs nearby pulse with imminent hatching. Tension and dread.
+  Header "Drone Present" (1,2): A xenomorph drone silhouette crouches in the corner of the chamber, barely distinguishable from the organic walls. Its obsidian body blends with the resin. Only the glint of silver teeth and the curve of the tail blade betray its presence. Predator in its nest.
+
+ROW 2 — Maximum Threat:
+  Header "Warrior Patrolling" (2,0): A larger xenomorph warrior strides through the chamber, its ridged head crest nearly touching the ceiling. The resin walls seem to part for it. Acid-green blood traces mark the floor. The amber light catches the warrior's dark brown chitin plates.
+  Header "Queen Nearby" (2,1): The chamber trembles — massive footsteps shake loose resin from the ceiling. An enormous shadow fills the passage at the far end. The bioluminescent growths blaze brighter in response. The eggs pulse frantically. The queen is approaching. Ultimate terror.
+  Header "Infestation Peak" (2,2): The chamber is at maximum horror — every wall is covered in cocoons, eggs fill the floor, multiple drone silhouettes cling to walls and ceiling. Resin drips constantly. The bioluminescence is at its brightest. The hive is alive and thriving. A nightmare ecosystem.`,
+    },
+    {
+      id: 'derelict-ship-corridor',
+      name: 'Derelict Ship Corridor',
+      genre: 'Sci-Fi Horror',
+      gridSize: '3x3',
+      description: 'A biomechanical alien vessel interior with HR Giger-inspired ribbed walls, fog-filled corridors, and flickering emergency strip lighting. The architecture itself seems alive.',
+      details: 'Ribbed walls with organic-mechanical fusion — bone-like arches meet chrome pipes and cable bundles. Emergency strip lighting runs along the floor in dim red. Fog drifts at floor level. Skeletal arch doorways lead to other sections. Condensation drips from the biomechanical ceiling. A control panel with alien displays is embedded in one wall.',
+      colorNotes: 'Dark steel-grey biomechanical walls with bone-white ribbing, dim red emergency strip lighting, blue-green fog, amber alien display panels, chrome pipe accents, dark condensation streaks.',
+      cellLabels: JSON.stringify([
+        'Powered Down', 'Emergency Lighting', 'Systems Online',
+        'Fog Rolling', 'Motion Detected', 'Acid Damage',
+        'Breach - Vacuum', 'Self Destruct', 'Overgrown'
+      ]),
+      cellGuidance: `ROW 0 — Power States:
+  Header "Powered Down" (0,0): The corridor in complete darkness except for very faint bioluminescence from the walls themselves. The ribbed architecture is barely visible — bone-like shapes in the black. No emergency lights. No fog. Absolute silence visualized through stillness. Cold and dead.
+  Header "Emergency Lighting" (0,1): Red emergency strip lights flicker on along the floor, casting harsh upward shadows on the ribbed walls. The bone-white ribs become dramatic against the dark ceiling. Fog begins drifting at floor level. The alien control panel shows a single amber warning glyph. Tense.
+  Header "Systems Online" (0,2): Full emergency power — red strip lights are steady, the alien control panel blazes with amber displays, and conduit pipes along the walls pulse with faint blue energy. The fog is thicker. The corridor stretches into darkness at both ends. The biomechanical architecture is fully revealed and terrifying.
+
+ROW 1 — Threat Escalation:
+  Header "Fog Rolling" (1,0): Dense blue-green fog fills the lower half of the corridor, obscuring the floor completely. The red strip lights glow through the fog creating an otherworldly haze. The upper ribbed walls emerge above the fog line. Visibility is severely limited. Something could be hiding in the fog.
+  Header "Motion Detected" (1,1): The control panel flashes a rapid amber warning. A shadow moves at the far end of the corridor — barely visible through the fog. The emergency lights flicker in response to the movement. Condensation falls from the ceiling in a disturbed pattern. The corridor suddenly feels very narrow.
+  Header "Acid Damage" (1,2): Acid has burned through sections of the floor and walls — smoking holes with melted edges reveal lower decks and internal pipework. The acid-green residue sizzles and steams. Some ribs are partially dissolved. The corridor is compromised and dangerous.
+
+ROW 2 — Catastrophic States:
+  Header "Breach - Vacuum" (2,0): A hull breach at the far end of the corridor — the wall is torn open showing stars and the void of space. Atmosphere vents outward, the fog streaming toward the breach. Emergency bulkheads are half-closed. Loose objects drift toward the opening. The emergency lights strobe in alarm.
+  Header "Self Destruct" (2,1): The self-destruct sequence is active — every light flashes red in urgent pulses. The alien control panel displays a countdown in alien glyphs. Steam jets from ruptured pipes. The ribbed walls seem to contract as if the ship is in pain. Alarms implied through visual chaos. Evacuation urgency.
+  Header "Overgrown" (2,2): After years of abandonment, the biomechanical architecture has grown — ribs have expanded and merged, new organic growth covers the chrome pipes, and the corridor has partially closed in on itself. The alien technology and organic material have fused into a new, living structure. Beautiful and horrible.`,
+    },
+    {
+      id: 'egg-chamber',
+      name: 'Egg Chamber',
+      genre: 'Sci-Fi Horror',
+      gridSize: '2x2',
+      description: 'A breeding ground for facehuggers — a low-ceilinged organic chamber carpeted with leathery eggs on a living organic floor, filled with blue-green mist and pulsing bioluminescence.',
+      details: 'Low organic ceiling dripping with resin. The floor is a living organic membrane covered with rows of leathery eggs. Each egg is about waist-high with a cross-shaped opening at the top. Blue-green mist hugs the floor obscuring the egg bases. Pulsing bioluminescent growths in the walls create an eerie rhythmic light. The overall atmosphere is womb-like and profoundly disturbing.',
+      colorNotes: 'Pale grey-brown leathery eggs, dark organic floor and ceiling, blue-green bioluminescent mist, amber pulsing wall growths, translucent egg membranes, dark resin drips.',
+      cellLabels: JSON.stringify([
+        'Dormant', 'Awakening',
+        'Hatching Wave', 'Empty Husks'
+      ]),
+      cellGuidance: `ROW 0 — Pre-Hatch States:
+  Header "Dormant" (0,0): The egg chamber at rest. Rows of leathery eggs stand in the mist, all closed at the top. The bioluminescent growths pulse in a slow, hypnotic rhythm. Resin drips from the low ceiling. The blue-green mist is still and even. The eggs appear inert but alive. An unsettling calm.
+  Header "Awakening" (0,1): The eggs respond to a presence — the leathery surfaces begin to ripple with internal movement. The cross-shaped openings twitch. The bioluminescence pulses faster. The mist swirls as if disturbed from below. The organic floor membrane contracts slightly. Something is about to happen.
+
+ROW 1 — Active States:
+  Header "Hatching Wave" (1,0): Multiple eggs are opening simultaneously — cross-shaped tops peeling back, pale facehugger legs reaching upward. Some facehuggers are already free, scuttling between eggs. The mist churns. The bioluminescence blazes at maximum intensity. A cascade of horrifying birth.
+  Header "Empty Husks" (1,1): The aftermath — all eggs are open and empty, their leathery walls collapsed inward. Spent egg fluid pools on the organic floor. The mist has thinned. The bioluminescence dims to a low pulse. Only hollow husks remain. The facehuggers have gone hunting. The silence is worse than the hatching.`,
+    },
+    {
+      id: 'biomechanical-temple',
+      name: 'Biomechanical Temple',
+      genre: 'Sci-Fi Horror',
+      gridSize: '3x3',
+      description: 'A Giger-esque cathedral of impossible geometry — skeletal ribbed arches soar overhead, organic pipes pulse with unknown fluids, and a chrome altar sits at the center of a living chamber that defies architectural logic.',
+      details: 'Massive skeletal arches made of fused bone and chrome form the ceiling structure. Organic pipes run along the walls carrying dark fluids. A central chrome altar rises from the organic floor, covered in alien glyphs. The walls themselves appear to breathe with slow, rhythmic expansion. The geometry is subtly wrong — angles that should be straight are curved, perspectives that should converge seem to diverge. Living walls with embedded vertebral columns and ribbed surfaces.',
+      colorNotes: 'Bone-white skeletal arches with chrome joints, dark steel walls with flesh-pink organic patches, chrome altar with amber glyph lighting, dark fluid in translucent organic pipes, overall palette of chrome silver, bone, and disturbing flesh tones.',
+      cellLabels: JSON.stringify([
+        'Dormant - Day', 'Dormant - Night', 'Awakened',
+        'Ritual Active', 'Entity Summoned', 'Corruption Spreading',
+        'Ancient Ruin', 'Fully Alive', 'Transcendence'
+      ]),
+      cellGuidance: `ROW 0 — Base States:
+  Header "Dormant - Day" (0,0): The temple in cold, dead light. The skeletal arches soar overhead but the bone surfaces are dull and dry. The chrome altar sits empty and unlit. The organic pipes are still and dark. The walls do not breathe. The impossible geometry is visible but muted. An ancient, dormant horror.
+  Header "Dormant - Night" (0,1): Darkness fills the temple. Faint moonlight catches the chrome surfaces — the altar, the pipe fittings, the arch joints. The bone-white skeletal structure glows faintly. The geometry becomes more unsettling in the dark, shadows making the wrong angles more prominent.
+  Header "Awakened" (0,2): The temple stirs — the organic pipes begin flowing with dark fluid. The walls pulse with the first breath. The chrome altar glyphs flicker amber. The skeletal arches flex almost imperceptibly. The flesh-pink patches on the walls darken with blood flow. Something ancient remembers.
+
+ROW 1 — Active States:
+  Header "Ritual Active" (1,0): A ceremony in progress — the chrome altar blazes with amber glyph light. The organic pipes pulse rhythmically. The walls breathe visibly. The skeletal arches vibrate with resonance. Small biomechanical entities emerge from the walls. The impossible geometry seems to shift and flow.
+  Header "Entity Summoned" (1,1): A massive biomechanical entity materializes above the altar — a translucent form of chrome and flesh, too large for the space yet somehow contained. The temple's geometry bends around it. The skeletal arches bow inward. The organic pipes blaze with superheated fluid. Ultimate cosmic horror.
+  Header "Corruption Spreading" (1,2): The temple's influence extends outward — the organic walls push through the stone boundaries. Biomechanical tendrils crawl along the floor beyond the temple proper. The chrome surfaces propagate like a metallic infection. The impossible geometry is spreading. Reality warps at the edges.
+
+ROW 2 — Extreme States:
+  Header "Ancient Ruin" (2,0): The temple as archaeological discovery — partially buried, the skeletal arches broken and half-collapsed. The chrome altar is tarnished and covered in dust. Organic pipes are dried and cracked. The impossible geometry is still subtly wrong even in ruin. A place of ancient power, long dormant.
+  Header "Fully Alive" (2,1): The temple at maximum biological activity — every surface breathes, the organic pipes flow with bright fluid, the chrome altar projects holographic alien geometries upward. The skeletal arches flex like ribs around a beating heart. The walls are more flesh than metal. The air shimmers with impossible angles.
+  Header "Transcendence" (2,2): Beyond horror into awe — the temple has transcended physical form. The skeletal arches dissolve into pure light. The chrome altar projects a gateway to somewhere else. The geometry inverts — inside becomes outside. The organic and mechanical merge into a new form of existence. Terrifyingly beautiful.`,
+    },
   ];
 
   const insert = db.prepare(
@@ -2314,6 +3079,228 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
   Header "Forest-Grass Edge W" (4,3): Grass on the east half, forest floor on the west half. Reverse of Edge E.
   Header "Forest-Grass Corner" (4,4): Forest floor in the northeast corner, grass filling the rest. A convex corner transition where forest meets grassland.`,
     },
+    {
+      id: 'cracked-desert-wasteland',
+      name: 'Cracked Desert Wasteland',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x4',
+      description: 'Sun-baked post-nuclear earth with deep cracks, scattered debris, radiation pools, and dead brush for wasteland environments.',
+      colorNotes: 'Parched tan and pale yellow cracked earth, dark brown crack lines, sickly yellow-green radiation pools, grey-brown dead brush, rust orange debris, bleached bone white.',
+      tileLabels: JSON.stringify([
+        'Cracked Earth 1', 'Cracked Earth 2', 'Deep Fissure', 'Scorched Ground',
+        'Radiation Pool', 'Toxic Puddle', 'Dead Brush', 'Debris Scatter',
+        'Rusted Metal', 'Bone Fragments', 'Tire Tracks', 'Blast Crater',
+        'Wasteland-Road Edge N', 'Wasteland-Road Edge S', 'Wasteland-Road Edge E', 'Wasteland-Road Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Wasteland Tiles (seamlessly tileable):
+  Header "Cracked Earth 1" (0,0): Sun-baked pale tan earth with a polygon pattern of deep cracks. The standard wasteland ground tile. Dry, parched, and lifeless. Subtle heat shimmer implied by pale coloring.
+  Header "Cracked Earth 2" (0,1): Variant cracked earth with different crack pattern and a few small pebbles. Same pale tan palette. Tiles seamlessly with Cracked Earth 1.
+  Header "Deep Fissure" (0,2): A wide dark crack runs diagonally across the tile, deep enough to show darkness below. The surrounding earth is crumbling at the edges. More dramatic damage than base tiles.
+  Header "Scorched Ground" (0,3): Blackened, charred earth from a nuclear blast or fire. Dark brown-black surface with ash residue. No cracks — the ground was melted smooth. Devastated.
+
+ROW 1 — Hazard Tiles:
+  Header "Radiation Pool" (1,0): A small pool of sickly yellow-green glowing liquid sitting in a depression. The surrounding cracked earth is stained darker. The pool surface has an oily, unnatural sheen. Lethal.
+  Header "Toxic Puddle" (1,1): A smaller toxic puddle — murky brown-green water in a crack. Less glowing than the radiation pool but still dangerous. Dead insects float on the surface.
+  Header "Dead Brush" (1,2): Cracked earth with a cluster of dead grey-brown brush — skeletal twigs and dried leaves. The only vegetation, and it is long dead. Desolate.
+  Header "Debris Scatter" (1,3): Cracked earth with scattered pre-war debris — broken glass, twisted metal fragments, faded plastic. The remnants of civilization ground into the dirt.
+
+ROW 2 — Feature Tiles:
+  Header "Rusted Metal" (2,0): A rusted metal sheet or car panel partially buried in the cracked earth. Rust orange surface with flaking paint. A salvageable resource marker.
+  Header "Bone Fragments" (2,1): Bleached white bone fragments scattered on the cracked earth. Animal or human bones sun-bleached to white. A grim reminder of what was lost.
+  Header "Tire Tracks" (2,2): Twin parallel tire tracks pressed into the cracked earth, running top to bottom. Someone drove through recently. The tracks are the only sign of life.
+  Header "Blast Crater" (2,3): A shallow circular depression — a small blast crater with darker scorched earth at the center and cracked debris around the rim. Evidence of past violence.
+
+ROW 3 — Wasteland-to-Road Edge Transitions:
+  Header "Wasteland-Road Edge N" (3,0): Cracked wasteland earth on the north half transitioning to broken asphalt road on the south half. The road edge crumbles into the dirt.
+  Header "Wasteland-Road Edge S" (3,1): Broken asphalt on the north half, wasteland earth on the south half. Reverse of Edge N. Weeds push through the asphalt cracks.
+  Header "Wasteland-Road Edge E" (3,2): Wasteland on the east half, broken road on the west half. Vertical transition with crumbling asphalt edge.
+  Header "Wasteland-Road Edge W" (3,3): Broken road on the east half, wasteland on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'toxic-swamp',
+      name: 'Toxic Swamp',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x4',
+      description: 'Murky irradiated wetland tiles with glowing green water, dead trees, bubbling toxic surface, and fungal growths for contaminated swamp environments.',
+      colorNotes: 'Murky dark green-brown water, sickly bright green glow in contaminated areas, grey-black dead tree trunks, pale bioluminescent fungi, dark mud brown, toxic yellow-green bubbles.',
+      tileLabels: JSON.stringify([
+        'Murky Water 1', 'Murky Water 2', 'Glowing Water', 'Bubbling Surface',
+        'Mud Flat', 'Dead Tree Stump', 'Fallen Log', 'Fungal Growth',
+        'Lily Pad Cluster', 'Toxic Algae', 'Bone Pile', 'Submerged Wreck',
+        'Swamp-Land Edge N', 'Swamp-Land Edge S', 'Swamp-Land Edge E', 'Swamp-Land Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Swamp Water (seamlessly tileable):
+  Header "Murky Water 1" (0,0): Dark green-brown murky swamp water. The surface is opaque with floating organic matter. Subtle ripple texture. The standard toxic swamp tile. Unsettling and still.
+  Header "Murky Water 2" (0,1): Variant murky water with slightly different surface debris and ripple pattern. Tiles seamlessly with Murky Water 1. A few more floating particles.
+  Header "Glowing Water" (0,2): Swamp water with a sickly bright green glow emanating from below. The contaminated water illuminates from within. Radiation or chemical contamination. Beautiful and deadly.
+  Header "Bubbling Surface" (0,3): Murky water with toxic yellow-green bubbles breaking the surface. Gas escaping from submerged decay. The bubbles pop and release wisps of toxic vapor. Active and dangerous.
+
+ROW 1 — Solid Ground and Features:
+  Header "Mud Flat" (1,0): Exposed dark brown mud between water areas. Wet, sticky surface with boot-print impressions. Small puddles of toxic water in depressions. Traversable but treacherous.
+  Header "Dead Tree Stump" (1,1): A grey-black dead tree stump rising from the murky water. The trunk is bare and rotting. Fungal growths cling to the base. A landmark in the featureless swamp.
+  Header "Fallen Log" (1,2): A dead tree trunk lying partially submerged in the swamp water. Grey-black bark peeling away. Moss and fungi cover the exposed wood. Could be used as a bridge.
+  Header "Fungal Growth" (1,3): Mud or shallow water with a cluster of pale bioluminescent fungi. The mushrooms glow a soft blue-green. Toxic spores drift from the caps. Eerie and alien.
+
+ROW 2 — Decorative Feature Tiles:
+  Header "Lily Pad Cluster" (2,0): Murky water with mutant lily pads — oversized, slightly wrong in color (dark olive instead of bright green). Some have strange growths or holes. Post-apocalyptic vegetation.
+  Header "Toxic Algae" (2,1): Water surface covered in a thick mat of toxic algae — bright yellow-green scum. The water beneath is invisible. The algae pulses faintly. A carpet of contamination.
+  Header "Bone Pile" (2,2): Shallow murky water with a pile of animal bones rising above the surface. Bleached white against the dark water. Something was feeding here. Or something died here in numbers.
+  Header "Submerged Wreck" (2,3): The top of a submerged vehicle or structure breaking the water surface. Rusted metal protrudes from the murky depths. Moss and algae cover the exposed parts. A pre-war relic swallowed by the swamp.
+
+ROW 3 — Swamp-to-Land Edge Transitions:
+  Header "Swamp-Land Edge N" (3,0): Murky swamp water on the north half transitioning to muddy solid ground on the south half. The waterline is irregular with reeds and debris.
+  Header "Swamp-Land Edge S" (3,1): Muddy ground on the north half, swamp water on the south half. Reverse of Edge N. The ground slopes into the water.
+  Header "Swamp-Land Edge E" (3,2): Swamp water on the east half, solid ground on the west half. Vertical transition with a muddy bank.
+  Header "Swamp-Land Edge W" (3,3): Solid ground on the east half, swamp water on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'ruined-highway',
+      name: 'Ruined Highway',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x4',
+      description: 'Cracked and broken asphalt highway tiles with faded lane markings, rusted vehicle debris, and overgrown weeds pushing through the pavement.',
+      colorNotes: 'Dark grey cracked asphalt, faded yellow and white lane markings, rust orange vehicle debris, dark green weeds in cracks, pale concrete for shoulder, brown dirt beneath broken pavement.',
+      tileLabels: JSON.stringify([
+        'Asphalt 1', 'Asphalt 2', 'Lane Markings H', 'Lane Markings V',
+        'Pothole', 'Major Crack', 'Overgrown Section', 'Rusted Vehicle',
+        'Guardrail', 'Road Sign', 'Debris Field', 'Oil Stain',
+        'Road-Dirt Edge N', 'Road-Dirt Edge S', 'Road-Dirt Edge E', 'Road-Dirt Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Road Tiles (seamlessly tileable):
+  Header "Asphalt 1" (0,0): Dark grey cracked asphalt with small fractures and weathering. The standard broken road tile. Surface is rough and aged but mostly intact. Subtle variations in grey tones.
+  Header "Asphalt 2" (0,1): Variant asphalt with different crack pattern and a small weed pushing through. Tiles seamlessly with Asphalt 1. Slightly lighter grey patches from sun bleaching.
+  Header "Lane Markings H" (0,2): Asphalt with faded yellow or white lane markings running horizontally — dashed center line and solid edge line. The paint is flaking and barely visible. A ghost of order.
+  Header "Lane Markings V" (0,3): Asphalt with faded lane markings running vertically. Dashed line in the center, solid at the edge. Same faded, forgotten paint.
+
+ROW 1 — Damage Tiles:
+  Header "Pothole" (1,0): A large pothole in the asphalt — a dark depression revealing layers of road base and brown dirt beneath. Crumbled edges. Water may collect here. A driving hazard.
+  Header "Major Crack" (1,1): A wide crack splitting the asphalt diagonally. The crack is wide enough to see dirt and roots beneath. Weeds grow from the gap. The road is failing structurally.
+  Header "Overgrown Section" (1,2): Asphalt nearly consumed by vegetation — dark green weeds, grass, and small bushes push through extensive cracks. Nature reclaiming the road. Barely recognizable as pavement.
+  Header "Rusted Vehicle" (1,3): A rusted vehicle hulk sitting on the asphalt — a flattened, corroded car shell in rust orange and brown. Tires are flat discs. Windows are empty holes. A permanent road obstacle.
+
+ROW 2 — Feature Tiles:
+  Header "Guardrail" (2,0): A section of bent and rusted metal guardrail running across the tile. The posts lean at angles and the rail is dented. A road boundary marker long past its purpose.
+  Header "Road Sign" (2,1): A fallen or leaning road sign on cracked asphalt. The sign face is faded and unreadable — maybe a speed limit or direction. The metal pole is rusted. A landmark.
+  Header "Debris Field" (2,2): Asphalt covered with scattered debris — broken glass, twisted metal, plastic fragments, and scattered personal items. The aftermath of a crash or abandonment. Cluttered and sad.
+  Header "Oil Stain" (2,3): Asphalt with a large dark oil stain — an iridescent dark patch where a vehicle leaked its lifeblood. The stain has been baked in by years of sun. A permanent scar.
+
+ROW 3 — Road-to-Dirt Edge Transitions:
+  Header "Road-Dirt Edge N" (3,0): Cracked asphalt on the north half breaking apart into bare dirt and gravel on the south half. The road edge crumbles. Weeds grow in the transition zone.
+  Header "Road-Dirt Edge S" (3,1): Bare dirt and gravel on the north half, broken asphalt road on the south half. Reverse of Edge N. The pavement emerges from the wasteland.
+  Header "Road-Dirt Edge E" (3,2): Asphalt on the east half, dirt on the west half. Vertical transition with crumbling road shoulder. Gravel scatter at the boundary.
+  Header "Road-Dirt Edge W" (3,3): Dirt on the east half, asphalt on the west half. Reverse of Edge E. The road edge is defined by a line of broken concrete chunks.`,
+    },
+    {
+      id: 'organic-hive-floor',
+      name: 'Organic Hive Floor',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x4',
+      description: 'Resin-coated metal floor tiles with organic alien growth, acid burn marks, and cocooned debris for xenomorph hive interiors.',
+      colorNotes: 'Dark brown-black hardened resin over gunmetal grating, ridged organic growths in dark grey-brown, acid-green burn marks and residue, pale grey-white cocoon material, dim amber bioluminescent patches.',
+      tileLabels: JSON.stringify([
+        'Resin Floor 1', 'Resin Floor 2', 'Metal Grating', 'Resin-Metal Mix',
+        'Organic Ridge H', 'Organic Ridge V', 'Ridge Junction', 'Acid Burn',
+        'Cocoon Debris', 'Egg Base', 'Bioluminescent Patch', 'Secretion Pool',
+        'Hive-Metal Edge N', 'Hive-Metal Edge S', 'Hive-Metal Edge E', 'Hive-Metal Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Floor Tiles (seamlessly tileable):
+  Header "Resin Floor 1" (0,0): Dark brown-black hardened resin coating over a metal floor. The resin surface is smooth and glossy with subtle organic texture. The standard hive floor tile. Occasionally a glint of metal shows through thin spots.
+  Header "Resin Floor 2" (0,1): Variant resin floor with slightly different organic texture and a few small bumps of hardened secretion. Tiles seamlessly with Resin Floor 1. Slightly thicker resin coating.
+  Header "Metal Grating" (0,2): Exposed gunmetal industrial grating — the metal floor before organic takeover. Grid pattern with dark gaps between bars. Clean but cold and industrial.
+  Header "Resin-Metal Mix" (0,3): Transition tile — metal grating partially covered by encroaching resin. The organic material creeps across the metal in tendrils. The boundary between civilization and infestation.
+
+ROW 1 — Organic Growth Features:
+  Header "Organic Ridge H" (1,0): A raised ridge of hardened organic growth running horizontally across the tile. Dark grey-brown with ribbed texture. The ridge rises from the resin floor like a biological pipeline.
+  Header "Organic Ridge V" (1,1): A vertical organic ridge running top to bottom. Same ribbed dark grey-brown texture. These ridges form the structural supports of the hive.
+  Header "Ridge Junction" (1,2): A junction where multiple organic ridges meet — an intersection of ribbed growths forming a biomechanical node. Slightly larger mound at the center. A structural nexus.
+  Header "Acid Burn" (1,3): Resin floor with acid-green burn marks — sizzling holes melted through the resin and into the metal below. Acid blood residue drips. Evidence of combat or injury. The burn edges glow faintly green.
+
+ROW 2 — Feature Tiles:
+  Header "Cocoon Debris" (2,0): Fragments of broken cocoon material scattered on the resin floor — pale grey-white fibrous strands and hardened resin chunks. Someone or something broke free. Disturbing evidence.
+  Header "Egg Base" (2,1): The resin floor prepared for egg placement — a shallow depression with a textured organic base. Amber bioluminescent spots mark the prepared area. An egg may have been here or is coming.
+  Header "Bioluminescent Patch" (2,2): A patch of the resin floor that glows with dim amber bioluminescence. The organic material pulses with faint light. These patches serve as the hive's lighting system. Warm but unsettling.
+  Header "Secretion Pool" (2,3): A small pool of fresh organic secretion on the resin floor — translucent amber-brown liquid with a viscous surface. Fresh resin not yet hardened. The hive is actively growing.
+
+ROW 3 — Hive-to-Metal Edge Transitions:
+  Header "Hive-Metal Edge N" (3,0): Organic resin hive floor on the north half transitioning to clean metal grating on the south half. The resin edge creeps outward with tendrils reaching across the metal. The infestation boundary.
+  Header "Hive-Metal Edge S" (3,1): Clean metal on the north half, organic hive floor on the south half. Reverse of Edge N. The organic growth is advancing northward.
+  Header "Hive-Metal Edge E" (3,2): Hive floor on the east half, metal on the west half. Vertical transition with organic tendrils crossing the boundary.
+  Header "Hive-Metal Edge W" (3,3): Metal on the east half, hive floor on the west half. Reverse of Edge E. The clean industrial world giving way to alien biology.`,
+    },
+    {
+      id: 'industrial-grating',
+      name: 'Industrial Grating',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x4',
+      description: 'Metal walkway and utility corridor floor tiles with steam vents, dripping condensation, and cable runs for space station and industrial horror environments.',
+      colorNotes: 'Gunmetal grey and dark steel grating, yellow-black hazard stripes, white steam wisps, blue-grey condensation drips, dark cable insulation, amber warning light patches.',
+      tileLabels: JSON.stringify([
+        'Grating 1', 'Grating 2', 'Solid Plate', 'Diamond Plate',
+        'Steam Vent', 'Drain Grate', 'Cable Run H', 'Cable Run V',
+        'Hazard Stripe H', 'Hazard Stripe V', 'Access Hatch', 'Condensation Pool',
+        'Grating-Plate Edge N', 'Grating-Plate Edge S', 'Grating-Plate Edge E', 'Grating-Plate Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Floor Tiles (seamlessly tileable):
+  Header "Grating 1" (0,0): Standard gunmetal grey industrial grating — parallel bars with dark gaps showing pipes and conduits below. The standard corridor floor. Clean but industrial. Slight blue-grey sheen from overhead lighting.
+  Header "Grating 2" (0,1): Variant grating with slightly different bar spacing and a few water drops on the surface. Tiles seamlessly with Grating 1. One bar is slightly bent.
+  Header "Solid Plate" (0,2): A solid dark steel floor plate — smooth with bolt heads at the corners. Used for heavy equipment areas. No gaps. Darker than the grating.
+  Header "Diamond Plate" (0,3): Raised diamond-pattern anti-slip floor plate. The standard industrial anti-slip surface. Subtle texture catch from overhead light. Heavier duty than basic grating.
+
+ROW 1 — Utility Features:
+  Header "Steam Vent" (1,0): A circular steam vent grate in the floor — a cloud of white steam wisps rising upward. The vent grate is a circular pattern of holes. The steam partially obscures the surrounding floor. Hot and humid.
+  Header "Drain Grate" (1,1): A larger drain grate set into the floor — dark recessed grid with condensation dripping in. Slight rust around the edges. Water collects and drips through the gaps.
+  Header "Cable Run H" (1,2): Grating with a bundle of insulated cables running horizontally across the surface. Cables are dark with colored bands at intervals. Secured with metal clamps to the grating.
+  Header "Cable Run V" (1,3): Cable bundle running vertically top to bottom across the grating. Same dark insulated cables with clamps. Used for wiring-heavy corridor sections.
+
+ROW 2 — Feature Tiles:
+  Header "Hazard Stripe H" (2,0): Floor with a yellow-black hazard stripe band running horizontally across the center. Warning paint on either grating or solid plate. Marks a danger zone boundary.
+  Header "Hazard Stripe V" (2,1): Vertical yellow-black hazard stripe running top to bottom. Same industrial warning paint marking a boundary or restricted area.
+  Header "Access Hatch" (2,2): A square access hatch in the floor — a hinged plate with a recessed handle and locking mechanism. Yellow-black hazard marking around the edge. Leads to maintenance areas below.
+  Header "Condensation Pool" (2,3): Grating with a shallow pool of collected condensation — blue-grey water reflecting overhead lights. The surrounding grating is wet and slightly discolored. Dripping from above.
+
+ROW 3 — Grating-to-Plate Edge Transitions:
+  Header "Grating-Plate Edge N" (3,0): Open grating on the north half transitioning to solid plate on the south half. A structural beam marks the boundary. The grating shows pipes below while the plate is sealed.
+  Header "Grating-Plate Edge S" (3,1): Solid plate on the north half, grating on the south half. Reverse of Edge N. The transition from sealed to open flooring.
+  Header "Grating-Plate Edge E" (3,2): Grating on the east half, solid plate on the west half. Vertical transition with a structural beam.
+  Header "Grating-Plate Edge W" (3,3): Solid plate on the east half, grating on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'alien-planet-surface',
+      name: 'Alien Planet Surface',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x4',
+      description: 'Hostile extraterrestrial landscape tiles with jagged dark rock, bioluminescent pools, alien vegetation, and toxic atmospheric effects.',
+      colorNotes: 'Dark charcoal and purple-black jagged rock, bright cyan-blue bioluminescent pools, alien magenta and teal vegetation, toxic yellow-green atmosphere wisps, pale bone-white mineral deposits.',
+      tileLabels: JSON.stringify([
+        'Alien Rock 1', 'Alien Rock 2', 'Jagged Formation', 'Smooth Basalt',
+        'Bioluminescent Pool', 'Toxic Vent', 'Alien Fungi', 'Tendril Growth',
+        'Mineral Deposit', 'Fossil Imprint', 'Spore Cluster', 'Acid Erosion',
+        'Rock-Pool Edge N', 'Rock-Pool Edge S', 'Rock-Pool Edge E', 'Rock-Pool Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Rock Tiles (seamlessly tileable):
+  Header "Alien Rock 1" (0,0): Dark charcoal alien rock with a subtle purple-black sheen. The texture is unlike earthly stone — angular fractures with glassy smooth surfaces between them. The standard alien ground tile. Cold and lifeless.
+  Header "Alien Rock 2" (0,1): Variant alien rock with different fracture pattern and a few pale mineral veins running through the surface. Tiles seamlessly with Alien Rock 1. Slightly more purple tint.
+  Header "Jagged Formation" (0,2): Sharp, upward-pointing rock formations jutting from the surface. Dark charcoal spires with crystalline tips. The ground between the formations is rough. Treacherous terrain.
+  Header "Smooth Basalt" (0,3): Polished-smooth alien basalt — very dark with a glassy surface reflecting faint light. Unlike rough rock, this surface is eerily perfect. As if melted and resolidified.
+
+ROW 1 — Hazard and Life Tiles:
+  Header "Bioluminescent Pool" (1,0): A small pool of bright cyan-blue glowing liquid in a rock depression. The light illuminates the surrounding dark rock. The liquid surface is perfectly still and reflective. Beautiful but of unknown origin.
+  Header "Toxic Vent" (1,1): A crack in the alien rock releasing yellow-green toxic gas wisps. The gas rises from below and the rock edges are stained and corroded. The atmosphere is poisonous. Stay clear.
+  Header "Alien Fungi" (1,2): Clusters of alien mushroom-like growths sprouting from the rock. Magenta caps with teal bioluminescent gills. Short, thick stalks. Unlike any earthly organism. Possibly dangerous.
+  Header "Tendril Growth" (1,3): Dark organic tendrils growing across the rock surface — biomechanical vines that seem to be exploring the terrain. Teal-green with segmented ridges. Are they plant or animal? They pulse faintly.
+
+ROW 2 — Feature Tiles:
+  Header "Mineral Deposit" (2,0): A cluster of pale bone-white crystalline minerals erupting from the dark rock. The crystals glow faintly from within. Possibly valuable or possibly a trap. Sharp-edged and geometric.
+  Header "Fossil Imprint" (2,1): The dark rock surface shows a large fossil imprint — the outline of an alien creature preserved in stone. Multiple limbs, an elongated skull. Ancient. The shape is disturbingly familiar.
+  Header "Spore Cluster" (2,2): Small bioluminescent spore pods scattered across the rock surface. Each pod is a tiny magenta sphere that releases invisible spores. The air above shimmers faintly with released particles.
+  Header "Acid Erosion" (2,3): Alien rock that has been eroded by natural acid — smooth, flowing channels cut into the dark surface revealing lighter purple-grey stone beneath. The acid is gone but its marks remain.
+
+ROW 3 — Rock-to-Pool Edge Transitions:
+  Header "Rock-Pool Edge N" (3,0): Dark alien rock on the north half transitioning to bioluminescent pool on the south half. The rock edge glows cyan where it meets the luminous liquid. Crystals form at the waterline.
+  Header "Rock-Pool Edge S" (3,1): Bioluminescent pool on the north half, alien rock on the south half. Reverse of Edge N. The glowing liquid laps at the dark stone.
+  Header "Rock-Pool Edge E" (3,2): Rock on the east half, glowing pool on the west half. Vertical transition with cyan light illuminating the nearby rock face.
+  Header "Rock-Pool Edge W" (3,3): Glowing pool on the east half, rock on the west half. Reverse of Edge E. The cyan light creates an eerie glow on the dark stone surface.`,
+    },
   ];
 
   const insert = db.prepare(
@@ -2472,6 +3459,112 @@ function seedBackgroundPresets(db) {
   Header "Coral Formations" (2,0): Coral reef structures — branching coral in pinks and purples, brain coral in green, fan coral swaying. Bright orange clownfish dart among the formations. Bioluminescent accents glow cyan. Magenta above. Coral fills from the bottom up through roughly half the cell.
   Header "Seafloor & Anemones" (3,0): The nearest layer — the ocean floor with sea anemones waving their tentacles, colorful starfish, scattered shells, and sandy patches between rocks. Rich detail and saturated colors. Magenta fills the upper two-thirds. Seafloor content at the very bottom of the cell.`,
     },
+    {
+      id: 'nuclear-sunset-skyline',
+      name: 'Nuclear Sunset Skyline',
+      genre: 'Post-Apocalyptic',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A ruined city silhouette against an orange-red sky with a mushroom cloud remnant on the horizon. Four parallax layers from irradiated sky to cracked foreground earth.',
+      colorNotes: 'Intense orange-red and amber sky, black and dark grey silhouettes, sickly yellow radiation glow, dusty brown earth tones, muted rust and ash grey.',
+      layerLabels: JSON.stringify([
+        'Irradiated Sky & Mushroom Cloud', 'Ruined City Silhouette', 'Mid-Ground Rubble & Dead Trees', 'Cracked Earth & Debris'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Irradiated Sky & Mushroom Cloud" (0,0): The topmost layer. A dramatic gradient from deep blood-red at the top through intense orange to sickly yellow at the horizon. The remnant of a mushroom cloud dominates the upper right — a towering column of grey-brown smoke and ash spreading into the characteristic mushroom cap. Wispy radioactive clouds glow with unnatural orange-yellow light. Ash particles drift across the sky. Fills the ENTIRE cell. No magenta visible.
+  Header "Ruined City Silhouette" (1,0): Distant ruined cityscape in dark silhouette. Broken skyscrapers — some snapped in half, others leaning at precarious angles. Collapsed overpasses and shattered bridge supports. The skyline is jagged and irregular. Fires burn in a few buildings, casting small orange glows. The sunset backlights everything in deep orange-red. Magenta visible at the top where sky shows through. City fills the lower two-thirds.
+  Header "Mid-Ground Rubble & Dead Trees" (2,0): Closer devastation. Skeletal dead trees with no leaves, just blackened trunks and bare branches reaching upward. Piles of concrete rubble, twisted rebar, and crushed vehicles. A toppled water tower or radio antenna lies across the scene. Dust hangs in the air catching orange sunset light. Magenta above. Content fills the lower half.
+  Header "Cracked Earth & Debris" (3,0): Nearest layer — severely cracked and parched earth. Deep fissures run through sun-baked mud. Scattered debris: a rusted car door, broken concrete chunks, shattered glass, a faded warning sign. Small fires or smoldering embers in debris piles. A radiation hazard symbol partially buried in dirt. Magenta fills the upper two-thirds. Ground detail at the very bottom.`,
+    },
+    {
+      id: 'underground-vault-interior',
+      name: 'Underground Vault Interior',
+      genre: 'Post-Apocalyptic',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A clean but aging underground survival vault with metal walls, flickering fluorescent lights, and a massive vault door visible in the distance. Four parallax layers from far wall to foreground equipment.',
+      colorNotes: 'Cool blue-grey metal surfaces, warm yellow-white fluorescent light, green screen glow from terminals, chrome and brushed steel, faded safety yellow markings.',
+      layerLabels: JSON.stringify([
+        'Far Wall & Vault Door', 'Mid Equipment & Lockers', 'Foreground Desks & Terminals', 'Floor Details & Overhead Pipes'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Far Wall & Vault Door" (0,0): The topmost/farthest layer. A massive circular vault door dominates the center-left — heavy reinforced steel with a central locking mechanism, partially open revealing a dark corridor beyond. The surrounding wall is riveted metal panels painted institutional blue-grey. A large painted vault number (e.g., "42") beside the door. Fluorescent tube lights along the ceiling cast even white light. A faded "VAULT-TEC" logo on the wall. Fills the ENTIRE cell. No magenta visible.
+  Header "Mid Equipment & Lockers" (1,0): Middle distance. Rows of metal lockers along the walls — some open, some dented. Equipment racks hold tools, hazmat suits, and emergency supplies. A water purification unit with gauges and pipes. A bulletin board with faded notices and schedules. Overhead fluorescent lights flicker — one tube is dead, casting a shadow. Magenta visible at the top. Equipment fills the lower two-thirds.
+  Header "Foreground Desks & Terminals" (2,0): Work stations with metal desks. Computer terminals display green text on black screens — system status readouts. A desk lamp provides warm pool of light. Scattered papers, coffee mugs, and personal items. A wall-mounted intercom speaker. Safety posters on the wall. Swivel chairs pushed back as if recently vacated. Magenta above. Content fills the lower half.
+  Header "Floor Details & Overhead Pipes" (3,0): Nearest layer — the vault floor and low-hanging overhead infrastructure. Metal grate flooring with visible subfloor pipes beneath. Overhead runs of conduit, ventilation ducts, and bundled cables. A floor-standing fan oscillates. Condensation drips from a pipe joint. Yellow caution stripes painted on floor edges. A small puddle reflects the fluorescent light above. Magenta fills the upper two-thirds. Floor detail at the very bottom.`,
+    },
+    {
+      id: 'wasteland-trading-post',
+      name: 'Wasteland Trading Post',
+      genre: 'Post-Apocalyptic',
+      gridSize: '2x2',
+      bgMode: 'scene',
+      description: 'A scrap-built trading post and market in the wasteland. Four scene variants showing the same location under different conditions — bustling day, quiet day, night with campfire, and abandoned night.',
+      colorNotes: 'Dusty earth tones and sun-bleached colors for day, warm orange campfire glow for night, cool blue moonlight, rust browns and faded canvas tans.',
+      layerLabels: JSON.stringify([
+        'Day - Bustling', 'Day - Quiet',
+        'Night - Campfire', 'Night - Abandoned'
+      ]),
+      layerGuidance: `SCENE DESIGN — Same trading post composition across all 4 variants. Layout: A central open-air market area with scrap-metal stalls and canvas awnings. A converted shipping container serves as the main shop on the right. Strings of salvaged lights hang overhead between poles. A makeshift bar/counter on the left with stools. A guard tower built from scaffolding in the background. Barbed wire perimeter fencing visible at the edges. A hand-painted "TRADE" sign over the entrance.
+
+  Header "Day - Bustling" (0,0): Bright harsh desert sunlight. The trading post is alive with activity — traders displaying scrap goods on tables, a merchant haggling at the counter, armed guards patrolling. Dust kicked up by foot traffic. Canvas awnings provide shade. Goods piled on tables: canned food, ammunition boxes, water jugs, mechanical parts. A pack brahmin (two-headed cow) stands near the entrance. Fill the ENTIRE cell.
+  Header "Day - Quiet" (0,1): Same harsh sunlight but the post is nearly empty. Most stalls are closed with tarps pulled down. A single shopkeeper tends the main container store. A lone traveler sits at the bar counter drinking from a canteen. A sleeping dog curls under a table. Wind blows dust across the empty market. An "OPEN" sign creaks on one hinge. Peaceful but desolate.
+  Header "Night - Campfire" (1,0): Nighttime with a large campfire burning in the center of the market area. Warm orange firelight illuminates the stalls and faces of a small group gathered around it. A guard silhouetted in the tower against a starry sky. Salvaged string lights glow dimly overhead. Shadows dance on the shipping container walls. Someone plays a makeshift guitar. The bar is lit by a lantern.
+  Header "Night - Abandoned" (1,1): Nighttime, no campfire — the trading post appears abandoned. Cool blue moonlight casts long shadows. Stalls are empty, tarps flapping in the wind. The bar stools are knocked over. A tumbleweed rolls through. The guard tower is unmanned. An ominous silence suggested by the stillness. A single flickering light in the container store suggests someone hiding inside. Unsettling and post-apocalyptic.`,
+    },
+    {
+      id: 'hive-interior',
+      name: 'Hive Interior',
+      genre: 'Sci-Fi Horror',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A vast organic cavern deep within an alien hive. Resin-coated walls, cocooned figures, and warm amber bioluminescence create a nightmarish organic environment. Four parallax layers from distant cavern wall to foreground floor.',
+      colorNotes: 'Warm amber and dark honey for bioluminescence, obsidian black and dark brown for organic surfaces, sickly pale flesh tones for cocooned victims, translucent green-yellow for resin, deep purple shadows.',
+      layerLabels: JSON.stringify([
+        'Far Cavern Wall & Ceiling', 'Mid Resin Walls & Cocooned Figures', 'Near Organic Pillars & Egg Clusters', 'Hive Floor & Foreground Resin'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Far Cavern Wall & Ceiling" (0,0): The topmost/farthest layer. A vast organic cavern stretching into darkness. The ceiling is covered in hardened resin creating rib-like arching structures reminiscent of HR Giger's biomechanical aesthetic. Warm amber bioluminescent patches glow on the distant walls, providing the only light. Organic tubes and sinew-like cables hang from the ceiling. The scale is immense — the cavern walls disappear into shadow. Fills the ENTIRE cell. No magenta visible.
+  Header "Mid Resin Walls & Cocooned Figures" (1,0): Middle distance. Closer resin-coated walls with horrifying detail — humanoid figures are partially cocooned in translucent resin, their outlines visible beneath the hardened surface. Some cocoons have been torn open from the inside, leaving empty husks. Thick resin drips down like melting wax. Faint amber light from behind the resin gives it a sickly warm glow. Biomechanical ribbing on the walls. Magenta visible at the top. Content fills the lower two-thirds.
+  Header "Near Organic Pillars & Egg Clusters" (2,0): Closer pillars of hardened resin forming organic columns. Between them, clusters of leathery alien eggs rest on the organic floor — ovoid shapes about knee-high, their tops pulsing slightly as if breathing. A faint blue-green mist clings to the ground around the eggs. One egg is partially open, its four flaps peeled back revealing the dark interior. Dripping resin strands connect pillars like organic webbing. Magenta above. Content fills the lower half.
+  Header "Hive Floor & Foreground Resin" (3,0): Nearest layer — the hive floor in intimate detail. Hardened organic resin covers everything in ridged, bone-like textures. Remnants of human equipment partially absorbed into the resin — a rifle barrel, a helmet, boot prints fossilized in hardened secretion. A face-hugger corpse lies discarded, its legs curled inward. Small bioluminescent nodes dot the floor providing dim amber light. Acid burn marks scar the resin. Magenta fills the upper two-thirds. Floor detail at the very bottom.`,
+    },
+    {
+      id: 'space-station-breach',
+      name: 'Space Station Breach',
+      genre: 'Sci-Fi Horror',
+      gridSize: '1x4',
+      bgMode: 'parallax',
+      description: 'A damaged space station corridor with hull breaches showing the void of space. Emergency red lighting, sparking cables, and floating debris create a tense survival horror atmosphere. Four parallax layers from stars through hull to foreground wreckage.',
+      colorNotes: 'Deep black space with white stars, harsh red emergency lighting, cool blue-white sparking electricity, dark grey-blue metal hull, amber warning lights, green status screens.',
+      layerLabels: JSON.stringify([
+        'Space & Stars Through Breach', 'Damaged Hull & Sparking Cables', 'Emergency-Lit Corridor Section', 'Foreground Debris & Warning Signs'
+      ]),
+      layerGuidance: `LAYER ORDER (top to bottom, farthest to nearest):
+  Header "Space & Stars Through Breach" (0,0): The topmost/farthest layer. The cold void of space visible through massive hull breaches in the station. A dense star field with a distant nebula in purple and blue provides an eerie backdrop. The curved edge of a planet or moon is partially visible in the lower portion. Torn metal edges of the hull breach frame the view like jagged teeth. Small debris particles float in zero gravity between the viewer and the stars. The contrast between the serene beauty of space and the violent destruction is unsettling. Fills the ENTIRE cell. No magenta visible.
+  Header "Damaged Hull & Sparking Cables" (1,0): The station's outer hull structure visible in cross-section through the breach. Thick metal plating torn and peeled outward by decompression. Bundles of severed cables sparking with blue-white electrical discharge. Coolant pipes leaking crystallizing vapor into the vacuum. Emergency bulkhead doors partially closed but jammed by wreckage. Structural I-beams bent at unnatural angles. Frost forming on metal surfaces near the breach. Magenta visible at the top. Content fills the lower two-thirds.
+  Header "Emergency-Lit Corridor Section" (2,0): An intact section of station corridor illuminated only by pulsing red emergency lights. The normal white corridor lighting is dead. Rotating amber warning beacons cast sweeping shadows. Wall-mounted status screens display critical alerts in green text. Floor emergency strips glow a faint white, marking the evacuation path. Motion tracker panels on the walls — some show contacts. The corridor curves away into darkness. Blast doors at the far end are sealed with red warning lights. Magenta above. Content fills the lower half.
+  Header "Foreground Debris & Warning Signs" (3,0): Nearest layer — immediate corridor foreground wreckage. Overturned equipment lockers spilling contents — tools, medical supplies, ammunition magazines. A cracked helmet visor lies face-down. Claw marks score the metal floor in parallel grooves. A blood smear trail leads under a collapsed ceiling panel. Emergency signage flashes "HULL BREACH — SECTOR 7" in red. A discarded motion tracker beeps on the floor, its screen showing a cluster of contacts nearby. Acid burn holes in the deck plating. Magenta fills the upper two-thirds. Debris detail at the very bottom.`,
+    },
+    {
+      id: 'alien-landscape',
+      name: 'Alien Landscape',
+      genre: 'Sci-Fi Horror',
+      gridSize: '2x2',
+      bgMode: 'scene',
+      description: 'A hostile extraterrestrial planet surface with biomechanical megastructures, bioluminescent flora, and dual moons. Four scene variants showing different atmospheric and temporal conditions.',
+      colorNotes: 'Dark volcanic rock in charcoal and deep purple, bioluminescent cyan and green accents, pale silver dual moonlight, amber-orange for active megastructures, sickly yellow-green toxic atmosphere.',
+      layerLabels: JSON.stringify([
+        'Day - Dual Moons Visible', 'Day - Storm',
+        'Night - Bioluminescent', 'Night - Megastructure Active'
+      ]),
+      layerGuidance: `SCENE DESIGN — Same alien landscape composition across all 4 variants. Layout: A rocky alien terrain of dark volcanic stone in the foreground. Jagged crystalline formations jut from the ground at irregular angles on the left. A massive biomechanical megastructure rises in the background center-right — a towering Giger-esque cathedral of organic pipes, skeletal arches, and ribbed columns. Bioluminescent fungi and alien flora dot the mid-ground. Two moons of different sizes hang in the alien sky. A lake of dark, mirror-still liquid reflects the sky in the mid-ground left.
+
+  Header "Day - Dual Moons Visible" (0,0): An alien daylight — the sky is a sickly yellow-green from the toxic atmosphere, brighter near the horizon. Both moons are visible — a large pale silver moon and a smaller reddish one. The megastructure is fully visible in muted grey tones, clearly ancient and dormant. Crystalline formations catch the light and refract it in prismatic patterns. Bioluminescent fungi are dim, barely visible in daylight. The dark lake reflects the yellow-green sky. Sparse alien vegetation — low, creeping tendrils with bulbous nodes. Fill the ENTIRE cell.
+  Header "Day - Storm" (0,1): Same landscape under a violent alien storm. The sky churns with dark purple-black clouds shot through with veins of green lightning. Howling winds whip alien dust across the scene. The crystalline formations vibrate, emitting a visible harmonic shimmer. The megastructure's upper reaches disappear into the storm clouds. The lake surface is turbulent with dark waves. Bioluminescent plants glow brighter in the darkness — a stress response. Lightning strikes the megastructure, running down its ribbed columns. Intense and threatening.
+  Header "Night - Bioluminescent" (1,0): Nighttime. Both moons are high — the larger moon is full, casting silver light. The sky is deep indigo-black with unfamiliar constellations. The true spectacle: every bioluminescent organism blazes with light. Fungi glow intense cyan-blue. Alien flowers pulse with green-yellow light. Luminescent spores drift through the air like fireflies. The crystalline formations glow from within. The dark lake reflects all the bioluminescence, creating a mirror of colored lights. The megastructure is a dark silhouette against the moonlit sky. Hauntingly beautiful and alien.
+  Header "Night - Megastructure Active" (1,1): Nighttime, but the megastructure has awakened. Its organic pipes glow with pulsing amber-orange light from within. Rhythmic pulses travel up its columns like a heartbeat. Steam or vapor vents from its ribbed surfaces. The ground trembles — cracks in the volcanic rock glow with the same amber light. The lake surface ripples from the vibrations, distorting the reflections. Bioluminescent organisms have gone dark, as if in fear. Both moons are partially obscured by the megastructure's emissions. An ominous deep hum is suggested by the visual intensity. Terrifying and awe-inspiring.`,
+    },
   ];
 
   const insert = db.prepare(
@@ -2525,4 +3618,404 @@ function seedBackgroundPresets(db) {
   });
   linkAll();
   console.log(`[DB] Seeded background grid presets + links.`);
+}
+
+function seedIsometricGridPresets(db) {
+  const existing = db.prepare("SELECT COUNT(*) as count FROM grid_presets WHERE genre IN ('Post-Apocalyptic','Sci-Fi Horror','Isometric') AND aspect_ratio = '16:9'").get();
+  if (existing.count > 0) return;
+
+  const GRIDS = [
+    // Terrain grids (diamond tiles)
+    {
+      name: 'Iso Wasteland Floor 4\u00d74',
+      spriteType: 'terrain',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x4',
+      cols: 4, rows: 4,
+      aspectRatio: '16:9',
+      tileShape: 'diamond',
+      cellLabels: ['Center 1','Center 2','Center 3','Edge N','Edge S','Edge E','Edge W',
+                   'Corner NE','Corner NW','Corner SE','Corner SW',
+                   'Inner NE','Inner NW','Inner SE','Inner SW','Variant'],
+      genericGuidance: `Isometric 2:1 diamond tile set for a post-apocalyptic wasteland floor. Each cell contains one diamond-shaped tile drawn at isometric perspective (roughly 30-degree top-down angle). Tiles must seamlessly connect when placed adjacent in an isometric grid.
+
+TILE DRAWING RULES:
+- Each tile is a diamond (rhombus) shape with 2:1 width-to-height ratio
+- Draw the tile centered in the cell on a magenta (#FF00FF) background
+- Edges of adjacent tiles must match perfectly when tiled
+- Maintain consistent lighting from top-left
+- Use cracked concrete, sand, rubble, and sparse dead vegetation textures
+
+TILE TYPES:
+- Center tiles: Main walkable floor variants, mostly flat cracked concrete with sand
+- Edge tiles: Tiles that border another terrain type, with transition on one side
+- Corner tiles: Tiles at terrain boundary corners, two edges transition
+- Inner tiles: Inner corner variants for concave terrain shapes
+- Variant: Special feature tile (drain grate, manhole cover, rubble pile)`,
+    },
+    {
+      name: 'Iso Hive Floor 4\u00d74',
+      spriteType: 'terrain',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x4',
+      cols: 4, rows: 4,
+      aspectRatio: '16:9',
+      tileShape: 'diamond',
+      cellLabels: ['Center 1','Center 2','Center 3','Edge N','Edge S','Edge E','Edge W',
+                   'Corner NE','Corner NW','Corner SE','Corner SW',
+                   'Inner NE','Inner NW','Inner SE','Inner SW','Variant'],
+      genericGuidance: `Isometric 2:1 diamond tile set for an alien hive floor. Each cell contains one diamond-shaped tile drawn at isometric perspective (roughly 30-degree top-down angle). Tiles must seamlessly connect when placed adjacent in an isometric grid.
+
+TILE DRAWING RULES:
+- Each tile is a diamond (rhombus) shape with 2:1 width-to-height ratio
+- Draw the tile centered in the cell on a magenta (#FF00FF) background
+- Edges of adjacent tiles must match perfectly when tiled
+- Maintain consistent lighting from bioluminescent sources within the floor
+- Use organic textures: resin-coated chitin, membrane, pulsing veins, hardened secretions
+
+TILE TYPES:
+- Center tiles: Main hive floor variants with organic ribbed texture and faint bioluminescent veins
+- Edge tiles: Transition tiles where hive floor meets bare rock or metal, organic growths creeping outward
+- Corner tiles: Corner boundary transitions with thicker organic growth
+- Inner tiles: Inner corner variants for concave boundaries
+- Variant: Special feature tile (egg chamber indent, nutrient canal, nerve cluster node)`,
+    },
+    // Wall grids (square cells showing wall orientations)
+    {
+      name: 'Iso Wasteland Walls 4\u00d72',
+      spriteType: 'building',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x2',
+      cols: 4, rows: 2,
+      aspectRatio: '16:9',
+      tileShape: 'square',
+      cellLabels: ['Wall Left','Wall Upper','Corner Upper-Left (Upper)','Corner Upper-Left (Left)',
+                   'Corner Upper-Right','Corner Lower-Left','Corner Lower-Right','Pillar'],
+      genericGuidance: `Isometric wall tile set for post-apocalyptic structures. Each cell shows a wall segment from isometric perspective. Walls are drawn as tall, thin structures viewed at the standard isometric angle.
+
+WALL DRAWING RULES:
+- Each wall segment has consistent height (roughly 1.5x the base diamond width)
+- Left-facing walls show the left surface, upper-facing walls show the upper surface
+- Corner pieces combine two wall surfaces meeting at a corner
+- Maintain consistent brick/concrete/rebar texture with weathering and damage
+- Use rubble and debris at wall bases
+- Consistent lighting from top-left: left walls are lit, upper walls are shadowed
+
+WALL TYPES:
+- Wall Left: Straight wall segment facing left (camera-left surface visible)
+- Wall Upper: Straight wall segment facing upper (camera-upper surface visible)
+- Corners: L-shaped wall pieces showing two surfaces meeting
+- Pillar: Freestanding column/support pillar, visible from all sides`,
+    },
+    {
+      name: 'Iso Hive Walls 4\u00d72',
+      spriteType: 'building',
+      genre: 'Sci-Fi Horror',
+      gridSize: '4x2',
+      cols: 4, rows: 2,
+      aspectRatio: '16:9',
+      tileShape: 'square',
+      cellLabels: ['Wall Left','Wall Upper','Corner Upper-Left (Upper)','Corner Upper-Left (Left)',
+                   'Corner Upper-Right','Corner Lower-Left','Corner Lower-Right','Pillar'],
+      genericGuidance: `Isometric wall tile set for alien hive structures. Each cell shows an organic wall segment from isometric perspective. Walls are grown structures of hardened resin and chitin.
+
+WALL DRAWING RULES:
+- Each wall segment has consistent height (roughly 1.5x the base diamond width)
+- Left-facing walls show the left surface, upper-facing walls show the upper surface
+- Corner pieces combine two wall surfaces meeting at a corner
+- Use organic textures: ribbed chitin, translucent resin patches, embedded cocoons
+- Bioluminescent veins run along wall surfaces providing dim green/purple light
+- Consistent lighting from internal bioluminescence plus dim top-left ambient
+
+WALL TYPES:
+- Wall Left: Straight organic wall facing left with visible ribbing and vein patterns
+- Wall Upper: Straight organic wall facing upper, slightly more shadowed
+- Corners: L-shaped organic wall pieces with thicker growth at the junction
+- Pillar: Freestanding organic column with spiral ribbing and luminous node at top`,
+    },
+    // Character grids (8-direction animation)
+    {
+      name: 'Iso Walk Cycle 8\u00d76',
+      spriteType: 'character',
+      genre: 'Isometric',
+      gridSize: '8x6',
+      cols: 8, rows: 6,
+      aspectRatio: '16:9',
+      tileShape: 'square',
+      cellLabels: [
+        'S Frame 1','S Frame 2','S Frame 3','S Frame 4','S Frame 5','S Frame 6','S Frame 7','S Frame 8',
+        'SW Frame 1','SW Frame 2','SW Frame 3','SW Frame 4','SW Frame 5','SW Frame 6','SW Frame 7','SW Frame 8',
+        'W Frame 1','W Frame 2','W Frame 3','W Frame 4','W Frame 5','W Frame 6','W Frame 7','W Frame 8',
+        'NW Frame 1','NW Frame 2','NW Frame 3','NW Frame 4','NW Frame 5','NW Frame 6','NW Frame 7','NW Frame 8',
+        'N Frame 1','N Frame 2','N Frame 3','N Frame 4','N Frame 5','N Frame 6','N Frame 7','N Frame 8',
+        'NE Frame 1','NE Frame 2','NE Frame 3','NE Frame 4','NE Frame 5','NE Frame 6','NE Frame 7','NE Frame 8',
+      ],
+      genericGuidance: `8-direction isometric walk cycle animation sheet. Each row is one direction, each column is one animation frame. 8 frames per direction for smooth looping walk animation.
+
+ISOMETRIC PERSPECTIVE RULES:
+- Camera angle is standard isometric (approx. 30 degrees from horizontal)
+- Character proportions must remain perfectly consistent across all frames and directions
+- S = facing camera (toward bottom of screen), N = facing away (toward top)
+- SW = facing bottom-left, W = facing left, NW = facing top-left
+- NE = facing top-right (can be horizontally mirrored from NW in-engine, but draw unique)
+- E and SE directions omitted (mirrored from W and SW in-engine)
+
+ANIMATION RULES:
+- Frame 1 = contact pose (front foot touches ground)
+- Frame 3 = passing pose (legs cross)
+- Frame 5 = second contact pose (other foot)
+- Frame 7 = second passing pose
+- Frames 2,4,6,8 = in-between frames for smooth motion
+- Arms swing opposite to legs
+- Slight body bob (up on passing, down on contact)
+- Each direction shows the character at the correct isometric angle for that direction`,
+    },
+    {
+      name: 'Iso Attack Cycle 8\u00d74',
+      spriteType: 'character',
+      genre: 'Isometric',
+      gridSize: '8x4',
+      cols: 8, rows: 4,
+      aspectRatio: '16:9',
+      tileShape: 'square',
+      cellLabels: [
+        'S Atk 1','S Atk 2','S Atk 3','S Atk 4','S Atk 5','S Atk 6','S Atk 7','S Atk 8',
+        'SW Atk 1','SW Atk 2','SW Atk 3','SW Atk 4','SW Atk 5','SW Atk 6','SW Atk 7','SW Atk 8',
+        'W Atk 1','W Atk 2','W Atk 3','W Atk 4','W Atk 5','W Atk 6','W Atk 7','W Atk 8',
+        'NW Atk 1','NW Atk 2','NW Atk 3','NW Atk 4','NW Atk 5','NW Atk 6','NW Atk 7','NW Atk 8',
+      ],
+      genericGuidance: `8-direction isometric attack cycle animation sheet. 4 directions (S, SW, W, NW) with 8 frames each. Remaining directions can be mirrored in-engine.
+
+ANIMATION RULES:
+- Frame 1-2: Wind-up (weapon drawn back, weight shifting)
+- Frame 3-4: Strike (weapon swinging forward, peak motion blur feel)
+- Frame 5-6: Impact/follow-through (weapon extended, impact effect)
+- Frame 7-8: Recovery (returning to ready stance)
+- Maintain consistent character proportions and weapon across all frames
+- Each direction shows the attack from the correct isometric angle
+- Weapon trail or motion lines encouraged on frames 3-4`,
+    },
+    {
+      name: 'Iso Idle Cycle 8\u00d74',
+      spriteType: 'character',
+      genre: 'Isometric',
+      gridSize: '8x4',
+      cols: 8, rows: 4,
+      aspectRatio: '16:9',
+      tileShape: 'square',
+      cellLabels: [
+        'S Idle 1','S Idle 2','S Idle 3','S Idle 4','S Idle 5','S Idle 6','S Idle 7','S Idle 8',
+        'SW Idle 1','SW Idle 2','SW Idle 3','SW Idle 4','SW Idle 5','SW Idle 6','SW Idle 7','SW Idle 8',
+        'W Idle 1','W Idle 2','W Idle 3','W Idle 4','W Idle 5','W Idle 6','W Idle 7','W Idle 8',
+        'NW Idle 1','NW Idle 2','NW Idle 3','NW Idle 4','NW Idle 5','NW Idle 6','NW Idle 7','NW Idle 8',
+      ],
+      genericGuidance: `8-direction isometric idle cycle animation sheet. 4 directions (S, SW, W, NW) with 8 frames each for a subtle breathing/shifting idle animation.
+
+ANIMATION RULES:
+- Subtle, looping idle animation (character standing in place)
+- Frame 1: Base standing pose
+- Frame 2-3: Slight chest expansion (breathing in)
+- Frame 4: Peak inhale, slight weight shift
+- Frame 5-6: Exhale, slight settle
+- Frame 7-8: Return to base, possible subtle head turn or weapon adjustment
+- Movement should be very subtle — only a few pixels of difference between frames
+- Maintain consistent character proportions across all frames and directions
+- Character should look alive but not actively moving`,
+    },
+    {
+      name: 'Iso Death Sequence 8\u00d74',
+      spriteType: 'character',
+      genre: 'Isometric',
+      gridSize: '8x4',
+      cols: 8, rows: 4,
+      aspectRatio: '16:9',
+      tileShape: 'square',
+      cellLabels: [
+        'S Death 1','S Death 2','S Death 3','S Death 4','S Death 5','S Death 6','S Death 7','S Death 8',
+        'SW Death 1','SW Death 2','SW Death 3','SW Death 4','SW Death 5','SW Death 6','SW Death 7','SW Death 8',
+        'W Death 1','W Death 2','W Death 3','W Death 4','W Death 5','W Death 6','W Death 7','W Death 8',
+        'NW Death 1','NW Death 2','NW Death 3','NW Death 4','NW Death 5','NW Death 6','NW Death 7','NW Death 8',
+      ],
+      genericGuidance: `8-direction isometric death sequence animation sheet. 4 directions (S, SW, W, NW) with 8 frames each. This is a one-shot animation (not looping).
+
+ANIMATION RULES:
+- Frame 1: Hit reaction (flinching back from impact)
+- Frame 2: Stagger (losing balance, weapon dropping)
+- Frame 3: Knees buckling, beginning to fall
+- Frame 4-5: Falling to ground
+- Frame 6: Impact with ground
+- Frame 7: Settling, final position
+- Frame 8: Final death pose (lying still on ground, used as static corpse sprite)
+- Weapon should be dropped/released by frame 3
+- Each direction shows the fall from the correct isometric angle
+- Final frame should work as a standalone static sprite`,
+    },
+  ];
+
+  const insert = db.prepare(`
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, aspect_ratio, tile_shape, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+
+  const insertAll = db.transaction(() => {
+    for (const g of GRIDS) {
+      const cellGroups = [];
+      for (let r = 0; r < g.rows; r++) {
+        const cells = [];
+        for (let c = 0; c < g.cols; c++) cells.push(r * g.cols + c);
+        cellGroups.push({ name: `Row ${r + 1}`, cells });
+      }
+      insert.run(g.name, g.spriteType, g.genre, g.gridSize, g.cols, g.rows,
+        JSON.stringify(g.cellLabels), JSON.stringify(cellGroups),
+        g.genericGuidance, null, g.aspectRatio, g.tileShape);
+    }
+  });
+
+  insertAll();
+  console.log(`[DB] Seeded ${GRIDS.length} isometric grid presets.`);
+}
+
+function seedAnimationSeries(db) {
+  // Check if any links already exist for these characters + iso grids
+  const existing = db.prepare(`
+    SELECT COUNT(*) as count FROM character_grid_links cgl
+    JOIN grid_presets gp ON gp.id = cgl.grid_preset_id
+    WHERE gp.aspect_ratio = '16:9' AND gp.genre = 'Isometric'
+  `).get();
+  if (existing.count > 0) return;
+
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ?");
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  const SERIES = [
+    {
+      characterId: 'wasteland-wanderer',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Walking cautiously through wasteland rubble. Crouched survival posture with spear held diagonally across body for balance. Leather duster coat sways with each step. Goggles on forehead, gas mask bouncing on chest strap. Feet carefully placed to avoid debris. Head constantly scanning left and right. Canteen swings on pack. Dust kicks up slightly from boots on each step.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Rebar spear thrust attack sequence. Wind-up: spear pulled back with both hands, weight on rear foot. Strike: lunging forward with full-body thrust, spear tip leading. Impact: spear extended, slight twist for piercing. Recovery: pulling spear back to ready position, stepping back into defensive stance. Gas mask stays on forehead throughout. Duster flares outward during lunge.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Standing alert in wasteland, scanning the horizon for threats. Spear held vertically in right hand, butt resting on ground. Left hand shading eyes or adjusting goggles. Subtle weight shifts from foot to foot. Occasional glance over shoulder. Breathing visible through slight chest movement. Duster drapes still. Canteen occasionally touched/checked.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Collapse from accumulated damage. Hit reaction: staggering backward, spear slipping from grip. Falling: knees buckling, hand reaching for wound. Impact: crumpling to ground on side, duster spreading around body. Final pose: lying face-down with one arm extended, spear fallen nearby, goggles knocked off, gas mask dangling from strap. Canteen spilled.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 4,
+          guidance: `Special attack: crouch and aim sequence. Frame 1: dropping to one knee from standing, spear shifting to overhand grip. Frame 2: crouched low behind cover (implied), pulling arm back with spear held like a javelin. Frame 3: aiming — body coiled, eyes narrowed through goggles now pulled down over eyes, gas mask hanging. Frame 4: explosive throw — full body extension, spear released in javelin throw, duster billowing from the force. Recovery implied off-sheet. Dust cloud at feet from the sudden movement.`,
+        },
+      ],
+    },
+    {
+      characterId: 'xenomorph-warrior',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Predatory stalking movement on all fours transitioning to hunched bipedal. Low to the ground, tail stretched behind for balance, slowly sweeping side to side. Inner jaw occasionally visible through parted outer jaws. Claws extended, fingers splayed for grip. Elongated head tilted slightly as if sensing prey. Exoskeleton gleams with wet sheen. Movement is smooth and deliberate, not rushed.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Lunging claw attack with tail strike follow-up. Wind-up: rearing back on hind legs, arms spread wide, jaws opening. Strike: explosive forward lunge, right claw slashing diagonally. Impact: claws extended at full reach, inner jaw shooting forward. Recovery: tail whips around from behind as secondary attack, then settling back to ready crouch. Acid drool trails from jaws during attack.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Alert hunting stance, perfectly still except for subtle movements. Tail slowly swaying behind like a cat watching prey. Head making small tilting motions, sensing vibrations. Occasional jaw parting slightly revealing inner jaw. Fingers flexing and unflexing. Exoskeleton surface rippling subtly. Drool forming and dropping from lower jaw. Overall impression: coiled spring ready to explode into motion.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Acid blood death sequence. Hit: screeching with jaws fully open, body arching backward. Stagger: acid blood spraying from wound, burning ground beneath. Falling: limbs giving way asymmetrically, tail thrashing. Collapse: crumpling with acid pool forming around body. Final pose: curled on side, exoskeleton cracked open, acid still steaming, tail limp, jaws frozen open. Green-yellow acid glow.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 4,
+          guidance: `Tail strike attack from behind. Frame 1: crouched facing away from target, tail rising high behind the body, barbed tip glinting. Frame 2: tail arcing overhead in a scorpion-like motion, body still low and coiled. Frame 3: tail whipping forward at full extension — the segmented tail stretched to maximum reach, barbed tip driving downward. Frame 4: impact and retract — tail embedded momentarily, acid blood dripping from barb, then pulling back as the creature spins to face the target. Inner jaw visible in a hiss during the spin. Exoskeleton plates shift and flex with the tail movement.`,
+        },
+      ],
+    },
+    {
+      characterId: 'vault-dweller',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Purposeful vault-trained walk with military-influenced posture. Upright, shoulders back, laser pistol holstered at hip. Left arm with Pip-Boy slightly raised, green screen glow visible. Blue jumpsuit crisp and clean. Steps are measured and deliberate, trained movement. Yellow stripe visible on jumpsuit sides. Boots have a slight heel click on contact. Head forward, alert but not fearful.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Laser pistol firing sequence from trained hip-fire stance. Wind-up: drawing pistol from holster in smooth motion, left hand steadying Pip-Boy for targeting. Strike: pistol aimed and firing, red laser beam visible from barrel, slight recoil. Impact: follow-through shot, Pip-Boy screen flashing with target data. Recovery: pistol returning to ready position, not holstered. Red laser flash on frames 3-4.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Checking Pip-Boy wrist computer readout while standing guard. Left arm raised to read Pip-Boy screen, green glow illuminating face from below. Right hand resting on holstered pistol. Subtle head movements between checking Pip-Boy and scanning surroundings. Occasional tap on Pip-Boy screen. Jumpsuit creases shift slightly with breathing. Standing at parade rest when not checking device.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Clean collapse animation befitting trained vault personnel. Hit: flinching back, hand going to chest wound, Pip-Boy arm dropping. Stagger: pistol falling from holster, knees weakening. Falling: controlled fall to knees first, then sideways. Final pose: lying on back, one hand on chest, Pip-Boy screen still glowing green on outstretched arm, pistol nearby, jumpsuit stained. Eyes closed, peaceful expression.`,
+        },
+      ],
+    },
+    {
+      characterId: 'biomechanical-entity',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Mechanical-organic crawling movement blending robotic precision with organic fluidity. Multiple limbs move in unsettling coordination — some metallic, some fleshy. Central mass shifts weight between mechanical legs and organic tendrils. Exposed gears and pistons visible alongside pulsing tissue. Eye cluster tracks independently of body movement. Hydraulic hisses suggested by small steam puffs. Movement is eerily smooth despite the grotesque form.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Tendril lash attack with mechanical precision. Wind-up: organic tendrils coiling back while mechanical arm extends targeting array. Strike: tendrils whipping forward in coordinated bundle, metallic barbs at tips catching light. Impact: tendrils fully extended, sparks flying from mechanical joints powering the strike. Recovery: tendrils retracting and re-coiling, mechanical components resetting with visible gear rotation. Purple bio-energy pulses along tendrils during strike.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Pulsing mechanical-organic idle state. Organic tissue contracts and expands rhythmically like breathing. Mechanical components make small adjustment movements — gears turning, pistons cycling. Tendrils slowly writhe and probe the air. Eye cluster blinks in sequence, not simultaneously. Occasional spark from exposed wiring. Bio-luminescent patches pulse in sync with organic breathing. Steam/vapor vents periodically from cooling systems. Unsettling combination of machine precision and organic restlessness.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Component disassembly and system failure cascade. Hit: electrical discharge across body, tendrils spasming. Stagger: mechanical limbs locking at wrong angles, organic parts going limp. Falling: body listing as structural supports fail, components separating. Collapse: mechanical frame crashing down, organic tissue pooling, sparks flying from severed connections. Final pose: scattered wreckage of metal and tissue, eye cluster dimming to dark, last tendril twitching, fluids leaking, small fires on exposed circuitry.`,
+        },
+      ],
+    },
+  ];
+
+  const linkAll = db.transaction(() => {
+    let linkCount = 0;
+    for (const series of SERIES) {
+      for (const grid of series.grids) {
+        const gridRow = findGrid.get(grid.name);
+        if (gridRow) {
+          insertLink.run(series.characterId, gridRow.id, grid.guidance, grid.order);
+          linkCount++;
+        }
+      }
+    }
+    console.log(`[DB] Seeded ${SERIES.length} animation series (${linkCount} grid links).`);
+  });
+
+  linkAll();
 }
