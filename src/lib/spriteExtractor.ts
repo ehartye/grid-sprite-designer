@@ -243,6 +243,11 @@ function detectCuts(
   // ── Horizontal cuts ──
   const rowScores = computeRowDividerScore(data, width, height);
   const hCuts = findCutBands(rowScores);
+  // Expand the top of each horizontal cut after the first by 2px to clip
+  // header-edge pixels that bleed into the bottom of the row above.
+  for (let i = 1; i < hCuts.length; i++) {
+    hCuts[i].start = Math.max(0, hCuts[i].start - 3);
+  }
   console.log(`[CutDetect] Horizontal cuts: ${hCuts.length}`, hCuts.map(b => `${b.start}-${b.end} (${b.end - b.start + 1}px)`));
 
   // ── Vertical cuts ──

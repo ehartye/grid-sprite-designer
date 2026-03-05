@@ -22,9 +22,11 @@ interface SpriteGridProps {
   gridCols?: number;
   /** Override cell labels (default from poses.ts) */
   cellLabels?: string[];
+  /** Grid aspect ratio (e.g. '4:3') — used as fallback when no sprites are available */
+  aspectRatio?: string;
 }
 
-export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels }: SpriteGridProps) {
+export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels, aspectRatio }: SpriteGridProps) {
   const cols = gridCols ?? 6;
   const labels = cellLabels ?? CELL_LABELS;
 
@@ -34,14 +36,29 @@ export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, 
     spriteMap.set(sprite.cellIndex, sprite);
   }
 
-  // Derive cell aspect ratio from the first sprite's actual dimensions
+  // Derive cell aspect ratio from the first sprite's actual dimensions,
+  // falling back to the grid aspect ratio for non-square grids
   const firstSprite = sprites[0];
-  const cellAspect = firstSprite && firstSprite.height > 0
-    ? `${firstSprite.width} / ${firstSprite.height}`
-    : '1';
+  let cellAspect: string;
+  if (firstSprite && firstSprite.height > 0) {
+    cellAspect = `${firstSprite.width} / ${firstSprite.height}`;
+  } else if (aspectRatio && aspectRatio !== '1:1' && gridCols) {
+    // Calculate cell aspect from canvas aspect ratio and grid dimensions
+    const [arW, arH] = aspectRatio.split(':').map(Number);
+    if (arW && arH) {
+      const rows = Math.ceil(labels.length / cols);
+      const canvasAR = arW / arH;
+      const cellAR = (canvasAR * rows) / cols;
+      cellAspect = `${cellAR}`;
+    } else {
+      cellAspect = '1';
+    }
+  } else {
+    cellAspect = '1';
+  }
 
   const gridStyle: React.CSSProperties = {
-    ...(cols !== 6 ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : {}),
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
     '--cell-aspect': cellAspect,
   } as React.CSSProperties;
 

@@ -50,7 +50,7 @@ export function useGridWorkflow() {
       const aspectRatio = gridConfig?.aspectRatio || state.aspectRatio;
       const template = generateTemplate(templateConfig, gridConfig, aspectRatio);
 
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: gridConfig ? { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } : undefined });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: gridConfig ? { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups, aspectRatio: gridConfig.aspectRatio } : undefined });
 
       // 2. Build prompt with layered guidance
       const prompt = buildGridFillPrompt(
@@ -127,6 +127,9 @@ export function useGridWorkflow() {
             model: state.model,
             prompt,
             filledGridImage: result.image.data,
+            spriteType: 'character',
+            gridSize: gridConfig ? `${gridConfig.cols}x${gridConfig.rows}` : '6x6',
+            aspectRatio,
           }),
           signal: abort.signal,
         });
@@ -181,16 +184,27 @@ export function useGridWorkflow() {
 
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
 
+    const agc = state.activeGridConfig;
+    const needsOverride = agc && (agc.cols !== 6 || agc.rows !== 6);
+
     const sprites = await extractSprites(
       state.filledGridImage,
       state.filledGridMimeType,
       {
+        ...(needsOverride ? {
+          gridOverride: {
+            cols: agc.cols,
+            rows: agc.rows,
+            totalCells: agc.cols * agc.rows,
+            cellLabels: agc.cellLabels,
+          },
+        } : {}),
         ...overrides,
       },
     );
 
     dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-  }, [state.filledGridImage, state.filledGridMimeType, dispatch]);
+  }, [state.filledGridImage, state.filledGridMimeType, state.activeGridConfig, dispatch]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });

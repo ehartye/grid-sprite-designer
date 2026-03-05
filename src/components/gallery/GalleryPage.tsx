@@ -109,16 +109,26 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           dispatch({ type: 'SET_CHARACTER', character: data.character });
         }
 
-        // Set active grid config for the review view
-        if (spriteType !== 'character' && data.gridSize) {
-          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+        // Compute grid dimensions — from gridSize if available, otherwise infer from sprite count
+        const allLabels = data.sprites?.map((s: any) => s.label) || [];
+        let gridCols: number;
+        let gridRows: number;
+        if (data.gridSize) {
           const [colStr, rowStr] = (data.gridSize as string).split('x');
-          const cols = parseInt(colStr, 10) || 6;
-          const rows = parseInt(rowStr, 10) || 6;
-          dispatch({ type: 'SET_ACTIVE_GRID_CONFIG', gridConfig: { cols, rows, cellLabels: spriteLabels } });
+          gridCols = parseInt(colStr, 10) || 6;
+          gridRows = parseInt(rowStr, 10) || 6;
+        } else if (allLabels.length > 0 && allLabels.length !== 36) {
+          // Infer grid dimensions from sprite count for legacy entries without gridSize
+          const total = allLabels.length;
+          gridCols = [8, 6, 5, 4, 3, 2, 1].find(c => total % c === 0 && total / c >= 1) || 6;
+          gridRows = Math.ceil(total / gridCols);
         } else {
-          dispatch({ type: 'SET_ACTIVE_GRID_CONFIG', gridConfig: null });
+          gridCols = 6;
+          gridRows = 6;
         }
+
+        // Set active grid config for the review view
+        dispatch({ type: 'SET_ACTIVE_GRID_CONFIG', gridConfig: { cols: gridCols, rows: gridRows, cellLabels: allLabels, aspectRatio: data.aspectRatio } });
 
         const mimeType = data.filledGridMimeType || 'image/png';
         if (data.filledGridImage) {
@@ -129,12 +139,11 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
             geminiText: data.geminiText || '',
           });
 
-          // Build extraction config based on sprite type
+          // Build extraction config — use known grid configs for typed grids, generic override otherwise
           let extractionConfig: Parameters<typeof extractSprites>[2] = {};
 
           if (spriteType === 'building' && data.gridSize) {
-            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-            const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
+            const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, allLabels);
             extractionConfig = {
               gridOverride: {
                 cols: gridConfig.cols,
@@ -144,8 +153,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
               },
             };
           } else if (spriteType === 'terrain' && data.gridSize) {
-            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-            const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, spriteLabels);
+            const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, allLabels);
             extractionConfig = {
               gridOverride: {
                 cols: gridConfig.cols,
@@ -155,14 +163,22 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
               },
             };
           } else if (spriteType === 'background' && data.gridSize) {
-            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-            const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, spriteLabels);
+            const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, allLabels);
             extractionConfig = {
               gridOverride: {
                 cols: gridConfig.cols,
                 rows: gridConfig.rows,
                 totalCells: gridConfig.totalCells,
                 cellLabels: gridConfig.cellLabels,
+              },
+            };
+          } else if (gridCols !== 6 || gridRows !== 6) {
+            extractionConfig = {
+              gridOverride: {
+                cols: gridCols,
+                rows: gridRows,
+                totalCells: gridCols * gridRows,
+                cellLabels: allLabels,
               },
             };
           }

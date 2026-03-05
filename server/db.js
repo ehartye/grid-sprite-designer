@@ -1989,6 +1989,61 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Critical Pose" (5,5): Barely standing amid his scattered goods, the Trader clutches the revolver with his last round. The hat is torn, the harness is destroyed, and he stands guard over what remains of his trade goods with desperate, calculating eyes.`,
     },
     {
+      id: 'power-armor-knight',
+      name: "Power Armor Knight",
+      genre: "Post-Apocalyptic",
+      description: "A towering figure encased head-to-toe in pre-war powered combat armor. The suit is bulky and angular with a T-shaped visor slit glowing amber on a bucket-shaped helmet. Broad-shouldered, heavy, and imposing with hydraulic joints at the elbows and knees. Moves with deliberate, ground-shaking weight.",
+      equipment: "Full suit of olive-drab T-51b power armor with scratched steel plating and faded military stencils, a shoulder-mounted lamp on the left pauldron, a heavy gatling laser with six rotating barrels held in both hands, and a fusion core glowing blue-white in the back-mounted power pack.",
+      colorNotes: "Olive-drab steel armor plating with scratched gunmetal edges and faded white military stencils. Amber-glowing T-shaped visor. Fusion core is blue-white. Gatling laser barrels are dark chrome with red heat vents. Hydraulic pistons are brass-colored. Shoulder lamp is yellow when active.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Power Armor Knight stomps forward on the left foot, the ground cracking under the immense weight. The gatling laser is held across the chest in both armored hands, six barrels angled down. The T-shaped amber visor glows beneath the bucket helmet and hydraulic knee pistons hiss with the step. Olive-drab plating shows scratched battle damage.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with heavy boots planted side by side. The gatling laser rests at waist level and the shoulder lamp casts a faint yellow glow. Faded white military stencils are visible on the chest plate. The fusion core pulses blue-white through the back vents.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the armored frame shifting with mechanical precision. Hydraulic elbow pistons extend and the gatling laser sways to the opposite side. Scratched gunmetal edges catch harsh light.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the back-mounted fusion core dominates the view — a glowing blue-white cylinder in a steel housing. Exhaust vents trail faint heat shimmer. The olive-drab plating is scarred across the back and the gatling laser barrel tips extend past the right shoulder.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the fusion core and power pack filling the frame. Hydraulic spine actuators are visible between the back plates and faded stencils read partial unit numbers. The bucket helmet's rear vents are visible.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the heavy frame lumbering. The shoulder lamp housing is visible on the left pauldron and the gatling laser shifts to the other side.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Knight faces left with the left foot forward in a thunderous stride. The gatling laser leads in both hands, six dark chrome barrels pointing ahead. The bucket helmet's T-shaped visor glows amber in profile and the hydraulic knee piston compresses visibly. The shoulder lamp sits atop the near pauldron.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full armored silhouette looming. The gatling laser hangs at the ready and the fusion core's blue-white glow is visible behind the torso. Brass-colored hydraulic pistons gleam at the elbow joint.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, gatling laser barrels swinging forward. The red heat vents along the barrel housing glow faintly and olive-drab plating clanks with the step.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the gatling laser pointing ahead. The fusion core's glow trails behind and the shoulder lamp is on the far pauldron. The T-shaped visor scans the path ahead, amber light cutting through dust.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the angular bulk of the power armor creating a fortress-like profile. Faded stencils on the near pauldron and thigh plate are partially legible. Hydraulic joints are visible at the knee and elbow.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, the heavy frame shaking the ground. The gatling laser sways with controlled momentum and the back-mounted power pack vents heat.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Knight stands facing the viewer in a wide, planted stance, gatling laser held vertically with the barrels pointing up and the stock resting on the ground. The amber visor glows steadily and the shoulder lamp is off. Hydraulic joints hiss softly at rest. The fusion core pulses a calm blue-white.
+  Header "Idle Up" (2,1): Facing away at rest, the gatling laser is mag-locked to the back alongside the fusion core housing. The olive-drab plating shows extensive battle scarring across the shoulders and back. Exhaust vents idle with faint heat shimmer and the helmet rear has cooling fins.
+  Header "Idle Left" (2,2): Facing left, the Knight rests the gatling laser on one armored hip, the barrel tips angled down. The bucket helmet's T-visor is visible in profile, amber glow steady. The shoulder lamp housing and pauldron scratches are prominent.
+  Header "Idle Right" (2,3): Facing right, the gatling laser is cradled in both arms across the chest. The fusion core's blue-white glow illuminates the near side of the armor and the brass hydraulic pistons at the elbow reflect it. The T-visor scans slowly.
+  Header "Battle Idle 1" (2,4): The Knight brings the gatling laser to bear — both armored hands grip the weapon, the six barrels leveled forward. The shoulder lamp flicks on, casting a harsh yellow cone. The T-shaped visor brightens to a fierce amber and hydraulic actuators lock the arms steady. The fusion core ramps up, glowing brighter.
+  Header "Battle Idle 2" (2,5): The gatling barrels begin to spin with a mechanical whine, not yet firing. The Knight shifts weight into a braced firing stance — one foot forward, torso angled. Red heat vents along the barrel housing begin to glow and the shoulder lamp beam cuts through dust particles.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The barrels spin at full speed, a blur of dark chrome. The Knight is locked in firing position, every hydraulic joint braced. The amber visor narrows to targeting mode — a faint crosshair pattern visible within the glow. The fusion core blazes blue-white and the shoulder lamp beam is a solid yellow bar.
+  Header "Attack 1" (3,1): Wind-up — the gatling barrels reach maximum spin and the red heat vents flare bright. The Knight's armored frame plants and locks, servos whining under the bracing force. The fusion core surges energy into the weapon housing.
+  Header "Attack 2" (3,2): The gatling laser fires — a torrent of red laser beams erupts from the spinning barrels in a devastating stream. Each barrel fires in sequence creating a near-continuous beam of destruction. The recoil pushes the entire armored frame back slightly despite its weight. Muzzle flash illuminates the olive-drab plating in red.
+  Header "Attack 3" (3,3): Sustained fire — the laser stream rakes across the cell edge, red beams cutting through the air. The barrel housing glows cherry-red from heat and the shoulder lamp beam is lost in the laser glare. Spent heat radiates from every vent on the weapon and armor.
+  Header "Cast 1" (3,4): The Knight reaches to the back-mounted power pack and pulls a secondary fusion core — a smaller blue-white cylinder. The gatling laser is held one-handed (the armor's strength makes this possible) while the other hand primes the core, which crackles with building energy.
+  Header "Cast 2" (3,5): The primed fusion core blazes with intense blue-white light, arcs of energy jumping between the Knight's armored fingers. The T-shaped visor reflects the nuclear glow and the main fusion core in the back pack resonates in sympathy, pulsing brighter.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Knight hurls the overloaded fusion core — it tumbles through the air trailing blue-white energy arcs and detonates at the cell edge in a blinding nuclear flash. A miniature mushroom cloud erupts and the Knight raises one armored arm to shield the visor from the blast wave.
+  Header "Damage 1" (4,1): The Knight staggers from a heavy hit — an armor plate on the left pauldron cracks and the shoulder lamp shatters, sparking. The gatling laser dips and hydraulic fluid sprays from a ruptured line at the elbow. The amber visor flickers.
+  Header "Damage 2" (4,2): A second impact buckles the chest plate inward, exposing wiring and hydraulic lines beneath. The fusion core's housing cracks and the blue-white glow flickers erratically. Olive-drab plating falls away in chunks and the gatling laser's barrel housing is dented.
+  Header "Damage 3" (4,3): Recovery — hydraulic systems compensate with a loud hiss, forcing the Knight upright. Emergency seals clamp over the cracked fusion core housing and the amber visor stabilizes. The Knight racks the gatling laser back to firing position with damaged but functional arms.
+  Header "KO 1" (4,4): Systems failing — the gatling laser drops from powerless arms and clangs to the ground. The fusion core sputters and dies, its blue-white glow extinguishing. The amber visor dims to a faint flicker and hydraulic joints lock at random angles. The Knight sways, a dying machine.
+  Header "KO 2" (4,5): The Knight topples forward with an earth-shaking crash, face-down in the dirt. Armor plates scatter on impact and the dead fusion core rolls free of its cracked housing. The gatling laser lies beside the fallen titan and the visor goes completely dark.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Knight lies face-down in a crater of cracked earth, the power armor split open in places showing the empty interior. The dead fusion core sits nearby, dark and inert. The gatling laser is half-buried beside the armored hull. The T-shaped visor is black and lifeless.
+  Header "Victory 1" (5,1): The Knight raises the gatling laser overhead with one hand — a feat only power armor makes possible. The amber visor blazes bright and the fusion core surges with triumphant blue-white energy. The shoulder lamp sweeps the area and hydraulic pistons pump with a mechanical victory flex.
+  Header "Victory 2" (5,2): The Knight plants the gatling laser barrel-down like a flag pole and stands beside it, one armored boot on a chunk of rubble. The T-visor glows steady amber and the fusion core hums contentedly. Faded military stencils and fresh battle scars tell the story.
+  Header "Victory 3" (5,3): The Knight crosses armored arms over the chest plate, gatling laser mag-locked to the back. The amber visor dims to a calm glow and the shoulder lamp clicks off. The imposing silhouette stands at ease — a steel monument on the battlefield.
+  Header "Weak Pose" (5,4): The Knight stands with one leg's hydraulics failing, leaning heavily to one side. The gatling laser drags on the ground in a weakening grip. Armor plates are cracked and hanging loose, the fusion core flickers between blue-white and dark, and the amber visor pulses in time with failing power reserves.
+  Header "Critical Pose" (5,5): Barely standing, every hydraulic joint sparking and grinding. The gatling laser is braced against the ground as a crutch, barrels bent from impact. The fusion core is exposed and critical — flashing red through the cracked housing. The amber visor is a dying ember behind a shattered helmet plate, but the Knight still faces the enemy.`,
+    },
+    {
       id: 'xenomorph-drone',
       name: "Xenomorph Drone",
       genre: "Sci-Fi Horror",

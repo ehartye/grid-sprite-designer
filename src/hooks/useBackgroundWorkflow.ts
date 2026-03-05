@@ -48,7 +48,7 @@ export function useBackgroundWorkflow() {
       // 2. Generate template grid
       const aspectRatio = gridConfig.aspectRatio || state.aspectRatio;
       const template = generateTemplate(templateParams, gridConfig, aspectRatio);
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups, aspectRatio: gridConfig.aspectRatio } });
 
       // 3. Build prompt with layered guidance
       const prompt = buildBackgroundPrompt(
@@ -124,6 +124,7 @@ export function useBackgroundWorkflow() {
             filledGridImage: result.image.data,
             spriteType: 'background',
             gridSize: state.background.gridSize,
+            aspectRatio,
           }),
           signal: abort.signal,
         });

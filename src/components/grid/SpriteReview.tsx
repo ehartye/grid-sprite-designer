@@ -136,6 +136,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const dynamicRows = agc?.rows ?? currentGridLink?.rows ?? (isCharacter ? 6 : undefined);
   const cellCount = (dynamicCols && dynamicRows) ? dynamicCols * dynamicRows : 36;
   const dynamicCellLabels = agc?.cellLabels ?? currentGridLink?.cellLabels;
+  const dynamicAspectRatio = agc?.aspectRatio ?? currentGridLink?.aspectRatio;
 
   // Use cellGroups from props, or from activeGridConfig, or from current grid link, or fall back to default ANIMATIONS
   const effectiveCellGroups = cellGroups ?? agc?.cellGroups ?? currentGridLink?.cellGroups;
@@ -604,6 +605,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           onZoomClick={handleZoomClick}
           gridCols={dynamicCols}
           cellLabels={dynamicCellLabels}
+          aspectRatio={dynamicAspectRatio}
         />
         {isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
@@ -826,7 +828,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
               className="btn btn-sm"
               style={{ width: 'auto', padding: '2px 6px' }}
             >
-              {[0, 1, 2, 3, 4, 5, 6].map((v) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => (
                 <option key={v} value={v}>{v}px</option>
               ))}
             </select>

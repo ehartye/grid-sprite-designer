@@ -47,7 +47,7 @@ export function useTerrainWorkflow() {
       // 2. Generate template grid
       const aspectRatio = gridConfig.aspectRatio || state.aspectRatio;
       const template = generateTemplate(templateParams, gridConfig, aspectRatio);
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups, aspectRatio: gridConfig.aspectRatio } });
 
       // 3. Build prompt with layered guidance
       const prompt = buildTerrainPrompt(
@@ -123,6 +123,7 @@ export function useTerrainWorkflow() {
             filledGridImage: result.image.data,
             spriteType: 'terrain',
             gridSize: state.terrain.gridSize,
+            aspectRatio,
           }),
           signal: abort.signal,
         });

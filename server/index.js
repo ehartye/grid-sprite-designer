@@ -75,6 +75,7 @@ app.get('/api/history/:id', (req, res, next) => {
       filledGridImage: gen.filled_grid_image,
       filledGridMimeType: 'image/png',
       geminiText: gen.prompt || '',
+      aspectRatio: gen.aspect_ratio || '1:1',
       thumbnailCellIndex: gen.thumbnail_cell_index,
       sprites: sprites.map(s => ({
         cellIndex: s.cell_index,
@@ -90,12 +91,12 @@ app.get('/api/history/:id', (req, res, next) => {
 
 app.post('/api/history', (req, res, next) => {
   try {
-    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize } = req.body;
+    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio } = req.body;
 
     const result = db.prepare(
-      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null);
+      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1');
 
     res.json({ id: result.lastInsertRowid });
   } catch (err) { next(err); }

@@ -183,7 +183,7 @@ export function useRunWorkflow() {
       // Generate template
       const aspectRatio = gridConfig.aspectRatio || '1:1';
       const template = generateTemplate(templateParams, gridConfig, aspectRatio);
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink.cellGroups } });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink.cellGroups, aspectRatio: gridConfig.aspectRatio } });
 
       // Build prompt with layered guidance
       const isSubsequent = run.currentGridIndex > 0 && run.referenceSheet !== null;
@@ -260,6 +260,9 @@ export function useRunWorkflow() {
             model: state.model,
             prompt,
             filledGridImage: result.image.data,
+            spriteType: run.spriteType,
+            gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
+            aspectRatio,
           }),
           signal: abort.signal,
         });

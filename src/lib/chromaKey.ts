@@ -36,7 +36,7 @@ export function applyChromaKey(
   // key color. Pixels within coreThreshold are fully transparent; those between
   // coreThreshold and coreThreshold+SOFT_EDGE_WIDTH get partial alpha.
   // 60 gives a smooth fade that avoids hard cutoffs on anti-aliased sprite edges.
-  const SOFT_EDGE_WIDTH = 60;
+  const SOFT_EDGE_WIDTH = 90;
   const outerThreshold = coreThreshold + SOFT_EDGE_WIDTH;
 
   function colorDist(i: number): number {

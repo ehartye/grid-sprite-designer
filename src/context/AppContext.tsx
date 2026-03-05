@@ -167,6 +167,7 @@ export interface AppState {
     rows: number;
     cellLabels: string[];
     cellGroups?: CellGroup[];
+    aspectRatio?: string;
   } | null;
 
   /** Base64 of the template grid sent to Gemini */
@@ -279,7 +280,7 @@ type Action =
   | { type: 'SET_MODEL'; model: string }
   | { type: 'SET_IMAGE_SIZE'; imageSize: string }
   | { type: 'SET_ASPECT_RATIO'; payload: string }
-  | { type: 'GENERATE_START'; templateImage: string; gridConfig?: { cols: number; rows: number; cellLabels: string[]; cellGroups?: CellGroup[] } }
+  | { type: 'GENERATE_START'; templateImage: string; gridConfig?: { cols: number; rows: number; cellLabels: string[]; cellGroups?: CellGroup[]; aspectRatio?: string } }
   | { type: 'GENERATE_COMPLETE'; filledGridImage: string; filledGridMimeType: string; geminiText: string }
   | { type: 'GENERATE_ERROR'; error: string }
   | { type: 'EXTRACTION_COMPLETE'; sprites: ExtractedSprite[] }
