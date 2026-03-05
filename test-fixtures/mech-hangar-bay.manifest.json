@@ -1,0 +1,20 @@
+{
+  "spriteType": "building",
+  "gridSize": "2x3",
+  "cols": 2,
+  "rows": 3,
+  "totalCells": 6,
+  "templateCellW": 1021,
+  "templateCellH": 680,
+  "headerH": 22,
+  "border": 2,
+  "generationId": 37,
+  "cellLabels": [
+    "Doors Closed",
+    "Doors Opening",
+    "Doors Open - Empty",
+    "Doors Open - Mech Docked",
+    "Launch Sequence",
+    "Battle Damage"
+  ]
+}

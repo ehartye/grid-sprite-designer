@@ -4,6 +4,7 @@ export default defineConfig({
   testDir: './tests',
   timeout: 30_000,
   reporter: [['html', { open: 'never' }]],
+  globalTeardown: './tests/playwright-global-teardown.ts',
   use: {
     baseURL: 'http://localhost:5174',
   },

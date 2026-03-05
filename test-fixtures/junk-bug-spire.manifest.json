@@ -1,0 +1,20 @@
+{
+  "spriteType": "building",
+  "gridSize": "2x3",
+  "cols": 2,
+  "rows": 3,
+  "totalCells": 6,
+  "templateCellW": 1021,
+  "templateCellH": 680,
+  "headerH": 22,
+  "border": 2,
+  "generationId": 36,
+  "cellLabels": [
+    "Stage 1",
+    "Stage 2",
+    "Stage 3",
+    "Stage 4",
+    "Stage 5",
+    "Stage 6"
+  ]
+}

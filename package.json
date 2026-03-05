@@ -9,7 +9,10 @@
     "dev:server": "node --watch server/index.js",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:report": "npx tsx tests/report-generator.ts",
+    "test:sync-manifests": "npx tsx scripts/sync-fixture-manifests.ts",
+    "test:export-fixtures": "npx tsx scripts/export-fixtures-from-db.ts && npx tsx scripts/generate-fixture-index.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.0.0",

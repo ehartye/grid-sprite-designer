@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fixture Listing — Extraction Harness</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f1a; color: #ccc; font-family: 'Segoe UI', system-ui, sans-serif; padding: 24px; }
+    h1 { color: #e0e0e0; font-size: 1.4rem; margin-bottom: 8px; }
+    .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+    .filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 6px 14px; border: 1px solid #444; border-radius: 4px;
+      background: transparent; color: #aaa; cursor: pointer; font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: #888; color: #eee; }
+    .filter-btn.active { background: #2a2a4a; border-color: #6c6cff; color: #aaf; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: #1a1a2e; border: 1px solid #2a2a3e; border-radius: 8px;
+      padding: 14px; cursor: pointer; transition: all 0.15s;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .card:hover { border-color: #5a5aff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .card-name { font-weight: 600; color: #e0e0e0; font-size: 0.95rem; }
+    .card-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      font-size: 0.7rem; padding: 2px 8px; border-radius: 3px;
+      font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .badge-character { background: #1a3a1a; color: #6c6; border: 1px solid #2a4a2a; }
+    .badge-building { background: #3a2a1a; color: #ca6; border: 1px solid #4a3a2a; }
+    .badge-terrain { background: #1a2a3a; color: #6ac; border: 1px solid #2a3a4a; }
+    .badge-background { background: #2a1a3a; color: #a6c; border: 1px solid #3a2a4a; }
+    .badge-grid { background: #2a2a2a; color: #aaa; border: 1px solid #3a3a3a; }
+    .card-details { font-size: 0.75rem; color: #777; }
+    .card-preview {
+      width: 100%; height: 80px; border-radius: 4px; overflow: hidden;
+      background: repeating-conic-gradient(#222 0% 25%, #2a2a2a 0% 50%) 50% / 10px 10px;
+    }
+    .card-preview img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+    .count { color: #888; font-size: 0.8rem; margin-bottom: 12px; }
+    a { color: inherit; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>Fixture Listing</h1>
+  <div class="subtitle">Click any fixture to open it in the extraction harness</div>
+  <div class="filters" id="filters"></div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+
+  <script type="module">
+    const resp = await fetch('/test-fixtures/index.json');
+    const fixtures = await resp.json();
+
+    // Collect unique sprite types
+    const types = [...new Set(fixtures.map(f => f.manifest.spriteType))].sort();
+
+    const filtersEl = document.getElementById('filters');
+    const gridEl = document.getElementById('grid');
+    const countEl = document.getElementById('count');
+
+    let activeFilter = null;
+
+    function createFilterBtn(label, value) {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn';
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        if (activeFilter === value) {
+          activeFilter = null;
+          btn.classList.remove('active');
+        } else {
+          activeFilter = value;
+          filtersEl.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        }
+        render();
+      });
+      return btn;
+    }
+
+    // Add filter buttons
+    const allBtn = createFilterBtn(`All (${fixtures.length})`, null);
+    filtersEl.appendChild(allBtn);
+    for (const t of types) {
+      const count = fixtures.filter(f => f.manifest.spriteType === t).length;
+      filtersEl.appendChild(createFilterBtn(`${t} (${count})`, t));
+    }
+
+    function render() {
+      const filtered = activeFilter
+        ? fixtures.filter(f => f.manifest.spriteType === activeFilter)
+        : fixtures;
+
+      countEl.textContent = `Showing ${filtered.length} of ${fixtures.length} fixtures`;
+      gridEl.innerHTML = '';
+
+      for (const { name, imageFile, manifest } of filtered) {
+        const manifestParam = encodeURIComponent(JSON.stringify(manifest));
+        const harnessUrl = `/tests/extraction-harness.html?fixture=${imageFile}&manifest=${manifestParam}`;
+
+        const card = document.createElement('a');
+        card.href = harnessUrl;
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-preview">
+            <img src="/test-fixtures/${imageFile}" loading="lazy" alt="${name}">
+          </div>
+          <div class="card-name">${name}</div>
+          <div class="card-meta">
+            <span class="badge badge-${manifest.spriteType}">${manifest.spriteType}</span>
+            <span class="badge badge-grid">${manifest.gridSize}</span>
+          </div>
+          <div class="card-details">
+            ${manifest.cols}×${manifest.rows} = ${manifest.totalCells} cells |
+            cell: ${manifest.templateCellW}×${manifest.templateCellH} |
+            header: ${manifest.headerH}px
+          </div>
+        `;
+        gridEl.appendChild(card);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
