@@ -16,10 +16,14 @@ export interface BuildingConfig {
 
 /**
  * Build the full prompt that tells Gemini how to fill a building grid template.
+ * Accepts optional grid-preset-sourced guidance for the layered guidance model.
+ * Falls back to building.cellGuidance when grid preset params are not provided.
  */
 export function buildBuildingPrompt(
   building: BuildingConfig,
   grid: GridConfig,
+  gridGenericGuidance?: string,
+  guidanceOverride?: string,
 ): string {
   const charBlock = [
     `Fill every pink cell area with an SNES-era 16-bit pixel-art sprite of a`,
@@ -46,8 +50,12 @@ export function buildBuildingPrompt(
 
   const cellLayout = cellDescriptions.join('\n');
 
-  const customGuidance = building.cellGuidance.trim()
-    ? `\nBUILDING-SPECIFIC CELL NOTES (use these to refine each cell):\n${building.cellGuidance.trim()}\n`
+  // Use grid preset guidance if provided, otherwise fall back to building.cellGuidance
+  const genericText = gridGenericGuidance?.trim() || '';
+  const overrideText = guidanceOverride?.trim() || building.cellGuidance.trim();
+  const combinedGuidance = [genericText, overrideText].filter(Boolean).join('\n\n');
+  const customGuidance = combinedGuidance
+    ? `\nBUILDING-SPECIFIC CELL NOTES (use these to refine each cell):\n${combinedGuidance}\n`
     : '';
 
   return `\

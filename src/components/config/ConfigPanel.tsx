@@ -6,20 +6,24 @@
  * Model is hardcoded to nano-banana-pro-preview (no selector).
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
-import { CharacterPreset, SpriteType } from '../../context/AppContext';
+import { CharacterPreset, SpriteType, GridLink } from '../../context/AppContext';
 import { buildGridFillPrompt } from '../../lib/promptBuilder';
+import { GridLinkSelector } from '../shared/GridLinkSelector';
+import '../../styles/run-builder.css';
 
 // ── Character field union ────────────────────────────────────────────────────
 
-type CharacterField = 'name' | 'description' | 'equipment' | 'colorNotes' | 'styleNotes' | 'rowGuidance';
+type CharacterField = 'name' | 'description' | 'equipment' | 'colorNotes' | 'styleNotes';
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function ConfigPanel() {
   const { state, dispatch, generate } = useGridWorkflow();
   const { character, imageSize, presets } = state;
+  const [selectedGridLinks, setSelectedGridLinks] = useState<GridLink[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   // Fetch presets on mount
   useEffect(() => {
@@ -28,10 +32,12 @@ export function ConfigPanel() {
       .then((data: CharacterPreset[]) => {
         dispatch({ type: 'SET_PRESETS', presets: data });
       })
-      .catch(() => {
-        // Presets are non-critical; silently ignore fetch errors
-      });
+      .catch(() => {});
   }, [dispatch]);
+
+  const handleGridSelectionChange = useCallback((selected: GridLink[]) => {
+    setSelectedGridLinks(selected);
+  }, []);
 
   const updateCharacter = useCallback(
     (field: CharacterField, value: string) => {
@@ -46,8 +52,8 @@ export function ConfigPanel() {
   const handlePresetChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const presetId = e.target.value;
+      setSelectedPresetId(presetId);
       if (presetId === '') {
-        // "Custom Character" — clear fields
         dispatch({
           type: 'SET_CHARACTER',
           character: {
@@ -186,17 +192,12 @@ export function ConfigPanel() {
         />
       </div>
 
-      {/* 7. Row Guidance */}
-      <div className="config-field row-guidance">
-        <label htmlFor="char-rows">Row Guidance</label>
-        <textarea
-          id="char-rows"
-          rows={6}
-          placeholder="Per-row pose descriptions (loaded from preset or enter custom)..."
-          value={character.rowGuidance}
-          onChange={(e) => updateCharacter('rowGuidance', e.target.value)}
-        />
-      </div>
+      {/* 7. Grid Preset Selector */}
+      <GridLinkSelector
+        spriteType="character"
+        presetId={selectedPresetId}
+        onSelectionChange={handleGridSelectionChange}
+      />
 
       {/* 8. Image Size (2K / 4K) */}
       <div className="config-field">
@@ -230,10 +231,28 @@ export function ConfigPanel() {
         <button
           type="button"
           className="btn btn-accent btn-lg w-full"
-          disabled={!canGenerate}
-          onClick={generate}
+          disabled={!canGenerate || selectedGridLinks.length === 0}
+          onClick={() => {
+            if (selectedGridLinks.length > 1) {
+              dispatch({
+                type: 'START_RUN',
+                payload: {
+                  contentPresetId: selectedPresetId,
+                  spriteType: 'character',
+                  gridLinks: selectedGridLinks,
+                  imageSize: imageSize as '2K' | '4K',
+                },
+              });
+            } else if (selectedGridLinks.length === 1) {
+              generate(selectedGridLinks[0]);
+            }
+          }}
         >
-          Generate All 36 Sprites
+          {selectedGridLinks.length > 1
+            ? `Generate ${selectedGridLinks.length} Grids`
+            : selectedGridLinks.length === 1
+              ? `Generate Sprites (${selectedGridLinks[0].gridSize})`
+              : 'Generate Sprites'}
         </button>
       </div>
     </div>

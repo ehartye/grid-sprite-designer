@@ -16,9 +16,15 @@ export interface BackgroundConfig {
   bgMode: BackgroundMode;
 }
 
+/**
+ * Accepts optional grid-preset-sourced guidance for the layered guidance model.
+ * Falls back to bg.layerGuidance when grid preset params are not provided.
+ */
 export function buildBackgroundPrompt(
   bg: BackgroundConfig,
   grid: GridConfig,
+  gridGenericGuidance?: string,
+  guidanceOverride?: string,
 ): string {
   const descBlock = [
     `Fill every pink cell area with an SNES-era 16-bit pixel-art background`,
@@ -42,8 +48,13 @@ export function buildBackgroundPrompt(
     cellDescriptions.push(`  Header "${label}" (${row},${col}): Fill with the background ${bg.bgMode === 'parallax' ? 'layer' : 'scene'} matching this label.`);
   }
 
-  const customGuidance = bg.layerGuidance.trim()
-    ? `\nBACKGROUND-SPECIFIC NOTES (use these to refine each ${bg.bgMode === 'parallax' ? 'layer' : 'scene'}):\n${bg.layerGuidance.trim()}\n`
+  // Use grid preset guidance if provided, otherwise fall back to bg.layerGuidance
+  const genericText = gridGenericGuidance?.trim() || '';
+  const overrideText = guidanceOverride?.trim() || bg.layerGuidance.trim();
+  const combinedGuidance = [genericText, overrideText].filter(Boolean).join('\n\n');
+  const modeLabel = bg.bgMode === 'parallax' ? 'layer' : 'scene';
+  const customGuidance = combinedGuidance
+    ? `\nBACKGROUND-SPECIFIC NOTES (use these to refine each ${modeLabel}):\n${combinedGuidance}\n`
     : '';
 
   const modeGuidance = bg.bgMode === 'parallax'

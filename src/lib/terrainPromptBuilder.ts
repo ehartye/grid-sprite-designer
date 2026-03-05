@@ -14,9 +14,15 @@ export interface TerrainConfig {
   tileGuidance: string;
 }
 
+/**
+ * Accepts optional grid-preset-sourced guidance for the layered guidance model.
+ * Falls back to terrain.tileGuidance when grid preset params are not provided.
+ */
 export function buildTerrainPrompt(
   terrain: TerrainConfig,
   grid: GridConfig,
+  gridGenericGuidance?: string,
+  guidanceOverride?: string,
 ): string {
   const descBlock = [
     `Fill every pink cell area with an SNES-era 16-bit pixel-art terrain tile for a`,
@@ -39,8 +45,12 @@ export function buildTerrainPrompt(
     cellDescriptions.push(`  Header "${label}" (${row},${col}): Fill with the terrain tile matching this label.`);
   }
 
-  const customGuidance = terrain.tileGuidance.trim()
-    ? `\nTERRAIN-SPECIFIC TILE NOTES (use these to refine each tile):\n${terrain.tileGuidance.trim()}\n`
+  // Use grid preset guidance if provided, otherwise fall back to terrain.tileGuidance
+  const genericText = gridGenericGuidance?.trim() || '';
+  const overrideText = guidanceOverride?.trim() || terrain.tileGuidance.trim();
+  const combinedGuidance = [genericText, overrideText].filter(Boolean).join('\n\n');
+  const customGuidance = combinedGuidance
+    ? `\nTERRAIN-SPECIFIC TILE NOTES (use these to refine each tile):\n${combinedGuidance}\n`
     : '';
 
   return `\

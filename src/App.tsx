@@ -16,6 +16,9 @@ import { GeneratingOverlay } from './components/shared/GeneratingOverlay';
 import { StatusBanner } from './components/shared/StatusBanner';
 import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
+import { AdminPage } from './components/admin/AdminPage';
+
+import { useRunWorkflow } from './hooks/useRunWorkflow';
 import { extractSprites } from './lib/spriteExtractor';
 import { CONFIG_2K } from './lib/templateGenerator';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from './lib/gridConfig';
@@ -174,6 +177,29 @@ function AppContent() {
     })();
   }, [dispatch]);
 
+  const { generateCurrentGrid, proceedToNextGrid, skipCurrentGrid, cancelRun, run } = useRunWorkflow();
+
+  // Auto-switch to designer tab when a run becomes active
+  useEffect(() => {
+    if (state.step === 'run-active' && tab !== 'designer') {
+      setTab('designer');
+    }
+  }, [state.step, tab]);
+
+  // Auto-trigger generation when entering run-active step
+  const runTriggerRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (state.step === 'run-active' && run?.active) {
+      const key = `${run.currentGridIndex}`;
+      if (runTriggerRef.current !== key) {
+        runTriggerRef.current = key;
+        generateCurrentGrid();
+      }
+    } else {
+      runTriggerRef.current = null;
+    }
+  }, [state.step, run, generateCurrentGrid]);
+
   const switchToDesigner = useCallback(() => {
     setTab('designer');
   }, []);
@@ -193,15 +219,80 @@ function AppContent() {
                 default: return <ConfigPanel />;
               }
             })()}
-            {state.step === 'generating' && <GeneratingOverlay />}
-            {state.step === 'review' && <SpriteReview />}
+            {state.step === 'generating' && (
+              <>
+                <GeneratingOverlay />
+                {run?.active && (
+                  <div style={{ textAlign: 'center', marginTop: 8 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      Run: Grid {(run.currentGridIndex ?? 0) + 1} of {run.selectedGridLinks.length}
+                      {' '}&mdash; {run.selectedGridLinks[run.currentGridIndex]?.gridName}
+                    </p>
+                    <button className="btn btn-sm btn-danger" style={{ marginTop: 8 }} onClick={cancelRun}>
+                      Cancel Run
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+            {state.step === 'review' && (
+              <>
+                <SpriteReview />
+                {run?.active && (
+                  <div className="run-review-bar">
+                    <span className="run-review-progress">
+                      Grid {(run.currentGridIndex ?? 0) + 1} of {run.selectedGridLinks.length}
+                      {' '}&mdash; {run.selectedGridLinks[run.currentGridIndex]?.gridName}
+                    </span>
+                    <div className="run-review-actions">
+                      <button className="btn btn-sm" onClick={skipCurrentGrid}>
+                        Skip
+                      </button>
+                      {run.currentGridIndex < run.selectedGridLinks.length - 1 ? (
+                        <button className="btn btn-sm btn-primary" onClick={proceedToNextGrid}>
+                          Next Grid
+                        </button>
+                      ) : (
+                        <button className="btn btn-sm btn-primary" onClick={proceedToNextGrid}>
+                          Finish Run
+                        </button>
+                      )}
+                      <button className="btn btn-sm btn-danger" onClick={cancelRun}>
+                        Cancel Run
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
             {state.step === 'preview' && <AnimationPreview />}
+            {state.step === 'run-active' && run?.active && (
+              <div className="config-panel" style={{ textAlign: 'center' }}>
+                <h2>Preparing Grid</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
+                  Grid {(run.currentGridIndex ?? 0) + 1} of {run.selectedGridLinks.length}
+                  {' '}&mdash; {run.selectedGridLinks[run.currentGridIndex]?.gridName}
+                </p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  Starting generation...
+                </p>
+                <button
+                  className="btn btn-danger"
+                  style={{ marginTop: 20 }}
+                  onClick={cancelRun}
+                >
+                  Cancel Run
+                </button>
+              </div>
+            )}
           </>
         )}
 
         {tab === 'gallery' && (
           <GalleryPage onSwitchToDesigner={switchToDesigner} />
         )}
+
+        {tab === 'admin' && <AdminPage />}
       </div>
 
       <StatusBanner />

@@ -110,6 +110,17 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           dispatch({ type: 'SET_CHARACTER', character: data.character });
         }
 
+        // Set active grid config for the review view
+        if (spriteType !== 'character' && data.gridSize) {
+          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
+          const [colStr, rowStr] = (data.gridSize as string).split('x');
+          const cols = parseInt(colStr, 10) || 6;
+          const rows = parseInt(rowStr, 10) || 6;
+          dispatch({ type: 'SET_ACTIVE_GRID_CONFIG', gridConfig: { cols, rows, cellLabels: spriteLabels } });
+        } else {
+          dispatch({ type: 'SET_ACTIVE_GRID_CONFIG', gridConfig: null });
+        }
+
         const mimeType = data.filledGridMimeType || 'image/png';
         if (data.filledGridImage) {
           dispatch({

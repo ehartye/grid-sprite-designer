@@ -4,11 +4,12 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext, type GridLink } from '../context/AppContext';
 import { generateTemplate, CONFIG_2K, CONFIG_4K } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
 import { buildGridFillPrompt } from '../lib/promptBuilder';
 import { generateGrid } from '../api/geminiClient';
+import { gridPresetToConfig } from '../lib/gridConfig';
 
 export function useGridWorkflow() {
   const { state, dispatch } = useAppContext();
@@ -24,7 +25,7 @@ export function useGridWorkflow() {
     dispatch({ type: 'RESET' });
   }, [dispatch]);
 
-  const generate = useCallback(async () => {
+  const generate = useCallback(async (gridLink?: GridLink) => {
     if (!state.character.name.trim() || !state.character.description.trim()) {
       dispatch({ type: 'SET_STATUS', message: 'Please enter a character name and description.', statusType: 'warning' });
       return;
@@ -37,14 +38,26 @@ export function useGridWorkflow() {
     abortRef.current = abort;
 
     try {
-      // 1. Generate template grid
-      const templateConfig = state.imageSize === '4K' ? CONFIG_4K : CONFIG_2K;
-      const template = generateTemplate(templateConfig);
+      // 1. Generate template grid — use dynamic grid config when gridLink is provided
+      let templateConfig;
+      let gridConfig;
+      if (gridLink) {
+        gridConfig = gridPresetToConfig(gridLink, 'character');
+        templateConfig = gridConfig.templates[state.imageSize as '2K' | '4K'];
+      } else {
+        templateConfig = state.imageSize === '4K' ? CONFIG_4K : CONFIG_2K;
+      }
+      const template = generateTemplate(templateConfig, gridConfig);
 
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64 });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: gridConfig ? { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } : undefined });
 
-      // 2. Build prompt
-      const prompt = buildGridFillPrompt(state.character);
+      // 2. Build prompt with layered guidance
+      const prompt = buildGridFillPrompt(
+        state.character,
+        gridLink?.genericGuidance,
+        gridLink?.guidanceOverride,
+        gridLink?.cellLabels,
+      );
 
       // 3. Call Gemini API
       const result = await generateGrid(
@@ -72,15 +85,29 @@ export function useGridWorkflow() {
       });
 
       // 4. Extract sprites from the filled grid
+      const extractionConfig = gridConfig
+        ? {
+            headerH: templateConfig.headerH,
+            border: templateConfig.border,
+            templateCellW: templateConfig.cellW,
+            templateCellH: templateConfig.cellH,
+            gridOverride: {
+              cols: gridConfig.cols,
+              rows: gridConfig.rows,
+              totalCells: gridConfig.totalCells,
+              cellLabels: gridConfig.cellLabels,
+            },
+          }
+        : {
+            headerH: templateConfig.headerH,
+            border: templateConfig.border,
+            templateCellW: templateConfig.cellW,
+            templateCellH: templateConfig.cellH,
+          };
       const sprites = await extractSprites(
         result.image.data,
         result.image.mimeType,
-        {
-          headerH: templateConfig.headerH,
-          border: templateConfig.border,
-          templateCellW: templateConfig.cellW,
-          templateCellH: templateConfig.cellH,
-        },
+        extractionConfig,
       );
 
       if (abort.signal.aborted) return;

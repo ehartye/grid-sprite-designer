@@ -383,6 +383,37 @@ body > #root {
   text-align: center;
 }
 
+/* Grid badges in config panel */
+.config-grid-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.config-grid-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.config-admin-link {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--accent-dim);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.config-admin-link:hover {
+  color: var(--accent);
+}
+
 /* Preset selector */
 .preset-selector select {
   font-weight: 500;
@@ -779,7 +810,7 @@ button {
 }
 
 .sprite-cell {
-  aspect-ratio: 1;
+  aspect-ratio: var(--cell-aspect, 1);
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

@@ -13,13 +13,14 @@ export function getDb() {
   const dataDir = join(__dirname, '..', 'data');
   mkdirSync(dataDir, { recursive: true });
 
-  const dbPath = join(dataDir, 'grid-sprite.db');
+  const dbPath = process.env.DB_PATH || join(dataDir, 'grid-sprite.db');
   db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
   createSchema(db);
   migrateSchema(db);
+  seedGridPresets(db);
   seedPresets(db);
   seedBuildingPresets(db);
   seedTerrainPresets(db);
@@ -128,6 +129,68 @@ function createSchema(db) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS grid_presets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      sprite_type TEXT NOT NULL CHECK(sprite_type IN ('character','building','terrain','background')),
+      genre TEXT DEFAULT '',
+      grid_size TEXT NOT NULL,
+      cols INTEGER NOT NULL,
+      rows INTEGER NOT NULL,
+      cell_labels TEXT NOT NULL DEFAULT '[]',
+      cell_groups TEXT NOT NULL DEFAULT '[]',
+      generic_guidance TEXT DEFAULT '',
+      bg_mode TEXT DEFAULT NULL,
+      is_preset INTEGER DEFAULT 1,
+      UNIQUE(name, sprite_type, grid_size)
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS character_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      character_preset_id TEXT NOT NULL REFERENCES character_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(character_preset_id, grid_preset_id)
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS building_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      building_preset_id TEXT NOT NULL REFERENCES building_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(building_preset_id, grid_preset_id)
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS terrain_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      terrain_preset_id TEXT NOT NULL REFERENCES terrain_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(terrain_preset_id, grid_preset_id)
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS background_grid_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      background_preset_id TEXT NOT NULL REFERENCES background_presets(id) ON DELETE CASCADE,
+      grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
+      guidance_override TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(background_preset_id, grid_preset_id)
+    )
+  `);
 }
 
 function migrateSchema(db) {
@@ -141,6 +204,184 @@ function migrateSchema(db) {
   for (const sql of migrations) {
     try { db.exec(sql); } catch (_) { /* column already exists */ }
   }
+}
+
+function seedGridPresets(db) {
+  const existing = db.prepare('SELECT COUNT(*) as count FROM grid_presets').get();
+  if (existing.count > 0) return;
+
+  const characterCellLabels = JSON.stringify([
+    'Walk Down 1','Walk Down 2','Walk Down 3',
+    'Walk Up 1','Walk Up 2','Walk Up 3',
+    'Walk Left 1','Walk Left 2','Walk Left 3',
+    'Walk Right 1','Walk Right 2','Walk Right 3',
+    'Idle Down','Idle Up','Idle Left','Idle Right',
+    'Battle Idle 1','Battle Idle 2',
+    'Battle Idle 3',
+    'Attack 1','Attack 2','Attack 3',
+    'Cast 1','Cast 2',
+    'Cast 3',
+    'Damage 1','Damage 2','Damage 3',
+    'KO 1','KO 2',
+    'KO 3',
+    'Victory 1','Victory 2','Victory 3',
+    'Weak Pose','Critical Pose'
+  ]);
+
+  const characterCellGroups = JSON.stringify([
+    { name: 'Walk Down', cells: [0,1,2] },
+    { name: 'Walk Up', cells: [3,4,5] },
+    { name: 'Walk Left', cells: [6,7,8] },
+    { name: 'Walk Right', cells: [9,10,11] },
+    { name: 'Idle Down', cells: [12] },
+    { name: 'Idle Up', cells: [13] },
+    { name: 'Idle Left', cells: [14] },
+    { name: 'Idle Right', cells: [15] },
+    { name: 'Battle Idle', cells: [16,17,18] },
+    { name: 'Attack', cells: [19,20,21] },
+    { name: 'Cast', cells: [22,23,24] },
+    { name: 'Damage', cells: [25,26,27] },
+    { name: 'KO', cells: [28,29,30] },
+    { name: 'Victory', cells: [31,32,33] },
+    { name: 'Weak', cells: [34] },
+    { name: 'Critical', cells: [35] }
+  ]);
+
+  const rpgFullGuidance = `\
+Each cell in the grid has a WHITE TEXT HEADER that names the pose. Match each
+cell's sprite to the header label printed above it. The labels and their
+required poses are listed below by row.
+
+ROW 0 — Walk Down & Walk Up (top-down RPG overworld perspective):
+  Header "Walk Down 1" (0,0): Character faces the camera, mid-stride with the
+    left leg forward and right leg back. Arms swing naturally — left arm back,
+    right arm forward. Torso faces directly toward the viewer.
+  Header "Walk Down 2" (0,1): Contact pose — feet are together or nearly
+    together as they pass each other. Weight is centered, arms at sides. This
+    is the neutral mid-cycle frame between the two stride extremes.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1. Right leg forward, left
+    leg back, arms reversed. Identical proportions and posture, just mirrored.
+  Header "Walk Up 1" (0,3): Character faces AWAY from the camera showing their
+    back. Left leg forward in stride, arms swinging naturally. Hair, cape, or
+    backpack details visible from behind.
+  Header "Walk Up 2" (0,4): Facing away, contact pose — feet together, arms at
+    sides. Same neutral mid-cycle as Walk Down 2, but from the back.
+  Header "Walk Up 3" (0,5): Facing away, right leg forward — mirror of Walk
+    Up 1. Arms reversed. Same proportions, just the opposite stride.
+
+ROW 1 — Walk Left & Walk Right (side-view overworld perspective):
+  Header "Walk Left 1" (1,0): Character in side profile facing left. Left foot
+    is forward in a full stride, right foot trails behind. Arms swing opposite
+    to legs. Full body is visible in profile.
+  Header "Walk Left 2" (1,1): Facing left, contact pose — feet passing each
+    other, nearly together. Arms at sides. Neutral mid-cycle frame.
+  Header "Walk Left 3" (1,2): Facing left, right foot forward. Mirror-stride
+    of Walk Left 1. Arms reversed. Same height and proportions.
+  Header "Walk Right 1" (1,3): Character in side profile facing right. Right
+    foot forward in full stride, left foot trails. Arms swing naturally.
+    This is the horizontal mirror of Walk Left 1.
+  Header "Walk Right 2" (1,4): Facing right, contact pose — feet together,
+    arms at sides. Neutral mid-cycle. Mirror of Walk Left 2.
+  Header "Walk Right 3" (1,5): Facing right, left foot forward. Mirror-stride
+    of Walk Right 1. Same height and proportions as all walk frames.
+
+ROW 2 — Idle Stances & Battle Idle (first two frames):
+  Header "Idle Down" (2,0): Relaxed standing pose facing the camera. Weight
+    evenly distributed, arms resting naturally at sides. Calm, neutral facial
+    expression. This is the default overworld resting pose.
+  Header "Idle Up" (2,1): Relaxed standing pose facing away from the camera.
+    Same relaxed posture as Idle Down, viewed from behind. Back, hair, and
+    equipment details visible.
+  Header "Idle Left" (2,2): Relaxed standing pose in left-facing profile.
+    Weight centered, arms relaxed. Character looks to the left.
+  Header "Idle Right" (2,3): Relaxed standing pose in right-facing profile.
+    Horizontal mirror of Idle Left. Same posture, same proportions.
+  Header "Battle Idle 1" (2,4): Combat-ready stance in side view. Slight
+    crouch with knees bent, weapon raised or at the ready, off-hand guarding.
+    Weight on the balls of the feet. Alert, tense expression.
+  Header "Battle Idle 2" (2,5): Subtle breathing/sway frame — the character
+    shifts weight slightly from Battle Idle 1. Weapon may tilt a degree,
+    shoulders rise slightly. Small enough difference to animate a living
+    idle when looped.
+
+ROW 3 — Battle Idle 3, Attack Sequence, Cast Start:
+  Header "Battle Idle 3" (3,0): Third frame of the battle idle sway. Character
+    shifts back toward the Battle Idle 1 position. When looped 1→2→3→2, this
+    creates a subtle breathing/ready animation.
+  Header "Attack 1" (3,1): Wind-up — the character pulls their weapon or fist
+    back behind them, body coiling with weight shifting to the rear foot.
+    Torso twists to load the swing. Tense, focused expression.
+  Header "Attack 2" (3,2): Mid-swing — weapon or fist sweeps forward in a
+    powerful arc. Body uncoils, weight transfers to the front foot. Motion
+    blur or streak effect is optional but must stay within the cell.
+  Header "Attack 3" (3,3): Follow-through — weapon or fist is fully extended
+    past the target point. Body is stretched forward, front foot planted.
+    The apex of the strike.
+  Header "Cast 1" (3,4): Casting begins — arms rise to chest or shoulder
+    height, palms open. A small spark or glow starts forming between the
+    hands. Feet are planted, body upright. Energy effect is small and
+    contained close to the hands.
+  Header "Cast 2" (3,5): Casting builds — arms spread wider, energy grows
+    brighter between or around the hands. Eyes may glow. The character's
+    posture leans slightly into the spell. Energy effect stays compact
+    and well within the cell boundaries.
+
+ROW 4 — Cast 3, Damage Sequence, KO Start:
+  Header "Cast 3" (4,0): Spell release — arms thrust forward or upward, energy
+    erupts outward from the hands. This is the peak of the cast. Any visible
+    spell effect (fireball, lightning, rune) must be SMALL and stay fully
+    contained within the cell — do not let it fill the cell or crowd edges.
+  Header "Damage 1" (4,1): Hit recoil — the character flinches backward as if
+    struck. Head snaps back, arms jerk inward. One foot lifts slightly off
+    the ground. Pained expression, eyes squinting.
+  Header "Damage 2" (4,2): Stagger — the character leans further back from
+    the hit, nearly off-balance. Knees bend, arms flail. More intense pain
+    on the face. Weight on the back foot.
+  Header "Damage 3" (4,3): Recovery — the character catches themselves and
+    stumbles forward, regaining balance. Arms come back to a guard position.
+    Expression shifts from pain to determination. Transitioning back toward
+    a ready stance.
+  Header "KO 1" (4,4): Collapse begins — knees buckle, weapon drops or
+    dangles. The character's upper body pitches forward and downward. Eyes
+    closing, expression going slack. Clearly losing consciousness.
+  Header "KO 2" (4,5): Falling — body hits the ground. Character is mostly
+    horizontal, one arm may be outstretched breaking the fall. Weapon on the
+    ground nearby. Nearly fully down.
+
+ROW 5 — KO 3, Victory Sequence, Status Poses:
+  Header "KO 3" (5,0): Fully down — the character lies flat on the ground,
+    face-down or on their back, eyes closed. Weapon beside them. Completely
+    defeated and motionless. Sprite should be horizontal and centered.
+  Header "Victory 1" (5,1): Celebration starts — the character leaps upward
+    with a fist pump or weapon thrust. Joyful expression, mouth open.
+    Feet may leave the ground slightly. Energetic and triumphant.
+  Header "Victory 2" (5,2): Mid-celebration — arms raised overhead in a
+    victory gesture (V-sign, weapon held high, or both arms up). Big smile.
+    Peak of the celebration motion. Feet back on the ground.
+  Header "Victory 3" (5,3): Celebration ends — the character strikes a
+    confident final pose. Hand on hip, weapon shouldered, or a cool
+    stance. Satisfied grin. This is the held pose after the animation.
+  Header "Weak Pose" (5,4): Low HP — the character hunches over with one knee
+    on the ground, panting. One hand braces on the knee or the ground.
+    Weapon drags. Expression is exhausted and strained. Sweat drops optional
+    but must be small and stay in the cell.
+  Header "Critical Pose" (5,5): Near death — the character barely stands,
+    trembling. Leaning heavily on their weapon like a crutch, or doubled
+    over. One eye may be shut. Expression is desperate and pained. On the
+    edge of collapse but still fighting.`;
+
+  const insertGrid = db.prepare(`
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+
+  insertGrid.run('RPG Full', 'character', 'RPG', '6x6', 6, 6, characterCellLabels, characterCellGroups, rpgFullGuidance, null);
+
+  // Building, terrain, and background grid presets are created per content preset
+  // in their respective seed functions (seedBuildingPresets, seedTerrainPresets,
+  // seedBackgroundPresets) so each gets specific cell labels matching the content.
+
+  console.log('[DB] Seeded character grid presets.');
 }
 
 function seedPresets(db) {
@@ -1468,7 +1709,7 @@ ROW 5 — KO 3, Victory, Status Poses:
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO character_presets (id, name, genre, description, equipment, color_notes, row_guidance, is_preset)
+    `INSERT OR IGNORE INTO character_presets (id, name, genre, description, equipment, color_notes, row_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -1480,6 +1721,23 @@ ROW 5 — KO 3, Victory, Status Poses:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} character presets.`);
+
+  // Link character presets to RPG Full 6x6 grid preset
+  const rpgFullGrid = db.prepare("SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character'").get();
+  if (rpgFullGrid) {
+    const insertLink = db.prepare(`
+      INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, guidance_override, sort_order)
+      VALUES (?, ?, ?, 0)
+    `);
+    const chars = db.prepare('SELECT id, row_guidance FROM character_presets').all();
+    const linkAll = db.transaction(() => {
+      for (const char of chars) {
+        insertLink.run(char.id, rpgFullGrid.id, char.row_guidance || '');
+      }
+    });
+    linkAll();
+    console.log(`[DB] Created ${chars.length} character grid links.`);
+  }
 }
 
 function seedBuildingPresets(db) {
@@ -1795,7 +2053,7 @@ ROW 2 — Environmental:
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, cell_guidance, is_preset)
+    `INSERT OR IGNORE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, cell_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -1807,6 +2065,37 @@ ROW 2 — Environmental:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} building presets.`);
+
+  // Create a grid preset per building content preset with real cell labels, then link
+  const insertGrid = db.prepare(`
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'building' AND grid_size = ?");
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, 0)
+  `);
+  const BUILDING_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER that names the variant. Draw the same building in each cell but reflecting the variant described by its header label. Maintain consistent architecture, proportions, and style across all cells. Each row typically represents a thematic group (e.g., activity states, damage states, time of day).`;
+  const gridSizeToDims = { '3x3': [3,3], '2x2': [2,2], '2x3': [2,3] };
+  const linkAll = db.transaction(() => {
+    for (const p of PRESETS) {
+      const [cols, rows] = gridSizeToDims[p.gridSize] || [3, 3];
+      const labels = JSON.parse(p.cellLabels);
+      const cellGroups = [];
+      for (let r = 0; r < rows; r++) {
+        const cells = [];
+        for (let c = 0; c < cols; c++) cells.push(r * cols + c);
+        cellGroups.push({ name: `Row ${r + 1}`, cells });
+      }
+      insertGrid.run(p.name, 'building', p.genre, p.gridSize, cols, rows,
+        p.cellLabels, JSON.stringify(cellGroups), BUILDING_GUIDANCE, null);
+      const gridRow = findGrid.get(p.name, p.gridSize);
+      if (gridRow) insertLink.run(p.id, gridRow.id, p.cellGuidance || '');
+    }
+  });
+  linkAll();
+  console.log(`[DB] Seeded building grid presets + links.`);
 }
 
 function seedTerrainPresets(db) {
@@ -2028,7 +2317,7 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, tile_guidance, is_preset)
+    `INSERT OR IGNORE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, tile_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -2040,6 +2329,37 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} terrain presets.`);
+
+  // Create a grid preset per terrain content preset with real tile labels, then link
+  const insertGrid = db.prepare(`
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'terrain' AND grid_size = ?");
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, 0)
+  `);
+  const TERRAIN_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER naming the tile type. All tiles must share the same art style, color palette, and scale. Edge and corner tiles must seamlessly connect with adjacent base tiles. Each row represents a thematic group.`;
+  const terrainSizeToDims = { '4x4': [4,4], '3x3': [3,3], '5x5': [5,5] };
+  const linkAll = db.transaction(() => {
+    for (const p of PRESETS) {
+      const [cols, rows] = terrainSizeToDims[p.gridSize] || [4, 4];
+      const labels = JSON.parse(p.tileLabels);
+      const cellGroups = [];
+      for (let r = 0; r < rows; r++) {
+        const cells = [];
+        for (let c = 0; c < cols; c++) cells.push(r * cols + c);
+        cellGroups.push({ name: `Row ${r + 1}`, cells });
+      }
+      insertGrid.run(p.name, 'terrain', p.genre, p.gridSize, cols, rows,
+        p.tileLabels, JSON.stringify(cellGroups), TERRAIN_GUIDANCE, null);
+      const gridRow = findGrid.get(p.name, p.gridSize);
+      if (gridRow) insertLink.run(p.id, gridRow.id, p.tileGuidance || '');
+    }
+  });
+  linkAll();
+  console.log(`[DB] Seeded terrain grid presets + links.`);
 }
 
 function seedBackgroundPresets(db) {
@@ -2155,7 +2475,7 @@ function seedBackgroundPresets(db) {
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, layer_guidance, is_preset)
+    `INSERT OR IGNORE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, layer_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -2167,4 +2487,42 @@ function seedBackgroundPresets(db) {
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} background presets.`);
+
+  // Create a grid preset per background content preset with real layer labels, then link
+  const insertGrid = db.prepare(`
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'background' AND grid_size = ?");
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, 0)
+  `);
+  const PARALLAX_GUIDANCE = `LAYER ORDER (top to bottom, farthest to nearest): Each cell is one parallax layer. Draw each layer so it tiles horizontally. Layers stack vertically — the top cell is the farthest background, the bottom cell is the nearest foreground. Maintain consistent color palette and art style across all layers. Each layer must fill its ENTIRE cell with no magenta visible.`;
+  const SCENE_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER naming the scene variant. Draw the same scene/environment in each cell but reflecting the condition described by its header label. Maintain consistent composition, landmark placement, and art style across all cells. Each cell must fill its ENTIRE area with no magenta visible.`;
+  const bgSizeToDims = { '1x3': [1,3], '1x4': [1,4], '1x5': [1,5], '2x2': [2,2], '3x2': [3,2], '3x3': [3,3] };
+  const linkAll = db.transaction(() => {
+    for (const p of PRESETS) {
+      const [cols, rows] = bgSizeToDims[p.gridSize] || [1, 4];
+      const totalCells = cols * rows;
+      const cellGroups = p.bgMode === 'parallax'
+        ? [{ name: 'All Layers', cells: Array.from({ length: totalCells }, (_, i) => i) }]
+        : (() => {
+            const groups = [];
+            for (let r = 0; r < rows; r++) {
+              const cells = [];
+              for (let c = 0; c < cols; c++) cells.push(r * cols + c);
+              groups.push({ name: `Row ${r + 1}`, cells });
+            }
+            return groups;
+          })();
+      const guidance = p.bgMode === 'parallax' ? PARALLAX_GUIDANCE : SCENE_GUIDANCE;
+      insertGrid.run(p.name, 'background', p.genre, p.gridSize, cols, rows,
+        p.layerLabels, JSON.stringify(cellGroups), guidance, p.bgMode);
+      const gridRow = findGrid.get(p.name, p.gridSize);
+      if (gridRow) insertLink.run(p.id, gridRow.id, p.layerGuidance || '');
+    }
+  });
+  linkAll();
+  console.log(`[DB] Seeded background grid presets + links.`);
 }

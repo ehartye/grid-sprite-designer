@@ -4,12 +4,12 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext, type GridLink } from '../context/AppContext';
 import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
 import { buildBuildingPrompt } from '../lib/buildingPromptBuilder';
 import { generateGrid } from '../api/geminiClient';
-import { getBuildingGridConfig } from '../lib/gridConfig';
+import { getBuildingGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 
 export function useBuildingWorkflow() {
   const { state, dispatch } = useAppContext();
@@ -25,7 +25,7 @@ export function useBuildingWorkflow() {
     dispatch({ type: 'RESET' });
   }, [dispatch]);
 
-  const generate = useCallback(async () => {
+  const generate = useCallback(async (gridLink?: GridLink) => {
     if (!state.building.name.trim() || !state.building.description.trim()) {
       dispatch({ type: 'SET_STATUS', message: 'Please enter a building name and description.', statusType: 'warning' });
       return;
@@ -38,16 +38,23 @@ export function useBuildingWorkflow() {
     abortRef.current = abort;
 
     try {
-      // 1. Build grid config with runtime cell labels
-      const gridConfig = getBuildingGridConfig(state.building.gridSize, state.building.cellLabels);
+      // 1. Build grid config — use dynamic grid preset when gridLink is provided
+      const gridConfig = gridLink
+        ? gridPresetToConfig(gridLink, 'building')
+        : getBuildingGridConfig(state.building.gridSize, state.building.cellLabels);
       const templateParams = gridConfig.templates[state.imageSize as '2K' | '4K'];
 
       // 2. Generate template grid
       const template = generateTemplate(templateParams, gridConfig);
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64 });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } });
 
-      // 3. Build prompt
-      const prompt = buildBuildingPrompt(state.building, gridConfig);
+      // 3. Build prompt with layered guidance
+      const prompt = buildBuildingPrompt(
+        state.building,
+        gridConfig,
+        gridLink?.genericGuidance,
+        gridLink?.guidanceOverride,
+      );
 
       // 4. Call Gemini API
       const result = await generateGrid(

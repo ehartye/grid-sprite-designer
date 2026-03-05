@@ -5,6 +5,7 @@
  */
 
 import { COLS, ROWS, TOTAL_CELLS, CELL_LABELS } from './poses';
+import type { GridPreset } from '../context/AppContext';
 
 export interface TemplateParams {
   cellW: number;
@@ -235,4 +236,52 @@ export function getBackgroundGridConfig(
 ): GridConfig {
   const base = BACKGROUND_GRIDS[gridSize];
   return { ...base, cellLabels: cellLabels.slice(0, base.totalCells) };
+}
+
+// ── Grid preset conversion ─────────────────────────────────────────────────
+
+function getTemplateParams(gridSize: string, spriteType: string): GridConfig['templates'] {
+  if (spriteType === 'character' && gridSize === '6x6') return CHARACTER_GRID.templates;
+  if (spriteType === 'building' && BUILDING_GRIDS[gridSize]) return BUILDING_GRIDS[gridSize].templates;
+  if (spriteType === 'terrain' && TERRAIN_GRIDS[gridSize]) return TERRAIN_GRIDS[gridSize].templates;
+  if (spriteType === 'background' && BACKGROUND_GRIDS[gridSize]) return BACKGROUND_GRIDS[gridSize].templates;
+  // Fallback: calculate proportional cell sizes for unknown grid sizes
+  const [colStr, rowStr] = gridSize.split('x');
+  const cols = parseInt(colStr, 10) || 3;
+  const rows = parseInt(rowStr, 10) || 3;
+  const cellW2K = Math.floor(2044 / cols);
+  const cellH2K = Math.floor(2044 / rows);
+  const cellW4K = Math.floor(4088 / cols);
+  const cellH4K = Math.floor(4088 / rows);
+  return {
+    '2K': { cellW: cellW2K, cellH: cellH2K, headerH: 22, border: 2, fontSize: 14 },
+    '4K': { cellW: cellW4K, cellH: cellH4K, headerH: 36, border: 4, fontSize: 22 },
+  };
+}
+
+export function gridPresetToConfig(preset: GridPreset): GridConfig;
+export function gridPresetToConfig(preset: {
+  id?: number;
+  gridPresetId?: number;
+  gridName?: string;
+  name?: string;
+  cols: number;
+  rows: number;
+  gridSize: string;
+  cellLabels: string[];
+  spriteType?: string;
+}, spriteType?: string): GridConfig;
+export function gridPresetToConfig(preset: any, spriteType?: string): GridConfig {
+  const resolvedSpriteType = spriteType || preset.spriteType || 'character';
+  const label = preset.name || preset.gridName || `Grid ${preset.gridSize}`;
+  const id = preset.gridPresetId || preset.id;
+  return {
+    id: `preset-${id}`,
+    label,
+    cols: preset.cols,
+    rows: preset.rows,
+    totalCells: preset.cols * preset.rows,
+    cellLabels: preset.cellLabels,
+    templates: getTemplateParams(preset.gridSize, resolvedSpriteType),
+  };
 }

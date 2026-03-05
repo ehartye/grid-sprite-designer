@@ -12,5 +12,8 @@
       "Bash(npm install --save-dev serve-handler)",
       "Bash(npx playwright install chromium)"
     ]
+  },
+  "enabledPlugins": {
+    "hartye-superpowers@hartye-plugins": true
   }
 }

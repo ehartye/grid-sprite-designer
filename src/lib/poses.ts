@@ -18,6 +18,7 @@ export const COLS = 6;
 export const ROWS = 6;
 export const TOTAL_CELLS = COLS * ROWS;
 
+/** @deprecated Fallback only — source of truth is the grid_presets table (cellLabels column). */
 export const CELL_LABELS: string[] = [
   // Row 0: Walk Down + Walk Up
   'Walk Down 1', 'Walk Down 2', 'Walk Down 3',
@@ -93,6 +94,7 @@ export interface AnimationDef {
   loop: boolean;
 }
 
+/** @deprecated Fallback only — source of truth is the grid_presets table (cellGroups column). */
 export const ANIMATIONS: AnimationDef[] = [
   { name: 'Walk Down',   frames: [0, 1, 2, 1],        loop: true },
   { name: 'Walk Up',     frames: [3, 4, 5, 4],        loop: true },
