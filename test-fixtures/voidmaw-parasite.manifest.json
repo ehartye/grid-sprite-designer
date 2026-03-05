@@ -1,0 +1,11 @@
+{
+  "spriteType": "character",
+  "gridSize": "6x6",
+  "cols": 6,
+  "rows": 6,
+  "totalCells": 36,
+  "templateCellW": 339,
+  "templateCellH": 339,
+  "headerH": 14,
+  "border": 2
+}
