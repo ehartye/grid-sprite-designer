@@ -302,6 +302,8 @@ app.get('/api/grid-presets', (req, res, next) => {
       cellGroups: JSON.parse(r.cell_groups),
       genericGuidance: r.generic_guidance,
       bgMode: r.bg_mode,
+      aspectRatio: r.aspect_ratio || '1:1',
+      tileShape: r.tile_shape || 'square',
       isPreset: r.is_preset,
     })));
   } catch (err) { next(err); }
@@ -309,15 +311,16 @@ app.get('/api/grid-presets', (req, res, next) => {
 
 app.post('/api/grid-presets', (req, res, next) => {
   try {
-    const { name, spriteType, genre, gridSize, cols, rows, cellLabels, cellGroups, genericGuidance, bgMode } = req.body;
+    const { name, spriteType, genre, gridSize, cols, rows, cellLabels, cellGroups, genericGuidance, bgMode, aspectRatio, tileShape } = req.body;
     if (!name || !spriteType || !gridSize || !cols || !rows) {
       return res.status(400).json({ error: 'Missing required fields: name, spriteType, gridSize, cols, rows' });
     }
     const result = db.prepare(`
-      INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+      INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, aspect_ratio, tile_shape, is_preset)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `).run(name, spriteType, genre || '', gridSize, cols, rows,
-      JSON.stringify(cellLabels || []), JSON.stringify(cellGroups || []), genericGuidance || '', bgMode || null);
+      JSON.stringify(cellLabels || []), JSON.stringify(cellGroups || []), genericGuidance || '', bgMode || null,
+      aspectRatio || '1:1', tileShape || 'square');
     res.json({ id: Number(result.lastInsertRowid) });
   } catch (err) { next(err); }
 });
@@ -326,12 +329,13 @@ app.put('/api/grid-presets/:id', (req, res, next) => {
   try {
     const id = parseIntParam(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid id' });
-    const { name, genre, gridSize, cols, rows, cellLabels, cellGroups, genericGuidance, bgMode } = req.body;
+    const { name, genre, gridSize, cols, rows, cellLabels, cellGroups, genericGuidance, bgMode, aspectRatio, tileShape } = req.body;
     const result = db.prepare(`
-      UPDATE grid_presets SET name=?, genre=?, grid_size=?, cols=?, rows=?, cell_labels=?, cell_groups=?, generic_guidance=?, bg_mode=?
+      UPDATE grid_presets SET name=?, genre=?, grid_size=?, cols=?, rows=?, cell_labels=?, cell_groups=?, generic_guidance=?, bg_mode=?, aspect_ratio=?, tile_shape=?
       WHERE id=?
     `).run(name, genre || '', gridSize, cols, rows,
-      JSON.stringify(cellLabels || []), JSON.stringify(cellGroups || []), genericGuidance || '', bgMode || null, id);
+      JSON.stringify(cellLabels || []), JSON.stringify(cellGroups || []), genericGuidance || '', bgMode || null,
+      aspectRatio || '1:1', tileShape || 'square', id);
     if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ success: true });
   } catch (err) { next(err); }
