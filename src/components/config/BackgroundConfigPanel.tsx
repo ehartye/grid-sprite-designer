@@ -9,13 +9,15 @@ import { useBackgroundWorkflow } from '../../hooks/useBackgroundWorkflow';
 import { BackgroundPreset, SpriteType, GridLink } from '../../context/AppContext';
 import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
 import { getBackgroundGridConfig } from '../../lib/gridConfig';
+import { GridLinkSelector } from '../shared/GridLinkSelector';
+import '../../styles/run-builder.css';
 
 type BackgroundField = 'name' | 'description' | 'colorNotes' | 'styleNotes';
 
 export function BackgroundConfigPanel() {
   const { state, dispatch, generate } = useBackgroundWorkflow();
   const { background, imageSize, backgroundPresets } = state;
-  const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
+  const [selectedGridLinks, setSelectedGridLinks] = useState<GridLink[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   // Fetch background presets on mount
@@ -28,14 +30,9 @@ export function BackgroundConfigPanel() {
       .catch(() => {});
   }, [dispatch]);
 
-  // Fetch grid links when preset changes
-  useEffect(() => {
-    if (!selectedPresetId) { setGridLinks([]); return; }
-    fetch(`/api/presets/background/${selectedPresetId}/grid-links`)
-      .then(res => res.json())
-      .then(setGridLinks)
-      .catch(() => setGridLinks([]));
-  }, [selectedPresetId]);
+  const handleGridSelectionChange = useCallback((selected: GridLink[]) => {
+    setSelectedGridLinks(selected);
+  }, []);
 
   const updateBackground = useCallback(
     (field: BackgroundField, value: string) => {
@@ -184,22 +181,12 @@ export function BackgroundConfigPanel() {
         />
       </div>
 
-      {/* Linked Grid Presets */}
-      {gridLinks.length > 0 && (
-        <div className="config-field">
-          <label>Linked Grids</label>
-          <div className="config-grid-badges">
-            {gridLinks.map(link => (
-              <span key={link.id} className="config-grid-badge">
-                {link.gridName} ({link.gridSize})
-              </span>
-            ))}
-          </div>
-          <span className="config-admin-link" onClick={() => dispatch({ type: 'SET_STEP', step: 'configure' })}>
-            Edit in Admin
-          </span>
-        </div>
-      )}
+      {/* Grid Preset Selector */}
+      <GridLinkSelector
+        spriteType="background"
+        presetId={selectedPresetId}
+        onSelectionChange={handleGridSelectionChange}
+      />
 
       {/* Image Size */}
       <div className="config-field">
@@ -233,10 +220,28 @@ export function BackgroundConfigPanel() {
         <button
           type="button"
           className="btn btn-accent btn-lg w-full"
-          disabled={!canGenerate}
-          onClick={() => generate(gridLinks[0])}
+          disabled={!canGenerate || selectedGridLinks.length === 0}
+          onClick={() => {
+            if (selectedGridLinks.length > 1) {
+              dispatch({
+                type: 'START_RUN',
+                payload: {
+                  contentPresetId: selectedPresetId,
+                  spriteType: 'background',
+                  gridLinks: selectedGridLinks,
+                  imageSize: imageSize as '2K' | '4K',
+                },
+              });
+            } else if (selectedGridLinks.length === 1) {
+              generate(selectedGridLinks[0]);
+            }
+          }}
         >
-          Generate Sprites{gridLinks.length > 0 ? ` (${gridLinks[0].gridSize})` : ''}
+          {selectedGridLinks.length > 1
+            ? `Generate ${selectedGridLinks.length} Grids`
+            : selectedGridLinks.length === 1
+              ? `Generate Sprites (${selectedGridLinks[0].gridSize})`
+              : 'Generate Sprites'}
         </button>
       </div>
     </div>

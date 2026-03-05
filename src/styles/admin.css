@@ -356,6 +356,233 @@
   flex: 1;
 }
 
+/* ─── Cell Range Selector ─── */
+
+.cell-range-selector {
+  margin-top: 0.35rem;
+}
+
+.cell-range-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  margin-bottom: 0.4rem;
+  padding: 0 0.15rem;
+}
+
+.cell-range-hint {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.cell-range-hint--active {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cell-range-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: cellRangePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes cellRangePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--accent-glow-strong); }
+  50% { opacity: 0.5; box-shadow: 0 0 0 4px transparent; }
+}
+
+.cell-range-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cell-range-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.cell-range-badge--start {
+  background: var(--accent-glow-strong);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+}
+
+.cell-range-badge--end {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+}
+
+.cell-range-arrow {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.cell-range-count {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
+.cell-range-action {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 10px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.cell-range-action:hover {
+  color: var(--text);
+  border-color: var(--border-light);
+  background: var(--bg-card-hover);
+}
+
+/* Mini grid */
+.cell-range-grid {
+  display: grid;
+  gap: 2px;
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s ease;
+}
+
+.cell-range-grid.selecting {
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 0 1px var(--accent-glow);
+}
+
+.cell-range-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 2px;
+  min-height: 30px;
+  background: var(--bg-card);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  overflow: hidden;
+}
+
+.cell-range-cell:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-light);
+}
+
+/* Selecting mode — cursor crosshair */
+.cell-range-grid.selecting .cell-range-cell {
+  cursor: crosshair;
+}
+
+/* The anchor cell (first click) */
+.cell-range-cell.start-anchor {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow-strong);
+}
+
+.cell-range-cell.start-anchor .cell-range-cell-label {
+  color: var(--bg-base);
+  font-weight: 700;
+}
+
+/* Preview highlight while hovering */
+.cell-range-cell.preview {
+  background: var(--accent-glow-strong);
+  border-color: var(--accent-dim);
+}
+
+.cell-range-cell.preview .cell-range-cell-label {
+  color: var(--accent);
+}
+
+/* Selected (committed range) */
+.cell-range-cell.selected {
+  background: var(--accent-glow-strong);
+  border-color: var(--accent-dim);
+}
+
+.cell-range-cell.selected .cell-range-cell-label {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Range endpoints */
+.cell-range-cell.range-start {
+  border-left: 2px solid var(--accent);
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+.cell-range-cell.range-end {
+  border-right: 2px solid var(--accent);
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+/* Taken by another group */
+.cell-range-cell.taken {
+  background: color-mix(in srgb, var(--taken-color, var(--info)) 12%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--taken-color, var(--info)) 30%, transparent);
+  opacity: 0.6;
+}
+
+.cell-range-cell.taken .cell-range-cell-label {
+  color: var(--taken-color, var(--info));
+}
+
+/* Cell label */
+.cell-range-cell-label {
+  font-size: 0.58rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.15;
+  word-break: break-word;
+  max-width: 100%;
+  user-select: none;
+}
+
+/* Endpoint indicators */
+.cell-range-cell-endpoint {
+  position: absolute;
+  top: 1px;
+  font-size: 0.4rem;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.cell-range-cell.range-start .cell-range-cell-endpoint {
+  left: 2px;
+}
+
+.cell-range-cell.range-end .cell-range-cell-endpoint {
+  right: 2px;
+}
+
 /* Form actions */
 .admin-form-actions {
   display: flex;

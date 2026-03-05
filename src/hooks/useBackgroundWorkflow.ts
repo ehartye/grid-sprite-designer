@@ -47,7 +47,7 @@ export function useBackgroundWorkflow() {
 
       // 2. Generate template grid
       const template = generateTemplate(templateParams, gridConfig);
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64 });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } });
 
       // 3. Build prompt with layered guidance
       const prompt = buildBackgroundPrompt(

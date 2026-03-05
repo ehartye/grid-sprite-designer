@@ -9,13 +9,15 @@ import { useBuildingWorkflow } from '../../hooks/useBuildingWorkflow';
 import { BuildingPreset, SpriteType, GridLink } from '../../context/AppContext';
 import { buildBuildingPrompt } from '../../lib/buildingPromptBuilder';
 import { getBuildingGridConfig } from '../../lib/gridConfig';
+import { GridLinkSelector } from '../shared/GridLinkSelector';
+import '../../styles/run-builder.css';
 
 type BuildingField = 'name' | 'description' | 'details' | 'colorNotes' | 'styleNotes';
 
 export function BuildingConfigPanel() {
   const { state, dispatch, generate } = useBuildingWorkflow();
   const { building, imageSize, buildingPresets } = state;
-  const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
+  const [selectedGridLinks, setSelectedGridLinks] = useState<GridLink[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
 
   // Fetch building presets on mount
@@ -28,14 +30,9 @@ export function BuildingConfigPanel() {
       .catch(() => {});
   }, [dispatch]);
 
-  // Fetch grid links when preset changes
-  useEffect(() => {
-    if (!selectedPresetId) { setGridLinks([]); return; }
-    fetch(`/api/presets/building/${selectedPresetId}/grid-links`)
-      .then(res => res.json())
-      .then(setGridLinks)
-      .catch(() => setGridLinks([]));
-  }, [selectedPresetId]);
+  const handleGridSelectionChange = useCallback((selected: GridLink[]) => {
+    setSelectedGridLinks(selected);
+  }, []);
 
   const updateBuilding = useCallback(
     (field: BuildingField, value: string) => {
@@ -196,22 +193,12 @@ export function BuildingConfigPanel() {
         />
       </div>
 
-      {/* Linked Grid Presets */}
-      {gridLinks.length > 0 && (
-        <div className="config-field">
-          <label>Linked Grids</label>
-          <div className="config-grid-badges">
-            {gridLinks.map(link => (
-              <span key={link.id} className="config-grid-badge">
-                {link.gridName} ({link.gridSize})
-              </span>
-            ))}
-          </div>
-          <span className="config-admin-link" onClick={() => dispatch({ type: 'SET_STEP', step: 'configure' })}>
-            Edit in Admin
-          </span>
-        </div>
-      )}
+      {/* Grid Preset Selector */}
+      <GridLinkSelector
+        spriteType="building"
+        presetId={selectedPresetId}
+        onSelectionChange={handleGridSelectionChange}
+      />
 
       {/* Image Size */}
       <div className="config-field">
@@ -245,10 +232,28 @@ export function BuildingConfigPanel() {
         <button
           type="button"
           className="btn btn-accent btn-lg w-full"
-          disabled={!canGenerate}
-          onClick={() => generate(gridLinks[0])}
+          disabled={!canGenerate || selectedGridLinks.length === 0}
+          onClick={() => {
+            if (selectedGridLinks.length > 1) {
+              dispatch({
+                type: 'START_RUN',
+                payload: {
+                  contentPresetId: selectedPresetId,
+                  spriteType: 'building',
+                  gridLinks: selectedGridLinks,
+                  imageSize: imageSize as '2K' | '4K',
+                },
+              });
+            } else if (selectedGridLinks.length === 1) {
+              generate(selectedGridLinks[0]);
+            }
+          }}
         >
-          Generate Sprites{gridLinks.length > 0 ? ` (${gridLinks[0].gridSize})` : ''}
+          {selectedGridLinks.length > 1
+            ? `Generate ${selectedGridLinks.length} Grids`
+            : selectedGridLinks.length === 1
+              ? `Generate Sprites (${selectedGridLinks[0].gridSize})`
+              : 'Generate Sprites'}
         </button>
       </div>
     </div>

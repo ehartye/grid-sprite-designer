@@ -17,7 +17,7 @@ import { StatusBanner } from './components/shared/StatusBanner';
 import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
 import { AdminPage } from './components/admin/AdminPage';
-import { RunBuilderPage } from './components/run/RunBuilderPage';
+
 import { useRunWorkflow } from './hooks/useRunWorkflow';
 import { extractSprites } from './lib/spriteExtractor';
 import { CONFIG_2K } from './lib/templateGenerator';
@@ -291,8 +291,6 @@ function AppContent() {
         {tab === 'gallery' && (
           <GalleryPage onSwitchToDesigner={switchToDesigner} />
         )}
-
-        {tab === 'run' && <RunBuilderPage />}
 
         {tab === 'admin' && <AdminPage />}
       </div>

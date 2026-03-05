@@ -9,7 +9,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { testConnection } from '../../api/geminiClient';
 
-export type AppTab = 'designer' | 'gallery' | 'admin' | 'run';
+export type AppTab = 'designer' | 'gallery' | 'admin';
 
 interface AppHeaderProps {
   tab: AppTab;
@@ -62,12 +62,6 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
             onClick={() => onTabChange('gallery')}
           >
             Gallery
-          </button>
-          <button
-            className={`header-tab${tab === 'run' ? ' active' : ''}`}
-            onClick={() => onTabChange('run')}
-          >
-            Run
           </button>
           <button
             className={`header-tab${tab === 'admin' ? ' active' : ''}`}

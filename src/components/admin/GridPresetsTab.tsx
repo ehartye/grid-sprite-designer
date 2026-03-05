@@ -4,8 +4,9 @@
  * cell labels editor, cell groups editor, and generic guidance textarea.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { GridPreset, CellGroup, SpriteType } from '../../context/AppContext';
+import { CellRangeSelector } from './CellRangeSelector';
 
 const SPRITE_TYPES: SpriteType[] = ['character', 'building', 'terrain', 'background'];
 
@@ -158,16 +159,11 @@ export function GridPresetsTab() {
     setEditing({ ...editing, cellGroups: groups });
   };
 
-  const toggleCellInGroup = (groupIdx: number, cellIdx: number) => {
+  const setCellGroupCells = useCallback((groupIdx: number, cells: number[]) => {
     if (!editing) return;
-    const group = { ...editing.cellGroups[groupIdx] };
-    if (group.cells.includes(cellIdx)) {
-      group.cells = group.cells.filter(c => c !== cellIdx);
-    } else {
-      group.cells = [...group.cells, cellIdx].sort((a, b) => a - b);
-    }
+    const group = { ...editing.cellGroups[groupIdx], cells };
     updateCellGroup(groupIdx, group);
-  };
+  }, [editing, updateCellGroup]);
 
   const filtered = filterType === 'all'
     ? presets
@@ -322,36 +318,44 @@ export function GridPresetsTab() {
                 <h4>Cell Groups ({editing.cellGroups.length})</h4>
                 <button className="btn btn-sm" onClick={addCellGroup}>Add Group</button>
               </div>
-              {editing.cellGroups.map((group, gIdx) => (
-                <div key={gIdx} className="admin-cell-group">
-                  <div className="admin-cell-group-header">
-                    <input
-                      className="admin-input"
-                      value={group.name}
-                      onChange={e => updateCellGroup(gIdx, { ...group, name: e.target.value })}
-                      placeholder="Group name"
+              {editing.cellGroups.map((group, gIdx) => {
+                const GROUP_COLORS = [
+                  'var(--accent)', 'var(--info)', '#ff6b9d', 'var(--warning)',
+                  '#a78bfa', '#67e8f9', '#fbbf24', '#34d399',
+                ];
+                const allGroupCells = editing.cellGroups.map((g, i) => ({
+                  groupIdx: i,
+                  cells: g.cells,
+                  color: GROUP_COLORS[i % GROUP_COLORS.length],
+                }));
+                return (
+                  <div key={gIdx} className="admin-cell-group">
+                    <div className="admin-cell-group-header">
+                      <input
+                        className="admin-input"
+                        value={group.name}
+                        onChange={e => updateCellGroup(gIdx, { ...group, name: e.target.value })}
+                        placeholder="Group name (e.g. Walk Left)"
+                      />
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => removeCellGroup(gIdx)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <CellRangeSelector
+                      cols={editing.cols}
+                      rows={editing.rows}
+                      cellLabels={editing.cellLabels.slice(0, editing.cols * editing.rows)}
+                      selectedCells={group.cells}
+                      allGroupCells={allGroupCells}
+                      currentGroupIdx={gIdx}
+                      onChange={(cells) => setCellGroupCells(gIdx, cells)}
                     />
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => removeCellGroup(gIdx)}
-                    >
-                      Remove
-                    </button>
                   </div>
-                  <div className="admin-cell-checkboxes">
-                    {editing.cellLabels.slice(0, editing.cols * editing.rows).map((label, cIdx) => (
-                      <label key={cIdx} className="admin-cell-checkbox" title={label || `Cell ${cIdx}`}>
-                        <input
-                          type="checkbox"
-                          checked={group.cells.includes(cIdx)}
-                          onChange={() => toggleCellInGroup(gIdx, cIdx)}
-                        />
-                        <span>{cIdx}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Generic Guidance */}

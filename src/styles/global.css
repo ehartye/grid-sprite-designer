@@ -810,7 +810,7 @@ button {
 }
 
 .sprite-cell {
-  aspect-ratio: 1;
+  aspect-ratio: var(--cell-aspect, 1);
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

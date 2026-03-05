@@ -130,14 +130,15 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     ? state.run.selectedGridLinks[state.run.currentGridIndex] ?? null
     : null;
 
-  // Dynamic grid dimensions: prefer run's grid link, then fall back to character default (6x6=36)
-  const dynamicCols = currentGridLink?.cols ?? (isCharacter ? 6 : undefined);
-  const dynamicRows = currentGridLink?.rows ?? (isCharacter ? 6 : undefined);
+  // Dynamic grid dimensions: prefer activeGridConfig (set during generation), then run's grid link, then character 6x6
+  const agc = state.activeGridConfig;
+  const dynamicCols = agc?.cols ?? currentGridLink?.cols ?? (isCharacter ? 6 : undefined);
+  const dynamicRows = agc?.rows ?? currentGridLink?.rows ?? (isCharacter ? 6 : undefined);
   const cellCount = (dynamicCols && dynamicRows) ? dynamicCols * dynamicRows : 36;
-  const dynamicCellLabels = currentGridLink?.cellLabels;
+  const dynamicCellLabels = agc?.cellLabels ?? currentGridLink?.cellLabels;
 
-  // Use cellGroups from props, or from current grid link, or fall back to default ANIMATIONS
-  const effectiveCellGroups = cellGroups ?? currentGridLink?.cellGroups;
+  // Use cellGroups from props, or from activeGridConfig, or from current grid link, or fall back to default ANIMATIONS
+  const effectiveCellGroups = cellGroups ?? agc?.cellGroups ?? currentGridLink?.cellGroups;
   const animations: AnimationDef[] = useMemo(
     () => effectiveCellGroups?.length
       ? effectiveCellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))

@@ -620,6 +620,38 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`[Server] Port ${PORT} in use, killing existing process...`);
+    import('child_process').then(({ execSync }) => {
+      try {
+        const isWin = process.platform === 'win32';
+        if (isWin) {
+          const out = execSync(`netstat -ano | findstr ":${PORT}" | findstr LISTENING`, { encoding: 'utf8' }).trim();
+          const pid = out.split(/\s+/).pop();
+          if (pid && /^\d+$/.test(pid)) {
+            execSync(`taskkill /F /PID ${pid}`);
+            console.log(`[Server] Killed PID ${pid}, restarting...`);
+            setTimeout(() => server.listen(PORT), 1000);
+          }
+        } else {
+          const pid = execSync(`lsof -ti:${PORT}`, { encoding: 'utf8' }).trim();
+          if (pid) {
+            process.kill(Number(pid), 'SIGKILL');
+            console.log(`[Server] Killed PID ${pid}, restarting...`);
+            setTimeout(() => server.listen(PORT), 1000);
+          }
+        }
+      } catch {
+        console.error(`[Server] Could not kill process on port ${PORT}. Stop it manually and retry.`);
+        process.exit(1);
+      }
+    });
+  } else {
+    throw err;
+  }
 });

@@ -143,7 +143,8 @@ function createSchema(db) {
       cell_groups TEXT NOT NULL DEFAULT '[]',
       generic_guidance TEXT DEFAULT '',
       bg_mode TEXT DEFAULT NULL,
-      is_preset INTEGER DEFAULT 1
+      is_preset INTEGER DEFAULT 1,
+      UNIQUE(name, sprite_type, grid_size)
     )
   `);
 
@@ -370,7 +371,7 @@ ROW 5 — KO 3, Victory Sequence, Status Poses:
     edge of collapse but still fighting.`;
 
   const insertGrid = db.prepare(`
-    INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
 
@@ -1708,7 +1709,7 @@ ROW 5 — KO 3, Victory, Status Poses:
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO character_presets (id, name, genre, description, equipment, color_notes, row_guidance, is_preset)
+    `INSERT OR IGNORE INTO character_presets (id, name, genre, description, equipment, color_notes, row_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -2052,7 +2053,7 @@ ROW 2 — Environmental:
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, cell_guidance, is_preset)
+    `INSERT OR IGNORE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, cell_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -2066,16 +2067,11 @@ ROW 2 — Environmental:
   console.log(`[DB] Seeded ${PRESETS.length} building presets.`);
 
   // Create a grid preset per building content preset with real cell labels, then link
-  const existingBuildingGrids = db.prepare("SELECT COUNT(*) as c FROM grid_presets WHERE sprite_type = 'building'").get().c;
-  if (existingBuildingGrids > 0) {
-    console.log('[DB] Building grid presets already seeded, skipping.');
-    return;
-  }
-
   const insertGrid = db.prepare(`
-    INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'building' AND grid_size = ?");
   const insertLink = db.prepare(`
     INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, guidance_override, sort_order)
     VALUES (?, ?, ?, 0)
@@ -2094,12 +2090,12 @@ ROW 2 — Environmental:
       }
       insertGrid.run(p.name, 'building', p.genre, p.gridSize, cols, rows,
         p.cellLabels, JSON.stringify(cellGroups), BUILDING_GUIDANCE, null);
-      const gridId = Number(db.prepare("SELECT last_insert_rowid() as id").get().id);
-      insertLink.run(p.id, gridId, p.cellGuidance || '');
+      const gridRow = findGrid.get(p.name, p.gridSize);
+      if (gridRow) insertLink.run(p.id, gridRow.id, p.cellGuidance || '');
     }
   });
   linkAll();
-  console.log(`[DB] Created ${PRESETS.length} building grid presets + links.`);
+  console.log(`[DB] Seeded building grid presets + links.`);
 }
 
 function seedTerrainPresets(db) {
@@ -2321,7 +2317,7 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, tile_guidance, is_preset)
+    `INSERT OR IGNORE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, tile_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -2335,16 +2331,11 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
   console.log(`[DB] Seeded ${PRESETS.length} terrain presets.`);
 
   // Create a grid preset per terrain content preset with real tile labels, then link
-  const existingTerrainGrids = db.prepare("SELECT COUNT(*) as c FROM grid_presets WHERE sprite_type = 'terrain'").get().c;
-  if (existingTerrainGrids > 0) {
-    console.log('[DB] Terrain grid presets already seeded, skipping.');
-    return;
-  }
-
   const insertGrid = db.prepare(`
-    INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'terrain' AND grid_size = ?");
   const insertLink = db.prepare(`
     INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, guidance_override, sort_order)
     VALUES (?, ?, ?, 0)
@@ -2363,12 +2354,12 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
       }
       insertGrid.run(p.name, 'terrain', p.genre, p.gridSize, cols, rows,
         p.tileLabels, JSON.stringify(cellGroups), TERRAIN_GUIDANCE, null);
-      const gridId = Number(db.prepare("SELECT last_insert_rowid() as id").get().id);
-      insertLink.run(p.id, gridId, p.tileGuidance || '');
+      const gridRow = findGrid.get(p.name, p.gridSize);
+      if (gridRow) insertLink.run(p.id, gridRow.id, p.tileGuidance || '');
     }
   });
   linkAll();
-  console.log(`[DB] Created ${PRESETS.length} terrain grid presets + links.`);
+  console.log(`[DB] Seeded terrain grid presets + links.`);
 }
 
 function seedBackgroundPresets(db) {
@@ -2484,7 +2475,7 @@ function seedBackgroundPresets(db) {
   ];
 
   const insert = db.prepare(
-    `INSERT OR REPLACE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, layer_guidance, is_preset)
+    `INSERT OR IGNORE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, layer_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -2498,16 +2489,11 @@ function seedBackgroundPresets(db) {
   console.log(`[DB] Seeded ${PRESETS.length} background presets.`);
 
   // Create a grid preset per background content preset with real layer labels, then link
-  const existingBgGrids = db.prepare("SELECT COUNT(*) as c FROM grid_presets WHERE sprite_type = 'background'").get().c;
-  if (existingBgGrids > 0) {
-    console.log('[DB] Background grid presets already seeded, skipping.');
-    return;
-  }
-
   const insertGrid = db.prepare(`
-    INSERT INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'background' AND grid_size = ?");
   const insertLink = db.prepare(`
     INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, guidance_override, sort_order)
     VALUES (?, ?, ?, 0)
@@ -2533,10 +2519,10 @@ function seedBackgroundPresets(db) {
       const guidance = p.bgMode === 'parallax' ? PARALLAX_GUIDANCE : SCENE_GUIDANCE;
       insertGrid.run(p.name, 'background', p.genre, p.gridSize, cols, rows,
         p.layerLabels, JSON.stringify(cellGroups), guidance, p.bgMode);
-      const gridId = Number(db.prepare("SELECT last_insert_rowid() as id").get().id);
-      insertLink.run(p.id, gridId, p.layerGuidance || '');
+      const gridRow = findGrid.get(p.name, p.gridSize);
+      if (gridRow) insertLink.run(p.id, gridRow.id, p.layerGuidance || '');
     }
   });
   linkAll();
-  console.log(`[DB] Created ${PRESETS.length} background grid presets + links.`);
+  console.log(`[DB] Seeded background grid presets + links.`);
 }

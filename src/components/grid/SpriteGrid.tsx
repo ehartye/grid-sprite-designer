@@ -34,10 +34,21 @@ export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, 
     spriteMap.set(sprite.cellIndex, sprite);
   }
 
+  // Derive cell aspect ratio from the first sprite's actual dimensions
+  const firstSprite = sprites[0];
+  const cellAspect = firstSprite && firstSprite.height > 0
+    ? `${firstSprite.width} / ${firstSprite.height}`
+    : '1';
+
+  const gridStyle: React.CSSProperties = {
+    ...(cols !== 6 ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : {}),
+    '--cell-aspect': cellAspect,
+  } as React.CSSProperties;
+
   return (
     <div
       className="sprite-grid"
-      style={cols !== 6 ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : undefined}
+      style={gridStyle}
     >
       {labels.map((label, idx) => {
         const sprite = spriteMap.get(idx);

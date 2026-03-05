@@ -156,6 +156,14 @@ export interface AppState {
   model: string;
   imageSize: string;
 
+  /** Grid config used for the current/last generation */
+  activeGridConfig: {
+    cols: number;
+    rows: number;
+    cellLabels: string[];
+    cellGroups?: CellGroup[];
+  } | null;
+
   /** Base64 of the template grid sent to Gemini */
   templateImage: string | null;
   /** Base64 of the filled grid returned by Gemini */
@@ -238,6 +246,7 @@ const initialState: AppState = {
   },
   model: 'nano-banana-pro-preview',
   imageSize: '2K',
+  activeGridConfig: null,
   templateImage: null,
   filledGridImage: null,
   filledGridMimeType: 'image/png',
@@ -263,7 +272,7 @@ type Action =
   | { type: 'SET_BUILDING'; building: AppState['building'] }
   | { type: 'SET_MODEL'; model: string }
   | { type: 'SET_IMAGE_SIZE'; imageSize: string }
-  | { type: 'GENERATE_START'; templateImage: string }
+  | { type: 'GENERATE_START'; templateImage: string; gridConfig?: { cols: number; rows: number; cellLabels: string[]; cellGroups?: CellGroup[] } }
   | { type: 'GENERATE_COMPLETE'; filledGridImage: string; filledGridMimeType: string; geminiText: string }
   | { type: 'GENERATE_ERROR'; error: string }
   | { type: 'EXTRACTION_COMPLETE'; sprites: ExtractedSprite[] }
@@ -282,6 +291,7 @@ type Action =
   | { type: 'SET_BACKGROUND_PRESETS'; presets: BackgroundPreset[] }
   | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
   | { type: 'SET_GRID_PRESETS'; presets: GridPreset[] }
+  | { type: 'SET_ACTIVE_GRID_CONFIG'; gridConfig: AppState['activeGridConfig'] }
   | { type: 'START_RUN'; payload: { contentPresetId: string; spriteType: SpriteType; gridLinks: GridLink[]; imageSize: '2K' | '4K' } }
   | { type: 'COMPLETE_GRID'; payload: { filledGridImage: string } }
   | { type: 'NEXT_GRID' }
@@ -314,6 +324,7 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         step: 'generating',
         templateImage: action.templateImage,
+        activeGridConfig: action.gridConfig ?? state.activeGridConfig,
         filledGridImage: null,
         sprites: [],
         error: null,
@@ -433,6 +444,8 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_GRID_PRESETS':
       return { ...state, gridPresets: action.presets };
+    case 'SET_ACTIVE_GRID_CONFIG':
+      return { ...state, activeGridConfig: action.gridConfig };
     case 'START_RUN':
       return {
         ...state,

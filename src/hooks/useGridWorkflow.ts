@@ -49,7 +49,7 @@ export function useGridWorkflow() {
       }
       const template = generateTemplate(templateConfig, gridConfig);
 
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64 });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: gridConfig ? { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups } : undefined });
 
       // 2. Build prompt with layered guidance
       const prompt = buildGridFillPrompt(

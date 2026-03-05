@@ -182,7 +182,7 @@ export function useRunWorkflow() {
 
       // Generate template
       const template = generateTemplate(templateParams, gridConfig);
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64 });
+      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink.cellGroups } });
 
       // Build prompt with layered guidance
       const isSubsequent = run.currentGridIndex > 0 && run.referenceSheet !== null;
