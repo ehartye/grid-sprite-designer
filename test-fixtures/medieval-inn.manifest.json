@@ -9,9 +9,15 @@
   "headerH": 22,
   "border": 2,
   "cellLabels": [
-    "Day - Idle", "Day - Smoke Rising", "Day - Sign Swaying",
-    "Evening - Lights On", "Evening - Chimney Glow", "Evening - Busy",
-    "Night - Lantern Lit", "Night - Quiet", "Night - Closed"
+    "Day - Idle",
+    "Day - Smoke Rising",
+    "Day - Sign Swaying",
+    "Evening - Lights On",
+    "Evening - Chimney Glow",
+    "Evening - Busy",
+    "Night - Lantern Lit",
+    "Night - Quiet",
+    "Night - Closed"
   ],
   "contentPreset": "medieval-inn"
 }

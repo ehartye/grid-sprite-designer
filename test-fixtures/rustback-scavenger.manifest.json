@@ -7,5 +7,6 @@
   "templateCellW": 339,
   "templateCellH": 339,
   "headerH": 14,
-  "border": 2
+  "border": 2,
+  "contentPreset": "rustback-scavenger"
 }
