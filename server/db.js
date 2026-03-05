@@ -1985,6 +1985,281 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Trader pulls a bottle from the harness and uncorks it, raising it in a toast to himself. The revolver is holstered, the hat tilted back, and the remaining barter goods dangle with the satisfaction of a deal well done.
   Header "Weak Pose" (5,4): The Trader leans on the rebar staff, the pack harness half-empty and hanging by one strap. The hat droops and the revolver dangles loosely from one hand. Most of his barter goods are lost and his hazel eyes are weary.
   Header "Critical Pose" (5,5): Barely standing amid his scattered goods, the Trader clutches the revolver with his last round. The hat is torn, the harness is destroyed, and he stands guard over what remains of his trade goods with desperate, calculating eyes.`,
+    },
+    {
+      id: 'xenomorph-drone',
+      name: "Xenomorph Drone",
+      genre: "Sci-Fi Horror",
+      description: "A sleek, biomechanical predator with an elongated smooth skull, no visible eyes, and a lipless mouth hiding a deadly inner jaw. Tall, gaunt frame with a segmented exoskeleton, digitigrade legs, and a long segmented tail ending in a blade tip.",
+      equipment: "Natural weapons only — razor-sharp claws, a bladed tail tip, dorsal tubes running along the back, and a telescoping inner mouth with silver teeth. No artificial equipment.",
+      colorNotes: "Obsidian black exoskeleton with dark blue reflective highlights on curved surfaces. Silver metallic teeth on both outer and inner jaws. Dorsal tubes are dark steel grey. Saliva is translucent silver. Tail blade is polished dark steel.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Xenomorph Drone stalks forward on its left digitigrade foot, the elongated smooth skull tilted slightly downward. Its obsidian black exoskeleton catches dark blue highlights and the segmented tail curves behind with the blade tip raised. Clawed hands are held at its sides in a predatory stance.
+  Header "Walk Down 2" (0,1): Neutral mid-step with both feet planted, the gaunt frame crouched low. The lipless mouth is slightly parted revealing silver teeth and the dorsal tubes along its back are visible above the shoulders. Translucent saliva drips from the jaw.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the tail blade swaying to the opposite side. The dark blue highlights ripple across the segmented exoskeleton and the clawed hands flex with silent menace.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the elongated skull rises above the hunched shoulders. The dorsal tubes run prominently down the spine and the segmented tail extends outward with its blade tip. The obsidian exoskeleton is smooth and insectoid.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full length of the dorsal tubes visible from skull crest to lower back. The dark steel grey tubes contrast against the obsidian body. The tail hangs in a low curve.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, tail swaying. The digitigrade legs flex with alien musculature and the dark blue highlights trace the joints.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Drone faces left with its left foot forward in a silent, low stalk. The elongated skull extends far forward and the tail stretches out behind for balance. The profile shows the gaunt biomechanical ribbing of the torso.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the entire silhouette visible — elongated head, hunched shoulders, dorsal tubes, thin waist, and the long bladed tail. Silver teeth glint in the partially open mouth.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, the tail curving forward slightly. Clawed hands reach ahead and the obsidian exoskeleton catches dark blue light along the limbs.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the elongated skull leading the advance. The dorsal tubes create a ridged silhouette and the tail extends far behind with its blade tip raised. Translucent saliva trails from the jaw.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, digitigrade legs visible in profile. The biomechanical ribbing of the torso and the smooth cranium create an unmistakable alien silhouette.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The tail whips behind and the razor claws catch dim reflections. The dark blue highlights trace the segmented spine.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Drone crouches facing the viewer, the elongated skull tilted as if sensing the air. The lipless mouth is closed with silver teeth barely visible. The tail coils loosely behind and the clawed hands rest on the ground in a spider-like stance. Dorsal tubes rise above the shoulders.
+  Header "Idle Up" (2,1): Crouched facing away, the dorsal tubes and segmented spine dominate the view. The tail curls to one side with the blade tip resting on the ground. The elongated skull is barely visible above the hunched shoulders.
+  Header "Idle Left" (2,2): Facing left in a low crouch, the elongated skull extends horizontally. One clawed hand rests on the ground and the tail coils behind. The dark blue highlights on the obsidian exoskeleton catch ambient light.
+  Header "Idle Right" (2,3): Facing right, crouched and still. The biomechanical ribbing of the torso is visible and the silver teeth are barely parted. The tail blade rests on the ground and translucent saliva hangs from the jaw.
+  Header "Battle Idle 1" (2,4): The Drone rises to full height — towering and gaunt, the elongated skull tilting back. The inner jaw telescopes outward briefly in a threat display, silver teeth gleaming. The tail arches overhead like a scorpion and the claws spread wide.
+  Header "Battle Idle 2" (2,5): It sways in the aggressive stance, the inner jaw retracting. The tail blade circles menacingly overhead and the dorsal tubes pulse with subtle movement. The dark blue highlights intensify across the black exoskeleton.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Drone holds its full-height aggressive stance, the tail poised overhead. The elongated skull tilts forward as if locking onto prey and the clawed hands open and close with anticipation. Silver teeth drip with translucent saliva.
+  Header "Attack 1" (3,1): Wind-up — the Drone coils its gaunt body, pulling both clawed hands back and arching the tail high. The inner jaw begins extending from the lipless mouth and the dorsal tubes flatten against the spine.
+  Header "Attack 2" (3,2): The Drone lunges forward with both claws slashing in a rapid double-strike, the inner jaw shooting outward at maximum extension. The obsidian body is a blur of dark blue streaks and the tail lashes forward simultaneously.
+  Header "Attack 3" (3,3): Follow-through — the claws are fully extended from the dual slash and the inner jaw snaps at the cell edge, silver teeth biting. The tail blade stabs forward past the body. Translucent saliva sprays from the extended inner mouth.
+  Header "Cast 1" (3,4): The Drone drops to all fours and raises the tail high, the blade tip vibrating. A small bead of acid-green substance forms at the tip of the inner jaw as it opens wide. The dorsal tubes flare outward.
+  Header "Cast 2" (3,5): The acid builds — a viscous green glob grows at the inner jaw tip, dripping and sizzling. The Drone's body tenses and the tail arches forward, poised to catapult the acid. The exoskeleton steams where acid touches it.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Drone spits the acid glob forward — a compact blob of sizzling green that arcs to the cell edge and splatters, dissolving the surface with steaming hisses. The inner jaw retracts and the tail lowers after the release.
+  Header "Damage 1" (4,1): The Drone recoils from a hit, the obsidian exoskeleton cracking at the impact point revealing dark blue inner tissue. Acid-green blood spurts from the wound, sizzling on the ground. The tail lashes in pain.
+  Header "Damage 2" (4,2): Staggering, more cracks spider-web across the exoskeleton plates. Acid blood flows freely, burning anything it touches. The elongated skull shakes violently and the inner jaw extends in an involuntary pain response.
+  Header "Damage 3" (4,3): Recovery — the Drone steadies on all fours, acid blood still dripping and sizzling. The cracked exoskeleton plates resettle and the inner jaw retracts. The tail blade rises again and the creature hisses through silver teeth.
+  Header "KO 1" (4,4): The Drone collapses to its knees, the elongated skull drooping forward. Acid blood pools around the cracked exoskeleton, dissolving the ground. The tail goes limp and the clawed hands splay on the ground.
+  Header "KO 2" (4,5): Falling onto its side, the Drone's exoskeleton shatters further, releasing more acid blood. The inner jaw hangs slack and the dorsal tubes lie flat. The obsidian body loses its dark blue highlights.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Drone lies motionless in a pool of sizzling acid blood, the obsidian exoskeleton cracked and dull. The elongated skull rests on the ground, inner jaw partially extended, and the tail blade lies flat. The acid slowly dissolves the surrounding surface.
+  Header "Victory 1" (5,1): The Drone rises to full height and throws the elongated skull back, the inner jaw extending in a triumphant silent scream. Acid saliva sprays from the silver teeth and the tail lashes violently. The obsidian body gleams with dark blue highlights.
+  Header "Victory 2" (5,2): It slams the tail blade into the ground and spreads the clawed hands wide, the dorsal tubes flaring. The inner jaw snaps in and out rapidly in a display of dominance. The exoskeleton ripples with predatory energy.
+  Header "Victory 3" (5,3): The Drone drops to a low, satisfied crouch, the tail coiling around its body. The elongated skull tilts and the lipless mouth closes over the silver teeth. It is still and watchful — the perfect predator at rest.
+  Header "Weak Pose" (5,4): The Drone crouches low, exoskeleton cracked and leaking acid blood. The tail drags limply and the claws barely grip the ground. The elongated skull hangs and the inner jaw extends weakly, silver teeth barely visible.
+  Header "Critical Pose" (5,5): Barely alive, the Drone lies on its side with cracked, dull exoskeleton and acid blood pooling. The tail blade twitches and the inner jaw extends one last time in a feeble threat. Even dying, the creature remains terrifying.`,
+    },
+    {
+      id: 'xenomorph-warrior',
+      name: "Xenomorph Warrior",
+      genre: "Sci-Fi Horror",
+      description: "A larger, more heavily armored variant with a distinctive ridged head crest rising from the skull. Broader, more muscular build with thicker chitinous armor plates across the chest and limbs. More aggressive, upright stance than the drone.",
+      equipment: "Natural weapons — larger, heavier claws, a thicker armored tail with a wider blade tip, reinforced chitinous chest plates, and a more powerful inner jaw. No artificial equipment.",
+      colorNotes: "Primary black exoskeleton with dark brown undertones in the chitin plates. Head crest is glossy black with brown ridges. Acid-green blood visible at joints. Teeth are bone-white. Chest plates have a dark brown, almost woody texture.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Xenomorph Warrior advances on its left foot with a heavier, more deliberate stride than a drone. The ridged head crest rises prominently above the broader shoulders. Thick chitinous chest plates overlap like dark brown armor and the armored tail swings behind with its wide blade.
+  Header "Walk Down 2" (0,1): Neutral mid-step with feet planted wide, the muscular frame upright and imposing. The glossy black head crest with brown ridges catches the light. Bone-white teeth are visible in the slightly open mouth and acid-green blood traces the joint seams.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the heavier tail swaying opposite. The chitinous chest plates shift with the stride and the larger claws flex. Dark brown undertones show in the thicker chitin.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the ridged head crest and massive shoulders fill the upper view. The thick armored tail extends prominently and the dark brown chitinous back plates overlap in a segmented pattern.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full breadth of the Warrior's back visible — wider and more muscular than a drone. The head crest ridges run in parallel lines and the tail hangs heavily.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the armored tail swaying. Acid-green blood is faintly visible at the leg joints and the dark brown chitin plates clank softly.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Warrior faces left with its left foot forward in a powerful stride. The ridged head crest extends the skull profile dramatically and the thick chitinous chest plates are visible. The heavy armored tail counterbalances the massive build.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full silhouette showing the broader, more upright posture. The dark brown chitin plates layer across the torso like segmented armor and the head crest ridges are sharp in profile.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The larger claws reach forward and the tail blade arcs behind. Acid-green blood traces are visible at the wrist joints.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the head crest leading the advance like a battering ram. The chitinous chest plates are in full profile and the armored tail trails heavily behind. Bone-white teeth are bared.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the muscular, upright frame filling the cell. The dark brown undertones in the chitin are visible and the head crest ridges cast small shadows.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The tail swings forward and the heavier claws are prominent. The glossy black exoskeleton contrasts with the brown chitin texture.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Warrior stands nearly upright facing the viewer, the ridged head crest towering above. The chitinous chest plates are displayed prominently and the larger claws hang at its sides. The armored tail coils on the ground and bone-white teeth gleam in a closed-mouth expression.
+  Header "Idle Up" (2,1): Facing away, the massive back and head crest fill the view. The armored tail lies in a heavy curve and the dark brown chitin plates overlap down the spine. The broader frame is noticeably bulkier than a drone.
+  Header "Idle Left" (2,2): Facing left in an upright stance, the head crest extends far forward. One massive clawed hand rests at its side and the tail blade rests on the ground. The dark brown chitin plate texture is visible on the near flank.
+  Header "Idle Right" (2,3): Facing right, standing tall with the head crest prominent. The chitinous chest plates and bone-white teeth create an armored, predatory profile. Acid-green blood traces at the joints mark its alien biology.
+  Header "Battle Idle 1" (2,4): The Warrior drops into a wider, more aggressive stance than a drone, both massive claws raised and spread. The head crest tilts forward and the inner jaw extends partially, bone-white teeth bared in both jaws. The armored tail rises with the wide blade poised.
+  Header "Battle Idle 2" (2,5): It shifts in the combat stance, the heavier frame moving with surprising speed. The chitinous chest plates expand with deep breathing and the head crest ridges seem to bristle. The tail blade circles in a wider, deadlier arc.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Warrior holds the aggressive stance, the inner jaw retracting as it coils for a strike. The head crest angles downward like a charging bull and the massive claws open wide. The armored tail is raised to maximum height.
+  Header "Attack 1" (3,1): Wind-up — the Warrior pulls back its right arm, the massive claw clenched. The chitinous chest plates shift to allow the rotation and the head crest tilts with the torso. The tail arches for a secondary strike.
+  Header "Attack 2" (3,2): A devastating claw swipe — the massive right claw rakes forward, tearing through the air. The head crest leads the body rotation and the inner jaw snaps outward simultaneously. The tail lashes from behind.
+  Header "Attack 3" (3,3): Follow-through — the claw strike reaches maximum extension while the tail blade stabs forward from behind, creating a dual attack. The Warrior's body is fully rotated and the inner jaw is at full extension, bone-white teeth snapping.
+  Header "Cast 1" (3,4): The Warrior rears back, the chitinous chest plates expanding as it inhales deeply. Acid-green fluid builds visibly behind the bone-white teeth, bubbling and sizzling. The head crest tilts back and the tail braces on the ground.
+  Header "Cast 2" (3,5): The acid builds to a critical mass — the Warrior's throat bulges with the pressurized acid-green fluid. The chitin plates vibrate and the head crest ridges flatten. It aims the elongated skull forward like a cannon barrel.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Warrior launches a pressurized spray of acid-green blood from its mouth — a wide cone of sizzling fluid that fans out to the cell edge, dissolving everything it contacts. The recoil rocks its massive body backward and the head crest shakes.
+  Header "Damage 1" (4,1): The Warrior staggers from a hit, a chitinous chest plate cracking and falling away. Acid-green blood spurts from the exposed area, sizzling on the ground. The head crest sways and the tail lashes in rage.
+  Header "Damage 2" (4,2): More chitin plates shatter, exposing the dark brown inner tissue. Acid blood flows freely, creating a hazardous pool. The inner jaw extends in a pained screech and the massive claws clutch at the wounds.
+  Header "Damage 3" (4,3): Recovery — the Warrior roars and slams both claws on the ground, forcing itself upright. Broken chitin plates hang loose and acid blood still drips, but the head crest rises defiantly. The tail blade rises again.
+  Header "KO 1" (4,4): The Warrior's legs buckle under its massive frame. The head crest droops and the chitinous armor hangs in shattered pieces. Acid-green blood pools widely, dissolving the ground. The tail blade scrapes along the surface.
+  Header "KO 2" (4,5): Crashing to the ground, the Warrior's armored body creates a heavy impact. The head crest cracks against the surface and acid blood seeps from multiple wounds. The massive claws splay outward and the tail goes still.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Warrior lies in a wide pool of sizzling acid-green blood, its shattered chitin plates scattered around the body. The head crest is cracked and the bone-white teeth are visible in the slack jaw. The armored tail lies flat and the claws are open and still.
+  Header "Victory 1" (5,1): The Warrior rears to full height and roars, the inner jaw extending in a triumphant shriek. The head crest towers above and the massive claws spread wide. Acid-green blood drips from the bone-white teeth and the tail blade stabs the air.
+  Header "Victory 2" (5,2): It slams both clawed fists on the ground in a display of dominance, the chitinous chest plates expanding. The head crest dips and rises in a predatory nod and the tail lashes in a wide, aggressive sweep.
+  Header "Victory 3" (5,3): The Warrior stands tall and crosses its massive clawed arms over the chitinous chest plates. The head crest tilts with an almost regal bearing and the tail coils around its feet. Even in stillness, it radiates lethal power.
+  Header "Weak Pose" (5,4): The Warrior hunches forward, broken chitin plates hanging loose. Acid blood drips steadily and the head crest droops. The massive claws grip the ground for support and the tail drags limply. The inner jaw hangs partially extended.
+  Header "Critical Pose" (5,5): Barely standing, the Warrior sways with most of its chitin armor destroyed. Acid-green blood pools around its feet. The head crest is cracked but still raised and the bone-white teeth are bared in a final, defiant snarl.`,
+    },
+    {
+      id: 'facehugger-swarm',
+      name: "Facehugger Swarm",
+      genre: "Sci-Fi Horror",
+      description: "A group of 3-4 spider-like parasitic creatures moving as a unit. Each has a pale, fleshy body with long gripping finger-legs, a muscular whip-like tail, and a ventral proboscis. They scuttle and leap in unsettling coordinated motion.",
+      equipment: "Natural weapons only — gripping finger-legs for latching, a muscular tail for constriction, and a ventral proboscis for implantation. No artificial equipment.",
+      colorNotes: "Pale flesh bodies with pink-grey undersides. Finger-legs are slightly darker flesh tone with visible tendons. Tails are pink-grey and muscular. Ventral side has translucent membranes revealing pulsing internals. Overall wet, organic appearance.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Three facehuggers scuttle forward as a swarm, the lead creature on the left with finger-legs splayed and the others following in a staggered formation. Their pale flesh bodies are low to the ground and the muscular tails trail behind. The wet, organic sheen catches the light.
+  Header "Walk Down 2" (0,1): The swarm pauses in a tight cluster, finger-legs interleaving. The lead facehugger raises its front legs sensing the air while the others press close beneath. Pink-grey undersides are partially visible and the translucent membranes pulse.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — the swarm shifts right, the lead creature now on the right side. Finger-legs scrabble across the ground in unsettling coordinated motion. Tails whip and coil.
+  Header "Walk Up 1" (0,3): The swarm scuttles away, showing the top of their pale fleshy bodies. The finger-legs push from behind and the muscular tails lead the way. Three distinct bodies move in formation with visible tendons flexing on the legs.
+  Header "Walk Up 2" (0,4): Facing away in a cluster, the swarm's pale dorsal surfaces are visible — smooth flesh domes with the bases of the finger-legs radiating outward. Tails coil together briefly before separating.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — the swarm shifts direction, scuttling away with the formation reversed. The finger-legs move in a disturbing wave pattern and the translucent undersides flash occasionally.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The swarm scuttles left, three facehuggers in a line with finger-legs reaching. The lead creature's profile shows the gripping legs, whip tail, and the fleshy body in full side view. The others follow in rapid, spider-like pursuit.
+  Header "Walk Left 2" (1,1): Clustered facing left, the swarm huddles with finger-legs interleaved. The side view shows the translucent ventral membranes and the muscular tails curling upward. The pale flesh glistens with moisture.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — the swarm moves left with altered formation, some creatures climbing over others. Finger-legs tangle and separate in disturbing coordination. Pink-grey undersides flash.
+  Header "Walk Right 1" (1,3): The swarm scuttles right, finger-legs reaching ahead. The lead facehugger leaps slightly while the others rush below. Muscular tails whip for balance and the pale bodies ripple with effort.
+  Header "Walk Right 2" (1,4): Clustered facing right, the swarm presses together. The fleshy bodies stack slightly and the finger-legs grip each other as well as the ground. The wet organic appearance is at its most unsettling.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — altered formation scuttling right. One facehugger rides atop another briefly, finger-legs spread wide. The translucent membranes on the ventral side pulse with internal movement.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The swarm rests in a loose cluster facing the viewer, finger-legs slowly flexing in place. The lead facehugger raises its front legs periodically as if sensing. Pink-grey undersides are visible and the muscular tails lie in lazy coils. The pale flesh rises and falls with breathing.
+  Header "Idle Up" (2,1): Resting in a cluster facing away, the smooth flesh domes of the facehugger bodies are visible. Finger-legs splay outward and tails intertwine. The pale bodies pulse gently with internal movement.
+  Header "Idle Left" (2,2): The swarm rests facing left, two creatures on the ground and one perched atop them. Finger-legs grip each other and the ground. The side view shows the layered fleshy bodies and trailing tails.
+  Header "Idle Right" (2,3): Facing right in a resting cluster, the finger-legs slowly open and close. The translucent ventral membranes pulse and the muscular tails curl and uncurl with idle motion. The wet surface of the bodies glistens.
+  Header "Battle Idle 1" (2,4): The swarm springs to alertness — all three facehuggers raise their front finger-legs high and the tails whip upright. They spread into an attack formation, each creature slightly separated and oriented toward the threat. The ventral proboscises extend partially.
+  Header "Battle Idle 2" (2,5): The swarm shifts in the attack formation, creatures circling each other in a disturbing dance. Finger-legs flex rapidly and the muscular tails vibrate with tension. The translucent membranes reveal quickened internal pulsing.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The swarm holds the attack formation, three sets of finger-legs spread wide and ready. The lead facehugger's ventral proboscis is fully extended and the muscular tails coil tight like springs. The pale flesh darkens slightly with arousal.
+  Header "Attack 1" (3,1): Wind-up — the lead facehugger coils its finger-legs beneath its body and the tail whips backward, preparing to leap. The other two creatures press flat to the ground, clearing a launch path. The pale body compresses like a spring.
+  Header "Attack 2" (3,2): The lead facehugger launches into a leaping attack, finger-legs spread wide and reaching forward. The ventral proboscis extends fully and the tail streams behind. The other two creatures rush forward on the ground in support.
+  Header "Attack 3" (3,3): The lead facehugger latches on at the cell edge — finger-legs wrapping tight around an invisible target while the tail constricts. The two ground facehuggers attack the base, finger-legs gripping and tails whipping. The swarm strikes as one.
+  Header "Cast 1" (3,4): The swarm clusters tightly together, finger-legs interlocking into a single mass. The bodies press together and the tails wrap around the group, forming a pulsing organic orb. The translucent membranes glow with combined internal energy.
+  Header "Cast 2" (3,5): The orb of intertwined facehuggers pulses faster, the pale flesh darkening to pink as blood rushes through the combined mass. The finger-legs vibrate at the surface and a high-frequency tremor makes the ground around them ripple.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The swarm explodes outward — all three facehuggers launch in different directions simultaneously, each trailing a spray of pink-grey fluid. They arc to the cell edges in a burst of gripping finger-legs and whipping tails, covering maximum area.
+  Header "Damage 1" (4,1): A hit scatters the swarm — one facehugger is knocked tumbling, its finger-legs curling protectively. The other two scatter sideways, tails lashing. The struck creature oozes pink fluid from a wound on its pale flesh.
+  Header "Damage 2" (4,2): The swarm regroups in disarray — one creature drags a damaged leg and another has a torn translucent membrane leaking fluid. They cluster defensively, finger-legs interweaving for protection. The tails coil tightly.
+  Header "Damage 3" (4,3): Recovery — the swarm rights itself, the damaged creatures pulling their wounded parts inward. They reform the attack formation with the healthiest facehugger in the lead. Finger-legs extend cautiously and tails rise again.
+  Header "KO 1" (4,4): The swarm collapses — one facehugger goes limp, finger-legs curling inward in a death pose. The others slow and cluster around the fallen creature, finger-legs touching it. The pale flesh of all three goes a sickly grey.
+  Header "KO 2" (4,5): Two facehuggers are now motionless with curled finger-legs, lying on their backs showing the translucent ventral membranes no longer pulsing. The last one crawls weakly before collapsing beside them, tail going slack.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): All three facehuggers lie motionless — finger-legs curled inward, tails limp, ventral membranes still and translucent. The pale flesh has gone grey and a small pool of pink fluid surrounds the cluster. They look like discarded organic husks.
+  Header "Victory 1" (5,1): The swarm scurries in a celebratory circle, finger-legs clicking rapidly on the ground. The lead facehugger leaps and lands atop the others in a dominant display. Tails whip with energy and the pale flesh pulses a healthy pink.
+  Header "Victory 2" (5,2): All three facehuggers rear up on their hind legs simultaneously, front finger-legs spread wide in a coordinated display. The ventral proboscises extend and retract and the tails lash in unison. A disturbing, synchronized victory.
+  Header "Victory 3" (5,3): The swarm settles into a satisfied cluster, finger-legs intertwined. They breathe in synchronized pulses, the pale flesh rising and falling together. Tails coil lazily and the translucent membranes glow with contented internal warmth.
+  Header "Weak Pose" (5,4): The swarm huddles in a weakened cluster — one creature is barely moving, finger-legs limp. The others press close protectively, their own finger-legs sluggish. The pale flesh is mottled grey and the tails hang without energy.
+  Header "Critical Pose" (5,5): Only one facehugger remains functional, dragging itself forward with weakening finger-legs. The other two lie motionless behind it. Its translucent membrane barely pulses and the tail trails limply, but it still reaches toward the threat with desperate, instinctual gripping.`,
+    },
+    {
+      id: 'biomechanical-entity',
+      name: "Biomechanical Entity",
+      genre: "Sci-Fi Horror",
+      description: "An HR Giger-inspired fusion of organic tissue and mechanical structure. A humanoid frame where flesh merges seamlessly with chrome pipes, ribbed tubing, and exposed vertebral columns. Smooth, elongated skull-like head with no visible eyes, connected by cables and tubes to the torso.",
+      equipment: "Integrated body-weapons — retractable chrome blade-arms that extend from forearm housings, ribbed pipes that vent steam, exposed vertebrae that flex and strike, and chrome-plated chest panels over raw flesh. No separate equipment.",
+      colorNotes: "Chrome silver mechanical components contrasting with exposed flesh pink organic tissue. Dark steel ribbed pipes and tubes. Bone-white exposed vertebrae. The skull-head is smooth dark steel with chrome accents. Fluids are dark reddish-black.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Entity steps forward on its left foot — the leg is a fusion of chrome pistons and exposed flesh-pink muscle. The smooth dark steel skull-head tilts slightly and ribbed tubes connect the neck to the chrome-plated chest panels. A thin hiss of steam vents from a shoulder pipe.
+  Header "Walk Down 2" (0,1): Neutral mid-step with both feet planted, the full biomechanical horror visible. Chrome-plated chest panels reveal raw flesh beneath at the seams. Cables and tubes run from the skull-head to the torso and the exposed vertebrae are visible through a gap in the back.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the other leg's fusion of chrome and flesh visible. The ribbed pipes along the shoulders vent steam from the opposite side. Dark reddish-black fluid traces the chrome joints.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the exposed vertebral column runs prominently down the center of the back, each bone visible and connected by cables. Dark steel ribbed pipes flank the spine and chrome panels cover the lower back over flesh.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full spinal horror visible — bone-white vertebrae flexing with each step, cables and tubes pulsing with dark fluid. The smooth skull-head rises above on its tube-connected neck.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. Steam vents from the dorsal ribbed pipes and the chrome pistons in the legs extend and contract with mechanical precision over exposed flesh.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Entity faces left with its left foot forward, the full profile showing the nightmare fusion. The skull-head extends on its tube-laden neck, the chrome chest panels transition to exposed flesh at the waist, and the ribbed pipes run along the arm and shoulder.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the side view revealing the depth of the biomechanical integration. Chrome blade-arm housings are visible on the forearms and the exposed vertebrae peek through the back. Dark fluid drips from cable connections.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. Steam hisses from the near shoulder pipe and the chrome pistons in the leading leg extend. The flesh-pink tissue pulses visibly between chrome plates.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the skull-head leading the advance. The chrome-plated chest panels catch light and the ribbed tubes running to the arm housings are visible. The leg pistons drive the stride with mechanical precision.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the bone-white vertebrae visible through the back gap. Chrome and flesh merge in unsettling harmony along the profile and dark reddish-black fluid traces the joint seams.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The far arm's blade housing catches light and the ribbed pipes along the spine release a small steam vent.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Entity stands facing the viewer in an unsettling stillness, the smooth skull-head tilted slightly. Chrome chest panels gleam over exposed flesh and the ribbed tubes pulse with dark fluid. The forearm blade housings are retracted and steam drifts from shoulder pipes.
+  Header "Idle Up" (2,1): Facing away, the exposed vertebral column is fully displayed — bone-white vertebrae connected by cables and tubes, flanked by ribbed pipes and chrome panels. The skull-head is barely visible above the mechanical nightmare of the back.
+  Header "Idle Left" (2,2): Facing left in biomechanical stillness, the profile shows the smooth skull-head connected by tubes to the torso. Chrome panels reflect light while flesh-pink tissue pulses between them. The blade arm housing is dormant on the near forearm.
+  Header "Idle Right" (2,3): Facing right, the ribbed tubes and chrome panels create a disturbing silhouette. Steam drifts lazily from shoulder pipes and dark fluid traces the cable connections. The bone-white vertebrae are visible through the back.
+  Header "Battle Idle 1" (2,4): The Entity activates — chrome blade-arms extend from both forearm housings, sliding out with a mechanical hiss. The skull-head snaps forward and the ribbed pipes flare with pressurized steam. The exposed vertebrae arch aggressively and the flesh between the chrome plates pulses faster.
+  Header "Battle Idle 2" (2,5): It shifts in the combat stance, the extended chrome blades catching light. The cables and tubes connecting the skull-head to the torso tighten and the vertebral column undulates. Dark reddish-black fluid drips from the blade housing seams.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Entity holds the combat stance, chrome blades forward and the skull-head locked in a targeting orientation. Steam vents from multiple ribbed pipes and the flesh-pink tissue between chrome plates darkens with blood flow. The vertebrae flex like a coiled serpent.
+  Header "Attack 1" (3,1): Wind-up — the Entity pulls both chrome blade-arms back, the forearm housings retracting to extend the blades to maximum length. The skull-head tilts back and the vertebral column arches, storing kinetic energy.
+  Header "Attack 2" (3,2): Dual blade strike — both chrome blades slash forward in a crossing arc, the mechanical arms driving with piston force. The skull-head snaps forward and the vertebrae release their stored energy. Steam bursts from every pipe.
+  Header "Attack 3" (3,3): Follow-through — the chrome blades are fully extended in an X-pattern, dark reddish-black fluid spraying from the blade edges. The skull-head tilts with the motion and the ribbed pipes vent a powerful steam blast from the exertion.
+  Header "Cast 1" (3,4): The Entity retracts the blade-arms and spreads its chrome-and-flesh hands. The ribbed pipes along the spine begin glowing with internal heat and the skull-head tilts back. The cables and tubes connecting to the torso pulse with accelerated dark fluid.
+  Header "Cast 2" (3,5): The internal heat builds — the chrome panels begin radiating visible heat shimmer and the exposed flesh between them glows reddish-pink. The vertebrae pulse with energy and the skull-head emits a low mechanical drone. Every ribbed pipe vents superheated steam.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Entity releases a biomechanical shockwave — a burst of superheated steam and dark fluid erupts from every pipe and cable, creating a concussive ring of force. The chrome panels flash and the flesh pulses. The skull-head emits a piercing mechanical shriek.
+  Header "Damage 1" (4,1): The Entity staggers, a chrome chest panel cracking and peeling back to reveal the raw flesh beneath. Dark reddish-black fluid sprays from severed tubes and the ribbed pipes sputter. The skull-head jerks sideways.
+  Header "Damage 2" (4,2): More chrome panels shatter, exposing large areas of vulnerable flesh-pink tissue. Cables snap and flail, leaking dark fluid. The blade-arms retract involuntarily and the vertebral column locks in a pained arch. Steam vents erratically.
+  Header "Damage 3" (4,3): Recovery — the Entity's damaged systems stabilize with mechanical clicks and hydraulic hisses. Severed tubes seal themselves and the blade-arms re-extend. The skull-head realigns and the vertebrae unlock. Dark fluid still drips but the chrome components realign.
+  Header "KO 1" (4,4): Systems cascade failure — chrome panels fall away and the blade-arms retract permanently. The ribbed pipes stop venting and go silent. The cables connecting the skull-head go slack and the vertebral column collapses. The entity sinks to its knees.
+  Header "KO 2" (4,5): The Entity collapses in a heap of chrome and flesh — mechanical components grinding to a halt and organic tissue going limp. Dark fluid pools around the body and the skull-head rests on the ground with disconnected tubes trailing. The silence is worse than the noise.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Entity lies motionless — a pile of chrome plates, exposed flesh, disconnected tubes, and silent ribbed pipes. The skull-head stares blankly and the exposed vertebrae have locked in a contorted position. Dark reddish-black fluid pools beneath the body. A final wisp of steam escapes one pipe.
+  Header "Victory 1" (5,1): The Entity extends both chrome blade-arms and crosses them overhead, the skull-head tilting back in a mechanical roar. Every ribbed pipe vents steam in a coordinated blast and the vertebrae undulate in a display of biomechanical dominance. The chrome panels gleam.
+  Header "Victory 2" (5,2): The blade-arms retract and the Entity stands tall, the chrome-plated chest expanding as cables and tubes pulse with fresh dark fluid. The skull-head scans slowly and the vertebrae ripple in a satisfied wave. It is a machine that has completed its function.
+  Header "Victory 3" (5,3): The Entity returns to unsettling stillness — blade-arms retracted, ribbed pipes gently steaming, vertebrae settled. The skull-head tilts at an almost curious angle and the chrome panels gleam. It waits for the next directive with terrifying patience.
+  Header "Weak Pose" (5,4): The Entity hunches with failing systems — chrome panels loose and hanging, blade-arms partially extended and sparking. Several tubes are disconnected and leaking dark fluid. The skull-head droops and the vertebral column sags. Only the faintest steam escapes the pipes.
+  Header "Critical Pose" (5,5): Barely operational, the Entity stands on locked pistons. Most chrome plates are gone, exposing vulnerable flesh that pulses weakly. The blade-arms twitch and the skull-head hangs by a few cables. A single ribbed pipe still vents thin steam in a last mechanical breath.`,
+    },
+    {
+      id: 'space-marine',
+      name: "Space Marine",
+      genre: "Sci-Fi Horror",
+      description: "A hardened colonial marine in heavy tactical armor with a full-face helmet featuring an amber visor HUD. Athletic, combat-ready build with military bearing. Battle-scarred armor tells the story of encounters with alien threats.",
+      equipment: "Olive drab tactical armor with gunmetal-grey reinforced plates, a pulse rifle with an underslung grenade launcher, a motion tracker mounted on the left forearm, a chest-mounted tactical lamp, and a tactical helmet with an amber-tinted visor.",
+      colorNotes: "Olive drab primary armor with gunmetal-grey reinforced plates. Amber-tinted visor with HUD glow. Pulse rifle is dark gunmetal with olive grips. Motion tracker screen is green. Chest lamp casts white light. Boot soles are worn dark rubber.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Space Marine advances on his left foot with a disciplined, combat-ready stride. The pulse rifle is held at the ready across his chest and the amber visor glows with HUD data. The olive drab armor and gunmetal plates catch harsh light and the chest lamp casts a white beam forward.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, the pulse rifle shouldered. The tactical helmet's amber visor reflects the environment and the motion tracker on the left forearm shows a green screen with a sweeping line. Gunmetal plates protect the shoulders and chest.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the pulse rifle shifting sides. The underslung grenade launcher is visible beneath the barrel and the olive drab armor clanks softly with the disciplined stride.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the reinforced gunmetal back plates and tactical equipment are visible. The pulse rifle barrel extends over the right shoulder and the helmet's rear ventilation ports are prominent. The olive drab armor is scuffed with battle damage.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full back armor visible — olive drab with gunmetal reinforcement plates. The motion tracker arm hangs at the left side and the chest lamp's mounting bracket is visible from behind.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. The pulse rifle shifts and the amber visor glow is faintly visible around the helmet edges. Battle scars mark the back armor plates.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Marine faces left with his left foot forward, pulse rifle aimed ahead with steady hands. The motion tracker on the near forearm sweeps with a green display. The amber visor shows targeting data and the chest lamp illuminates the path. Olive drab armor is tight and functional.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full tactical profile visible — helmet with amber visor, reinforced shoulder plates, pulse rifle at port arms, and the motion tracker screen facing the viewer. The gunmetal plates overlap the olive armor.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The underslung grenade launcher is visible in profile and the chest lamp beam cuts forward. Battle scars mark the near shoulder plate.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, pulse rifle leading the advance. The amber visor scans ahead and the chest lamp beam extends forward. The motion tracker is on the far arm and the olive drab armor shows combat wear.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the gunmetal reinforced plates visible on the near side. The helmet profile shows the amber visor and ventilation ports. The pulse rifle rests at a ready angle.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The motion tracker screen is visible on the far forearm and the pulse rifle barrel catches dull light.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Marine stands at combat rest facing the viewer, pulse rifle shouldered with the barrel up. The amber visor glows steadily with a green HUD readout. The chest lamp is on low and the motion tracker shows a clear green screen. Military bearing is evident in every line.
+  Header "Idle Up" (2,1): Facing away at combat rest, the back armor plates and equipment webbing are visible. The pulse rifle barrel extends over the right shoulder and the tactical helmet's rear shows communication equipment. Olive drab armor is well-maintained despite battle scars.
+  Header "Idle Left" (2,2): Facing left at rest, pulse rifle at port arms. The amber visor shows in profile and the motion tracker on the near arm displays the green sweep. The chest lamp is dimmed and the reinforced shoulder plate shows a deep scratch from an alien encounter.
+  Header "Idle Right" (2,3): Facing right at combat rest, the pulse rifle resting against the shoulder. The amber visor casts a faint glow on the olive drab armor and the chest lamp is on standby. The military bearing remains sharp and the gunmetal plates are well-seated.
+  Header "Battle Idle 1" (2,4): The Marine snaps to combat stance — pulse rifle aimed forward in a two-handed grip, the amber visor tracking with targeting data. The motion tracker beeps with contacts and the chest lamp blazes to full power. Every gunmetal plate locks tight and the grenade launcher safety clicks off.
+  Header "Battle Idle 2" (2,5): He shifts in the combat stance, the pulse rifle tracking. The motion tracker blips increase and the amber visor flickers with multiple contacts. The chest lamp sweeps and the olive drab armor is taut against his combat-ready muscles. Sweat is visible on the chin beneath the visor.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Marine holds the firing stance, pulse rifle locked on target. The amber visor displays range and target data. The motion tracker sweeps rapidly and the chest lamp illuminates the kill zone. His finger is on the trigger and the grenade launcher is armed.
+  Header "Attack 1" (3,1): Wind-up — the Marine braces the pulse rifle stock against his gunmetal shoulder plate, sighting through the amber visor. The weapon charges with a building whine and the chest lamp focuses on the target zone. The motion tracker confirms target lock.
+  Header "Attack 2" (3,2): The pulse rifle fires — a rapid burst of bright muzzle flashes erupts from the barrel with spent casings ejecting. The recoil pushes against the shoulder plate and the amber visor flickers with each flash. The chest lamp illuminates the tracer paths.
+  Header "Attack 3" (3,3): Follow-through — the burst impacts at the cell edge with small explosions of sparks. Spent casings litter the ground and the pulse rifle barrel steams. The Marine steadies for another burst, the motion tracker still sweeping.
+  Header "Cast 1" (3,4): The Marine flips the pulse rifle to the underslung grenade launcher, the selector clicking to secondary fire. He crouches slightly and the amber visor switches to a grenade trajectory arc display. The chest lamp dims to reduce his profile.
+  Header "Cast 2" (3,5): The grenade launcher charges — the Marine sights the arc through the amber visor's trajectory display, compensating for range. His body braces for the recoil and the motion tracker shows the target cluster.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The grenade launches with a heavy thump — a small explosive round arcs to the cell edge and detonates in a burst of fire and shrapnel. The recoil rocks the Marine backward and the amber visor flashes with the explosion. Smoke rolls across the ground.
+  Header "Damage 1" (4,1): The Marine staggers from a hit, a gunmetal plate denting inward. The pulse rifle wavers and the amber visor flickers with static. Acid burns appear on the olive drab armor from alien contact and the chest lamp sputters.
+  Header "Damage 2" (4,2): Stumbling back, a shoulder plate cracks and falls away. The motion tracker sparks and the screen goes dark. The amber visor shows damage warnings and the pulse rifle is gripped with trembling, blood-smeared gloves. The chest lamp flickers.
+  Header "Damage 3" (4,3): Recovery — the Marine plants his feet and raises the pulse rifle, forcing himself back into firing stance. The amber visor reboots with a flash and the chest lamp steadies. The motion tracker is dead but his training keeps him focused through the pain.
+  Header "KO 1" (4,4): The pulse rifle drops from weakening hands as the Marine's knees buckle. The amber visor dims and the chest lamp dies. The damaged armor sags on his failing body and the motion tracker arm hangs limp.
+  Header "KO 2" (4,5): The Marine collapses forward, the tactical helmet cracking against the ground. The pulse rifle lies beside his outstretched arm and the amber visor goes completely dark. The olive drab armor is battered and acid-scarred. The chest lamp gives one final flicker.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Marine lies face-down in battered armor — the pulse rifle beside his arm, the amber visor dark, and the chest lamp dead. Acid scars mark the olive drab plates and the cracked motion tracker shows a blank screen. Spent casings surround the body. Game over, man.
+  Header "Victory 1" (5,1): The Marine raises the pulse rifle overhead with one arm, the amber visor blazing with a victory readout. The chest lamp flashes in celebration and the motion tracker shows a clear screen — all contacts eliminated. He lets out a triumphant battle cry behind the helmet.
+  Header "Victory 2" (5,2): He taps the motion tracker and confirms all clear, then slings the pulse rifle over one shoulder. The amber visor switches to standard mode and the chest lamp dims to normal. He gives a sharp military nod of satisfaction — mission accomplished.
+  Header "Victory 3" (5,3): The Marine plants the pulse rifle butt on the ground and leans on it, pushing the amber visor up on the helmet. His face is revealed — exhausted but alive, with a grim, satisfied expression. The motion tracker beeps a steady all-clear and the chest lamp casts a warm glow.
+  Header "Weak Pose" (5,4): The Marine leans on the pulse rifle as a crutch, the amber visor cracked and flickering. The chest lamp is dead, the motion tracker sparks intermittently, and acid scars cover the olive drab armor. He breathes heavily behind the damaged helmet.
+  Header "Critical Pose" (5,5): Barely standing, the Marine grips the pulse rifle one-handed, the other arm limp. The amber visor shows critical damage warnings, most armor plates are gone or cracked, and the chest lamp is shattered. His last magazine is loaded and his finger is on the trigger — he will not go quietly.`,
     }
   ];
 
