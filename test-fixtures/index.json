@@ -1,0 +1,758 @@
+[
+  {
+    "name": "ancient-tree",
+    "imageFile": "ancient-tree.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "3x3",
+      "cols": 3,
+      "rows": 3,
+      "totalCells": 9,
+      "templateCellW": 680,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 29,
+      "cellLabels": [
+        "Spring",
+        "Summer",
+        "Autumn",
+        "Winter",
+        "Enchanted",
+        "Corrupted",
+        "Sapling",
+        "Ancient",
+        "Dead"
+      ]
+    }
+  },
+  {
+    "name": "arc-jelly",
+    "imageFile": "arc-jelly.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 11
+    }
+  },
+  {
+    "name": "baron-brioche",
+    "imageFile": "baron-brioche.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 19
+    }
+  },
+  {
+    "name": "blacksmith-shop",
+    "imageFile": "blacksmith-shop.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "3x3",
+      "cols": 3,
+      "rows": 3,
+      "totalCells": 9,
+      "templateCellW": 680,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 34,
+      "cellLabels": [
+        "Idle",
+        "Forge Lit",
+        "Sparks Flying",
+        "Light Damage",
+        "Heavy Damage",
+        "Destroyed",
+        "Day",
+        "Afternoon",
+        "Night"
+      ]
+    }
+  },
+  {
+    "name": "castle-tower",
+    "imageFile": "castle-tower.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "2x2",
+      "cols": 2,
+      "rows": 2,
+      "totalCells": 4,
+      "templateCellW": 1021,
+      "templateCellH": 1021,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 30,
+      "cellLabels": [
+        "Day",
+        "Night",
+        "Damaged",
+        "Ruined"
+      ]
+    }
+  },
+  {
+    "name": "cecil-the-paladin",
+    "imageFile": "cecil-the-paladin.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 10
+    }
+  },
+  {
+    "name": "chrono-blade",
+    "imageFile": "chrono-blade.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 18
+    }
+  },
+  {
+    "name": "cyberpunk-city",
+    "imageFile": "cyberpunk-city.png",
+    "manifest": {
+      "spriteType": "background",
+      "gridSize": "2x2",
+      "cols": 2,
+      "rows": 2,
+      "totalCells": 4,
+      "templateCellW": 1021,
+      "templateCellH": 1021,
+      "headerH": 18,
+      "border": 2,
+      "generationId": 41,
+      "cellLabels": [
+        "Day - Smog",
+        "Night - Neon",
+        "Rain - Reflections",
+        "Blackout - Emergency"
+      ]
+    }
+  },
+  {
+    "name": "cyberpunk-noodle-shop",
+    "imageFile": "cyberpunk-noodle-shop.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "3x3",
+      "cols": 3,
+      "rows": 3,
+      "totalCells": 9,
+      "templateCellW": 680,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 43,
+      "cellLabels": [
+        "Open - Idle",
+        "Open - Steam Burst",
+        "Open - Neon Flicker",
+        "Busy Hour",
+        "Rain - Reflections",
+        "Rain - Heavy",
+        "Closed - Shuttered",
+        "Closed - Neon Only",
+        "Power Outage"
+      ]
+    }
+  },
+  {
+    "name": "desert-dunes",
+    "imageFile": "desert-dunes.png",
+    "manifest": {
+      "spriteType": "terrain",
+      "gridSize": "4x4",
+      "cols": 4,
+      "rows": 4,
+      "totalCells": 16,
+      "templateCellW": 509,
+      "templateCellH": 509,
+      "headerH": 18,
+      "border": 2,
+      "generationId": 38,
+      "cellLabels": [
+        "Flat Sand 1",
+        "Flat Sand 2",
+        "Rippled Sand",
+        "Wind Swept",
+        "Dune Crest N",
+        "Dune Crest S",
+        "Dune Shadow",
+        "Sand-Rock Mix",
+        "Rocky Ground",
+        "Sandstone",
+        "Cracked Earth",
+        "Fossil",
+        "Sand-Oasis Edge N",
+        "Sand-Oasis Edge S",
+        "Sand-Oasis Edge E",
+        "Sand-Oasis Edge W"
+      ]
+    }
+  },
+  {
+    "name": "duchess-gelato",
+    "imageFile": "duchess-gelato.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 17
+    }
+  },
+  {
+    "name": "dungeon-stone",
+    "imageFile": "dungeon-stone.png",
+    "manifest": {
+      "spriteType": "terrain",
+      "gridSize": "3x3",
+      "cols": 3,
+      "rows": 3,
+      "totalCells": 9,
+      "templateCellW": 680,
+      "templateCellH": 680,
+      "headerH": 18,
+      "border": 2,
+      "generationId": 40,
+      "cellLabels": [
+        "Stone Floor 1",
+        "Stone Floor 2",
+        "Cracked Stone",
+        "Mossy Stone",
+        "Wet Stone",
+        "Rubble",
+        "Wall Base N",
+        "Wall Base S",
+        "Wall Corner"
+      ]
+    }
+  },
+  {
+    "name": "enchanted-forest",
+    "imageFile": "enchanted-forest.png",
+    "manifest": {
+      "spriteType": "background",
+      "gridSize": "1x4",
+      "cols": 1,
+      "rows": 4,
+      "totalCells": 4,
+      "templateCellW": 2044,
+      "templateCellH": 509,
+      "headerH": 18,
+      "border": 2,
+      "generationId": 39,
+      "cellLabels": [
+        "Sky & Canopy",
+        "Mid Canopy & Light Rays",
+        "Undergrowth & Trunks",
+        "Forest Floor & Roots"
+      ]
+    }
+  },
+  {
+    "name": "fluxbot-drone",
+    "imageFile": "fluxbot-drone.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 4
+    }
+  },
+  {
+    "name": "gel-slime",
+    "imageFile": "gel-slime.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 12
+    }
+  },
+  {
+    "name": "general-gumbo",
+    "imageFile": "general-gumbo.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 22
+    }
+  },
+  {
+    "name": "hayate-the-wind-ninja",
+    "imageFile": "hayate-the-wind-ninja.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 24
+    }
+  },
+  {
+    "name": "ignis-the-pyromancer",
+    "imageFile": "ignis-the-pyromancer.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 23
+    }
+  },
+  {
+    "name": "junk-bug-spire",
+    "imageFile": "junk-bug-spire.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "2x3",
+      "cols": 2,
+      "rows": 3,
+      "totalCells": 6,
+      "templateCellW": 1021,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 36,
+      "cellLabels": [
+        "Stage 1",
+        "Stage 2",
+        "Stage 3",
+        "Stage 4",
+        "Stage 5",
+        "Stage 6"
+      ]
+    }
+  },
+  {
+    "name": "kael-thornwood",
+    "imageFile": "kael-thornwood.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 5
+    }
+  },
+  {
+    "name": "magma-wyrm",
+    "imageFile": "magma-wyrm.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 9
+    }
+  },
+  {
+    "name": "mech-hangar-bay",
+    "imageFile": "mech-hangar-bay.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "2x3",
+      "cols": 2,
+      "rows": 3,
+      "totalCells": 6,
+      "templateCellW": 1021,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 37,
+      "cellLabels": [
+        "Doors Closed",
+        "Doors Opening",
+        "Doors Open - Empty",
+        "Doors Open - Mech Docked",
+        "Launch Sequence",
+        "Battle Damage"
+      ]
+    }
+  },
+  {
+    "name": "medieval-inn",
+    "imageFile": "medieval-inn.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "3x3",
+      "cols": 3,
+      "rows": 3,
+      "totalCells": 9,
+      "templateCellW": 680,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 35,
+      "cellLabels": [
+        "Day - Idle",
+        "Day - Smoke Rising",
+        "Day - Sign Swaying",
+        "Evening - Lights On",
+        "Evening - Chimney Glow",
+        "Evening - Busy",
+        "Night - Lantern Lit",
+        "Night - Quiet",
+        "Night - Closed"
+      ]
+    }
+  },
+  {
+    "name": "mosskin-spirit",
+    "imageFile": "mosskin-spirit.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 2
+    }
+  },
+  {
+    "name": "mushroom-cottage",
+    "imageFile": "mushroom-cottage.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "3x3",
+      "cols": 3,
+      "rows": 3,
+      "totalCells": 9,
+      "templateCellW": 680,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 44,
+      "cellLabels": [
+        "Spring - Flowers",
+        "Summer - Butterflies",
+        "Autumn - Falling Leaves",
+        "Winter - Snow Cap",
+        "Fairy Lights",
+        "Enchanted Growth",
+        "Tiny Cottage",
+        "Standard",
+        "Grand Mushroom"
+      ]
+    }
+  },
+  {
+    "name": "mx-zero",
+    "imageFile": "mx-zero.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 27
+    }
+  },
+  {
+    "name": "pepperoni-pete",
+    "imageFile": "pepperoni-pete.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 15
+    }
+  },
+  {
+    "name": "queen-umami",
+    "imageFile": "queen-umami.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 28
+    }
+  },
+  {
+    "name": "robot-leech-snake",
+    "imageFile": "robot-leech-snake.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 6
+    }
+  },
+  {
+    "name": "rustback-scavenger",
+    "imageFile": "rustback-scavenger.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 7
+    }
+  },
+  {
+    "name": "sergeant-sriracha",
+    "imageFile": "sergeant-sriracha.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 14
+    }
+  },
+  {
+    "name": "sgt-nova",
+    "imageFile": "sgt-nova.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 25
+    }
+  },
+  {
+    "name": "shadow-weaver",
+    "imageFile": "shadow-weaver.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 26
+    }
+  },
+  {
+    "name": "space-station-module",
+    "imageFile": "space-station-module.png",
+    "manifest": {
+      "spriteType": "building",
+      "gridSize": "2x3",
+      "cols": 2,
+      "rows": 3,
+      "totalCells": 6,
+      "templateCellW": 1021,
+      "templateCellH": 680,
+      "headerH": 22,
+      "border": 2,
+      "generationId": 33,
+      "cellLabels": [
+        "Normal - Frame 1",
+        "Normal - Frame 2",
+        "Alert - Frame 1",
+        "Alert - Frame 2",
+        "Damaged",
+        "Destroyed"
+      ]
+    }
+  },
+  {
+    "name": "spore-lurker",
+    "imageFile": "spore-lurker.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 8
+    }
+  },
+  {
+    "name": "taco-tacos",
+    "imageFile": "taco-tacos.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 21
+    }
+  },
+  {
+    "name": "underwater-reef",
+    "imageFile": "underwater-reef.png",
+    "manifest": {
+      "spriteType": "background",
+      "gridSize": "1x4",
+      "cols": 1,
+      "rows": 4,
+      "totalCells": 4,
+      "templateCellW": 2044,
+      "templateCellH": 509,
+      "headerH": 18,
+      "border": 2,
+      "generationId": 42,
+      "cellLabels": [
+        "Surface Light & Open Water",
+        "Mid Water & Fish Schools",
+        "Coral Formations",
+        "Seafloor & Anemones"
+      ]
+    }
+  },
+  {
+    "name": "voidmaw-parasite",
+    "imageFile": "voidmaw-parasite.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 3
+    }
+  },
+  {
+    "name": "wasabi-ronin",
+    "imageFile": "wasabi-ronin.png",
+    "manifest": {
+      "spriteType": "character",
+      "gridSize": "6x6",
+      "cols": 6,
+      "rows": 6,
+      "totalCells": 36,
+      "templateCellW": 339,
+      "templateCellH": 339,
+      "headerH": 14,
+      "border": 2,
+      "generationId": 20
+    }
+  }
+]
