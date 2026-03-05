@@ -74,16 +74,24 @@ async function runExtraction(page: any, imageFile: string, manifest: Manifest): 
     timeout: 30000,
   });
 
-  // Collect results including sprite image data for the report
-  return page.evaluate(() => {
+  // Collect results with small thumbnails for the report (not full-res base64)
+  return page.evaluate((thumbMaxW: number) => {
     const results = (window as any).__results as any[];
-    // Augment with image data URLs from the rendered sprites
     const spriteImgs = document.querySelectorAll('.sprite-cell img');
-    return results.map((r: any, i: number) => ({
-      ...r,
-      imageDataUrl: (spriteImgs[i] as HTMLImageElement)?.src || '',
-    }));
-  });
+    return results.map((r: any, i: number) => {
+      const img = spriteImgs[i] as HTMLImageElement;
+      let thumbDataUrl = '';
+      if (img && img.naturalWidth > 0) {
+        const scale = Math.min(thumbMaxW / img.naturalWidth, 1);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * scale);
+        c.height = Math.round(img.naturalHeight * scale);
+        c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+        thumbDataUrl = c.toDataURL('image/jpeg', 0.7);
+      }
+      return { ...r, imageDataUrl: thumbDataUrl };
+    });
+  }, 96);
 }
 
 test.describe('Sprite Extraction', () => {
