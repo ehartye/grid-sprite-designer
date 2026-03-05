@@ -22,6 +22,8 @@ interface EditingPreset {
   cellGroups: CellGroup[];
   genericGuidance: string;
   bgMode: 'parallax' | 'scene' | null;
+  aspectRatio: string;
+  tileShape: 'square' | 'diamond';
 }
 
 function emptyPreset(): EditingPreset {
@@ -36,6 +38,8 @@ function emptyPreset(): EditingPreset {
     cellGroups: [],
     genericGuidance: '',
     bgMode: null,
+    aspectRatio: '1:1',
+    tileShape: 'square',
   };
 }
 
@@ -70,6 +74,8 @@ export function GridPresetsTab() {
       cellGroups: preset.cellGroups.map(g => ({ ...g, cells: [...g.cells] })),
       genericGuidance: preset.genericGuidance,
       bgMode: preset.bgMode ?? null,
+      aspectRatio: preset.aspectRatio || '1:1',
+      tileShape: preset.tileShape || 'square',
     });
   };
 
@@ -88,6 +94,8 @@ export function GridPresetsTab() {
         cellGroups: editing.cellGroups,
         genericGuidance: editing.genericGuidance,
         bgMode: editing.bgMode,
+        aspectRatio: editing.aspectRatio,
+        tileShape: editing.tileShape,
       };
 
       if (editing.id) {
@@ -294,6 +302,32 @@ export function GridPresetsTab() {
                 </select>
               </label>
             )}
+
+            <div className="admin-row">
+              <label className="admin-label">
+                Aspect Ratio
+                <select
+                  className="admin-select"
+                  value={editing.aspectRatio}
+                  onChange={e => setEditing({ ...editing, aspectRatio: e.target.value })}
+                >
+                  {['1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'].map(r =>
+                    <option key={r} value={r}>{r}</option>
+                  )}
+                </select>
+              </label>
+              <label className="admin-label">
+                Tile Shape
+                <select
+                  className="admin-select"
+                  value={editing.tileShape}
+                  onChange={e => setEditing({ ...editing, tileShape: e.target.value as 'square' | 'diamond' })}
+                >
+                  <option value="square">Square</option>
+                  <option value="diamond">Diamond (Isometric)</option>
+                </select>
+              </label>
+            </div>
 
             {/* Cell Labels */}
             <div className="admin-section">
