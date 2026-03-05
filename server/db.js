@@ -1710,6 +1710,281 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Ronin sits cross-legged on the ground, sashimi blade across his lap, chopstick daggers arranged neatly beside him. He sips from the soy sauce dish in serene contemplation, wasabi topknot perfect.
   Header "Weak Pose" (5,4): His rice body is thin and loosely packed, grains falling steadily. The nori cloak is more hole than seaweed, the wasabi topknot is drooping, and he uses the sashimi blade as a walking stick. His ginger eyes are faded.
   Header "Critical Pose" (5,5): Barely a fistful of rice held together by a single strip of nori, the Ronin somehow still stands. The sashimi blade trembles in his grip, the wasabi has nearly dissolved, and only one faint ginger eye remains — but his stance is still perfect.`,
+    },
+    {
+      id: 'wasteland-wanderer',
+      name: "Wasteland Wanderer",
+      genre: "Post-Apocalyptic",
+      description: "A lone survivor with sun-weathered skin, a full-face gas mask with round tinted lenses, and a tattered leather duster over layered scavenged clothing. Medium wiry build with a cautious, hunched posture.",
+      equipment: "A long leather duster over mismatched layered clothing, a rubber-strapped gas mask, a crude makeshift spear fashioned from a stop sign and pipe, and a bulging salvaged backpack covered in dangling trinkets.",
+      colorNotes: "Dusty brown leather duster, faded olive under-layers, rust orange accents on salvaged gear. Gas mask is dark rubber with amber-tinted lenses. Spear shaft is dull grey pipe with a faded red stop-sign blade. Backpack is patched tan canvas.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Wanderer steps forward on his left foot, leather duster swaying to the right. The makeshift spear is held upright in his right hand and the salvaged backpack bounces with dangling trinkets. His gas mask's amber lenses catch the light.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, duster hanging straight. The round amber lenses of the gas mask stare directly ahead and the stop-sign spear rests at his side.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, duster swaying left. The trinkets on the backpack jingle and the faded olive under-layers peek through the open duster front.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the bulging salvaged backpack dominates the view with its patched tan canvas and hanging trinkets. The leather duster drapes around the pack and the spear extends above his shoulder.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the backpack and duster filling the frame. The dull grey pipe shaft of the spear rises over his right shoulder and the faded red stop-sign blade peeks at the top.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, backpack shifting with the stride. Trinkets swing and the leather duster tail flaps behind his legs.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Wanderer faces left with his left foot forward in a cautious stride. The spear extends ahead in his leading hand and the duster trails behind, revealing the layered olive clothing beneath. The gas mask profile shows the protruding filter canister.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, feet aligned. The hunched posture is evident in profile and the backpack's bulk rises behind his shoulders. Amber lenses gleam from the mask.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, duster swinging forward. The stop-sign spear blade catches a dull red glint.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the spear leading his advance. The duster flows behind and the backpack trinkets sway. His gas mask filter canister protrudes from the far side.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the wiry build visible beneath the heavy duster. The rust orange accents on the salvaged buckles and straps catch dim light.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, duster trailing. The backpack bounces and the amber mask lenses reflect the wasteland ahead.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Wanderer stands in a slightly hunched stance facing the viewer, spear resting on his shoulder and one hand on a hip strap. The gas mask's amber lenses stare out beneath the duster's raised collar. Trinkets hang still from the backpack.
+  Header "Idle Up" (2,1): Facing away at rest, the patched backpack and dangling trinkets fill the view. The leather duster hangs loosely and the spear extends upward past his shoulder. The rubber gas mask straps cross the back of his head.
+  Header "Idle Left" (2,2): Facing left in a watchful hunched stance, one hand resting on the spear shaft planted beside him. The gas mask filter and amber lens are visible in profile. The duster drapes heavily.
+  Header "Idle Right" (2,3): Facing right at rest, the spear leaning against his shoulder. The duster collar is turned up and the backpack's silhouette extends behind him. The mask's breathing creates a faint haze from the filter.
+  Header "Battle Idle 1" (2,4): The Wanderer drops into a low defensive crouch, the stop-sign spear held horizontally at waist level with both hands. The duster pulls back from his arms and the amber lenses narrow with focus behind the mask.
+  Header "Battle Idle 2" (2,5): He shifts his weight in the crouch, the spear tip tracking an unseen threat. The backpack straps creak and the trinkets clink softly. His gas mask breathing quickens, visible as a faint pulse from the filter.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Wanderer holds the defensive crouch, spear angled forward. The duster flares behind him and the amber lenses reflect a harsh wasteland glare. His knuckles are white on the pipe shaft.
+  Header "Attack 1" (3,1): Wind-up — he pulls the stop-sign spear back over his right shoulder, body coiling. The duster wraps around his torso from the twist and the backpack shifts heavily.
+  Header "Attack 2" (3,2): The spear thrusts forward in a savage jab, the faded red stop-sign blade punching outward. His body extends into the strike and the duster flares from the motion.
+  Header "Attack 3" (3,3): Follow-through — the spear is fully extended, the stop-sign blade at maximum reach. The duster whips from the rotational force and the Wanderer's hunched posture straightens into the lunge.
+  Header "Cast 1" (3,4): The Wanderer reaches into the backpack and pulls out a crude Molotov cocktail — a glass bottle stuffed with an oily rag. He holds a salvaged lighter in his other hand, spear tucked under his arm.
+  Header "Cast 2" (3,5): The rag ignites, casting orange firelight across his gas mask. The amber lenses glow warm and the bottle's contents slosh with volatile liquid. Smoke trails from the burning rag.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Wanderer hurls the Molotov forward — a small arc of fire trails the spinning bottle as it shatters at the cell edge, erupting in a compact burst of flame. He shields his mask with one arm.
+  Header "Damage 1" (4,1): The Wanderer staggers backward from a hit, the spear wavering in his grip. One gas mask lens cracks in a spiderweb pattern and trinkets scatter from the jostled backpack.
+  Header "Damage 2" (4,2): Stumbling further, the duster tears at the shoulder and salvaged gear spills from a ruptured backpack pocket. The cracked mask lens distorts the amber glow and his breathing rasps louder through the filter.
+  Header "Damage 3" (4,3): Recovery — the Wanderer plants the spear butt into the ground for balance, steadying himself. He presses the torn duster against his side and the remaining mask lens refocuses on the threat.
+  Header "KO 1" (4,4): His grip on the spear loosens as his knees buckle. The gas mask straps slip and the mask tilts sideways on his face. The backpack drags him backward with its weight.
+  Header "KO 2" (4,5): The Wanderer collapses onto the backpack, the spear clattering beside him. The gas mask pulls free, revealing sun-weathered, scarred skin beneath. Trinkets scatter across the ground.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Wanderer lies sprawled on the ground atop the crushed backpack, the gas mask beside his weathered face. The stop-sign spear rests nearby and scattered trinkets and salvage surround his still form.
+  Header "Victory 1" (5,1): The Wanderer plants the stop-sign spear into the ground and leans on it, pushing the gas mask up onto his forehead. His weathered face shows a rare, tired grin beneath.
+  Header "Victory 2" (5,2): He raises the spear overhead with one hand, the faded red stop-sign blade catching the light. The duster billows and trinkets jingle in a metallic cheer from the backpack.
+  Header "Victory 3" (5,3): The Wanderer slings the spear across his shoulders behind his neck, arms draped over it casually. The gas mask hangs loosely at his collar and he surveys the aftermath with amber-tinted goggles pushed up.
+  Header "Weak Pose" (5,4): The Wanderer leans heavily on the spear as a crutch, one hand clutching his side. The duster is torn and caked with dust, the mask filter is clogged with soot, and the backpack hangs by a single strap.
+  Header "Critical Pose" (5,5): Barely standing, the Wanderer grips the spear with trembling hands. The gas mask is cracked and wheezing, the duster is shredded, and his desperate amber lenses scan for any escape route.`,
+    },
+    {
+      id: 'vault-dweller',
+      name: "Vault Dweller",
+      genre: "Post-Apocalyptic",
+      description: "A young, clean-cut survivor freshly emerged from an underground vault. Short brown hair, wide blue eyes, and an expression of cautious wonder. Lean build in a fitted jumpsuit with an upright, slightly nervous posture.",
+      equipment: "A bright blue jumpsuit with a yellow number '42' on the back, a chunky Pip-Boy wrist computer on the left arm with a green screen, a compact laser pistol holstered at the hip, and a small utility belt with pouches.",
+      colorNotes: "Bright blue jumpsuit with yellow trim and number. Pip-Boy is dark grey-green with a glowing green screen. Laser pistol is chrome with a red energy cell. Utility belt is brown leather with brass buckles.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Vault Dweller steps forward on his left foot, the bright blue jumpsuit crisp and visible with yellow trim along the seams. The chunky Pip-Boy on his left wrist glows green and the laser pistol sits snug in the hip holster.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together. His wide blue eyes look ahead with cautious wonder and the yellow '42' is partially visible on his chest pocket. The Pip-Boy screen flickers with data.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads. The utility belt pouches bounce and the chrome laser pistol handle catches light at his hip. His short brown hair is neat and clean.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the large yellow '42' on the back of the blue jumpsuit is prominently displayed. The Pip-Boy is visible on his trailing left wrist and the utility belt wraps his waist.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the blue jumpsuit and yellow number filling the view. The brown leather utility belt pouches are visible at his sides and his short hair shows his clean-cut profile.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the jumpsuit shifting with the stride. The laser pistol holster is visible at his right hip from behind.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Vault Dweller faces left with his left foot forward in a careful step, Pip-Boy arm leading and its green screen visible. The blue jumpsuit is neat and the laser pistol rides at his far hip.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his lean profile showing the yellow jumpsuit trim running down his side. The Pip-Boy is prominent on his near wrist and his nervous expression is visible.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The utility belt pouches sway and the chrome pistol handle glints behind his hip.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the laser pistol holster visible at his near hip. The Pip-Boy trails on his far arm and his wide blue eyes scan the unfamiliar world ahead.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, jumpsuit creasing at the joints. The brown leather belt and brass buckles are visible and the Pip-Boy glows green on his far wrist.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. His slightly nervous posture shows in the way his shoulders hunch forward, Pip-Boy swinging.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Vault Dweller stands facing the viewer in a slightly stiff, uncertain stance. His left arm is raised to check the Pip-Boy screen, which glows green with readouts. The blue jumpsuit is pristine and the laser pistol is holstered.
+  Header "Idle Up" (2,1): Facing away, the yellow '42' on the blue jumpsuit is clear. His posture is upright but tense, hands at his sides with the Pip-Boy arm slightly raised. The utility belt hangs neatly.
+  Header "Idle Left" (2,2): Facing left, the Vault Dweller taps at the Pip-Boy screen with his right hand. The green display casts a soft glow on his chin and the blue jumpsuit drapes cleanly on his lean frame.
+  Header "Idle Right" (2,3): Facing right, hand resting near the holstered laser pistol. His wide blue eyes peer cautiously ahead and the yellow trim on the jumpsuit catches ambient light.
+  Header "Battle Idle 1" (2,4): The Vault Dweller draws the chrome laser pistol in a two-handed grip, feet apart in a textbook shooting stance. The Pip-Boy screen switches to a targeting display and the red energy cell glows at the pistol's base.
+  Header "Battle Idle 2" (2,5): He adjusts his aim nervously, the laser pistol wavering slightly in his grip. The Pip-Boy targeting display blinks with distance readings and his blue eyes narrow with determined focus.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Vault Dweller steadies the laser pistol with both hands, settling into a firmer stance. The Pip-Boy beeps with a target lock and the red energy cell hums. His expression hardens behind the sights.
+  Header "Attack 1" (3,1): Wind-up — he squares his shoulders and sights down the laser pistol, the red energy cell brightening as it charges. The Pip-Boy arm supports the shooting hand and his blue eyes lock on the target.
+  Header "Attack 2" (3,2): A bright red laser beam fires from the chrome pistol with a flash at the barrel. The recoil pushes his hands up slightly and the red beam streaks across the cell. The jumpsuit creases from the brace.
+  Header "Attack 3" (3,3): Follow-through — the laser beam terminates at the cell edge in a small red impact flash. The pistol barrel vents heat and the Vault Dweller steadies himself for another shot, Pip-Boy recalibrating.
+  Header "Cast 1" (3,4): The Vault Dweller raises his Pip-Boy arm and activates a special function, the green screen projecting a small holographic map. The laser pistol is holstered as he focuses on the device.
+  Header "Cast 2" (3,5): The Pip-Boy projects a wider holographic field, a targeting grid expanding outward. The device whirs and clicks, the green screen blazing bright, and his wide eyes reflect the holographic data.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Pip-Boy activates a V.A.T.S.-like targeting burst — a brief pulse of green energy radiates outward from the device, highlighting weak points. Time seems to slow around him momentarily before normalizing.
+  Header "Damage 1" (4,1): The Vault Dweller flinches from a hit, the laser pistol nearly slipping from his grip. A scorch mark appears on the blue jumpsuit sleeve and the Pip-Boy screen flickers with static.
+  Header "Damage 2" (4,2): Stumbling backward, the jumpsuit tears at the shoulder revealing a white undershirt. The Pip-Boy sparks at a cracked hinge and a utility pouch spills its contents. His expression shows genuine fear.
+  Header "Damage 3" (4,3): Recovery — the Vault Dweller steadies himself, checking the Pip-Boy which reboots with a green flash. He picks up the laser pistol and forces a brave expression, though his hands tremble.
+  Header "KO 1" (4,4): The laser pistol drops from his limp fingers as his knees give out. The Pip-Boy screen displays a flatline readout and the bright blue jumpsuit is stained and torn. His eyes go wide with shock.
+  Header "KO 2" (4,5): The Vault Dweller collapses forward, the Pip-Boy arm outstretched with a fading green screen. The chrome laser pistol slides away and the yellow '42' on his back is now scuffed and dirty.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Vault Dweller lies face-down on the ground, the Pip-Boy screen dark and the blue jumpsuit torn and dirtied. The laser pistol rests nearby and scattered utility belt contents surround him.
+  Header "Victory 1" (5,1): The Vault Dweller holds the laser pistol up triumphantly, blowing imaginary smoke from the barrel. The Pip-Boy beeps a cheerful victory jingle and his wide blue eyes beam with surprised pride.
+  Header "Victory 2" (5,2): He holsters the laser pistol with a spin and checks the Pip-Boy, which displays a smiley face and XP gained. His nervous expression is replaced by a confident grin and the jumpsuit is still clean.
+  Header "Victory 3" (5,3): The Vault Dweller gives a thumbs-up with his Pip-Boy hand, the green screen showing a thumbs-up icon in return. He stands tall with an awkward but genuine confidence, blue jumpsuit gleaming.
+  Header "Weak Pose" (5,4): The Vault Dweller hunches over with hands on knees, panting. The jumpsuit is torn and stained, the Pip-Boy screen flickers with warning readouts, and the laser pistol dangles loosely from one hand.
+  Header "Critical Pose" (5,5): Barely standing, the Vault Dweller clutches the laser pistol with both hands. The Pip-Boy screen flashes red emergency warnings, the jumpsuit is in tatters, and his blue eyes are wide with terrified determination.`,
+    },
+    {
+      id: 'raider-warlord',
+      name: "Raider Warlord",
+      genre: "Post-Apocalyptic",
+      description: "A brutal scavenger leader with a shaved head sporting a tall crimson mohawk, heavy war paint across the eyes, and a scarred, muscular build. Aggressive forward-leaning stance radiating menace.",
+      equipment: "Spiked shoulder armor welded from scrap metal and car parts, a heavy chain weapon ending in a spiked ball, bone-and-tooth trophies on a necklace, and crude war paint in red and black streaks.",
+      colorNotes: "Bare scarred skin with red and black war paint. Crimson mohawk. Armor is rust red and gunmetal scrap metal with bone white trophy accents. Chain is dark iron and the spiked ball is pitted steel. Pants are torn black leather.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Raider Warlord stomps forward on his left foot, the heavy chain weapon swinging at his right side with the spiked ball dragging. The spiked scrap-metal shoulder armor juts aggressively and his crimson mohawk stands tall above red and black war paint.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet planted wide. His scarred muscular torso is visible between scrap armor plates and the bone-and-tooth necklace rattles against his chest. War-painted eyes glare forward.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, chain swinging to the left. The spiked ball scrapes the ground and the rust red armor plates clank with each heavy step.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the massive spiked shoulder armor dominates the back view. The chain weapon trails behind and the crimson mohawk rises like a fin above the gunmetal scrap plates.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the scarred back visible between armor gaps. Bone trophies dangle from armor hooks and the chain weapon hangs at his side. The mohawk is a sharp crimson ridge.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the spiked ball dragging behind. The torn black leather pants and heavy boots complete the brutal silhouette.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Warlord faces left with his left foot forward in an aggressive advance. The spiked shoulder armor leads and the chain weapon trails behind, spiked ball bouncing. His mohawk profile is sharp and the war paint streaks are vivid.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his scarred muscular profile visible. The bone-tooth necklace hangs across his chest and the scrap armor plates overlap with crude welds. Eyes narrow with menace.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, chain swinging forward. The rust red armor catches harsh light and the spiked ball arcs ahead.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, chain weapon leading and spiked ball swinging outward. The crimson mohawk trails like a war banner and the scrap shoulder armor bristles with welded spikes.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the aggressive forward lean evident. The war paint streaks frame his scarred face in profile and the bone trophies click against the armor.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, the chain weapon trailing. The torn black leather pants and heavy stomping boots are prominent.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Warlord stands with legs apart facing the viewer, the chain weapon coiled in one fist. The spiked armor gleams dull rust red and his war-painted face glares with open hostility. The bone necklace hangs over his scarred chest.
+  Header "Idle Up" (2,1): Facing away, the spiked shoulder armor and bare scarred back fill the view. The chain weapon hangs at his side and bone trophies are hooked to the back of his armor. The crimson mohawk is a bold ridge.
+  Header "Idle Left" (2,2): Facing left, the Warlord rests the spiked ball on the ground with the chain taut in his fist. His profile shows the prominent mohawk, sharp war paint, and the menacing scrap armor silhouette.
+  Header "Idle Right" (2,3): Facing right, he holds the chain loosely, letting the spiked ball swing lazily. His aggressive forward lean and scarred muscular arms are prominent beneath the rust red armor plates.
+  Header "Battle Idle 1" (2,4): The Warlord begins swinging the chain weapon overhead in a wide arc, the spiked ball whirring. He drops into a wide combat stance and bares his teeth with a snarl. The war paint makes his eyes look like burning embers.
+  Header "Battle Idle 2" (2,5): The chain swings faster, the spiked ball a blur above his head. He shifts his weight aggressively and the scrap armor clanks and sparks. His crimson mohawk whips in the self-made wind.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Warlord holds the whirring chain at peak speed, muscles straining beneath the scrap armor. His war-painted face is locked in a battle snarl and the spiked ball hums with lethal momentum.
+  Header "Attack 1" (3,1): Wind-up — he pulls the chain back over his shoulder, the spiked ball swinging behind him. His body coils with raw power and the scrap armor groans under the tension. War paint glistens with sweat.
+  Header "Attack 2" (3,2): The chain lashes forward — the spiked ball rockets outward in a savage overhead slam. His entire body follows the arc and the scrap armor sparks from the violent motion.
+  Header "Attack 3" (3,3): Impact — the spiked ball crashes down at the cell edge with a burst of sparks and debris. The chain snaps taut and the Warlord is pulled forward by the momentum, boots skidding.
+  Header "Cast 1" (3,4): The Warlord reaches to his belt and produces a crude frag grenade — a tin can packed with scrap metal and a fuse. He bites the pull ring with his teeth while holding the chain weapon in the other hand.
+  Header "Cast 2" (3,5): The fuse sparks and sizzles as he holds the grenade overhead, the orange glow reflecting off his war paint and spiked armor. Scrap shrapnel is visible inside the crude casing.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Warlord hurls the frag grenade — it tumbles through the air and detonates at the cell edge in a small burst of fire and flying scrap metal shards. He shields himself with the spiked shoulder armor.
+  Header "Damage 1" (4,1): The Warlord reels from a hit, a scrap armor plate cracking and flying off his shoulder. The chain weapon jerks in his grip and his mohawk flattens from the impact. War paint smears with blood.
+  Header "Damage 2" (4,2): Staggering back, more armor plates buckle and fall. His scarred torso takes a visible wound and the bone necklace snaps, sending trophies scattering. The chain weapon drags on the ground.
+  Header "Damage 3" (4,3): Recovery — the Warlord plants his feet and roars with rage, swinging the chain weapon back up. His remaining armor is battered but he forces himself upright, war paint streaked with blood and fury in his eyes.
+  Header "KO 1" (4,4): The chain weapon slips from his weakening grip, the spiked ball thudding to the ground. His massive frame sways and the remaining scrap armor hangs loose. The mohawk droops and the war paint is smeared.
+  Header "KO 2" (4,5): The Warlord crashes to his knees, then falls forward onto the broken scrap armor. The chain weapon lies coiled beside him and bone trophies scatter. His crimson mohawk is flattened against the ground.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Warlord lies face-down amid scattered scrap armor plates, broken bone trophies, and the tangled chain weapon. His crimson mohawk is matted and the war paint is unrecognizable. The spiked ball rests near his open hand.
+  Header "Victory 1" (5,1): The Warlord raises the chain weapon overhead and roars, spiked ball swinging triumphantly. His war-painted face splits into a savage grin and he beats his scarred chest with his free fist. The mohawk bristles.
+  Header "Victory 2" (5,2): He slams the spiked ball into the ground with a thunderous crash and stands over it, one boot on the chain. The scrap armor gleams with battle damage and he throws his head back in a primal howl.
+  Header "Victory 3" (5,3): The Warlord coils the chain weapon around his arm and crosses his armored arms, glaring forward with contemptuous superiority. The bone necklace clicks and the crimson mohawk stands perfectly erect.
+  Header "Weak Pose" (5,4): The Warlord hunches forward, chain weapon dragging on the ground. Half his scrap armor is gone, the war paint is faded with dried blood, and the mohawk wilts. He snarls through gritted teeth, refusing to fall.
+  Header "Critical Pose" (5,5): Barely standing, the Warlord swings the chain weapon in weak, desperate arcs. His armor is destroyed, the bone necklace is gone, and his body is covered in wounds — but his war-painted eyes still burn with unbroken fury.`,
+    },
+    {
+      id: 'mutant-enforcer',
+      name: "Mutant Enforcer",
+      genre: "Post-Apocalyptic",
+      description: "An oversized irradiated brute standing a head taller than a normal human. Sickly green-tinged skin with purple bruising and visible radiation scars. Hunched, top-heavy build with massive arms and a small, angry head.",
+      equipment: "A crude super sledge — an oversized sledgehammer with a car engine block as the head, torn remnants of pre-war clothing barely covering the torso, and heavy chains wrapped around the forearms as makeshift bracers.",
+      colorNotes: "Sickly green skin with mottled purple bruising and grey radiation scars. Torn clothing is faded grey-blue. Super sledge head is dark steel with rust. Chain bracers are dark iron. Eyes are a dim, angry yellow.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Mutant Enforcer lumbers forward on his left foot, the ground seeming to shake with his weight. The massive super sledge drags at his right side, its car-engine head scraping the ground. His sickly green skin is mottled with purple bruises and his dim yellow eyes glare ahead.
+  Header "Walk Down 2" (0,1): Neutral mid-step with feet planted wide to support his top-heavy frame. The torn grey-blue clothing barely covers his barrel chest and the chain bracers on his massive forearms clink. His small angry head sits atop bulging shoulders.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the super sledge dragging on the other side. Grey radiation scars are visible across his green arms and the purple bruising shifts with muscle movement.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the Enforcer's massive hunched back fills the view. The torn clothing hangs in strips and radiation scars crisscross his green skin. The super sledge shaft extends upward past his shoulder.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the top-heavy build evident. Chain-wrapped forearms hang at his sides and the car-engine sledge head protrudes above his right shoulder. The purple bruising is visible on his back.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the massive frame lumbering. The torn clothing flaps and the dark iron chains on his wrists catch dull light.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Enforcer faces left with his left foot forward in a heavy, ground-shaking stride. The super sledge is held low in his massive right hand, engine-block head trailing. His hunched profile shows the disproportion between his huge body and small head.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his enormous silhouette looming. The chain bracers hang heavily on forearms thicker than a normal man's thighs. Sickly green skin glistens with an unhealthy sheen.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, sledge swinging forward. The torn grey-blue clothing rips further with the motion and radiation scars catch the light.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the super sledge leading in his massive grip. The chain bracers jingle and his dim yellow eyes squint ahead. Purple bruising marks his near arm and shoulder.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the top-heavy hunched frame evident. The car-engine sledge head rests on the ground and his small angry head peers forward from between massive shoulders.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The ground cracks under his weight and the torn clothing flutters with each thunderous step.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Enforcer stands hunched facing the viewer, the super sledge resting on his shoulder with the engine-block head behind his back. His massive chain-wrapped arms hang forward and his small head peers out with dim yellow eyes. Green skin pulses faintly with radiation.
+  Header "Idle Up" (2,1): Facing away, the enormous hunched back and massive shoulders fill the frame. The super sledge rests across the back of his neck like a yoke. Chain bracers dangle and the torn clothing barely covers his lower back.
+  Header "Idle Left" (2,2): Facing left, the Enforcer rests both hands on top of the upright super sledge handle, the engine-block head on the ground. His hunched profile and small angry head create a looming silhouette. Radiation scars mark his visible arm.
+  Header "Idle Right" (2,3): Facing right, the sledge hangs loosely in one massive hand. His top-heavy posture leans forward and the purple bruising on his green skin creates a sickly pattern. The chain bracers are prominent on his near arm.
+  Header "Battle Idle 1" (2,4): The Enforcer hoists the super sledge with both hands, raising the car-engine head overhead. He drops into a wide aggressive stance and roars, revealing jagged, yellowed teeth. His green skin darkens with rage and the yellow eyes blaze.
+  Header "Battle Idle 2" (2,5): He swings the super sledge in slow, menacing figure-eights, the engine-block head whooshing through the air. The chain bracers rattle and his massive frame shifts with surprising control for his size.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Enforcer holds the super sledge cocked behind his right shoulder, muscles bulging. His small head is lowered like a charging bull and the dim yellow eyes lock on the target with brute focus. Chains rattle on his tensed forearms.
+  Header "Attack 1" (3,1): Wind-up — the Enforcer heaves the super sledge high overhead with both hands, the engine-block head at its peak. His green body stretches to full height, momentarily towering, and the torn clothing tears further from the strain.
+  Header "Attack 2" (3,2): The super sledge crashes downward in a devastating overhead slam, the engine-block head a blur of dark steel and rust. The impact is enormous and his massive frame follows the arc with full commitment.
+  Header "Attack 3" (3,3): Impact — the engine-block head hits the ground at the cell edge, sending a shockwave of cracks through the surface. Dust and debris erupt outward and the Enforcer is buried to the wrists in the crater. Chains spark against stone.
+  Header "Cast 1" (3,4): The Enforcer's radiation scars begin to glow — a sickly green luminescence pulses beneath his skin. He drops the sledge and clutches his head as the radiation within him surges, purple bruises intensifying.
+  Header "Cast 2" (3,5): His entire body radiates green light, the scars becoming bright veins of toxic energy. His yellow eyes blaze and a shockwave of radioactive air distorts the space around him. The chains on his arms heat and glow.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Enforcer releases a burst of radiation — a green shockwave erupts outward from his body, distorting the air. His skin cracks momentarily with the energy release before sealing. He collapses to one knee afterward, drained.
+  Header "Damage 1" (4,1): The Enforcer is knocked back a step — a remarkable feat given his size. A chunk of green skin tears revealing raw purple tissue beneath. The super sledge dips but he holds on, growling.
+  Header "Damage 2" (4,2): Staggering, a chain bracer snaps and falls from his wrist. More skin tears open showing the purple bruised tissue and his torn clothing disintegrates further. The sledge handle cracks under his stressed grip.
+  Header "Damage 3" (4,3): Recovery — the Enforcer steadies himself with a ground-shaking stomp. He hoists the damaged super sledge and roars, the radiation scars pulsing with renewed dim green light. His yellow eyes refocus with animal determination.
+  Header "KO 1" (4,4): The super sledge slips from his massive hands and thuds to the ground. The Enforcer sways, his green skin losing its glow, and the yellow eyes dim. His enormous frame lists to one side.
+  Header "KO 2" (4,5): The Enforcer topples like a felled tree, crashing to the ground with earth-shaking impact. The super sledge lies beside him and the chain bracers splay outward. His green skin is pale and the radiation scars are dark.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Enforcer lies in a small crater from his own impact, the super sledge nearby and chain bracers spread around him. His sickly green skin is faded to grey-green and the yellow eyes are closed. The torn clothing is now just rags.
+  Header "Victory 1" (5,1): The Enforcer lifts the super sledge overhead with one hand and pounds his chest with the other, roaring victoriously. The engine-block head catches light above him and his green skin blazes with renewed radiation glow.
+  Header "Victory 2" (5,2): He slams the super sledge down and stands over it, flexing his massive arms. The chain bracers jingle and his small head throws back in a triumphant bellow. The radiation scars pulse a bright, healthy green.
+  Header "Victory 3" (5,3): The Enforcer sits on the super sledge engine-block head as a throne, massive arms resting on his knees. His dim yellow eyes show a rare, dull satisfaction and the purple bruises have faded slightly.
+  Header "Weak Pose" (5,4): The Enforcer leans heavily on the upright super sledge, his massive frame sagging. The green skin is pale and the radiation scars are dim. Chain bracers drag on the ground and his yellow eyes are half-closed, flickering.
+  Header "Critical Pose" (5,5): Barely standing, the Enforcer clutches the super sledge handle with both trembling hands. His green skin is almost grey, the radiation scars are completely dark, and his massive body shakes. Only a faint angry glow in his yellow eyes remains.`,
+    },
+    {
+      id: 'caravan-trader',
+      name: "Caravan Trader",
+      genre: "Post-Apocalyptic",
+      description: "A pragmatic traveling merchant with a weathered face, a wide-brimmed cowboy hat, and shrewd hazel eyes. Medium build wrapped in practical layers and a pack harness distributing heavy trade goods across the body.",
+      equipment: "A wide-brimmed leather cowboy hat, a heavy pack harness with goods strapped across chest and back, barter items dangling from hooks (bottles, ammo boxes, canned food), a worn revolver in a thigh holster, and a walking staff made from a twisted rebar rod.",
+      colorNotes: "Tan wide-brimmed hat and outer layers. Brown leather harness and holster. Brass-colored buckles, bullet casings, and barter goods. Gunmetal revolver. Dark brown boots. Rebar staff is rust-grey.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The Caravan Trader steps forward on his left foot, barter goods jingling on the pack harness. The wide-brimmed hat shades his weathered face and the rebar walking staff plants ahead. Bottles and ammo boxes sway from harness hooks.
+  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together. His shrewd hazel eyes peer from beneath the hat brim and the pack harness distributes heavy goods across his chest. The revolver sits snug in the thigh holster.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, barter goods swinging to the opposite side. Canned food and brass bullet casings dangle and clatter. The rebar staff catches rust-grey light.
+  Header "Walk Up 1" (0,3): Facing away with left foot forward, the heavy pack harness and trade goods dominate the back view. Strapped bundles, bottles, and ammo boxes create a merchant's profile. The hat brim is visible from above.
+  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full weight of the pack visible. Brown leather straps crisscross the tan outer layers and the rebar staff rises past his right shoulder. Brass buckles catch dim light.
+  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, goods shifting with the stride. The thigh holster and revolver handle peek from beneath the layered pack.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): The Trader faces left with his left foot forward, leaning on the rebar staff. The pack harness goods — bottles, cans, ammo boxes — jingle and sway. His weathered profile beneath the hat brim shows shrewd concentration.
+  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the pack harness creating a bulky side profile. The revolver holster is visible at his near thigh and the hat brim casts a shadow across his face.
+  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, the rebar staff swinging. Barter goods bounce and the brass buckles on the harness glint.
+  Header "Walk Right 1" (1,3): Facing right with right foot forward, the rebar staff leading. The pack harness goods trail behind and the wide-brimmed hat tilts forward. The worn revolver holster is on his far thigh.
+  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the practical layers and harness creating a distinctive merchant silhouette. Hazel eyes scan the path ahead and trade goods clink softly.
+  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, goods swaying. The dark brown boots are worn smooth and the rebar staff taps the ground with each step.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The Trader stands with the rebar staff planted beside him, one hand resting on a dangling ammo box. His wide-brimmed hat tilts back showing his weathered face and hazel eyes. The pack harness hangs heavily but comfortably. The revolver is holstered.
+  Header "Idle Up" (2,1): Facing away, the full pack harness load is visible — bottles, cans, ammo, and various barter goods strapped in organized chaos. The leather straps and brass buckles hold everything secure. The hat brim is visible at the top.
+  Header "Idle Left" (2,2): Facing left, the Trader adjusts a strap on the harness with one hand, rebar staff tucked under his arm. His shrewd expression shows he is calculating something. Trade goods dangle from his near side.
+  Header "Idle Right" (2,3): Facing right, he rests both hands on top of the rebar staff planted before him. The hat shades his profile and the revolver holster and barter goods create a distinctive merchant outline.
+  Header "Battle Idle 1" (2,4): The Trader drops the rebar staff and draws the worn revolver from the thigh holster in a practiced quick-draw. He crouches behind the pack harness goods using them as improvised cover. Hazel eyes are sharp above the revolver sights.
+  Header "Battle Idle 2" (2,5): He shifts behind the hanging pack goods, revolver tracking a target. The bottles and cans sway as he moves and the brass bullet casings on the harness clink. His weathered face is calm and calculating.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): The Trader holds steady with the revolver, one eye closed for aim. The wide-brimmed hat shadows his face and the pack harness goods shift as he breathes. His thigh holster hangs empty and his trigger finger is steady.
+  Header "Attack 1" (3,1): Wind-up — the Trader thumbs back the revolver hammer with a click, sighting down the barrel. His hazel eyes narrow and the hat brim dips with his focused lean forward. The pack goods go still.
+  Header "Attack 2" (3,2): The revolver fires — a small muzzle flash erupts from the barrel and the Trader's arm recoils upward. Smoke trails from the chamber and the barter goods rattle from the concussive blast.
+  Header "Attack 3" (3,3): Follow-through — the bullet streaks to the cell edge as spent powder smoke drifts. The Trader steadies the revolver for another shot and an empty brass casing arcs through the air from the chamber.
+  Header "Cast 1" (3,4): The Trader reaches into the pack harness and produces a bundle of dynamite sticks — salvaged mining explosives tied together with a long fuse. He bites a match head and strikes it on his hat brim.
+  Header "Cast 2" (3,5): The fuse sizzles and sparks, casting orange light on the Trader's weathered face beneath the hat. The dynamite bundle crackles and he winds up for the throw, pack goods swaying from the motion.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The Trader hurls the dynamite bundle — it tumbles end over end, fuse burning, and detonates at the cell edge in a thundering explosion of dust and fire. He ducks behind the pack harness from the blast wave.
+  Header "Damage 1" (4,1): The Trader stumbles from a hit, barter goods flying from the harness. A bottle shatters and an ammo box spills open. The revolver wavers and the hat tilts askew. His hazel eyes show surprise.
+  Header "Damage 2" (4,2): Staggering further, the pack harness snaps a strap and goods cascade — cans, bottles, and brass casings scatter. The hat flies off revealing thinning grey-brown hair. The revolver dips in his weakening grip.
+  Header "Damage 3" (4,3): Recovery — the Trader catches his hat and jams it back on. He kicks a few scattered goods aside, steadies the revolver, and adjusts the damaged harness with one hand. His expression shifts from surprise to hardened resolve.
+  Header "KO 1" (4,4): The revolver drops from his limp hand as the Trader's knees buckle. The pack harness tears free and goods spill everywhere — a cascade of bottles, cans, and ammo boxes. The hat falls over his eyes.
+  Header "KO 2" (4,5): The Trader collapses amid his scattered merchandise, the rebar staff rolling away. Barter goods surround him like a halo of commerce — bottles, cans, ammo, and brass buckles. The hat lies beside his weathered face.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The Trader lies among his scattered goods — bottles, canned food, ammo boxes, and brass casings spread around him. The revolver rests in his open palm, the hat covers his face, and the broken pack harness is draped across his legs.
+  Header "Victory 1" (5,1): The Trader spins the revolver and holsters it with a practiced flourish. He tips the wide-brimmed hat with a satisfied smirk and adjusts the pack harness, which still holds most of its goods. Business is good.
+  Header "Victory 2" (5,2): He plants the rebar staff and leans on it with casual confidence, one hand tipping the hat. The barter goods jingle merrily and his shrewd hazel eyes survey the spoils. A small grin creases his weathered face.
+  Header "Victory 3" (5,3): The Trader pulls a bottle from the harness and uncorks it, raising it in a toast to himself. The revolver is holstered, the hat tilted back, and the remaining barter goods dangle with the satisfaction of a deal well done.
+  Header "Weak Pose" (5,4): The Trader leans on the rebar staff, the pack harness half-empty and hanging by one strap. The hat droops and the revolver dangles loosely from one hand. Most of his barter goods are lost and his hazel eyes are weary.
+  Header "Critical Pose" (5,5): Barely standing amid his scattered goods, the Trader clutches the revolver with his last round. The hat is torn, the harness is destroyed, and he stands guard over what remains of his trade goods with desperate, calculating eyes.`,
     }
   ];
 
