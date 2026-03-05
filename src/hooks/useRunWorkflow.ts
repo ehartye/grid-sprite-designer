@@ -181,7 +181,8 @@ export function useRunWorkflow() {
       const templateParams = gridConfig.templates[run.imageSize];
 
       // Generate template
-      const template = generateTemplate(templateParams, gridConfig);
+      const aspectRatio = gridConfig.aspectRatio || '1:1';
+      const template = generateTemplate(templateParams, gridConfig, aspectRatio);
       dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink.cellGroups } });
 
       // Build prompt with layered guidance
@@ -200,6 +201,7 @@ export function useRunWorkflow() {
         run.imageSize,
         abort.signal,
         refImage,
+        aspectRatio,
       );
 
       if (abort.signal.aborted) return;
