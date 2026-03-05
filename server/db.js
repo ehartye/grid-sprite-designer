@@ -143,6 +143,8 @@ function createSchema(db) {
       cell_groups TEXT NOT NULL DEFAULT '[]',
       generic_guidance TEXT DEFAULT '',
       bg_mode TEXT DEFAULT NULL,
+      aspect_ratio TEXT DEFAULT '1:1',
+      tile_shape TEXT DEFAULT 'square',
       is_preset INTEGER DEFAULT 1,
       UNIQUE(name, sprite_type, grid_size)
     )
@@ -200,6 +202,9 @@ function migrateSchema(db) {
     'ALTER TABLE generations ADD COLUMN thumbnail_mime TEXT DEFAULT NULL',
     "ALTER TABLE generations ADD COLUMN sprite_type TEXT NOT NULL DEFAULT 'character'",
     "ALTER TABLE generations ADD COLUMN grid_size TEXT DEFAULT NULL",
+    "ALTER TABLE grid_presets ADD COLUMN aspect_ratio TEXT DEFAULT '1:1'",
+    "ALTER TABLE grid_presets ADD COLUMN tile_shape TEXT DEFAULT 'square'",
+    "ALTER TABLE generations ADD COLUMN aspect_ratio TEXT DEFAULT '1:1'",
   ];
   for (const sql of migrations) {
     try { db.exec(sql); } catch (_) { /* column already exists */ }
