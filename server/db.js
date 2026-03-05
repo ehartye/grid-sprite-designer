@@ -3914,6 +3914,11 @@ function seedAnimationSeries(db) {
           order: 3,
           guidance: `Collapse from accumulated damage. Hit reaction: staggering backward, spear slipping from grip. Falling: knees buckling, hand reaching for wound. Impact: crumpling to ground on side, duster spreading around body. Final pose: lying face-down with one arm extended, spear fallen nearby, goggles knocked off, gas mask dangling from strap. Canteen spilled.`,
         },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 4,
+          guidance: `Special attack: crouch and aim sequence. Frame 1: dropping to one knee from standing, spear shifting to overhand grip. Frame 2: crouched low behind cover (implied), pulling arm back with spear held like a javelin. Frame 3: aiming — body coiled, eyes narrowed through goggles now pulled down over eyes, gas mask hanging. Frame 4: explosive throw — full body extension, spear released in javelin throw, duster billowing from the force. Recovery implied off-sheet. Dust cloud at feet from the sudden movement.`,
+        },
       ],
     },
     {
@@ -3938,6 +3943,11 @@ function seedAnimationSeries(db) {
           name: 'Iso Death Sequence 8\u00d74',
           order: 3,
           guidance: `Acid blood death sequence. Hit: screeching with jaws fully open, body arching backward. Stagger: acid blood spraying from wound, burning ground beneath. Falling: limbs giving way asymmetrically, tail thrashing. Collapse: crumpling with acid pool forming around body. Final pose: curled on side, exoskeleton cracked open, acid still steaming, tail limp, jaws frozen open. Green-yellow acid glow.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 4,
+          guidance: `Tail strike attack from behind. Frame 1: crouched facing away from target, tail rising high behind the body, barbed tip glinting. Frame 2: tail arcing overhead in a scorpion-like motion, body still low and coiled. Frame 3: tail whipping forward at full extension — the segmented tail stretched to maximum reach, barbed tip driving downward. Frame 4: impact and retract — tail embedded momentarily, acid blood dripping from barb, then pulling back as the creature spins to face the target. Inner jaw visible in a hiss during the spin. Exoskeleton plates shift and flex with the tail movement.`,
         },
       ],
     },
