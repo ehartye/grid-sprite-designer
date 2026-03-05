@@ -1,0 +1,18 @@
+{
+  "spriteType": "background",
+  "gridSize": "2x2",
+  "cols": 2,
+  "rows": 2,
+  "totalCells": 4,
+  "templateCellW": 1021,
+  "templateCellH": 1021,
+  "headerH": 18,
+  "border": 2,
+  "generationId": 41,
+  "cellLabels": [
+    "Day - Smog",
+    "Night - Neon",
+    "Rain - Reflections",
+    "Blackout - Emergency"
+  ]
+}

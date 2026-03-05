@@ -8,13 +8,13 @@
   "templateCellH": 680,
   "headerH": 22,
   "border": 2,
-  "generationId": 36,
+  "generationId": 33,
   "cellLabels": [
-    "Stage 1",
-    "Stage 2",
-    "Stage 3",
-    "Stage 4",
-    "Stage 5",
-    "Stage 6"
+    "Normal - Frame 1",
+    "Normal - Frame 2",
+    "Alert - Frame 1",
+    "Alert - Frame 2",
+    "Damaged",
+    "Destroyed"
   ]
 }

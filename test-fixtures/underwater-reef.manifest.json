@@ -1,0 +1,18 @@
+{
+  "spriteType": "background",
+  "gridSize": "1x4",
+  "cols": 1,
+  "rows": 4,
+  "totalCells": 4,
+  "templateCellW": 2044,
+  "templateCellH": 509,
+  "headerH": 18,
+  "border": 2,
+  "generationId": 42,
+  "cellLabels": [
+    "Surface Light & Open Water",
+    "Mid Water & Fish Schools",
+    "Coral Formations",
+    "Seafloor & Anemones"
+  ]
+}

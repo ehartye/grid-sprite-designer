@@ -9,4 +9,5 @@ output/
 .playwright-mcp/
 *.png
 !screenshots/*.png
+!test-fixtures/*.png
 test-fixtures/*.b64

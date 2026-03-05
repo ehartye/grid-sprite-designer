@@ -8,13 +8,13 @@
   "templateCellH": 680,
   "headerH": 22,
   "border": 2,
-  "generationId": 36,
+  "generationId": 37,
   "cellLabels": [
-    "Stage 1",
-    "Stage 2",
-    "Stage 3",
-    "Stage 4",
-    "Stage 5",
-    "Stage 6"
+    "Doors Closed",
+    "Doors Opening",
+    "Doors Open - Empty",
+    "Doors Open - Mech Docked",
+    "Launch Sequence",
+    "Battle Damage"
   ]
 }
