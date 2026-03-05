@@ -2710,6 +2710,110 @@ ROW 2 — Nighttime States:
   Header "Night - Active" (2,1): Night with the green glow at full intensity — the church blazes with radioactive light. Green beams shoot from the shattered windows. The collapsed roof is an open cauldron of green energy. The graveyard is lit in sickly green. Radiation readings would be lethal.
   Header "Night - Meltdown" (2,2): Critical radioactive event — the church's green glow is blinding. Cracks of green energy split the remaining walls. The steeple is surrounded by a green corona. The ground around the church glows and cracks. The headstones themselves glow. An atomic nightmare.`,
     },
+    {
+      id: 'hive-chamber',
+      name: 'Hive Chamber',
+      genre: 'Sci-Fi Horror',
+      gridSize: '3x3',
+      description: 'An organic alien nest chamber with resin-coated walls, cocooned victims along the walls, and a thick layer of biomechanical secretion covering every surface. Dim amber lighting from bioluminescent growths.',
+      details: 'Walls made of hardened organic resin with ribbed textures. Cocooned human figures are embedded in the walls, encased in translucent resin showing vague silhouettes. Egg clusters sit on the organic floor. Dripping resin strands hang from the ceiling. Small bioluminescent growths provide dim amber light. A central passage leads deeper into the hive.',
+      colorNotes: 'Dark brown-black resin walls, amber bioluminescent glow, translucent grey-white cocoon resin, dark organic floor with green-black sheen, pale flesh visible through cocoon material.',
+      cellLabels: JSON.stringify([
+        'Empty - Dim', 'Empty - Active', 'Egg Cluster',
+        'Cocooned Victims', 'Hatching', 'Drone Present',
+        'Warrior Patrolling', 'Queen Nearby', 'Infestation Peak'
+      ]),
+      cellGuidance: `ROW 0 — Chamber States:
+  Header "Empty - Dim" (0,0): The hive chamber in its dormant state. Resin-coated walls glisten with a dark sheen. Bioluminescent growths cast faint amber pools of light. Dripping resin strands hang from above. The chamber is empty and quiet but deeply unsettling. Organic textures cover every surface.
+  Header "Empty - Active" (0,1): The chamber is more active — bioluminescent growths pulse brighter. Fresh resin drips are visible. The ribbed walls seem to breathe with subtle expansion. The floor has fresh organic secretion. Something has been here recently.
+  Header "Egg Cluster" (0,2): A cluster of leathery alien eggs sits in the center of the chamber. The eggs are waist-high, pale and mottled, with a cross-shaped opening at the top. They pulse gently with internal movement. Mist hugs the floor around them. The amber light catches the moist egg surfaces.
+
+ROW 1 — Infestation Progress:
+  Header "Cocooned Victims" (1,0): The walls are lined with cocooned figures — human silhouettes visible through layers of translucent hardened resin. Some figures show signs of chest-burst trauma. The cocoon material is grey-white and veined. The scene is deeply horrifying.
+  Header "Hatching" (1,1): An egg in the foreground is opening — the cross-shaped top peeling back to reveal movement inside. A pale facehugger finger-leg reaches from within. Other eggs nearby pulse with imminent hatching. Tension and dread.
+  Header "Drone Present" (1,2): A xenomorph drone silhouette crouches in the corner of the chamber, barely distinguishable from the organic walls. Its obsidian body blends with the resin. Only the glint of silver teeth and the curve of the tail blade betray its presence. Predator in its nest.
+
+ROW 2 — Maximum Threat:
+  Header "Warrior Patrolling" (2,0): A larger xenomorph warrior strides through the chamber, its ridged head crest nearly touching the ceiling. The resin walls seem to part for it. Acid-green blood traces mark the floor. The amber light catches the warrior's dark brown chitin plates.
+  Header "Queen Nearby" (2,1): The chamber trembles — massive footsteps shake loose resin from the ceiling. An enormous shadow fills the passage at the far end. The bioluminescent growths blaze brighter in response. The eggs pulse frantically. The queen is approaching. Ultimate terror.
+  Header "Infestation Peak" (2,2): The chamber is at maximum horror — every wall is covered in cocoons, eggs fill the floor, multiple drone silhouettes cling to walls and ceiling. Resin drips constantly. The bioluminescence is at its brightest. The hive is alive and thriving. A nightmare ecosystem.`,
+    },
+    {
+      id: 'derelict-ship-corridor',
+      name: 'Derelict Ship Corridor',
+      genre: 'Sci-Fi Horror',
+      gridSize: '3x3',
+      description: 'A biomechanical alien vessel interior with HR Giger-inspired ribbed walls, fog-filled corridors, and flickering emergency strip lighting. The architecture itself seems alive.',
+      details: 'Ribbed walls with organic-mechanical fusion — bone-like arches meet chrome pipes and cable bundles. Emergency strip lighting runs along the floor in dim red. Fog drifts at floor level. Skeletal arch doorways lead to other sections. Condensation drips from the biomechanical ceiling. A control panel with alien displays is embedded in one wall.',
+      colorNotes: 'Dark steel-grey biomechanical walls with bone-white ribbing, dim red emergency strip lighting, blue-green fog, amber alien display panels, chrome pipe accents, dark condensation streaks.',
+      cellLabels: JSON.stringify([
+        'Powered Down', 'Emergency Lighting', 'Systems Online',
+        'Fog Rolling', 'Motion Detected', 'Acid Damage',
+        'Breach - Vacuum', 'Self Destruct', 'Overgrown'
+      ]),
+      cellGuidance: `ROW 0 — Power States:
+  Header "Powered Down" (0,0): The corridor in complete darkness except for very faint bioluminescence from the walls themselves. The ribbed architecture is barely visible — bone-like shapes in the black. No emergency lights. No fog. Absolute silence visualized through stillness. Cold and dead.
+  Header "Emergency Lighting" (0,1): Red emergency strip lights flicker on along the floor, casting harsh upward shadows on the ribbed walls. The bone-white ribs become dramatic against the dark ceiling. Fog begins drifting at floor level. The alien control panel shows a single amber warning glyph. Tense.
+  Header "Systems Online" (0,2): Full emergency power — red strip lights are steady, the alien control panel blazes with amber displays, and conduit pipes along the walls pulse with faint blue energy. The fog is thicker. The corridor stretches into darkness at both ends. The biomechanical architecture is fully revealed and terrifying.
+
+ROW 1 — Threat Escalation:
+  Header "Fog Rolling" (1,0): Dense blue-green fog fills the lower half of the corridor, obscuring the floor completely. The red strip lights glow through the fog creating an otherworldly haze. The upper ribbed walls emerge above the fog line. Visibility is severely limited. Something could be hiding in the fog.
+  Header "Motion Detected" (1,1): The control panel flashes a rapid amber warning. A shadow moves at the far end of the corridor — barely visible through the fog. The emergency lights flicker in response to the movement. Condensation falls from the ceiling in a disturbed pattern. The corridor suddenly feels very narrow.
+  Header "Acid Damage" (1,2): Acid has burned through sections of the floor and walls — smoking holes with melted edges reveal lower decks and internal pipework. The acid-green residue sizzles and steams. Some ribs are partially dissolved. The corridor is compromised and dangerous.
+
+ROW 2 — Catastrophic States:
+  Header "Breach - Vacuum" (2,0): A hull breach at the far end of the corridor — the wall is torn open showing stars and the void of space. Atmosphere vents outward, the fog streaming toward the breach. Emergency bulkheads are half-closed. Loose objects drift toward the opening. The emergency lights strobe in alarm.
+  Header "Self Destruct" (2,1): The self-destruct sequence is active — every light flashes red in urgent pulses. The alien control panel displays a countdown in alien glyphs. Steam jets from ruptured pipes. The ribbed walls seem to contract as if the ship is in pain. Alarms implied through visual chaos. Evacuation urgency.
+  Header "Overgrown" (2,2): After years of abandonment, the biomechanical architecture has grown — ribs have expanded and merged, new organic growth covers the chrome pipes, and the corridor has partially closed in on itself. The alien technology and organic material have fused into a new, living structure. Beautiful and horrible.`,
+    },
+    {
+      id: 'egg-chamber',
+      name: 'Egg Chamber',
+      genre: 'Sci-Fi Horror',
+      gridSize: '2x2',
+      description: 'A breeding ground for facehuggers — a low-ceilinged organic chamber carpeted with leathery eggs on a living organic floor, filled with blue-green mist and pulsing bioluminescence.',
+      details: 'Low organic ceiling dripping with resin. The floor is a living organic membrane covered with rows of leathery eggs. Each egg is about waist-high with a cross-shaped opening at the top. Blue-green mist hugs the floor obscuring the egg bases. Pulsing bioluminescent growths in the walls create an eerie rhythmic light. The overall atmosphere is womb-like and profoundly disturbing.',
+      colorNotes: 'Pale grey-brown leathery eggs, dark organic floor and ceiling, blue-green bioluminescent mist, amber pulsing wall growths, translucent egg membranes, dark resin drips.',
+      cellLabels: JSON.stringify([
+        'Dormant', 'Awakening',
+        'Hatching Wave', 'Empty Husks'
+      ]),
+      cellGuidance: `ROW 0 — Pre-Hatch States:
+  Header "Dormant" (0,0): The egg chamber at rest. Rows of leathery eggs stand in the mist, all closed at the top. The bioluminescent growths pulse in a slow, hypnotic rhythm. Resin drips from the low ceiling. The blue-green mist is still and even. The eggs appear inert but alive. An unsettling calm.
+  Header "Awakening" (0,1): The eggs respond to a presence — the leathery surfaces begin to ripple with internal movement. The cross-shaped openings twitch. The bioluminescence pulses faster. The mist swirls as if disturbed from below. The organic floor membrane contracts slightly. Something is about to happen.
+
+ROW 1 — Active States:
+  Header "Hatching Wave" (1,0): Multiple eggs are opening simultaneously — cross-shaped tops peeling back, pale facehugger legs reaching upward. Some facehuggers are already free, scuttling between eggs. The mist churns. The bioluminescence blazes at maximum intensity. A cascade of horrifying birth.
+  Header "Empty Husks" (1,1): The aftermath — all eggs are open and empty, their leathery walls collapsed inward. Spent egg fluid pools on the organic floor. The mist has thinned. The bioluminescence dims to a low pulse. Only hollow husks remain. The facehuggers have gone hunting. The silence is worse than the hatching.`,
+    },
+    {
+      id: 'biomechanical-temple',
+      name: 'Biomechanical Temple',
+      genre: 'Sci-Fi Horror',
+      gridSize: '3x3',
+      description: 'A Giger-esque cathedral of impossible geometry — skeletal ribbed arches soar overhead, organic pipes pulse with unknown fluids, and a chrome altar sits at the center of a living chamber that defies architectural logic.',
+      details: 'Massive skeletal arches made of fused bone and chrome form the ceiling structure. Organic pipes run along the walls carrying dark fluids. A central chrome altar rises from the organic floor, covered in alien glyphs. The walls themselves appear to breathe with slow, rhythmic expansion. The geometry is subtly wrong — angles that should be straight are curved, perspectives that should converge seem to diverge. Living walls with embedded vertebral columns and ribbed surfaces.',
+      colorNotes: 'Bone-white skeletal arches with chrome joints, dark steel walls with flesh-pink organic patches, chrome altar with amber glyph lighting, dark fluid in translucent organic pipes, overall palette of chrome silver, bone, and disturbing flesh tones.',
+      cellLabels: JSON.stringify([
+        'Dormant - Day', 'Dormant - Night', 'Awakened',
+        'Ritual Active', 'Entity Summoned', 'Corruption Spreading',
+        'Ancient Ruin', 'Fully Alive', 'Transcendence'
+      ]),
+      cellGuidance: `ROW 0 — Base States:
+  Header "Dormant - Day" (0,0): The temple in cold, dead light. The skeletal arches soar overhead but the bone surfaces are dull and dry. The chrome altar sits empty and unlit. The organic pipes are still and dark. The walls do not breathe. The impossible geometry is visible but muted. An ancient, dormant horror.
+  Header "Dormant - Night" (0,1): Darkness fills the temple. Faint moonlight catches the chrome surfaces — the altar, the pipe fittings, the arch joints. The bone-white skeletal structure glows faintly. The geometry becomes more unsettling in the dark, shadows making the wrong angles more prominent.
+  Header "Awakened" (0,2): The temple stirs — the organic pipes begin flowing with dark fluid. The walls pulse with the first breath. The chrome altar glyphs flicker amber. The skeletal arches flex almost imperceptibly. The flesh-pink patches on the walls darken with blood flow. Something ancient remembers.
+
+ROW 1 — Active States:
+  Header "Ritual Active" (1,0): A ceremony in progress — the chrome altar blazes with amber glyph light. The organic pipes pulse rhythmically. The walls breathe visibly. The skeletal arches vibrate with resonance. Small biomechanical entities emerge from the walls. The impossible geometry seems to shift and flow.
+  Header "Entity Summoned" (1,1): A massive biomechanical entity materializes above the altar — a translucent form of chrome and flesh, too large for the space yet somehow contained. The temple's geometry bends around it. The skeletal arches bow inward. The organic pipes blaze with superheated fluid. Ultimate cosmic horror.
+  Header "Corruption Spreading" (1,2): The temple's influence extends outward — the organic walls push through the stone boundaries. Biomechanical tendrils crawl along the floor beyond the temple proper. The chrome surfaces propagate like a metallic infection. The impossible geometry is spreading. Reality warps at the edges.
+
+ROW 2 — Extreme States:
+  Header "Ancient Ruin" (2,0): The temple as archaeological discovery — partially buried, the skeletal arches broken and half-collapsed. The chrome altar is tarnished and covered in dust. Organic pipes are dried and cracked. The impossible geometry is still subtly wrong even in ruin. A place of ancient power, long dormant.
+  Header "Fully Alive" (2,1): The temple at maximum biological activity — every surface breathes, the organic pipes flow with bright fluid, the chrome altar projects holographic alien geometries upward. The skeletal arches flex like ribs around a beating heart. The walls are more flesh than metal. The air shimmers with impossible angles.
+  Header "Transcendence" (2,2): Beyond horror into awe — the temple has transcended physical form. The skeletal arches dissolve into pure light. The chrome altar projects a gateway to somewhere else. The geometry inverts — inside becomes outside. The organic and mechanical merge into a new form of existence. Terrifyingly beautiful.`,
+    },
   ];
 
   const insert = db.prepare(
