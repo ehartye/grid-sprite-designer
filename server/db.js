@@ -26,6 +26,7 @@ export function getDb() {
   seedTerrainPresets(db);
   seedBackgroundPresets(db);
   seedIsometricGridPresets(db);
+  seedAnimationSeries(db);
   return db;
 }
 
@@ -3078,6 +3079,117 @@ ROW 4 — Forest-to-Grassland Edge Transitions:
   Header "Forest-Grass Edge W" (4,3): Grass on the east half, forest floor on the west half. Reverse of Edge E.
   Header "Forest-Grass Corner" (4,4): Forest floor in the northeast corner, grass filling the rest. A convex corner transition where forest meets grassland.`,
     },
+    {
+      id: 'cracked-desert-wasteland',
+      name: 'Cracked Desert Wasteland',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x4',
+      description: 'Sun-baked post-nuclear earth with deep cracks, scattered debris, radiation pools, and dead brush for wasteland environments.',
+      colorNotes: 'Parched tan and pale yellow cracked earth, dark brown crack lines, sickly yellow-green radiation pools, grey-brown dead brush, rust orange debris, bleached bone white.',
+      tileLabels: JSON.stringify([
+        'Cracked Earth 1', 'Cracked Earth 2', 'Deep Fissure', 'Scorched Ground',
+        'Radiation Pool', 'Toxic Puddle', 'Dead Brush', 'Debris Scatter',
+        'Rusted Metal', 'Bone Fragments', 'Tire Tracks', 'Blast Crater',
+        'Wasteland-Road Edge N', 'Wasteland-Road Edge S', 'Wasteland-Road Edge E', 'Wasteland-Road Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Wasteland Tiles (seamlessly tileable):
+  Header "Cracked Earth 1" (0,0): Sun-baked pale tan earth with a polygon pattern of deep cracks. The standard wasteland ground tile. Dry, parched, and lifeless. Subtle heat shimmer implied by pale coloring.
+  Header "Cracked Earth 2" (0,1): Variant cracked earth with different crack pattern and a few small pebbles. Same pale tan palette. Tiles seamlessly with Cracked Earth 1.
+  Header "Deep Fissure" (0,2): A wide dark crack runs diagonally across the tile, deep enough to show darkness below. The surrounding earth is crumbling at the edges. More dramatic damage than base tiles.
+  Header "Scorched Ground" (0,3): Blackened, charred earth from a nuclear blast or fire. Dark brown-black surface with ash residue. No cracks — the ground was melted smooth. Devastated.
+
+ROW 1 — Hazard Tiles:
+  Header "Radiation Pool" (1,0): A small pool of sickly yellow-green glowing liquid sitting in a depression. The surrounding cracked earth is stained darker. The pool surface has an oily, unnatural sheen. Lethal.
+  Header "Toxic Puddle" (1,1): A smaller toxic puddle — murky brown-green water in a crack. Less glowing than the radiation pool but still dangerous. Dead insects float on the surface.
+  Header "Dead Brush" (1,2): Cracked earth with a cluster of dead grey-brown brush — skeletal twigs and dried leaves. The only vegetation, and it is long dead. Desolate.
+  Header "Debris Scatter" (1,3): Cracked earth with scattered pre-war debris — broken glass, twisted metal fragments, faded plastic. The remnants of civilization ground into the dirt.
+
+ROW 2 — Feature Tiles:
+  Header "Rusted Metal" (2,0): A rusted metal sheet or car panel partially buried in the cracked earth. Rust orange surface with flaking paint. A salvageable resource marker.
+  Header "Bone Fragments" (2,1): Bleached white bone fragments scattered on the cracked earth. Animal or human bones sun-bleached to white. A grim reminder of what was lost.
+  Header "Tire Tracks" (2,2): Twin parallel tire tracks pressed into the cracked earth, running top to bottom. Someone drove through recently. The tracks are the only sign of life.
+  Header "Blast Crater" (2,3): A shallow circular depression — a small blast crater with darker scorched earth at the center and cracked debris around the rim. Evidence of past violence.
+
+ROW 3 — Wasteland-to-Road Edge Transitions:
+  Header "Wasteland-Road Edge N" (3,0): Cracked wasteland earth on the north half transitioning to broken asphalt road on the south half. The road edge crumbles into the dirt.
+  Header "Wasteland-Road Edge S" (3,1): Broken asphalt on the north half, wasteland earth on the south half. Reverse of Edge N. Weeds push through the asphalt cracks.
+  Header "Wasteland-Road Edge E" (3,2): Wasteland on the east half, broken road on the west half. Vertical transition with crumbling asphalt edge.
+  Header "Wasteland-Road Edge W" (3,3): Broken road on the east half, wasteland on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'toxic-swamp',
+      name: 'Toxic Swamp',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x4',
+      description: 'Murky irradiated wetland tiles with glowing green water, dead trees, bubbling toxic surface, and fungal growths for contaminated swamp environments.',
+      colorNotes: 'Murky dark green-brown water, sickly bright green glow in contaminated areas, grey-black dead tree trunks, pale bioluminescent fungi, dark mud brown, toxic yellow-green bubbles.',
+      tileLabels: JSON.stringify([
+        'Murky Water 1', 'Murky Water 2', 'Glowing Water', 'Bubbling Surface',
+        'Mud Flat', 'Dead Tree Stump', 'Fallen Log', 'Fungal Growth',
+        'Lily Pad Cluster', 'Toxic Algae', 'Bone Pile', 'Submerged Wreck',
+        'Swamp-Land Edge N', 'Swamp-Land Edge S', 'Swamp-Land Edge E', 'Swamp-Land Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Swamp Water (seamlessly tileable):
+  Header "Murky Water 1" (0,0): Dark green-brown murky swamp water. The surface is opaque with floating organic matter. Subtle ripple texture. The standard toxic swamp tile. Unsettling and still.
+  Header "Murky Water 2" (0,1): Variant murky water with slightly different surface debris and ripple pattern. Tiles seamlessly with Murky Water 1. A few more floating particles.
+  Header "Glowing Water" (0,2): Swamp water with a sickly bright green glow emanating from below. The contaminated water illuminates from within. Radiation or chemical contamination. Beautiful and deadly.
+  Header "Bubbling Surface" (0,3): Murky water with toxic yellow-green bubbles breaking the surface. Gas escaping from submerged decay. The bubbles pop and release wisps of toxic vapor. Active and dangerous.
+
+ROW 1 — Solid Ground and Features:
+  Header "Mud Flat" (1,0): Exposed dark brown mud between water areas. Wet, sticky surface with boot-print impressions. Small puddles of toxic water in depressions. Traversable but treacherous.
+  Header "Dead Tree Stump" (1,1): A grey-black dead tree stump rising from the murky water. The trunk is bare and rotting. Fungal growths cling to the base. A landmark in the featureless swamp.
+  Header "Fallen Log" (1,2): A dead tree trunk lying partially submerged in the swamp water. Grey-black bark peeling away. Moss and fungi cover the exposed wood. Could be used as a bridge.
+  Header "Fungal Growth" (1,3): Mud or shallow water with a cluster of pale bioluminescent fungi. The mushrooms glow a soft blue-green. Toxic spores drift from the caps. Eerie and alien.
+
+ROW 2 — Decorative Feature Tiles:
+  Header "Lily Pad Cluster" (2,0): Murky water with mutant lily pads — oversized, slightly wrong in color (dark olive instead of bright green). Some have strange growths or holes. Post-apocalyptic vegetation.
+  Header "Toxic Algae" (2,1): Water surface covered in a thick mat of toxic algae — bright yellow-green scum. The water beneath is invisible. The algae pulses faintly. A carpet of contamination.
+  Header "Bone Pile" (2,2): Shallow murky water with a pile of animal bones rising above the surface. Bleached white against the dark water. Something was feeding here. Or something died here in numbers.
+  Header "Submerged Wreck" (2,3): The top of a submerged vehicle or structure breaking the water surface. Rusted metal protrudes from the murky depths. Moss and algae cover the exposed parts. A pre-war relic swallowed by the swamp.
+
+ROW 3 — Swamp-to-Land Edge Transitions:
+  Header "Swamp-Land Edge N" (3,0): Murky swamp water on the north half transitioning to muddy solid ground on the south half. The waterline is irregular with reeds and debris.
+  Header "Swamp-Land Edge S" (3,1): Muddy ground on the north half, swamp water on the south half. Reverse of Edge N. The ground slopes into the water.
+  Header "Swamp-Land Edge E" (3,2): Swamp water on the east half, solid ground on the west half. Vertical transition with a muddy bank.
+  Header "Swamp-Land Edge W" (3,3): Solid ground on the east half, swamp water on the west half. Reverse of Edge E.`,
+    },
+    {
+      id: 'ruined-highway',
+      name: 'Ruined Highway',
+      genre: 'Post-Apocalyptic',
+      gridSize: '4x4',
+      description: 'Cracked and broken asphalt highway tiles with faded lane markings, rusted vehicle debris, and overgrown weeds pushing through the pavement.',
+      colorNotes: 'Dark grey cracked asphalt, faded yellow and white lane markings, rust orange vehicle debris, dark green weeds in cracks, pale concrete for shoulder, brown dirt beneath broken pavement.',
+      tileLabels: JSON.stringify([
+        'Asphalt 1', 'Asphalt 2', 'Lane Markings H', 'Lane Markings V',
+        'Pothole', 'Major Crack', 'Overgrown Section', 'Rusted Vehicle',
+        'Guardrail', 'Road Sign', 'Debris Field', 'Oil Stain',
+        'Road-Dirt Edge N', 'Road-Dirt Edge S', 'Road-Dirt Edge E', 'Road-Dirt Edge W'
+      ]),
+      tileGuidance: `ROW 0 — Base Road Tiles (seamlessly tileable):
+  Header "Asphalt 1" (0,0): Dark grey cracked asphalt with small fractures and weathering. The standard broken road tile. Surface is rough and aged but mostly intact. Subtle variations in grey tones.
+  Header "Asphalt 2" (0,1): Variant asphalt with different crack pattern and a small weed pushing through. Tiles seamlessly with Asphalt 1. Slightly lighter grey patches from sun bleaching.
+  Header "Lane Markings H" (0,2): Asphalt with faded yellow or white lane markings running horizontally — dashed center line and solid edge line. The paint is flaking and barely visible. A ghost of order.
+  Header "Lane Markings V" (0,3): Asphalt with faded lane markings running vertically. Dashed line in the center, solid at the edge. Same faded, forgotten paint.
+
+ROW 1 — Damage Tiles:
+  Header "Pothole" (1,0): A large pothole in the asphalt — a dark depression revealing layers of road base and brown dirt beneath. Crumbled edges. Water may collect here. A driving hazard.
+  Header "Major Crack" (1,1): A wide crack splitting the asphalt diagonally. The crack is wide enough to see dirt and roots beneath. Weeds grow from the gap. The road is failing structurally.
+  Header "Overgrown Section" (1,2): Asphalt nearly consumed by vegetation — dark green weeds, grass, and small bushes push through extensive cracks. Nature reclaiming the road. Barely recognizable as pavement.
+  Header "Rusted Vehicle" (1,3): A rusted vehicle hulk sitting on the asphalt — a flattened, corroded car shell in rust orange and brown. Tires are flat discs. Windows are empty holes. A permanent road obstacle.
+
+ROW 2 — Feature Tiles:
+  Header "Guardrail" (2,0): A section of bent and rusted metal guardrail running across the tile. The posts lean at angles and the rail is dented. A road boundary marker long past its purpose.
+  Header "Road Sign" (2,1): A fallen or leaning road sign on cracked asphalt. The sign face is faded and unreadable — maybe a speed limit or direction. The metal pole is rusted. A landmark.
+  Header "Debris Field" (2,2): Asphalt covered with scattered debris — broken glass, twisted metal, plastic fragments, and scattered personal items. The aftermath of a crash or abandonment. Cluttered and sad.
+  Header "Oil Stain" (2,3): Asphalt with a large dark oil stain — an iridescent dark patch where a vehicle leaked its lifeblood. The stain has been baked in by years of sun. A permanent scar.
+
+ROW 3 — Road-to-Dirt Edge Transitions:
+  Header "Road-Dirt Edge N" (3,0): Cracked asphalt on the north half breaking apart into bare dirt and gravel on the south half. The road edge crumbles. Weeds grow in the transition zone.
+  Header "Road-Dirt Edge S" (3,1): Bare dirt and gravel on the north half, broken asphalt road on the south half. Reverse of Edge N. The pavement emerges from the wasteland.
+  Header "Road-Dirt Edge E" (3,2): Asphalt on the east half, dirt on the west half. Vertical transition with crumbling road shoulder. Gravel scatter at the boundary.
+  Header "Road-Dirt Edge W" (3,3): Dirt on the east half, asphalt on the west half. Reverse of Edge E. The road edge is defined by a line of broken concrete chunks.`,
+    },
   ];
 
   const insert = db.prepare(
@@ -3544,4 +3656,139 @@ ANIMATION RULES:
 
   insertAll();
   console.log(`[DB] Seeded ${GRIDS.length} isometric grid presets.`);
+}
+
+function seedAnimationSeries(db) {
+  // Check if any links already exist for these characters + iso grids
+  const existing = db.prepare(`
+    SELECT COUNT(*) as count FROM character_grid_links cgl
+    JOIN grid_presets gp ON gp.id = cgl.grid_preset_id
+    WHERE gp.aspect_ratio = '16:9' AND gp.genre = 'Isometric'
+  `).get();
+  if (existing.count > 0) return;
+
+  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ?");
+  const insertLink = db.prepare(`
+    INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, guidance_override, sort_order)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  const SERIES = [
+    {
+      characterId: 'wasteland-wanderer',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Walking cautiously through wasteland rubble. Crouched survival posture with spear held diagonally across body for balance. Leather duster coat sways with each step. Goggles on forehead, gas mask bouncing on chest strap. Feet carefully placed to avoid debris. Head constantly scanning left and right. Canteen swings on pack. Dust kicks up slightly from boots on each step.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Rebar spear thrust attack sequence. Wind-up: spear pulled back with both hands, weight on rear foot. Strike: lunging forward with full-body thrust, spear tip leading. Impact: spear extended, slight twist for piercing. Recovery: pulling spear back to ready position, stepping back into defensive stance. Gas mask stays on forehead throughout. Duster flares outward during lunge.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Standing alert in wasteland, scanning the horizon for threats. Spear held vertically in right hand, butt resting on ground. Left hand shading eyes or adjusting goggles. Subtle weight shifts from foot to foot. Occasional glance over shoulder. Breathing visible through slight chest movement. Duster drapes still. Canteen occasionally touched/checked.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Collapse from accumulated damage. Hit reaction: staggering backward, spear slipping from grip. Falling: knees buckling, hand reaching for wound. Impact: crumpling to ground on side, duster spreading around body. Final pose: lying face-down with one arm extended, spear fallen nearby, goggles knocked off, gas mask dangling from strap. Canteen spilled.`,
+        },
+      ],
+    },
+    {
+      characterId: 'xenomorph-warrior',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Predatory stalking movement on all fours transitioning to hunched bipedal. Low to the ground, tail stretched behind for balance, slowly sweeping side to side. Inner jaw occasionally visible through parted outer jaws. Claws extended, fingers splayed for grip. Elongated head tilted slightly as if sensing prey. Exoskeleton gleams with wet sheen. Movement is smooth and deliberate, not rushed.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Lunging claw attack with tail strike follow-up. Wind-up: rearing back on hind legs, arms spread wide, jaws opening. Strike: explosive forward lunge, right claw slashing diagonally. Impact: claws extended at full reach, inner jaw shooting forward. Recovery: tail whips around from behind as secondary attack, then settling back to ready crouch. Acid drool trails from jaws during attack.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Alert hunting stance, perfectly still except for subtle movements. Tail slowly swaying behind like a cat watching prey. Head making small tilting motions, sensing vibrations. Occasional jaw parting slightly revealing inner jaw. Fingers flexing and unflexing. Exoskeleton surface rippling subtly. Drool forming and dropping from lower jaw. Overall impression: coiled spring ready to explode into motion.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Acid blood death sequence. Hit: screeching with jaws fully open, body arching backward. Stagger: acid blood spraying from wound, burning ground beneath. Falling: limbs giving way asymmetrically, tail thrashing. Collapse: crumpling with acid pool forming around body. Final pose: curled on side, exoskeleton cracked open, acid still steaming, tail limp, jaws frozen open. Green-yellow acid glow.`,
+        },
+      ],
+    },
+    {
+      characterId: 'vault-dweller',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Purposeful vault-trained walk with military-influenced posture. Upright, shoulders back, laser pistol holstered at hip. Left arm with Pip-Boy slightly raised, green screen glow visible. Blue jumpsuit crisp and clean. Steps are measured and deliberate, trained movement. Yellow stripe visible on jumpsuit sides. Boots have a slight heel click on contact. Head forward, alert but not fearful.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Laser pistol firing sequence from trained hip-fire stance. Wind-up: drawing pistol from holster in smooth motion, left hand steadying Pip-Boy for targeting. Strike: pistol aimed and firing, red laser beam visible from barrel, slight recoil. Impact: follow-through shot, Pip-Boy screen flashing with target data. Recovery: pistol returning to ready position, not holstered. Red laser flash on frames 3-4.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Checking Pip-Boy wrist computer readout while standing guard. Left arm raised to read Pip-Boy screen, green glow illuminating face from below. Right hand resting on holstered pistol. Subtle head movements between checking Pip-Boy and scanning surroundings. Occasional tap on Pip-Boy screen. Jumpsuit creases shift slightly with breathing. Standing at parade rest when not checking device.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Clean collapse animation befitting trained vault personnel. Hit: flinching back, hand going to chest wound, Pip-Boy arm dropping. Stagger: pistol falling from holster, knees weakening. Falling: controlled fall to knees first, then sideways. Final pose: lying on back, one hand on chest, Pip-Boy screen still glowing green on outstretched arm, pistol nearby, jumpsuit stained. Eyes closed, peaceful expression.`,
+        },
+      ],
+    },
+    {
+      characterId: 'biomechanical-entity',
+      grids: [
+        {
+          name: 'Iso Walk Cycle 8\u00d76',
+          order: 0,
+          guidance: `Mechanical-organic crawling movement blending robotic precision with organic fluidity. Multiple limbs move in unsettling coordination — some metallic, some fleshy. Central mass shifts weight between mechanical legs and organic tendrils. Exposed gears and pistons visible alongside pulsing tissue. Eye cluster tracks independently of body movement. Hydraulic hisses suggested by small steam puffs. Movement is eerily smooth despite the grotesque form.`,
+        },
+        {
+          name: 'Iso Attack Cycle 8\u00d74',
+          order: 1,
+          guidance: `Tendril lash attack with mechanical precision. Wind-up: organic tendrils coiling back while mechanical arm extends targeting array. Strike: tendrils whipping forward in coordinated bundle, metallic barbs at tips catching light. Impact: tendrils fully extended, sparks flying from mechanical joints powering the strike. Recovery: tendrils retracting and re-coiling, mechanical components resetting with visible gear rotation. Purple bio-energy pulses along tendrils during strike.`,
+        },
+        {
+          name: 'Iso Idle Cycle 8\u00d74',
+          order: 2,
+          guidance: `Pulsing mechanical-organic idle state. Organic tissue contracts and expands rhythmically like breathing. Mechanical components make small adjustment movements — gears turning, pistons cycling. Tendrils slowly writhe and probe the air. Eye cluster blinks in sequence, not simultaneously. Occasional spark from exposed wiring. Bio-luminescent patches pulse in sync with organic breathing. Steam/vapor vents periodically from cooling systems. Unsettling combination of machine precision and organic restlessness.`,
+        },
+        {
+          name: 'Iso Death Sequence 8\u00d74',
+          order: 3,
+          guidance: `Component disassembly and system failure cascade. Hit: electrical discharge across body, tendrils spasming. Stagger: mechanical limbs locking at wrong angles, organic parts going limp. Falling: body listing as structural supports fail, components separating. Collapse: mechanical frame crashing down, organic tissue pooling, sparks flying from severed connections. Final pose: scattered wreckage of metal and tissue, eye cluster dimming to dark, last tendril twitching, fluids leaking, small fires on exposed circuitry.`,
+        },
+      ],
+    },
+  ];
+
+  const linkAll = db.transaction(() => {
+    let linkCount = 0;
+    for (const series of SERIES) {
+      for (const grid of series.grids) {
+        const gridRow = findGrid.get(grid.name);
+        if (gridRow) {
+          insertLink.run(series.characterId, gridRow.id, grid.guidance, grid.order);
+          linkCount++;
+        }
+      }
+    }
+    console.log(`[DB] Seeded ${SERIES.length} animation series (${linkCount} grid links).`);
+  });
+
+  linkAll();
 }
