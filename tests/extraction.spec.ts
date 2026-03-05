@@ -1,15 +1,37 @@
 import { test, expect } from '@playwright/test';
-import { existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { existsSync, readdirSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
+import { join, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..');
+const FIXTURES_DIR = join(ROOT, 'test-fixtures');
+const RESULTS_DIR = join(ROOT, 'test-results', 'fixtures');
 
-const MAX_ALLOWED_BLEED = 15; // % of top 10px that are dark/white
-const MAX_DARK_BAND_PCT = 80; // % dark pixels in any single row (catches misplaced headers)
-const MAX_HEIGHT_SPREAD = 10; // px max height variation within a row
+// Thresholds
+const MAX_ALLOWED_BLEED = 15;
+const MAX_DARK_BAND_PCT: Record<string, number> = {
+  character: 80,
+  building: 95,  // buildings have legitimately dark content
+  terrain: 90,
+  background: 95,
+};
+const MAX_HEIGHT_SPREAD = 10;
+
+interface Manifest {
+  spriteType: string;
+  gridSize: string;
+  cols: number;
+  rows: number;
+  totalCells: number;
+  templateCellW: number;
+  templateCellH: number;
+  headerH: number;
+  border: number;
+  cellLabels?: string[];
+  contentPreset?: string;
+}
 
 interface SpriteResult {
   idx: number;
@@ -21,238 +43,155 @@ interface SpriteResult {
   cellH: number;
   worstDarkBandPct: number;
   worstDarkBandRow: number;
+  imageDataUrl: string; // base64 data URL for the report
 }
 
-async function runExtraction(page: any, fixture: string): Promise<SpriteResult[]> {
-  await page.goto(`/tests/extraction-harness.html?fixture=${fixture}`, {
-    waitUntil: 'domcontentloaded',
-  });
+// Discover all manifests
+const manifestFiles = readdirSync(FIXTURES_DIR)
+  .filter(f => f.endsWith('.manifest.json'))
+  .sort();
+
+const fixtures = manifestFiles.map(mf => {
+  const name = basename(mf, '.manifest.json');
+  const manifest: Manifest = JSON.parse(readFileSync(join(FIXTURES_DIR, mf), 'utf8'));
+  const imageFile = ['.jpg', '.jpeg', '.png']
+    .map(ext => `${name}${ext}`)
+    .find(f => existsSync(join(FIXTURES_DIR, f)));
+  return { name, manifest, imageFile };
+}).filter(f => f.imageFile); // skip manifests without matching images
+
+// Ensure results directory exists
+mkdirSync(RESULTS_DIR, { recursive: true });
+
+async function runExtraction(page: any, imageFile: string, manifest: Manifest): Promise<SpriteResult[]> {
+  const manifestParam = encodeURIComponent(JSON.stringify(manifest));
+  await page.goto(
+    `/tests/extraction-harness.html?fixture=${imageFile}&manifest=${manifestParam}`,
+    { waitUntil: 'domcontentloaded' },
+  );
 
   await page.waitForFunction(() => (window as any).__extractionDone === true, {
     timeout: 30000,
   });
 
-  return page.evaluate(() => (window as any).__results);
-}
-
-function checkResults(results: SpriteResult[], fixtureName: string) {
-  expect(results, `${fixtureName}: expected 36 sprites`).toHaveLength(36);
-
-  // Check header bleed (top 10px)
-  const bleedFailures: string[] = [];
-  for (const r of results) {
-    if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
-      bleedFailures.push(`${r.label}: ${r.headerBleedPct}% header bleed`);
-    }
-  }
-  expect(bleedFailures, `${fixtureName}: header bleed failures:\n${bleedFailures.join('\n')}`).toHaveLength(0);
-
-  // Check whole-sprite dark bands (catches headers anywhere, not just top)
-  const darkBandFailures: string[] = [];
-  for (const r of results) {
-    if (r.worstDarkBandPct > MAX_DARK_BAND_PCT) {
-      darkBandFailures.push(`${r.label}: ${r.worstDarkBandPct}% dark at row ${r.worstDarkBandRow}`);
-    }
-  }
-  expect(darkBandFailures, `${fixtureName}: dark band failures:\n${darkBandFailures.join('\n')}`).toHaveLength(0);
-
-  // Check cell height uniformity within each row (6 sprites per row)
-  for (let row = 0; row < 6; row++) {
-    const rowSprites = results.filter(r => Math.floor(r.idx / 6) === row);
-    const heights = rowSprites.map(r => r.cellH);
-    const spread = Math.max(...heights) - Math.min(...heights);
-    expect(spread, `${fixtureName} row ${row}: height spread ${spread}px (heights: ${heights.join(',')})`).toBeLessThanOrEqual(MAX_HEIGHT_SPREAD);
-  }
-
-  // Check all sprites have identical dimensions (post-normalization)
-  const widths = results.map(r => r.cellW);
-  const heights = results.map(r => r.cellH);
-  const widthSpread = Math.max(...widths) - Math.min(...widths);
-  const heightSpread = Math.max(...heights) - Math.min(...heights);
-  expect(widthSpread, `${fixtureName}: width spread ${widthSpread}px`).toBe(0);
-  expect(heightSpread, `${fixtureName}: height spread ${heightSpread}px`).toBe(0);
+  // Collect results including sprite image data for the report
+  return page.evaluate(() => {
+    const results = (window as any).__results as any[];
+    // Augment with image data URLs from the rendered sprites
+    const spriteImgs = document.querySelectorAll('.sprite-cell img');
+    return results.map((r: any, i: number) => ({
+      ...r,
+      imageDataUrl: (spriteImgs[i] as HTMLImageElement)?.src || '',
+    }));
+  });
 }
 
 test.describe('Sprite Extraction', () => {
-  test('filled-grid: standard dark grid lines', async ({ page }) => {
-    const fixturePath = join(ROOT, 'test-fixtures', 'filled-grid.jpg');
-    expect(existsSync(fixturePath), 'Test fixture filled-grid.jpg must exist').toBeTruthy();
+  for (const { name, manifest, imageFile } of fixtures) {
+    test(`${name}: ${manifest.spriteType} ${manifest.gridSize} extraction`, async ({ page }) => {
+      const results = await runExtraction(page, imageFile!, manifest);
 
-    const results = await runExtraction(page, 'filled-grid.jpg');
-    checkResults(results, 'filled-grid');
-
-    await page.screenshot({
-      path: join(ROOT, 'test-results', 'filled-grid-results.png'),
-      fullPage: true,
-    });
-
-    // Log summary
-    const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
-    const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
-    console.log(`filled-grid — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
-  });
-
-  test('colored-grid: colored (pink) grid lines', async ({ page }) => {
-    const fixturePath = join(ROOT, 'test-fixtures', 'colored-grid.jpg');
-    if (!existsSync(fixturePath)) {
-      test.skip();
-      return;
-    }
-
-    const results = await runExtraction(page, 'colored-grid.jpg');
-    checkResults(results, 'colored-grid');
-
-    await page.screenshot({
-      path: join(ROOT, 'test-results', 'colored-grid-results.png'),
-      fullPage: true,
-    });
-
-    const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
-    const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
-    console.log(`colored-grid — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
-  });
-
-  test('fluxbot-drone: magenta grid lines', async ({ page }) => {
-    const fixturePath = join(ROOT, 'test-fixtures', 'fluxbot-drone.jpg');
-    if (!existsSync(fixturePath)) {
-      test.skip();
-      return;
-    }
-
-    const results = await runExtraction(page, 'fluxbot-drone.jpg');
-    checkResults(results, 'fluxbot-drone');
-
-    await page.screenshot({
-      path: join(ROOT, 'test-results', 'fluxbot-drone-results.png'),
-      fullPage: true,
-    });
-
-    const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
-    const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
-    console.log(`fluxbot-drone — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
-  });
-
-  // Dynamic tests for all character fixtures
-  const characterFixtures = [
-    'kael-thornwood',
-    'magma-wyrm',
-    'mosskin-spirit',
-    'robot-leech-snake',
-    'rustback-scavenger',
-    'spore-lurker',
-    'voidmaw-parasite',
-  ];
-
-  for (const fixture of characterFixtures) {
-    test(`${fixture}: character fixture extraction`, async ({ page }) => {
-      const fixturePath = join(ROOT, 'test-fixtures', `${fixture}.jpg`);
-      if (!existsSync(fixturePath)) {
-        test.skip();
-        return;
-      }
-
-      const results = await runExtraction(page, `${fixture}.jpg`);
-      checkResults(results, fixture);
-
+      // Take screenshot for visual audit
       await page.screenshot({
-        path: join(ROOT, 'test-results', `${fixture}-results.png`),
+        path: join(ROOT, 'test-results', `${name}-results.png`),
         fullPage: true,
       });
 
-      const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
-      const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
-      console.log(`${fixture} — max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%`);
-    });
-  }
+      // ── Assertions ──
 
-  // Building grid tests (non-6x6)
-  const buildingFixtures = [
-    {
-      name: 'junk-bug-spire',
-      cols: 2, rows: 3, totalCells: 6,
-      cellW: 1021, cellH: 680, headerH: 22, border: 2,
-      labels: ['Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Stage 5', 'Stage 6'],
-    },
-    {
-      name: 'medieval-inn',
-      cols: 3, rows: 3, totalCells: 9,
-      cellW: 680, cellH: 680, headerH: 22, border: 2,
-      labels: [
-        'Day - Idle', 'Day - Smoke Rising', 'Day - Sign Swaying',
-        'Evening - Lights On', 'Evening - Chimney Glow', 'Evening - Busy',
-        'Night - Lantern Lit', 'Night - Quiet', 'Night - Closed',
-      ],
-    },
-  ];
+      // 1. Sprite count
+      expect(
+        results.length,
+        `${name}: expected ${manifest.totalCells} sprites, got ${results.length}`,
+      ).toBe(manifest.totalCells);
 
-  for (const bf of buildingFixtures) {
-    test(`${bf.name}: building ${bf.cols}x${bf.rows} extraction`, async ({ page }) => {
-      const fixturePath = join(ROOT, 'test-fixtures', `${bf.name}.jpg`);
-      if (!existsSync(fixturePath)) {
-        test.skip();
-        return;
-      }
-
-      const params = new URLSearchParams({
-        fixture: `${bf.name}.jpg`,
-        cols: String(bf.cols),
-        rows: String(bf.rows),
-        cellW: String(bf.cellW),
-        cellH: String(bf.cellH),
-        headerH: String(bf.headerH),
-        border: String(bf.border),
-        labels: bf.labels.join(','),
-      });
-
-      await page.goto(`/tests/extraction-harness.html?${params}`, {
-        waitUntil: 'domcontentloaded',
-      });
-
-      await page.waitForFunction(() => (window as any).__extractionDone === true, {
-        timeout: 30000,
-      });
-
-      const results: SpriteResult[] = await page.evaluate(() => (window as any).__results);
-
-      // Save screenshot first for visual inspection
-      await page.screenshot({
-        path: join(ROOT, 'test-results', `${bf.name}-results.png`),
-        fullPage: true,
-      });
-
-      // Building-specific assertions
-      expect(results, `${bf.name}: expected ${bf.totalCells} sprites`).toHaveLength(bf.totalCells);
-
-      // Check header bleed
+      // 2. Header bleed
       const bleedFailures: string[] = [];
       for (const r of results) {
         if (r.headerBleedPct > MAX_ALLOWED_BLEED) {
           bleedFailures.push(`${r.label}: ${r.headerBleedPct}% header bleed`);
         }
       }
-      expect(bleedFailures, `${bf.name}: header bleed failures:\n${bleedFailures.join('\n')}`).toHaveLength(0);
+      expect(
+        bleedFailures,
+        `${name}: header bleed failures:\n${bleedFailures.join('\n')}`,
+      ).toHaveLength(0);
 
-      // Dark bands: log as informational for buildings (dark content is expected
-      // for structures like ruins, spires, etc. — unlike character sprites)
-      const darkBandInfo: string[] = [];
+      // 3. Dark bands (threshold varies by sprite type)
+      const darkThreshold = MAX_DARK_BAND_PCT[manifest.spriteType] ?? 80;
+      const darkBandFailures: string[] = [];
       for (const r of results) {
-        if (r.worstDarkBandPct > MAX_DARK_BAND_PCT) {
-          darkBandInfo.push(`${r.label}: ${r.worstDarkBandPct}% dark at row ${r.worstDarkBandRow}`);
+        if (r.worstDarkBandPct > darkThreshold) {
+          darkBandFailures.push(`${r.label}: ${r.worstDarkBandPct}% dark at row ${r.worstDarkBandRow}`);
         }
       }
-      if (darkBandInfo.length > 0) {
-        console.log(`${bf.name} — dark bands (informational, not a failure for buildings):\n  ${darkBandInfo.join('\n  ')}`);
+      // Buildings/backgrounds: log as info only
+      if (manifest.spriteType === 'building' || manifest.spriteType === 'background') {
+        if (darkBandFailures.length > 0) {
+          console.log(`${name} — dark bands (informational):\n  ${darkBandFailures.join('\n  ')}`);
+        }
+      } else {
+        expect(
+          darkBandFailures,
+          `${name}: dark band failures:\n${darkBandFailures.join('\n')}`,
+        ).toHaveLength(0);
       }
 
-      // Check uniform dimensions
+      // 4. Row height uniformity
+      for (let row = 0; row < manifest.rows; row++) {
+        const rowSprites = results.filter(r => Math.floor(r.idx / manifest.cols) === row);
+        if (rowSprites.length === 0) continue;
+        const heights = rowSprites.map(r => r.cellH);
+        const spread = Math.max(...heights) - Math.min(...heights);
+        expect(
+          spread,
+          `${name} row ${row}: height spread ${spread}px`,
+        ).toBeLessThanOrEqual(MAX_HEIGHT_SPREAD);
+      }
+
+      // 5. Dimension uniformity (post-normalization)
       const widths = results.map(r => r.cellW);
       const heights = results.map(r => r.cellH);
-      expect(Math.max(...widths) - Math.min(...widths), `${bf.name}: width spread`).toBe(0);
-      expect(Math.max(...heights) - Math.min(...heights), `${bf.name}: height spread`).toBe(0);
+      expect(Math.max(...widths) - Math.min(...widths), `${name}: width spread`).toBe(0);
+      expect(Math.max(...heights) - Math.min(...heights), `${name}: height spread`).toBe(0);
 
-      const maxBleed = Math.max(...results.map(r => r.headerBleedPct));
-      const maxDarkBand = Math.max(...results.map(r => r.worstDarkBandPct));
-      console.log(`${bf.name} — sprites: ${results.length}, max bleed: ${maxBleed}%, max dark band: ${maxDarkBand}%, cell: ${results[0]?.cellW}x${results[0]?.cellH}`);
+      // ── Save results for report ──
+      const fixtureResult = {
+        name,
+        manifest,
+        pass: true, // will be set to false by the report generator if assertions above threw
+        metrics: {
+          spriteCount: results.length,
+          maxBleed: Math.max(...results.map(r => r.headerBleedPct)),
+          avgBleed: parseFloat((results.reduce((s, r) => s + r.headerBleedPct, 0) / results.length).toFixed(1)),
+          maxDarkBand: Math.max(...results.map(r => r.worstDarkBandPct)),
+          cellW: results[0]?.cellW ?? 0,
+          cellH: results[0]?.cellH ?? 0,
+        },
+        sprites: results.map(r => ({
+          idx: r.idx,
+          label: r.label,
+          headerBleedPct: r.headerBleedPct,
+          worstDarkBandPct: r.worstDarkBandPct,
+          worstDarkBandRow: r.worstDarkBandRow,
+          cellW: r.cellW,
+          cellH: r.cellH,
+          imageDataUrl: r.imageDataUrl,
+        })),
+      };
+
+      writeFileSync(
+        join(RESULTS_DIR, `${name}.json`),
+        JSON.stringify(fixtureResult, null, 2),
+      );
+
+      // Log summary
+      console.log(
+        `${name} — ${manifest.spriteType} ${manifest.gridSize}: ` +
+        `${results.length} sprites, max bleed: ${fixtureResult.metrics.maxBleed}%, ` +
+        `max dark band: ${fixtureResult.metrics.maxDarkBand}%, ` +
+        `cell: ${results[0]?.cellW}x${results[0]?.cellH}`,
+      );
     });
   }
 
