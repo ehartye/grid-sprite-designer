@@ -541,6 +541,23 @@ app.delete('/api/history/:id', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+app.patch('/api/history/:id/group', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+    const { groupId } = req.body;
+    if (!groupId) return res.status(400).json({ error: 'Missing groupId' });
+    const result = db.prepare('UPDATE generations SET group_id = ? WHERE id = ? AND group_id IS NULL')
+      .run(groupId, id);
+    if (result.changes === 0) {
+      const existing = db.prepare('SELECT group_id FROM generations WHERE id = ?').get(id);
+      if (!existing) return res.status(404).json({ error: 'Not found' });
+      return res.json({ groupId: existing.group_id, alreadySet: true });
+    }
+    res.json({ groupId, alreadySet: false });
+  } catch (err) { next(err); }
+});
+
 // ── Archive: save generation to disk as PNG files ──────────────────────────
 
 app.post('/api/archive', (req, res, next) => {
