@@ -17,6 +17,7 @@ import type { CellGroup, GridLink } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { applyChromaKey, defringeRecolor, strikeColors } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
+import { AddSheetModal } from './AddSheetModal';
 
 type RGB = [number, number, number];
 
@@ -179,6 +180,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [edgeRecolorPasses, setEdgeRecolorPasses] = useState(0);
   const [recolorSensitivity, setRecolorSensitivity] = useState(50);
   const [defringeCore, setDefringeCore] = useState(240);
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
   const struckKey = JSON.stringify(struckColors);
   const erasedKey = useMemo(() => {
     let total = 0;
@@ -981,6 +983,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             <button className="btn w-full" onClick={handleExportIndividual}>
               Export Individual PNGs
             </button>
+            <button className="btn btn-primary w-full" onClick={() => setAddSheetOpen(true)}>
+              Add Sheet
+            </button>
           </div>
         </div>
 
@@ -995,6 +1000,11 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             </button>
           </div>
         </div>
+        <AddSheetModal
+          open={addSheetOpen}
+          onClose={() => setAddSheetOpen(false)}
+          currentSprites={displaySprites}
+        />
       </aside>
 
       {zoomSpriteIndex !== null && (() => {

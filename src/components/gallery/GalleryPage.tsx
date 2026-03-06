@@ -300,6 +300,11 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
         }
         dispatch({ type: 'SET_HISTORY_ID', id });
+        dispatch({
+          type: 'SET_SOURCE_CONTEXT',
+          groupId: data.groupId || null,
+          contentPresetId: data.contentPresetId || null,
+        });
 
         onSwitchToDesigner();
       } catch (err) {

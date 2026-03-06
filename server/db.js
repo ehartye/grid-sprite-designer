@@ -208,6 +208,7 @@ function migrateSchema(db) {
     "ALTER TABLE grid_presets ADD COLUMN tile_shape TEXT DEFAULT 'square'",
     "ALTER TABLE generations ADD COLUMN aspect_ratio TEXT DEFAULT '1:1'",
     "ALTER TABLE generations ADD COLUMN group_id TEXT DEFAULT NULL",
+    "ALTER TABLE generations ADD COLUMN content_preset_id TEXT DEFAULT NULL",
   ];
   for (const sql of migrations) {
     try { db.exec(sql); } catch (_) { /* column already exists */ }

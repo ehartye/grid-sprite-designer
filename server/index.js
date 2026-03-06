@@ -76,6 +76,8 @@ app.get('/api/history/:id', (req, res, next) => {
       filledGridMimeType: 'image/png',
       geminiText: gen.prompt || '',
       aspectRatio: gen.aspect_ratio || '1:1',
+      groupId: gen.group_id || null,
+      contentPresetId: gen.content_preset_id || null,
       thumbnailCellIndex: gen.thumbnail_cell_index,
       sprites: sprites.map(s => ({
         cellIndex: s.cell_index,
@@ -91,12 +93,12 @@ app.get('/api/history/:id', (req, res, next) => {
 
 app.post('/api/history', (req, res, next) => {
   try {
-    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId } = req.body;
+    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId } = req.body;
 
     const result = db.prepare(
-      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1', groupId || null);
+      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
 
     res.json({ id: result.lastInsertRowid });
   } catch (err) { next(err); }
@@ -566,6 +568,23 @@ app.delete('/api/history/:id', (req, res, next) => {
     const result = db.prepare('DELETE FROM generations WHERE id = ?').run(id);
     if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ success: true });
+  } catch (err) { next(err); }
+});
+
+app.patch('/api/history/:id/group', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+    const { groupId } = req.body;
+    if (!groupId) return res.status(400).json({ error: 'Missing groupId' });
+    const result = db.prepare('UPDATE generations SET group_id = ? WHERE id = ? AND group_id IS NULL')
+      .run(groupId, id);
+    if (result.changes === 0) {
+      const existing = db.prepare('SELECT group_id FROM generations WHERE id = ?').get(id);
+      if (!existing) return res.status(404).json({ error: 'Not found' });
+      return res.json({ groupId: existing.group_id, alreadySet: true });
+    }
+    res.json({ groupId, alreadySet: false });
   } catch (err) { next(err); }
 });
 

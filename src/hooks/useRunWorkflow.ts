@@ -5,138 +5,12 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useAppContext, SpriteType, GridLink } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext';
 import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
-import { buildGridFillPrompt, buildGridFillPromptWithReference, type CharacterConfig } from '../lib/promptBuilder';
-import { buildBuildingPrompt } from '../lib/buildingPromptBuilder';
-import { buildTerrainPrompt } from '../lib/terrainPromptBuilder';
-import { buildBackgroundPrompt } from '../lib/backgroundPromptBuilder';
 import { generateGrid } from '../api/geminiClient';
-import { gridPresetToConfig, type GridConfig } from '../lib/gridConfig';
-
-const REFERENCE_PREFIX = `\
-You are given two images.
-IMAGE 1 is a previously completed sprite sheet for this character — use it as
-your visual reference to maintain consistent proportions, color palette, art
-style, and character identity.
-IMAGE 2 is a blank template grid — fill each labeled cell according to the
-guidance below.
-
-`;
-
-/** Fetch a single content preset by type and id */
-async function fetchContentPreset(spriteType: SpriteType, presetId: string): Promise<any> {
-  const res = await fetch(`/api/presets?type=${spriteType}`);
-  if (!res.ok) throw new Error('Failed to fetch content presets');
-  const presets = await res.json();
-  const preset = presets.find((p: any) => p.id === presetId);
-  if (!preset) throw new Error(`Content preset "${presetId}" not found`);
-  return preset;
-}
-
-/** Build prompt for any sprite type */
-function buildPromptForType(
-  spriteType: SpriteType,
-  contentPreset: any,
-  gridLink: GridLink,
-  gridConfig: GridConfig,
-  isSubsequentGrid: boolean,
-): string {
-  let prompt: string;
-
-  switch (spriteType) {
-    case 'character': {
-      const charConfig: CharacterConfig = {
-        name: contentPreset.name,
-        description: contentPreset.description,
-        equipment: contentPreset.equipment || '',
-        colorNotes: contentPreset.colorNotes || '',
-        styleNotes: '',
-        rowGuidance: contentPreset.rowGuidance || '',
-      };
-      if (isSubsequentGrid) {
-        prompt = buildGridFillPromptWithReference(
-          charConfig,
-          gridLink.genericGuidance || '',
-          gridLink.guidanceOverride || '',
-          gridLink.cellLabels,
-        );
-      } else {
-        prompt = buildGridFillPrompt(
-          charConfig,
-          gridLink.genericGuidance,
-          gridLink.guidanceOverride,
-          gridLink.cellLabels,
-        );
-      }
-      break;
-    }
-    case 'building': {
-      const buildingConfig = {
-        name: contentPreset.name,
-        description: contentPreset.description,
-        details: contentPreset.details || '',
-        colorNotes: contentPreset.colorNotes || '',
-        styleNotes: '',
-        cellGuidance: contentPreset.cellGuidance || '',
-        gridSize: gridLink.gridSize,
-        cellLabels: gridLink.cellLabels,
-      };
-      prompt = buildBuildingPrompt(
-        buildingConfig,
-        gridConfig,
-        gridLink.genericGuidance,
-        gridLink.guidanceOverride,
-      );
-      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt;
-      break;
-    }
-    case 'terrain': {
-      const terrainConfig = {
-        name: contentPreset.name,
-        description: contentPreset.description,
-        colorNotes: contentPreset.colorNotes || '',
-        styleNotes: '',
-        tileGuidance: contentPreset.tileGuidance || '',
-        gridSize: gridLink.gridSize,
-        cellLabels: gridLink.cellLabels,
-      };
-      prompt = buildTerrainPrompt(
-        terrainConfig,
-        gridConfig,
-        gridLink.genericGuidance,
-        gridLink.guidanceOverride,
-      );
-      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt;
-      break;
-    }
-    case 'background': {
-      const bgConfig = {
-        name: contentPreset.name,
-        description: contentPreset.description,
-        colorNotes: contentPreset.colorNotes || '',
-        styleNotes: '',
-        layerGuidance: contentPreset.layerGuidance || '',
-        bgMode: contentPreset.bgMode || (gridLink.bgMode as 'parallax' | 'scene') || 'parallax',
-        gridSize: gridLink.gridSize,
-        cellLabels: gridLink.cellLabels,
-      };
-      prompt = buildBackgroundPrompt(
-        bgConfig,
-        gridConfig,
-        gridLink.genericGuidance,
-        gridLink.guidanceOverride,
-      );
-      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt;
-      break;
-    }
-    default:
-      throw new Error(`Unknown sprite type: ${spriteType}`);
-  }
-
-  return prompt;
-}
+import { gridPresetToConfig } from '../lib/gridConfig';
+import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
 
 export function useRunWorkflow() {
   const { state, dispatch } = useAppContext();
@@ -264,6 +138,7 @@ export function useRunWorkflow() {
             gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
             aspectRatio,
             groupId: run.groupId,
+            contentPresetId: run.contentPresetId,
           }),
           signal: abort.signal,
         });
@@ -271,6 +146,11 @@ export function useRunWorkflow() {
 
         if (abort.signal.aborted) return;
         dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
+        dispatch({
+          type: 'SET_SOURCE_CONTEXT',
+          groupId: run.groupId,
+          contentPresetId: run.contentPresetId,
+        });
 
         await fetch(`/api/history/${histData.id}/sprites`, {
           method: 'POST',
