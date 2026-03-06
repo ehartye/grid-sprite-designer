@@ -124,7 +124,7 @@ export function useTerrainWorkflow() {
             spriteType: 'terrain',
             gridSize: state.terrain.gridSize,
             aspectRatio,
-            contentPresetId: state.terrainPresets.find(p => p.name === state.terrain.name)?.id || null,
+            contentPresetId: state.activeContentPresetId,
           }),
           signal: abort.signal,
         });
@@ -135,7 +135,7 @@ export function useTerrainWorkflow() {
         dispatch({
           type: 'SET_SOURCE_CONTEXT',
           groupId: null,
-          contentPresetId: state.terrainPresets.find(p => p.name === state.terrain.name)?.id || null,
+          contentPresetId: state.activeContentPresetId,
         });
 
         await fetch(`/api/history/${histData.id}/sprites`, {

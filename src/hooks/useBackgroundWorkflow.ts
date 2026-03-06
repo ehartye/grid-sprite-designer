@@ -125,7 +125,7 @@ export function useBackgroundWorkflow() {
             spriteType: 'background',
             gridSize: state.background.gridSize,
             aspectRatio,
-            contentPresetId: state.backgroundPresets.find(p => p.name === state.background.name)?.id || null,
+            contentPresetId: state.activeContentPresetId,
           }),
           signal: abort.signal,
         });
@@ -136,7 +136,7 @@ export function useBackgroundWorkflow() {
         dispatch({
           type: 'SET_SOURCE_CONTEXT',
           groupId: null,
-          contentPresetId: state.backgroundPresets.find(p => p.name === state.background.name)?.id || null,
+          contentPresetId: state.activeContentPresetId,
         });
 
         await fetch(`/api/history/${histData.id}/sprites`, {

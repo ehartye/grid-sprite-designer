@@ -162,6 +162,9 @@ export interface AppState {
   imageSize: string;
   aspectRatio: string;
 
+  /** Currently selected content preset ID (set when a preset is loaded) */
+  activeContentPresetId: string | null;
+
   /** Grid config used for the current/last generation */
   activeGridConfig: {
     cols: number;
@@ -258,6 +261,7 @@ const initialState: AppState = {
   model: 'nano-banana-pro-preview',
   imageSize: '2K',
   aspectRatio: '1:1',
+  activeContentPresetId: null,
   activeGridConfig: null,
   templateImage: null,
   filledGridImage: null,
@@ -390,6 +394,7 @@ function reducer(state: AppState, action: Action): AppState {
     case 'LOAD_PRESET':
       return {
         ...state,
+        activeContentPresetId: action.preset.id,
         character: {
           name: action.preset.name,
           description: action.preset.description,
@@ -407,6 +412,7 @@ function reducer(state: AppState, action: Action): AppState {
       while (labels.length < cellCount) labels.push('');
       return {
         ...state,
+        activeContentPresetId: action.preset.id,
         building: {
           name: action.preset.name,
           description: action.preset.description,
@@ -431,6 +437,7 @@ function reducer(state: AppState, action: Action): AppState {
       while (tLabels.length < (tGrid?.totalCells ?? 16)) tLabels.push('');
       return {
         ...state,
+        activeContentPresetId: action.preset.id,
         terrain: {
           name: action.preset.name,
           description: action.preset.description,
@@ -450,6 +457,7 @@ function reducer(state: AppState, action: Action): AppState {
       while (bLabels.length < (bGrid?.totalCells ?? 4)) bLabels.push('');
       return {
         ...state,
+        activeContentPresetId: action.preset.id,
         background: {
           name: action.preset.name,
           description: action.preset.description,
@@ -470,6 +478,7 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         step: 'run-active',
+        activeContentPresetId: action.payload.contentPresetId,
         run: {
           active: true,
           contentPresetId: action.payload.contentPresetId,
