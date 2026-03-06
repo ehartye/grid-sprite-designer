@@ -1698,3 +1698,97 @@ img.sprite-image {
   .export-bar,
   .review-sidebar { display: none; }
 }
+
+/* ── Add Sheet Modal ── */
+.add-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.add-sheet-modal {
+  background: var(--bg-secondary, #1e1e2e);
+  border: 1px solid var(--border, #444);
+  border-radius: 12px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.add-sheet-modal h3 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+}
+
+.add-sheet-section {
+  margin-bottom: 16px;
+}
+
+.add-sheet-section label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #aaa);
+  margin-bottom: 6px;
+}
+
+.add-sheet-section select,
+.add-sheet-section .segmented-control {
+  width: 100%;
+}
+
+.add-sheet-ref-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.add-sheet-ref-toggle button {
+  flex: 1;
+}
+
+.add-sheet-sprites {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.add-sheet-sprite-check {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.add-sheet-sprite-check.selected {
+  border-color: var(--accent, #7c3aed);
+}
+
+.add-sheet-sprite-check img {
+  width: 100%;
+  display: block;
+}
+
+.add-sheet-sprite-check input {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+
+.add-sheet-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.add-sheet-actions button {
+  flex: 1;
+}
