@@ -124,6 +124,7 @@ export function useBuildingWorkflow() {
             spriteType: 'building',
             gridSize: state.building.gridSize,
             aspectRatio,
+            contentPresetId: state.buildingPresets.find(p => p.name === state.building.name)?.id || null,
           }),
           signal: abort.signal,
         });
@@ -131,6 +132,11 @@ export function useBuildingWorkflow() {
 
         if (abort.signal.aborted) return;
         dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
+        dispatch({
+          type: 'SET_SOURCE_CONTEXT',
+          groupId: null,
+          contentPresetId: state.buildingPresets.find(p => p.name === state.building.name)?.id || null,
+        });
 
         await fetch(`/api/history/${histData.id}/sprites`, {
           method: 'POST',

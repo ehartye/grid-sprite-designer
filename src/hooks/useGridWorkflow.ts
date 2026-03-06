@@ -130,6 +130,7 @@ export function useGridWorkflow() {
             spriteType: 'character',
             gridSize: gridConfig ? `${gridConfig.cols}x${gridConfig.rows}` : '6x6',
             aspectRatio,
+            contentPresetId: state.presets.find(p => p.name === state.character.name)?.id || null,
           }),
           signal: abort.signal,
         });
@@ -137,6 +138,11 @@ export function useGridWorkflow() {
 
         if (abort.signal.aborted) return;
         dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
+        dispatch({
+          type: 'SET_SOURCE_CONTEXT',
+          groupId: null,
+          contentPresetId: state.presets.find(p => p.name === state.character.name)?.id || null,
+        });
 
         await fetch(`/api/history/${histData.id}/sprites`, {
           method: 'POST',

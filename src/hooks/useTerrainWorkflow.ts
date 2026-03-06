@@ -124,6 +124,7 @@ export function useTerrainWorkflow() {
             spriteType: 'terrain',
             gridSize: state.terrain.gridSize,
             aspectRatio,
+            contentPresetId: state.terrainPresets.find(p => p.name === state.terrain.name)?.id || null,
           }),
           signal: abort.signal,
         });
@@ -131,6 +132,11 @@ export function useTerrainWorkflow() {
 
         if (abort.signal.aborted) return;
         dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
+        dispatch({
+          type: 'SET_SOURCE_CONTEXT',
+          groupId: null,
+          contentPresetId: state.terrainPresets.find(p => p.name === state.terrain.name)?.id || null,
+        });
 
         await fetch(`/api/history/${histData.id}/sprites`, {
           method: 'POST',

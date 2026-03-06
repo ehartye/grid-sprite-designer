@@ -213,6 +213,20 @@ function migrateSchema(db) {
   for (const sql of migrations) {
     try { db.exec(sql); } catch (_) { /* column already exists */ }
   }
+
+  // Backfill content_preset_id from character_name for existing entries
+  const presetTables = ['character_presets', 'building_presets', 'terrain_presets', 'background_presets'];
+  for (const table of presetTables) {
+    try {
+      db.exec(`
+        UPDATE generations SET content_preset_id = (
+          SELECT id FROM ${table} WHERE name = generations.character_name LIMIT 1
+        ) WHERE content_preset_id IS NULL AND EXISTS (
+          SELECT 1 FROM ${table} WHERE name = generations.character_name
+        )
+      `);
+    } catch (_) { /* table may not exist yet */ }
+  }
 }
 
 function seedGridPresets(db) {
