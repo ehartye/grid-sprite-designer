@@ -20,6 +20,10 @@ export interface AddSheetOptions {
   referenceMode: 'full' | 'selected';
   /** Sprites to compose into reference (only used when referenceMode === 'selected') */
   selectedSprites?: ExtractedSprite[];
+  /** Optional follow-up guidance appended to the prompt */
+  followUpGuidance?: string;
+  /** Override the grid preset's aspect ratio */
+  aspectRatioOverride?: string;
 }
 
 export function useAddSheet() {
@@ -36,7 +40,7 @@ export function useAddSheet() {
   }, []);
 
   const generate = useCallback(async (opts: AddSheetOptions) => {
-    const { gridLink, imageSize, referenceMode, selectedSprites } = opts;
+    const { gridLink, imageSize, referenceMode, selectedSprites, followUpGuidance, aspectRatioOverride } = opts;
     const spriteType = state.spriteType as SpriteType;
     const contentPresetId = state.sourceContentPresetId;
     const filledGridImage = state.filledGridImage;
@@ -99,7 +103,7 @@ export function useAddSheet() {
       // Build grid config and template
       const gridConfig = gridPresetToConfig(gridLink, spriteType);
       const templateParams = gridConfig.templates[imageSize];
-      const aspectRatio = gridConfig.aspectRatio || '1:1';
+      const aspectRatio = aspectRatioOverride || gridConfig.aspectRatio || '1:1';
       const template = generateTemplate(templateParams, gridConfig, aspectRatio);
 
       dispatch({
@@ -115,7 +119,11 @@ export function useAddSheet() {
       });
 
       // Build prompt (always as subsequent grid since we have a reference)
-      const prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, true);
+      let prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, true);
+
+      if (followUpGuidance?.trim()) {
+        prompt += `\n\nADDITIONAL GUIDANCE:\n${followUpGuidance.trim()}`;
+      }
 
       // Call Gemini
       const result = await generateGrid(

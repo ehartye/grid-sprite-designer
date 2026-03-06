@@ -1943,3 +1943,16 @@ img.sprite-image {
 .add-sheet-actions button {
   flex: 1;
 }
+
+.add-sheet-guidance {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px;
+  border: 1px solid var(--border, #444);
+  border-radius: 6px;
+  background: var(--bg-primary, #121220);
+  color: var(--text-primary, #eee);
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: vertical;
+}

@@ -24,6 +24,8 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
   );
   const [referenceMode, setReferenceMode] = useState<'full' | 'selected'>('full');
   const [selectedSpriteIndices, setSelectedSpriteIndices] = useState<Set<number>>(new Set());
+  const [followUpGuidance, setFollowUpGuidance] = useState('');
+  const [aspectRatio, setAspectRatio] = useState(state.aspectRatio || '1:1');
   const [loading, setLoading] = useState(false);
 
   const spriteType = state.spriteType as SpriteType;
@@ -101,11 +103,13 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
       imageSize,
       referenceMode,
       selectedSprites,
+      followUpGuidance: followUpGuidance.trim() || undefined,
+      aspectRatioOverride: aspectRatio,
     };
 
     await generate(opts);
     onClose();
-  }, [gridLinks, selectedLinkIndex, imageSize, referenceMode, selectedSpriteIndices, currentSprites, state.activeGridConfig, generate, onClose]);
+  }, [gridLinks, selectedLinkIndex, imageSize, referenceMode, selectedSpriteIndices, currentSprites, state.activeGridConfig, followUpGuidance, aspectRatio, generate, onClose]);
 
   const handleCancel = useCallback(() => {
     cancel();
@@ -185,6 +189,34 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Follow-up Guidance */}
+        <div className="add-sheet-section">
+          <label>Follow-up Guidance</label>
+          <textarea
+            className="add-sheet-guidance"
+            rows={3}
+            placeholder="e.g. animate the cape flowing, add fire effects, switch to a crouching pose..."
+            value={followUpGuidance}
+            onChange={e => setFollowUpGuidance(e.target.value)}
+          />
+        </div>
+
+        {/* Aspect Ratio */}
+        <div className="add-sheet-section">
+          <label>Aspect Ratio</label>
+          <div className="segmented-control">
+            {['1:1', '3:2', '2:3', '16:9', '9:16'].map(ar => (
+              <button
+                key={ar}
+                className={aspectRatio === ar ? 'active' : ''}
+                onClick={() => setAspectRatio(ar)}
+              >
+                {ar}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Image Size */}
