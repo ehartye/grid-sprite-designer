@@ -53,12 +53,15 @@ export function useAddSheet() {
       // If no groupId exists (legacy entry), create one and backfill
       if (!groupId && historyId) {
         groupId = `addsheet-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        await fetch(`/api/history/${historyId}/group`, {
+        const groupRes = await fetch(`/api/history/${historyId}/group`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ groupId }),
           signal: abort.signal,
         });
+        if (!groupRes.ok) {
+          console.warn('Failed to backfill group_id on legacy entry');
+        }
         dispatch({ type: 'SET_SOURCE_CONTEXT', groupId, contentPresetId });
       }
 

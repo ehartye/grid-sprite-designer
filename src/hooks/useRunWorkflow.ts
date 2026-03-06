@@ -10,7 +10,7 @@ import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
 import { generateGrid } from '../api/geminiClient';
 import { gridPresetToConfig } from '../lib/gridConfig';
-import { REFERENCE_PREFIX, fetchContentPreset, buildPromptForType } from '../lib/promptForType';
+import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
 
 export function useRunWorkflow() {
   const { state, dispatch } = useAppContext();
