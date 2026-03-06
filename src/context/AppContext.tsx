@@ -191,6 +191,10 @@ export interface AppState {
   /** History entry ID if saved */
   historyId: number | null;
 
+  /** Source generation context for add-sheet */
+  sourceGroupId: string | null;
+  sourceContentPresetId: string | null;
+
   /** Character presets */
   presets: CharacterPreset[];
 
@@ -263,6 +267,8 @@ const initialState: AppState = {
   statusType: 'info',
   error: null,
   historyId: null,
+  sourceGroupId: null,
+  sourceContentPresetId: null,
   presets: [],
   buildingPresets: [],
   terrainPresets: [],
@@ -288,6 +294,7 @@ type Action =
   | { type: 'CLEAR_STATUS' }
   | { type: 'SET_STEP'; step: WorkflowStep }
   | { type: 'SET_HISTORY_ID'; id: number }
+  | { type: 'SET_SOURCE_CONTEXT'; groupId: string | null; contentPresetId: string | null }
   | { type: 'SET_PRESETS'; presets: CharacterPreset[] }
   | { type: 'LOAD_PRESET'; preset: CharacterPreset }
   | { type: 'SET_BUILDING_PRESETS'; presets: BuildingPreset[] }
@@ -375,6 +382,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, step: action.step };
     case 'SET_HISTORY_ID':
       return { ...state, historyId: action.id };
+    case 'SET_SOURCE_CONTEXT':
+      return { ...state, sourceGroupId: action.groupId, sourceContentPresetId: action.contentPresetId };
     case 'SET_PRESETS':
       return { ...state, presets: action.presets };
     case 'LOAD_PRESET':
@@ -504,6 +513,8 @@ function reducer(state: AppState, action: Action): AppState {
         terrainPresets: state.terrainPresets,
         backgroundPresets: state.backgroundPresets,
         gridPresets: state.gridPresets,
+        sourceGroupId: null,
+        sourceContentPresetId: null,
       };
     default:
       return state;
