@@ -137,6 +137,7 @@ export function useRunWorkflow() {
             spriteType: run.spriteType,
             gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
             aspectRatio,
+            contentPresetId: run.contentPresetId,
           }),
           signal: abort.signal,
         });
