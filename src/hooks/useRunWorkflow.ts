@@ -137,6 +137,7 @@ export function useRunWorkflow() {
             spriteType: run.spriteType,
             gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
             aspectRatio,
+            groupId: run.groupId,
             contentPresetId: run.contentPresetId,
           }),
           signal: abort.signal,
@@ -145,6 +146,11 @@ export function useRunWorkflow() {
 
         if (abort.signal.aborted) return;
         dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
+        dispatch({
+          type: 'SET_SOURCE_CONTEXT',
+          groupId: run.groupId,
+          contentPresetId: run.contentPresetId,
+        });
 
         await fetch(`/api/history/${histData.id}/sprites`, {
           method: 'POST',

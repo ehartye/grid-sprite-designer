@@ -103,6 +103,7 @@ export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview' | '
 export interface RunState {
   active: boolean;
   contentPresetId: string | null;
+  groupId: string;
   spriteType: SpriteType;
   selectedGridLinks: GridLink[];
   currentGridIndex: number;
@@ -307,7 +308,7 @@ type Action =
   | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
   | { type: 'SET_GRID_PRESETS'; presets: GridPreset[] }
   | { type: 'SET_ACTIVE_GRID_CONFIG'; gridConfig: AppState['activeGridConfig'] }
-  | { type: 'START_RUN'; payload: { contentPresetId: string; spriteType: SpriteType; gridLinks: GridLink[]; imageSize: '2K' | '4K' } }
+  | { type: 'START_RUN'; payload: { contentPresetId: string; spriteType: SpriteType; gridLinks: GridLink[]; imageSize: '2K' | '4K'; groupId?: string } }
   | { type: 'COMPLETE_GRID'; payload: { filledGridImage: string } }
   | { type: 'NEXT_GRID' }
   | { type: 'END_RUN' }
@@ -472,6 +473,7 @@ function reducer(state: AppState, action: Action): AppState {
         run: {
           active: true,
           contentPresetId: action.payload.contentPresetId,
+          groupId: action.payload.groupId || `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           spriteType: action.payload.spriteType,
           selectedGridLinks: action.payload.gridLinks,
           currentGridIndex: 0,
