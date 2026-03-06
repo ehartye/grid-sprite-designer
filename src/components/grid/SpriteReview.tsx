@@ -15,7 +15,7 @@ import { SpriteZoomModal } from './SpriteZoomModal';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
 import type { CellGroup, GridLink } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
-import { applyChromaKey, strikeColors } from '../../lib/chromaKey';
+import { applyChromaKey, defringeRecolor, strikeColors } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 
 type RGB = [number, number, number];
@@ -28,9 +28,12 @@ async function processSprite(
   chromaTolerance: number,
   struckColors: RGB[],
   erasedPixels?: Set<string>,
+  edgeRecolorPasses = 0,
+  recolorSensitivity = 50,
+  defringeCore = 240,
 ): Promise<ExtractedSprite> {
   const hasErasure = erasedPixels && erasedPixels.size > 0;
-  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure) return sprite;
+  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses) return sprite;
 
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -47,7 +50,8 @@ async function processSprite(
 
   let imageData = ctx.getImageData(0, 0, img.width, img.height);
   if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
-  if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance);
+  if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore);
+  if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, 255, 0, 255, edgeRecolorPasses, recolorSensitivity);
   if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
   if (hasErasure) {
     for (const key of erasedPixels) {
@@ -172,6 +176,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [thumbnailCell, setThumbnailCell] = useState<number | null>(null);
   const [zoomSpriteIndex, setZoomSpriteIndex] = useState<number | null>(null);
   const [erasedPixels, setErasedPixels] = useState<Map<number, Set<string>>>(new Map());
+  const [edgeRecolorPasses, setEdgeRecolorPasses] = useState(0);
+  const [recolorSensitivity, setRecolorSensitivity] = useState(50);
+  const [defringeCore, setDefringeCore] = useState(240);
   const struckKey = JSON.stringify(struckColors);
   const erasedKey = useMemo(() => {
     let total = 0;
@@ -207,21 +214,21 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
   // Process sprites through posterization + chroma key + color strikes + erasures
   useEffect(() => {
-    if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && erasedPixels.size === 0) {
+    if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && erasedPixels.size === 0 && !edgeRecolorPasses) {
       setProcessedSprites(sprites);
       return;
     }
 
     let cancelled = false;
     Promise.all(sprites.map((s) =>
-      processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors, erasedPixels.get(s.cellIndex)),
+      processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors, erasedPixels.get(s.cellIndex), edgeRecolorPasses, recolorSensitivity, defringeCore),
     ))
       .then((result) => {
         if (!cancelled) setProcessedSprites(result);
       });
 
     return () => { cancelled = true; };
-  }, [sprites, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckKey, erasedKey]);
+  }, [sprites, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckKey, erasedKey, edgeRecolorPasses, recolorSensitivity, defringeCore]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
 
@@ -482,6 +489,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     setAaInset(3);
     setPosterizeBits(4);
     setPosterizeOutput(false);
+    setEdgeRecolorPasses(0);
+    setRecolorSensitivity(50);
+    setDefringeCore(240);
 
     Promise.all([
       loadSettings(),
@@ -497,6 +507,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         setAaInset(settings.aaInset);
         setPosterizeBits(settings.posterizeBits);
         setPosterizeOutput(settings.posterizeOutput);
+        if (settings.edgeRecolorPasses) setEdgeRecolorPasses(settings.edgeRecolorPasses);
+        if (settings.recolorSensitivity != null) setRecolorSensitivity(settings.recolorSensitivity);
+        if (settings.defringeCore != null) setDefringeCore(settings.defringeCore);
       }
       if (histData?.thumbnailCellIndex != null) {
         setThumbnailCell(histData.thumbnailCellIndex);
@@ -519,8 +532,11 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       aaInset,
       posterizeBits,
       posterizeOutput,
+      edgeRecolorPasses,
+      recolorSensitivity,
+      defringeCore,
     });
-  }, [settingsLoaded, chromaEnabled, chromaTolerance, struckKey, mirroredCells, displayOrder, aaInset, posterizeBits, posterizeOutput, saveSettings]);
+  }, [settingsLoaded, chromaEnabled, chromaTolerance, struckKey, mirroredCells, displayOrder, aaInset, posterizeBits, posterizeOutput, edgeRecolorPasses, recolorSensitivity, defringeCore, saveSettings]);
 
   const handleMirrorToggle = useCallback((cellIndex: number) => {
     setMirroredCells((prev) => {
@@ -698,9 +714,59 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           </div>
         )}
 
+        {/* Posterize */}
+        <div className="sidebar-section">
+          <h3>
+            Posterize
+            <span title="Reduce color depth for a retro pixel-art look. Lower bit values = fewer colors." style={{ cursor: 'help', marginLeft: 4, fontSize: '0.7rem', color: 'var(--text-muted)' }}>&#9432;</span>
+          </h3>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                Bit Depth
+                <span title="Bits per color channel. 8 = off (original colors). Lower = fewer colors." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
+              </label>
+              <span className="slider-value">{posterizeBits === 8 ? 'off' : `${posterizeBits}-bit`}</span>
+            </div>
+            <input
+              type="range"
+              min={1}
+              max={8}
+              value={posterizeBits}
+              onChange={(e) => {
+                const bits = Number(e.target.value);
+                setPosterizeBits(bits);
+                if (bits === 8) setPosterizeOutput(false);
+              }}
+              style={{ width: '100%' }}
+            />
+          </div>
+          {posterizeBits < 8 && (
+            <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 4 }}>
+              <button
+                type="button"
+                className={`anim-group-btn ${!posterizeOutput ? 'active' : ''}`}
+                onClick={() => setPosterizeOutput(false)}
+              >
+                Original
+              </button>
+              <button
+                type="button"
+                className={`anim-group-btn ${posterizeOutput ? 'active' : ''}`}
+                onClick={() => setPosterizeOutput(true)}
+              >
+                Posterized
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Chroma Key */}
         <div className="sidebar-section">
-          <h3>Chroma Key</h3>
+          <h3>
+            Chroma Key
+            <span title="Remove magenta background from sprites" style={{ cursor: 'help', marginLeft: 4, fontSize: '0.7rem', color: 'var(--text-muted)' }}>&#9432;</span>
+          </h3>
           <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <button
               className={`anim-group-btn ${!chromaEnabled ? 'active' : ''}`}
@@ -716,16 +782,78 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             </button>
           </div>
           {chromaEnabled && (
-            <div className="slider-row" style={{ marginTop: 8 }}>
-              <input
-                type="range"
-                min={10}
-                max={150}
-                value={chromaTolerance}
-                onChange={(e) => setChromaTolerance(Number(e.target.value))}
-              />
-              <span className="slider-value">{chromaTolerance}</span>
-            </div>
+            <>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    Tolerance
+                    <span title="How aggressively the background is removed. Lower values preserve more sprite color but may leave background remnants." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
+                  </label>
+                  <span className="slider-value">{chromaTolerance}</span>
+                </div>
+                <input
+                  type="range"
+                  min={10}
+                  max={150}
+                  value={chromaTolerance}
+                  onChange={(e) => setChromaTolerance(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div style={{ marginTop: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    Defringe
+                    <span title="Fades the alpha of border pixels near the key color. Higher values remove more fringe. Independent of tolerance so edges stay clean even at low tolerance." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
+                  </label>
+                  <span className="slider-value">{defringeCore}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1000}
+                  value={defringeCore}
+                  onChange={(e) => setDefringeCore(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div style={{ marginTop: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    Edge Recolor
+                    <span title="Replaces pink-tinted RGB on edge pixels with nearby sprite colors. Keeps alpha intact for smooth edges. Higher = more passes inward." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
+                  </label>
+                  <span className="slider-value">{edgeRecolorPasses === 0 ? 'off' : edgeRecolorPasses}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={15}
+                  value={edgeRecolorPasses}
+                  onChange={(e) => setEdgeRecolorPasses(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              {edgeRecolorPasses > 0 && (
+                <div style={{ marginTop: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      Recolor Sensitivity
+                      <span title="How liberally pixels are classified as pink. Low = only obvious magenta. High = catches subtle pink tints." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
+                    </label>
+                    <span className="slider-value">{recolorSensitivity}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={recolorSensitivity}
+                    onChange={(e) => setRecolorSensitivity(Number(e.target.value))}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -833,41 +961,6 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
               ))}
             </select>
           </div>
-          <div className="slider-row" style={{ marginTop: 6 }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              Posterize ({posterizeBits === 8 ? 'off' : `${posterizeBits}-bit`})
-            </label>
-            <input
-              type="range"
-              min={1}
-              max={8}
-              value={posterizeBits}
-              onChange={(e) => {
-                const bits = Number(e.target.value);
-                setPosterizeBits(bits);
-                if (bits === 8) setPosterizeOutput(false);
-              }}
-            />
-            <span className="slider-value">{posterizeBits}</span>
-          </div>
-          {posterizeBits < 8 && (
-            <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 4 }}>
-              <button
-                type="button"
-                className={`anim-group-btn ${!posterizeOutput ? 'active' : ''}`}
-                onClick={() => setPosterizeOutput(false)}
-              >
-                Original
-              </button>
-              <button
-                type="button"
-                className={`anim-group-btn ${posterizeOutput ? 'active' : ''}`}
-                onClick={() => setPosterizeOutput(true)}
-              >
-                Posterized
-              </button>
-            </div>
-          )}
           <button
             type="button"
             className="btn btn-sm w-full"

@@ -91,12 +91,12 @@ app.get('/api/history/:id', (req, res, next) => {
 
 app.post('/api/history', (req, res, next) => {
   try {
-    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio } = req.body;
+    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId } = req.body;
 
     const result = db.prepare(
-      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1');
+      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1', groupId || null);
 
     res.json({ id: result.lastInsertRowid });
   } catch (err) { next(err); }
@@ -449,26 +449,56 @@ app.put('/api/history/:id/thumbnail', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// Generation gallery
+// Generation gallery (paginated, searchable, filterable)
 app.get('/api/gallery', (req, res, next) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 24));
+    const offset = (page - 1) * limit;
+    const search = req.query.search ? `%${req.query.search}%` : null;
+    const spriteType = req.query.spriteType || null;
+
+    const conditions = [];
+    const params = [];
+    if (search) {
+      conditions.push('g.character_name LIKE ?');
+      params.push(search);
+    }
+    if (spriteType) {
+      conditions.push('g.sprite_type = ?');
+      params.push(spriteType);
+    }
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const countRow = db.prepare(`SELECT COUNT(*) as total FROM generations g ${where}`).get(...params);
+    const total = countRow.total;
+
     const rows = db.prepare(
-      `SELECT g.id, g.character_name, g.character_description, g.model, g.created_at,
+      `SELECT g.id, g.character_name, g.character_description, g.model, g.created_at, g.sprite_type, g.grid_size, g.group_id,
             (SELECT COUNT(*) FROM sprites WHERE generation_id = g.id) as sprite_count,
             COALESCE(g.thumbnail_image, (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_data,
             COALESCE(g.thumbnail_mime, (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_mime
-     FROM generations g ORDER BY g.created_at DESC LIMIT 50`
-    ).all();
-    res.json(rows.map(r => ({
-      id: r.id,
-      characterName: r.character_name,
-      characterDescription: r.character_description,
-      model: r.model,
-      createdAt: r.created_at,
-      spriteCount: r.sprite_count,
-      thumbnailData: r.thumb_data,
-      thumbnailMime: r.thumb_mime,
-    })));
+     FROM generations g ${where} ORDER BY g.created_at DESC LIMIT ? OFFSET ?`
+    ).all(...params, limit, offset);
+
+    res.json({
+      entries: rows.map(r => ({
+        id: r.id,
+        characterName: r.character_name,
+        characterDescription: r.character_description,
+        model: r.model,
+        createdAt: r.created_at,
+        spriteType: r.sprite_type || 'character',
+        gridSize: r.grid_size,
+        groupId: r.group_id,
+        spriteCount: r.sprite_count,
+        thumbnailData: r.thumb_data,
+        thumbnailMime: r.thumb_mime,
+      })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) { next(err); }
 });
 

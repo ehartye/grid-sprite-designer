@@ -16,6 +16,9 @@ export interface EditorSettings {
   aaInset: number;
   posterizeBits: number;
   posterizeOutput: boolean;
+  edgeRecolorPasses: number;
+  recolorSensitivity: number;
+  defringeCore: number;
 }
 
 const DEFAULTS: EditorSettings = {
@@ -27,6 +30,9 @@ const DEFAULTS: EditorSettings = {
   aaInset: 3,
   posterizeBits: 4,
   posterizeOutput: false,
+  edgeRecolorPasses: 0,
+  recolorSensitivity: 50,
+  defringeCore: 240,
 };
 
 export function useEditorSettings(historyId: number | null) {

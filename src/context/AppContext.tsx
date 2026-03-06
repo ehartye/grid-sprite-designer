@@ -108,6 +108,7 @@ export interface RunState {
   currentGridIndex: number;
   referenceSheet: string | null;
   imageSize: '2K' | '4K';
+  groupId: string;
 }
 
 export interface AppState {
@@ -468,6 +469,7 @@ function reducer(state: AppState, action: Action): AppState {
           currentGridIndex: 0,
           referenceSheet: null,
           imageSize: action.payload.imageSize,
+          groupId: `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         },
       };
     case 'COMPLETE_GRID': {

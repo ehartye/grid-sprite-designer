@@ -13,6 +13,7 @@
 export function applyChromaKey(
   source: ImageData,
   tolerance: number,
+  defringeCoreOverride?: number,
   keyR = 255,
   keyG = 0,
   keyB = 255,
@@ -61,10 +62,11 @@ export function applyChromaKey(
 
   // ── Pass 2: Defringe ─────────────────────────────────────────────────────
   // Iteratively soften pixels that border transparent areas.
-  // Uses a wider threshold than pass 1 so it catches the blended fringe
-  // pixels that are part-magenta, part-sprite-color.
+  // Uses a fixed core threshold (independent of the tolerance slider) so
+  // defringe stays constant even at low chroma settings.
   const DEFRINGE_PASSES = 4;
   const defringeThreshold = 500;
+  const defringeCoreThreshold = defringeCoreOverride ?? 240;
 
   for (let pass = 0; pass < DEFRINGE_PASSES; pass++) {
     // Snapshot current alpha so we check neighbors against the state
@@ -90,16 +92,135 @@ export function applyChromaKey(
         if (!hasTransparentNeighbor) continue;
 
         const dist = colorDist(i);
-        if (dist < coreThreshold) {
+        if (dist < defringeCoreThreshold) {
           data[i + 3] = 0;
         } else if (dist < defringeThreshold) {
-          const t = (dist - coreThreshold) / (defringeThreshold - coreThreshold);
+          const t = (dist - defringeCoreThreshold) / (defringeThreshold - defringeCoreThreshold);
           data[i + 3] = Math.min(data[i + 3], Math.round(t * 255));
         }
       }
     }
   }
 
+  return out;
+}
+
+/**
+ * Replace pink-tinted edge pixels with their nearest non-pink neighbor color.
+ * Runs after chroma key to clean up fringe without altering alpha.
+ * Pixels bordering transparency that have a magenta tint get their RGB
+ * replaced by the average of nearby opaque, non-pink neighbors.
+ */
+export function defringeRecolor(
+  source: ImageData,
+  keyR = 255,
+  keyG = 0,
+  keyB = 255,
+  passes = 3,
+  sensitivity = 50,
+): ImageData {
+  const { width, height } = source;
+  const out = new ImageData(
+    new Uint8ClampedArray(source.data),
+    width,
+    height,
+  );
+  const data = out.data;
+
+  // Sensitivity controls how liberally we classify pixels as "pink".
+  // sensitivity 0 → ratio 0.70 (very strict, only obvious magenta)
+  // sensitivity 50 → ratio 0.85 (default)
+  // sensitivity 100 → ratio 1.00 (anything where green < avg of red+blue)
+  const pinkRatio = 0.70 + (sensitivity / 100) * 0.30;
+  const minSat = Math.max(2, 15 - Math.round(sensitivity / 10));
+
+  function isPink(i: number): boolean {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const maxC = Math.max(r, g, b);
+    const minC = Math.min(r, g, b);
+    const sat = maxC - minC;
+    if (sat < minSat) return false;
+    if (g >= r || g >= b) return false;
+    const rbAvg = (r + b) / 2;
+    return g < rbAvg * pinkRatio;
+  }
+
+  // Build offset list for radius-3 neighborhood
+  const RADIUS = 3;
+  const offsets: [number, number][] = [];
+  for (let dy = -RADIUS; dy <= RADIUS; dy++) {
+    for (let dx = -RADIUS; dx <= RADIUS; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      offsets.push([dx, dy]);
+    }
+  }
+  // Immediate neighbors for transparency border check
+  const dirs: [number, number][] = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
+
+  let totalRecolored = 0;
+
+  for (let pass = 0; pass < passes; pass++) {
+    const rgbSnap = new Uint8ClampedArray(data);
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4;
+        if (data[i + 3] === 0) continue;
+        if (!isPink(i)) continue;
+
+        // Must be within RADIUS pixels of transparency
+        let nearTransparent = false;
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+          if (data[(ny * width + nx) * 4 + 3] === 0) {
+            nearTransparent = true;
+            break;
+          }
+        }
+        // If not immediately adjacent, check wider radius
+        if (!nearTransparent) {
+          for (const [dx, dy] of offsets) {
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+            if (data[(ny * width + nx) * 4 + 3] === 0) {
+              nearTransparent = true;
+              break;
+            }
+          }
+        }
+        if (!nearTransparent) continue;
+
+        // Sample non-transparent, non-pink neighbors within radius,
+        // weighted by inverse distance for smoother blending
+        let sumR = 0, sumG = 0, sumB = 0, totalWeight = 0;
+        for (const [dx, dy] of offsets) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+          const nIdx = (ny * width + nx) * 4;
+          if (rgbSnap[nIdx + 3] === 0) continue;
+          const nr = rgbSnap[nIdx], ng = rgbSnap[nIdx + 1], nb = rgbSnap[nIdx + 2];
+          const nSat = Math.max(nr, ng, nb) - Math.min(nr, ng, nb);
+          if (nSat >= minSat && ng < nr && ng < nb && ng < (nr + nb) / 2 * pinkRatio) continue;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const w = 1 / dist;
+          sumR += nr * w;
+          sumG += ng * w;
+          sumB += nb * w;
+          totalWeight += w;
+        }
+
+        if (totalWeight > 0) {
+          data[i] = Math.round(sumR / totalWeight);
+          data[i + 1] = Math.round(sumG / totalWeight);
+          data[i + 2] = Math.round(sumB / totalWeight);
+          totalRecolored++;
+        }
+      }
+    }
+  }
+
+  console.log(`[DefringeRecolor] Recolored ${totalRecolored} pixels across ${passes} passes (${width}x${height})`);
   return out;
 }
 

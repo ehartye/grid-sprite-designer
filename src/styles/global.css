@@ -1230,6 +1230,157 @@ button {
   background: rgba(255, 71, 87, 0.1);
 }
 
+.gallery-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.gallery-search {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.gallery-search:focus {
+  border-color: var(--accent);
+}
+
+.gallery-search::placeholder {
+  color: var(--text-muted);
+}
+
+.gallery-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gallery-filter-btn {
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gallery-filter-btn:hover {
+  border-color: var(--border-light);
+  color: var(--text);
+}
+
+.gallery-filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.gallery-type-badge {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.gallery-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.gallery-page-info {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 0 8px;
+}
+
+.gallery-card-group {
+  border: 1px solid var(--accent);
+  position: relative;
+}
+
+.gallery-card-group::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: calc(var(--radius) + 2px);
+  pointer-events: none;
+}
+
+.gallery-slideshow {
+  overflow: hidden;
+  position: relative;
+}
+
+.gallery-slideshow-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  opacity: 0;
+  animation: gallery-ken-burns ease-in-out infinite;
+}
+
+/*
+ * Ken Burns-style: slide in from right with slight scale-up,
+ * hold at center, then fade out as next arrives.
+ * Each image's visible window is 1/N of the total duration.
+ * Keyframe percentages are for one full cycle per-image:
+ *   0%  → off-screen right, small, invisible
+ *  10%  → center, full size, visible (slide in)
+ *  30%  → center, slight slow zoom (hold + drift)
+ *  40%  → fade out
+ *  100% → invisible for remaining images
+ */
+@keyframes gallery-ken-burns {
+  0%   { opacity: 0; transform: translateX(30%) scale(0.92); }
+  8%   { opacity: 0; transform: translateX(30%) scale(0.92); }
+  16%  { opacity: 1; transform: translateX(0%) scale(0.97); }
+  26%  { opacity: 1; transform: translateX(-2%) scale(1.03); }
+  30%  { opacity: 0; transform: translateX(-30%) scale(1.04); }
+  100% { opacity: 0; transform: translateX(30%) scale(0.92); }
+}
+
+.gallery-group-expand {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.gallery-group-badge {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.gallery-card-child {
+  border-left: 3px solid var(--accent);
+}
+
 /* ============================================================
    Sprite Image Rendering
    ============================================================ */
