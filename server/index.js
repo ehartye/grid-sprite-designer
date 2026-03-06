@@ -76,6 +76,8 @@ app.get('/api/history/:id', (req, res, next) => {
       filledGridMimeType: 'image/png',
       geminiText: gen.prompt || '',
       aspectRatio: gen.aspect_ratio || '1:1',
+      groupId: gen.group_id || null,
+      contentPresetId: gen.content_preset_id || null,
       thumbnailCellIndex: gen.thumbnail_cell_index,
       sprites: sprites.map(s => ({
         cellIndex: s.cell_index,
@@ -91,12 +93,12 @@ app.get('/api/history/:id', (req, res, next) => {
 
 app.post('/api/history', (req, res, next) => {
   try {
-    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio } = req.body;
+    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId } = req.body;
 
     const result = db.prepare(
-      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1');
+      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
 
     res.json({ id: result.lastInsertRowid });
   } catch (err) { next(err); }
