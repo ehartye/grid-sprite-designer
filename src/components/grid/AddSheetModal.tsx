@@ -19,7 +19,9 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
 
   const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
   const [selectedLinkIndex, setSelectedLinkIndex] = useState(0);
-  const [imageSize, setImageSize] = useState<'2K' | '4K'>('2K');
+  const [imageSize, setImageSize] = useState<'2K' | '4K'>(
+    (state.imageSize === '4K' ? '4K' : '2K'),
+  );
   const [referenceMode, setReferenceMode] = useState<'full' | 'selected'>('full');
   const [selectedSpriteIndices, setSelectedSpriteIndices] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
