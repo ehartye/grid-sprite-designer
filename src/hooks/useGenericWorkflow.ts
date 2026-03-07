@@ -30,6 +30,160 @@ export interface WorkflowConfig {
   } | null;
 }
 
+/** Parameters for the shared generate pipeline */
+export interface PipelineParams {
+  gridConfig: GridConfig;
+  prompt: string;
+  model: string;
+  imageSize: string;
+  aspectRatio: string;
+  spriteType: SpriteType;
+  contentName: string;
+  contentDescription: string;
+  cellGroups?: any[];
+  referenceImage?: { data: string; mimeType: string };
+  /** Extra fields merged into the /api/history POST body */
+  historyExtras?: Record<string, any>;
+  /** Source context for SET_SOURCE_CONTEXT dispatch */
+  sourceContext?: { groupId: string | null; contentPresetId: string | null };
+}
+
+/**
+ * Shared generate → extract → save → archive pipeline.
+ * Used by both useGenericWorkflow and useRunWorkflow.
+ */
+export async function runGeneratePipeline(
+  params: PipelineParams,
+  dispatch: (action: any) => void,
+  signal: AbortSignal,
+) {
+  const { gridConfig, prompt, model, imageSize, aspectRatio, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
+
+  // 1. Generate template grid
+  const templateParams = gridConfig.templates[imageSize as '2K' | '4K'];
+  const template = generateTemplate(templateParams, gridConfig, aspectRatio);
+  dispatch({
+    type: 'GENERATE_START',
+    templateImage: template.base64,
+    gridConfig: {
+      cols: gridConfig.cols,
+      rows: gridConfig.rows,
+      cellLabels: gridConfig.cellLabels,
+      cellGroups,
+      aspectRatio: gridConfig.aspectRatio,
+    },
+  });
+
+  // 2. Call Gemini API
+  const result = await generateGrid(
+    model,
+    prompt,
+    { data: template.base64, mimeType: 'image/png' },
+    imageSize,
+    signal,
+    referenceImage,
+    aspectRatio,
+  );
+
+  if (signal.aborted) return null;
+
+  if (!result.image) {
+    dispatch({ type: 'GENERATE_ERROR', error: 'Gemini returned no image. Try again.' });
+    return null;
+  }
+
+  dispatch({
+    type: 'GENERATE_COMPLETE',
+    filledGridImage: result.image.data,
+    filledGridMimeType: result.image.mimeType,
+    geminiText: result.text || '',
+  });
+
+  // 3. Extract sprites
+  const sprites = await extractSprites(
+    result.image.data,
+    result.image.mimeType,
+    {
+      gridOverride: {
+        cols: gridConfig.cols,
+        rows: gridConfig.rows,
+        totalCells: gridConfig.totalCells,
+        cellLabels: gridConfig.cellLabels,
+      },
+    },
+  );
+
+  if (signal.aborted) return null;
+
+  dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
+
+  // 4. Save to history + archive to disk
+  const spritePayload = sprites.map(s => ({
+    cellIndex: s.cellIndex,
+    poseId: s.label.toLowerCase().replace(/\s+/g, '-'),
+    poseName: s.label,
+    imageData: s.imageData,
+    mimeType: s.mimeType,
+  }));
+
+  try {
+    const histResp = await fetch('/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contentName,
+        contentDescription,
+        model,
+        prompt,
+        filledGridImage: result.image.data,
+        spriteType,
+        gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
+        aspectRatio,
+        ...historyExtras,
+      }),
+      signal,
+    });
+    const histData = await histResp.json();
+
+    if (signal.aborted) return null;
+    dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
+    if (sourceContext) {
+      dispatch({ type: 'SET_SOURCE_CONTEXT', ...sourceContext });
+    }
+
+    await fetch(`/api/history/${histData.id}/sprites`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sprites: spritePayload }),
+      signal,
+    });
+  } catch (e: any) {
+    if (e?.name === 'AbortError') return null;
+    console.error('Failed to save to history:', e);
+    dispatch({ type: 'SET_STATUS', message: 'Failed to save to history', statusType: 'warning' });
+  }
+
+  try {
+    await fetch('/api/archive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contentName,
+        filledGridImage: result.image.data,
+        filledGridMimeType: result.image.mimeType,
+        sprites: spritePayload,
+      }),
+      signal,
+    });
+  } catch (e: any) {
+    if (e?.name === 'AbortError') return null;
+    console.error('Failed to archive to disk:', e);
+    dispatch({ type: 'SET_STATUS', message: 'Failed to archive to disk', statusType: 'warning' });
+  }
+
+  return result;
+}
+
 export function useGenericWorkflow(config: WorkflowConfig) {
   const { state, dispatch } = useAppContext();
   const abortRef = useRef<AbortController | null>(null);
@@ -58,140 +212,23 @@ export function useGenericWorkflow(config: WorkflowConfig) {
     abortRef.current = abort;
 
     try {
-      // 1. Build grid config
       const gridConfig = config.buildGridConfig(state, gridLink);
-      const templateParams = gridConfig.templates[state.imageSize as '2K' | '4K'];
-
-      // 2. Generate template grid
       const aspectRatio = gridConfig.aspectRatio || state.aspectRatio;
-      const template = generateTemplate(templateParams, gridConfig, aspectRatio);
-      dispatch({
-        type: 'GENERATE_START',
-        templateImage: template.base64,
-        gridConfig: {
-          cols: gridConfig.cols,
-          rows: gridConfig.rows,
-          cellLabels: gridConfig.cellLabels,
-          cellGroups: gridLink?.cellGroups,
-          aspectRatio: gridConfig.aspectRatio,
-        },
-      });
-
-      // 3. Build prompt
       const prompt = config.buildPrompt(state, gridConfig, gridLink);
 
-      // 4. Call Gemini API
-      const result = await generateGrid(
-        state.model,
+      await runGeneratePipeline({
+        gridConfig,
         prompt,
-        { data: template.base64, mimeType: 'image/png' },
-        state.imageSize,
-        abort.signal,
-        undefined,
+        model: state.model,
+        imageSize: state.imageSize,
         aspectRatio,
-      );
-
-      if (abort.signal.aborted) return;
-
-      if (!result.image) {
-        dispatch({ type: 'GENERATE_ERROR', error: 'Gemini returned no image. Try again.' });
-        return;
-      }
-
-      if (abort.signal.aborted) return;
-
-      dispatch({
-        type: 'GENERATE_COMPLETE',
-        filledGridImage: result.image.data,
-        filledGridMimeType: result.image.mimeType,
-        geminiText: result.text || '',
-      });
-
-      // 5. Extract sprites from the filled grid
-      const sprites = await extractSprites(
-        result.image.data,
-        result.image.mimeType,
-        {
-          gridOverride: {
-            cols: gridConfig.cols,
-            rows: gridConfig.rows,
-            totalCells: gridConfig.totalCells,
-            cellLabels: gridConfig.cellLabels,
-          },
-        },
-      );
-
-      if (abort.signal.aborted) return;
-
-      dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-
-      // 6. Save to history + archive to disk
-      const spritePayload = sprites.map(s => ({
-        cellIndex: s.cellIndex,
-        poseId: s.label.toLowerCase().replace(/\s+/g, '-'),
-        poseName: s.label,
-        imageData: s.imageData,
-        mimeType: s.mimeType,
-      }));
-
-      try {
-        const histResp = await fetch('/api/history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contentName: content.name,
-            contentDescription: content.description,
-            model: state.model,
-            prompt,
-            filledGridImage: result.image.data,
-            spriteType: config.spriteType,
-            gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
-            aspectRatio,
-            contentPresetId: state.activeContentPresetId,
-          }),
-          signal: abort.signal,
-        });
-        const histData = await histResp.json();
-
-        if (abort.signal.aborted) return;
-        dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
-        dispatch({
-          type: 'SET_SOURCE_CONTEXT',
-          groupId: null,
-          contentPresetId: state.activeContentPresetId,
-        });
-
-        await fetch(`/api/history/${histData.id}/sprites`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sprites: spritePayload }),
-          signal: abort.signal,
-        });
-      } catch (e: any) {
-        if (e?.name === 'AbortError') return;
-        console.error('Failed to save to history:', e);
-        dispatch({ type: 'SET_STATUS', message: 'Failed to save to history', statusType: 'warning' });
-      }
-
-      // Archive to output/ folder
-      try {
-        await fetch('/api/archive', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contentName: content.name,
-            filledGridImage: result.image.data,
-            filledGridMimeType: result.image.mimeType,
-            sprites: spritePayload,
-          }),
-          signal: abort.signal,
-        });
-      } catch (e: any) {
-        if (e?.name === 'AbortError') return;
-        console.error('Failed to archive to disk:', e);
-        dispatch({ type: 'SET_STATUS', message: 'Failed to archive to disk', statusType: 'warning' });
-      }
-
+        spriteType: config.spriteType,
+        contentName: content.name,
+        contentDescription: content.description,
+        cellGroups: gridLink?.cellGroups,
+        historyExtras: { contentPresetId: state.activeContentPresetId },
+        sourceContext: { groupId: null, contentPresetId: state.activeContentPresetId },
+      }, dispatch, abort.signal);
     } catch (err: any) {
       if (err?.name === 'AbortError') return;
       dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
