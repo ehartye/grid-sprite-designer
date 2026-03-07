@@ -36,7 +36,8 @@ export function GridLinkSelector({ spriteType, presetId, onSelectionChange }: Gr
         setCheckedIds(firstId);
         onSelectionChange(data.filter((l) => firstId.has(l.id)));
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Failed to load grid links:', err);
         setGridLinks([]);
         setCheckedIds(new Set());
         onSelectionChange([]);

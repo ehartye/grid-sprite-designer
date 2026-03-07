@@ -37,6 +37,7 @@ export function RunBuilderPage() {
       .then((data: ContentPresetOption[]) => setPresets(data))
       .catch((err) => {
         console.error('Failed to load presets:', err);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to load presets', statusType: 'warning' });
       });
   }, [spriteType]);
 
@@ -56,9 +57,11 @@ export function RunBuilderPage() {
         // Check all by default
         setCheckedIds(new Set(data.map((l) => l.id)));
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Failed to load grid links:', err);
         setGridLinks([]);
         setCheckedIds(new Set());
+        dispatch({ type: 'SET_STATUS', message: 'Failed to load grid links', statusType: 'warning' });
       })
       .finally(() => setLoading(false));
   }, [spriteType, selectedPresetId]);

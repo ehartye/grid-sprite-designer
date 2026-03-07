@@ -521,7 +521,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
     Promise.all([
       loadSettings(),
-      fetch(`/api/history/${state.historyId}`).then((r) => r.json()).catch(() => null),
+      fetch(`/api/history/${state.historyId}`).then((r) => r.json()).catch((err) => { console.error('Failed to load history data:', err); return null; }),
     ]).then(([settings, histData]) => {
       if (cancelled) return;
       if (settings) {
@@ -593,7 +593,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cellIndex, imageData, mimeType }),
-    }).catch((err) => console.error('Failed to update thumbnail:', err));
+    }).catch((err) => {
+      console.error('Failed to update thumbnail:', err);
+      dispatch({ type: 'SET_STATUS', message: 'Failed to update thumbnail', statusType: 'warning' });
+    });
   }, [state.historyId, displaySprites, mirroredCells, flipSpriteHorizontally]);
 
   const handleZoomClick = useCallback((cellIndex: number) => {

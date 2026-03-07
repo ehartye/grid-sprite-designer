@@ -130,10 +130,11 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
       setPage(data.page);
     } catch (err) {
       console.error('Failed to fetch gallery:', err);
+      dispatch({ type: 'SET_STATUS', message: 'Failed to load gallery', statusType: 'warning' });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   // Fetch on mount and when filters change
   useEffect(() => {

@@ -170,6 +170,7 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
         console.error('Failed to save to history:', e);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to save to history', statusType: 'warning' });
       }
 
       // Archive to output/ folder
@@ -188,6 +189,7 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
         console.error('Failed to archive to disk:', e);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to archive to disk', statusType: 'warning' });
       }
 
     } catch (err: any) {

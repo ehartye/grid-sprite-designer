@@ -161,6 +161,7 @@ export function useRunWorkflow() {
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
         console.error('Failed to save run grid to history:', e);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to save run grid to history', statusType: 'warning' });
       }
 
       // Archive to output/
@@ -179,6 +180,7 @@ export function useRunWorkflow() {
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
         console.error('Failed to archive run grid to disk:', e);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to archive run grid to disk', statusType: 'warning' });
       }
 
     } catch (err: any) {
