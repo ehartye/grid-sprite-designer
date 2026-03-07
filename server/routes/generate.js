@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_RETRIES = 3;
@@ -53,6 +54,14 @@ function parseGeminiResponse(data) {
 export function createGenerateRouter(apiKey) {
   const router = Router();
 
+  const generateLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 10,             // 10 requests per minute per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many generation requests. Please wait before trying again.' },
+  });
+
   /**
    * POST /api/generate-grid
    * Body: { model, prompt, templateImage: { data, mimeType }, imageSize,
@@ -62,7 +71,7 @@ export function createGenerateRouter(apiKey) {
    * When referenceImage is provided (multi-grid runs), it is sent as the first
    * image part so subsequent grids maintain visual consistency with the first.
    */
-  router.post('/generate-grid', async (req, res) => {
+  router.post('/generate-grid', generateLimiter, async (req, res) => {
     try {
       const { model, prompt, templateImage, imageSize = '2K', referenceImage, aspectRatio = '1:1' } = req.body;
 
