@@ -12,6 +12,7 @@
     "test": "playwright test",
     "test:report": "npx tsx tests/report-generator.ts",
     "test:sync-manifests": "npx tsx scripts/sync-fixture-manifests.ts",
+    "test:unit": "vitest run",
     "test:export-fixtures": "npx tsx scripts/export-fixtures-from-db.ts && npx tsx scripts/generate-fixture-index.ts"
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "concurrently": "^9.2.1",
     "sharp": "^0.34.5",
     "typescript": "^5.5.4",
-    "vite": "^5.4.2"
+    "vite": "^5.4.2",
+    "vitest": "^4.0.18"
   }
 }
