@@ -245,7 +245,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
         try {
           const settingsRes = await fetch(`/api/history/${id}/settings`);
           savedSettings = await settingsRes.json();
-        } catch { /* no saved settings */ }
+        } catch (err) { console.warn('Failed to load editor settings:', err); }
 
         const mimeType = data.filledGridMimeType || 'image/png';
         if (data.filledGridImage) {

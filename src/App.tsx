@@ -150,8 +150,8 @@ function AppContent() {
           dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
         }
         dispatch({ type: 'SET_HISTORY_ID', id: id! });
-      } catch {
-        // Silently fail — user just sees configure screen
+      } catch (err) {
+        console.warn('Failed to restore last session:', err);
       }
     })();
   }, [dispatch]);
