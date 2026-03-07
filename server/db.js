@@ -2333,7 +2333,172 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Marine plants the pulse rifle butt on the ground and leans on it, pushing the amber visor up on the helmet. His face is revealed — exhausted but alive, with a grim, satisfied expression. The motion tracker beeps a steady all-clear and the chest lamp casts a warm glow.
   Header "Weak Pose" (5,4): The Marine leans on the pulse rifle as a crutch, the amber visor cracked and flickering. The chest lamp is dead, the motion tracker sparks intermittently, and acid scars cover the olive drab armor. He breathes heavily behind the damaged helmet.
   Header "Critical Pose" (5,5): Barely standing, the Marine grips the pulse rifle one-handed, the other arm limp. The amber visor shows critical damage warnings, most armor plates are gone or cracked, and the chest lamp is shattered. His last magazine is loaded and his finger is on the trigger — he will not go quietly.`,
-    }
+    },
+    {
+      id: 'pickle-rick-rat-suit',
+      name: "Pickle Rick (Rat Suit)",
+      genre: "Sci-Fi / Comedy",
+      description: "Pickle Rick from Rick and Morty — a pickle with a rat skeleton exosuit/armor. His green pickle face is fully exposed with small beady eyes and a confident smirk. The rat skeleton armor consists of a ribcage chest plate and bone limbs. He is tall and narrow — an elongated pickle body with improvised bone armor strapped to it.",
+      equipment: "Rat skeleton exosuit armor (ribcage torso plate, bone arm and leg appendages), makeshift weapons fashioned from rat bones and sewer debris.",
+      colorNotes: "Bright green pickle skin with darker green bumps/texture. Off-white/cream rat bones with occasional blood/grime. Beady black eyes. The pickle body has a slight translucent quality at the edges.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): Pickle Rick strides toward the viewer with his left bone-leg forward. His green pickle face grins confidently, beady eyes forward. The rat ribcage chest plate bounces slightly. Bone arms swing naturally.
+  Header "Walk Down 2" (0,1): Neutral mid-step — bone legs together, arms at sides. The elongated pickle body stands upright, ribcage armor centered. His smirk is constant.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right bone-leg forward, arms reversed. Same confident pickle grin.
+  Header "Walk Up 1" (0,3): Facing away — the rat ribcage is visible from the back, spine running down the center of the green pickle body. Left bone-leg forward in stride.
+  Header "Walk Up 2" (0,4): Facing away, neutral stance — bone legs together. The rat skeleton armor's back detail is visible. Pickle bumps texture the green skin.
+  Header "Walk Up 3" (0,5): Facing away, right bone-leg forward. Mirror of Walk Up 1.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Side profile facing left — the elongated pickle shape is most visible here. Bone-leg strides forward, bone-arm swings. The ribcage armor wraps around the pickle body in profile.
+  Header "Walk Left 2" (1,1): Facing left, neutral stance. The tall narrow pickle silhouette with bone armor is distinctive. Beady eye visible in profile.
+  Header "Walk Left 3" (1,2): Facing left, opposite leg forward. Mirror-stride of Walk Left 1.
+  Header "Walk Right 1" (1,3): Side profile facing right. Same elongated pickle with bone armor, mirrored. Confident stride with bone limbs.
+  Header "Walk Right 2" (1,4): Facing right, neutral stance. Pickle Rick's profile shows the green skin between bone armor segments.
+  Header "Walk Right 3" (1,5): Facing right, opposite leg forward.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): Pickle Rick stands facing the viewer, bone arms at his sides, smirking. The rat ribcage sits naturally on his pickle torso. Relaxed but cocky posture.
+  Header "Idle Up" (2,1): Standing facing away, relaxed. The bone spine and ribcage back are visible against the green pickle skin.
+  Header "Idle Left" (2,2): Facing left, relaxed idle. The tall narrow pickle silhouette is distinctive. One bone arm rests casually.
+  Header "Idle Right" (2,3): Facing right, relaxed idle. Mirror of Idle Left.
+  Header "Battle Idle 1" (2,4): Pickle Rick drops into a combat crouch, bone arms raised in a fighting stance. His smirk becomes a fierce grin. A bone-shiv is gripped in one hand.
+  Header "Battle Idle 2" (2,5): Slight shift in battle stance — weight transfers between bone legs. The bone-shiv glints. His beady eyes are locked on the target.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): Battle stance held firmly, bone armor rattling slightly. Pickle Rick's expression is pure aggression.
+  Header "Attack 1" (3,1): Wind-up — Pickle Rick pulls the bone-shiv back, coiling his pickle body. The rat ribcage flexes with the twist.
+  Header "Attack 2" (3,2): Mid-slash — the bone weapon slashes forward in a vicious arc. His pickle body rotates into the strike, bone limbs extending.
+  Header "Attack 3" (3,3): Follow-through — weapon fully extended, pickle body stretched out from the force. Bone armor pieces rattle from the impact.
+  Header "Cast 1" (3,4): Pickle Rick raises both bone arms, improvising some sewer-tech device from rat parts. Sparks begin to fly from the contraption.
+  Header "Cast 2" (3,5): The improvised device crackles with energy. His beady eyes widen with manic glee. The pickle body glows slightly from the energy.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The device fires — a burst of sewer-tech energy erupts. Bone armor rattles from the discharge. Pickle Rick grins maniacally.
+  Header "Damage 1" (4,1): Pickle Rick flinches from a hit, bone armor absorbing impact. A rib cracks on the chest plate. His smirk falters briefly.
+  Header "Damage 2" (4,2): Staggering back, more bone armor cracking. The pickle body shows a bruise. His expression shifts to anger rather than pain.
+  Header "Damage 3" (4,3): Recovery — Pickle Rick plants a bone-leg and steadies himself. Broken armor pieces hang loose. His smirk returns defiantly.
+  Header "KO 1" (4,4): His bone legs buckle. The improvised weapons slip from his grip. The ribcage armor sags.
+  Header "KO 2" (4,5): Falling — the pickle body tips sideways, bone limbs going limp. Armor pieces scatter.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): Pickle Rick lies on the ground, bone armor scattered around him. Just a pickle with some bones. His beady eyes are closed.
+  Header "Victory 1" (5,1): Pickle Rick raises the bone-shiv overhead triumphantly with one arm. His grin is enormous. He stands tall on his bone legs, ribcage puffed out.
+  Header "Victory 2" (5,2): He flexes both bone arms in a power pose. The pickle body practically vibrates with self-satisfaction. His catchphrase face — "I'm Pickle Rick!"
+  Header "Victory 3" (5,3): Cool confident pose — bone-shiv resting on his shoulder, one bone-hand on his hip. The smirk that says he was never worried.
+  Header "Weak Pose" (5,4): Pickle Rick kneels on one bone-leg, using the bone-shiv as support. Several ribs on the chest plate are cracked. His pickle skin is dull. Breathing hard but still smirking.
+  Header "Critical Pose" (5,5): Barely standing — most bone armor destroyed, pickle body dented and bruised. One bone arm hangs limp. But his beady eyes burn with defiance. He's been through worse.`,
+    },
+    {
+      id: 'sewer-rat',
+      name: "Sewer Rat",
+      genre: "Sci-Fi / Comedy",
+      description: "A hostile sewer rat enemy — scrappy, aggressive, mangy fur, bared teeth, hunched posture. Standard enemy-sized rat, not giant. Stands upright on hind legs in a semi-bipedal combat stance for sprite animation purposes.",
+      equipment: "None — natural claws and teeth are its weapons.",
+      colorNotes: "Dirty brown/gray matted fur, pink hairless tail and inner ears, yellowish teeth, beady red-orange eyes. Pale pink skin visible through thin patches of fur on belly.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The rat scurries toward the viewer on hind legs, left paw forward. Hunched posture, beady red eyes glaring. Mangy brown-gray fur bristles. Tail drags behind.
+  Header "Walk Down 2" (0,1): Neutral mid-scurry — paws together, the rat pauses alertly. Whiskers twitch, ears up. Pink tail curls on the ground.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right paw forward, claws visible. Same aggressive hunch.
+  Header "Walk Up 1" (0,3): Facing away — matted fur visible on the back, pink tail prominent. Left hind paw forward in stride. Ears flatten back.
+  Header "Walk Up 2" (0,4): Facing away, neutral stance. The rat's hunched back and thin tail are visible. Patchy fur on the hindquarters.
+  Header "Walk Up 3" (0,5): Facing away, right hind paw forward. Mirror of Walk Up 1.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Side profile facing left — the rat's hunched silhouette, long snout, and trailing pink tail. Left paw forward in a scurrying stride.
+  Header "Walk Left 2" (1,1): Facing left, neutral. Whiskers extend forward, one beady eye visible. Claws rest at sides.
+  Header "Walk Left 3" (1,2): Facing left, right paw forward. Mirror-stride.
+  Header "Walk Right 1" (1,3): Side profile facing right. Same scurrying rat silhouette mirrored. Pink tail trails behind.
+  Header "Walk Right 2" (1,4): Facing right, neutral. Beady eye and twitching whiskers in profile.
+  Header "Walk Right 3" (1,5): Facing right, left paw forward.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The rat stands hunched on hind legs facing the viewer. Paws hang at its sides, claws visible. Beady red eyes stare. Whiskers twitch. Aggressive but still.
+  Header "Idle Up" (2,1): Standing facing away, tail curling on the ground. Ears twitch. Matted fur on the back.
+  Header "Idle Left" (2,2): Facing left, idle. The rat's hunched profile, snout, and whiskers. Alert and twitchy.
+  Header "Idle Right" (2,3): Facing right, idle. Mirror of Idle Left.
+  Header "Battle Idle 1" (2,4): The rat rears up fully on hind legs, forepaws raised with claws bared. Teeth exposed in a hiss. Red eyes blaze. Aggressive stance.
+  Header "Battle Idle 2" (2,5): Slight sway in battle stance — weight shifts, the rat snaps its jaws. Claws flex.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): Battle stance held — tail whips behind for balance. The rat snarls, showing yellow teeth.
+  Header "Attack 1" (3,1): Wind-up — the rat coils back on its haunches, claws pulled back. Ready to lunge.
+  Header "Attack 2" (3,2): Mid-lunge — the rat springs forward with claws extended, jaws open. A vicious swipe. Pink tail snaps straight.
+  Header "Attack 3" (3,3): Follow-through — claws slash through the air, the rat lands from its lunge. Fur bristles from exertion.
+  Header "Cast 1" (3,4): The rat lets out a screech — mouth wide open, standing fully upright. A rallying call to summon more rats.
+  Header "Cast 2" (3,5): Screeching intensifies — the rat's body vibrates with the shriek. Other tiny rat shadows seem to stir in the background.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): The screech peaks — a shockwave of sound. The rat's entire body tenses with the effort. Ears flatten.
+  Header "Damage 1" (4,1): The rat flinches from a hit, one paw clutching its side. Beady eyes wince. Fur ruffles from impact.
+  Header "Damage 2" (4,2): Staggering back on hind legs, the rat squeals. A patch of fur is torn. Tail wraps protectively.
+  Header "Damage 3" (4,3): Recovery — the rat shakes off the hit, snarling. It drops to all fours briefly then rises back to hind legs.
+  Header "KO 1" (4,4): The rat's legs give out. It slumps forward, paws going limp. Eyes half-close.
+  Header "KO 2" (4,5): Falling sideways — the rat topples, tail limp. Whiskers droop.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): The rat lies on its side, paws curled, tail limp. Eyes closed. Just a dead sewer rat.
+  Header "Victory 1" (5,1): The rat stands fully upright and squeaks triumphantly. Paws raised, claws gleaming. Chest puffed out.
+  Header "Victory 2" (5,2): It chatters its teeth rapidly in celebration. Tail whips excitedly. Beady eyes gleam with feral pride.
+  Header "Victory 3" (5,3): The rat grooms itself smugly, licking one paw. A satisfied rodent. Winner.
+  Header "Weak Pose" (5,4): The rat crouches low, panting. Fur matted with sweat, one eye half-closed. Claws scrape the ground weakly. Still snarling.
+  Header "Critical Pose" (5,5): Barely standing — the rat sways on shaky hind legs, mouth open, teeth bared in a final desperate hiss. One paw clutches a wound. Will bite to the last.`,
+    },
+    {
+      id: 'sewer-cockroach',
+      name: "Sewer Cockroach",
+      genre: "Sci-Fi / Comedy",
+      description: "A large aggressive sewer cockroach enemy — glossy dark carapace, twitchy antennae, six skittering legs. Viewed from a slight top-down angle to show the shell. Stands semi-upright on its back legs for sprite animation, front legs used as arms. About the size of a rat.",
+      equipment: "None — natural mandibles, sharp front leg spines, and hard carapace shell.",
+      colorNotes: "Dark reddish-brown glossy carapace/shell, lighter brown-tan underbelly and leg segments, dark brown-black legs, translucent amber wings folded under the shell. Beady black compound eyes.",
+      rowGuidance: `ROW 0 — Walk Down & Walk Up:
+  Header "Walk Down 1" (0,0): The cockroach skitters toward the viewer on its back legs, front legs held up like arms. Left legs forward. Glossy reddish-brown shell gleams. Antennae twitch forward. Compound eyes catch the light.
+  Header "Walk Down 2" (0,1): Neutral mid-scuttle — legs together. The cockroach stands alert, antennae waving. The wide carapace is visible from above.
+  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right legs forward. Same glossy carapace, same skittering motion.
+  Header "Walk Up 1" (0,3): Facing away — the full reddish-brown shell is visible from above/behind. Folded translucent wings peek from under the carapace edge. Back legs stride forward.
+  Header "Walk Up 2" (0,4): Facing away, neutral. The shell's glossy surface dominates the view. Antennae point backward.
+  Header "Walk Up 3" (0,5): Facing away, opposite legs forward.
+
+ROW 1 — Walk Left & Walk Right:
+  Header "Walk Left 1" (1,0): Side profile facing left — the cockroach's flat body and long antennae are prominent. Front leg-arms reach forward. Multiple legs visible in stride. Shell edge catches light.
+  Header "Walk Left 2" (1,1): Facing left, neutral. The cockroach's profile shows the layered shell and leg segments. One antenna sweeps forward.
+  Header "Walk Left 3" (1,2): Facing left, opposite legs forward. Six-legged scuttle cycle.
+  Header "Walk Right 1" (1,3): Side profile facing right. Mirrored skittering cockroach. Glossy shell and twitchy antennae.
+  Header "Walk Right 2" (1,4): Facing right, neutral. Compound eye visible in profile.
+  Header "Walk Right 3" (1,5): Facing right, opposite legs forward.
+
+ROW 2 — Idle & Battle Idle:
+  Header "Idle Down" (2,0): The cockroach stands on hind legs facing the viewer. Front leg-arms rest at its sides. Antennae wave lazily. Compound eyes reflect light. Mandibles click.
+  Header "Idle Up" (2,1): Standing facing away. The carapace fills the frame. Antennae droop backward. Wings folded tight.
+  Header "Idle Left" (2,2): Facing left, idle. Flat body profile visible. Antenna sweeps the air.
+  Header "Idle Right" (2,3): Facing right, idle. Mirror of Idle Left.
+  Header "Battle Idle 1" (2,4): The cockroach rears up aggressively — front legs raised with spiny edges visible. Mandibles spread wide. Antennae whip forward. The carapace lifts slightly, hinting at wing deployment.
+  Header "Battle Idle 2" (2,5): Battle sway — the cockroach hisses (air through spiracles). Front leg-spines flex. Eyes gleam.
+
+ROW 3 — Battle Idle 3, Attack, Cast Start:
+  Header "Battle Idle 3" (3,0): Held aggressive stance — antennae locked forward like targeting sensors. Mandibles click rhythmically. Ready to strike.
+  Header "Attack 1" (3,1): Wind-up — the cockroach coils its body, pulling front leg-spines back. Carapace tilts forward.
+  Header "Attack 2" (3,2): Mid-strike — front legs slash forward with spiny edges. The cockroach lunges, mandibles snapping. Fast and vicious.
+  Header "Attack 3" (3,3): Follow-through — spines fully extended, the cockroach hisses after the strike. Carapace rattles.
+  Header "Cast 1" (3,4): The cockroach spreads its translucent wings from under the carapace. A threatening display. The wings buzz ominously.
+  Header "Cast 2" (3,5): Wings buzz at high frequency — a disorienting sonic attack. The air shimmers around the vibrating wings.
+
+ROW 4 — Cast 3, Damage, KO Start:
+  Header "Cast 3" (4,0): Wings reach peak buzz — a shockwave of sound and wind. The cockroach's body vibrates intensely. Nearby debris scatters.
+  Header "Damage 1" (4,1): The cockroach recoils from a hit. A crack appears in the glossy carapace. Front legs clutch defensively. Antennae whip back.
+  Header "Damage 2" (4,2): Staggering — more shell cracks. The cockroach's legs scramble for footing. One antenna is bent.
+  Header "Damage 3" (4,3): Recovery — the cockroach rights itself, shell damaged but intact. It hisses defiantly, mandibles clicking.
+  Header "KO 1" (4,4): Legs give out — the cockroach tips onto its back. Legs curl inward. Classic dying roach pose begins.
+  Header "KO 2" (4,5): On its back, legs twitching. The glossy underbelly is exposed — lighter tan color. Wings crumple.
+
+ROW 5 — KO 3, Victory, Status Poses:
+  Header "KO 3" (5,0): Fully on its back, legs curled up and still. Dead cockroach. Shell cracked, antennae limp.
+  Header "Victory 1" (5,1): The cockroach rears up fully and spreads its wings in a dominance display. Mandibles click rapidly. Front leg-spines raised high.
+  Header "Victory 2" (5,2): It buzzes its wings in short triumphant bursts. Antennae wave in circles. The carapace gleams with victory.
+  Header "Victory 3" (5,3): The cockroach folds its wings smugly and begins grooming an antenna with one front leg. It has survived. It always survives.
+  Header "Weak Pose" (5,4): The cockroach lists to one side, legs shaky. Shell cracked in multiple places, one antenna broken. Mandibles open and close weakly. Breathing hard through damaged spiracles.
+  Header "Critical Pose" (5,5): Barely upright — multiple shell plates missing, legs trembling. But the compound eyes still gleam. It hisses with what little strength remains. Cockroaches don't give up. They never do.`,
+    },
   ];
 
   const insert = db.prepare(
@@ -2365,6 +2530,67 @@ ROW 5 — KO 3, Victory, Status Poses:
     });
     linkAll();
     console.log(`[DB] Created ${chars.length} character grid links.`);
+  }
+
+  // Create RPG Full (Tall) 6x6 grid preset with 2:3 aspect ratio for tall characters
+  const characterCellLabels = JSON.stringify([
+    'Walk Down 1','Walk Down 2','Walk Down 3',
+    'Walk Up 1','Walk Up 2','Walk Up 3',
+    'Walk Left 1','Walk Left 2','Walk Left 3',
+    'Walk Right 1','Walk Right 2','Walk Right 3',
+    'Idle Down','Idle Up','Idle Left','Idle Right',
+    'Battle Idle 1','Battle Idle 2',
+    'Battle Idle 3',
+    'Attack 1','Attack 2','Attack 3',
+    'Cast 1','Cast 2',
+    'Cast 3',
+    'Damage 1','Damage 2','Damage 3',
+    'KO 1','KO 2',
+    'KO 3',
+    'Victory 1','Victory 2','Victory 3',
+    'Weak Pose','Critical Pose'
+  ]);
+  const characterCellGroups = JSON.stringify([
+    { name: 'Walk Down', cells: [0,1,2] },
+    { name: 'Walk Up', cells: [3,4,5] },
+    { name: 'Walk Left', cells: [6,7,8] },
+    { name: 'Walk Right', cells: [9,10,11] },
+    { name: 'Idle Down', cells: [12] },
+    { name: 'Idle Up', cells: [13] },
+    { name: 'Idle Left', cells: [14] },
+    { name: 'Idle Right', cells: [15] },
+    { name: 'Battle Idle', cells: [16,17,18] },
+    { name: 'Attack', cells: [19,20,21] },
+    { name: 'Cast', cells: [22,23,24] },
+    { name: 'Damage', cells: [25,26,27] },
+    { name: 'KO', cells: [28,29,30] },
+    { name: 'Victory', cells: [31,32,33] },
+    { name: 'Weak', cells: [34] },
+    { name: 'Critical', cells: [35] }
+  ]);
+  db.prepare(`
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, aspect_ratio, tile_shape, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `).run('RPG Full (Tall)', 'character', 'RPG', '6x6', 6, 6, characterCellLabels, characterCellGroups,
+    rpgFullGrid ? db.prepare("SELECT generic_guidance FROM grid_presets WHERE id = ?").get(rpgFullGrid.id)?.generic_guidance || '' : '',
+    null, '2:3', 'square');
+
+  // Link Pickle Rick presets to the tall grid preset
+  const tallGrid = db.prepare("SELECT id FROM grid_presets WHERE name = 'RPG Full (Tall)' AND sprite_type = 'character'").get();
+  if (tallGrid) {
+    const tallPresetIds = ['pickle-rick-rat-suit', 'sewer-rat', 'sewer-cockroach'];
+    const insertTallLink = db.prepare(`
+      INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, guidance_override, sort_order)
+      VALUES (?, ?, ?, 0)
+    `);
+    const linkTall = db.transaction(() => {
+      for (const pid of tallPresetIds) {
+        const preset = db.prepare('SELECT row_guidance FROM character_presets WHERE id = ?').get(pid);
+        if (preset) insertTallLink.run(pid, tallGrid.id, preset.row_guidance || '');
+      }
+    });
+    linkTall();
+    console.log(`[DB] Linked ${tallPresetIds.length} presets to RPG Full (Tall) grid.`);
   }
 }
 
