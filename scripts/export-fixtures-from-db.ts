@@ -72,7 +72,7 @@ function main() {
 
   // Get all generations with their sprites
   const generations = db.prepare(`
-    SELECT g.id, g.character_name, g.sprite_type, g.grid_size, g.filled_grid_image
+    SELECT g.id, g.content_name, g.sprite_type, g.grid_size, g.filled_grid_image
     FROM generations g
     WHERE g.filled_grid_image IS NOT NULL AND g.filled_grid_image != ''
     ORDER BY g.id
@@ -86,7 +86,7 @@ function main() {
   let skipped = 0;
 
   for (const gen of generations) {
-    let slug = slugify(gen.character_name);
+    let slug = slugify(gen.content_name);
 
     // Handle duplicate names by appending generation id
     if (usedSlugs.has(slug)) {
@@ -99,7 +99,7 @@ function main() {
 
     const templateParams = TEMPLATE_PARAMS[spriteType]?.[gridSize];
     if (!templateParams) {
-      console.warn(`  SKIP: "${gen.character_name}" (id=${gen.id}) — no template params for ${spriteType} ${gridSize}`);
+      console.warn(`  SKIP: "${gen.content_name}" (id=${gen.id}) — no template params for ${spriteType} ${gridSize}`);
       skipped++;
       continue;
     }

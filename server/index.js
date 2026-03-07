@@ -42,7 +42,7 @@ app.use('/api', createGenerateRouter(apiKey));
 app.get('/api/history', (req, res, next) => {
   try {
     const rows = db.prepare(
-      'SELECT id, character_name, character_description, model, created_at FROM generations ORDER BY created_at DESC LIMIT 50'
+      'SELECT id, content_name, content_description, model, created_at FROM generations ORDER BY created_at DESC LIMIT 50'
     ).all();
     res.json(rows);
   } catch (err) { next(err); }
@@ -64,9 +64,9 @@ app.get('/api/history/:id', (req, res, next) => {
       id: gen.id,
       spriteType: gen.sprite_type || 'character',
       gridSize: gen.grid_size || null,
-      character: {
-        name: gen.character_name || '',
-        description: gen.character_description || '',
+      content: {
+        name: gen.content_name || '',
+        description: gen.content_description || '',
         equipment: '',
         colorNotes: '',
         styleNotes: '',
@@ -93,12 +93,12 @@ app.get('/api/history/:id', (req, res, next) => {
 
 app.post('/api/history', (req, res, next) => {
   try {
-    const { characterName, characterDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId } = req.body;
+    const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId } = req.body;
 
     const result = db.prepare(
-      `INSERT INTO generations (character_name, character_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id)
+      `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(characterName, characterDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
+    ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
 
     res.json({ id: result.lastInsertRowid });
   } catch (err) { next(err); }
@@ -426,7 +426,7 @@ app.get('/api/gallery', (req, res, next) => {
     const conditions = [];
     const params = [];
     if (search) {
-      conditions.push('g.character_name LIKE ?');
+      conditions.push('g.content_name LIKE ?');
       params.push(search);
     }
     if (spriteType) {
@@ -439,7 +439,7 @@ app.get('/api/gallery', (req, res, next) => {
     const total = countRow.total;
 
     const rows = db.prepare(
-      `SELECT g.id, g.character_name, g.character_description, g.model, g.created_at, g.sprite_type, g.grid_size, g.group_id,
+      `SELECT g.id, g.content_name, g.content_description, g.model, g.created_at, g.sprite_type, g.grid_size, g.group_id,
             (SELECT COUNT(*) FROM sprites WHERE generation_id = g.id) as sprite_count,
             COALESCE(g.thumbnail_image, (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_data,
             COALESCE(g.thumbnail_mime, (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_mime
@@ -449,8 +449,8 @@ app.get('/api/gallery', (req, res, next) => {
     res.json({
       entries: rows.map(r => ({
         id: r.id,
-        characterName: r.character_name,
-        characterDescription: r.character_description,
+        contentName: r.content_name,
+        contentDescription: r.content_description,
         model: r.model,
         createdAt: r.created_at,
         spriteType: r.sprite_type || 'character',
@@ -555,14 +555,14 @@ app.patch('/api/history/:id/group', (req, res, next) => {
 
 app.post('/api/archive', (req, res, next) => {
   try {
-    const { characterName, filledGridImage, filledGridMimeType, sprites } = req.body;
+    const { contentName, filledGridImage, filledGridMimeType, sprites } = req.body;
 
-    if (!characterName || !filledGridImage) {
-      return res.status(400).json({ error: 'characterName and filledGridImage are required' });
+    if (!contentName || !filledGridImage) {
+      return res.status(400).json({ error: 'contentName and filledGridImage are required' });
     }
 
-    // Build folder name: character-name_YYYYMMDD-HHmmss
-    const slug = characterName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    // Build folder name: content-name_YYYYMMDD-HHmmss
+    const slug = contentName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14).replace(/(\d{8})(\d{6})/, '$1-$2');
     const folderName = `${slug}_${ts}`;
     const folderPath = join(OUTPUT_DIR, folderName);

@@ -122,8 +122,8 @@ export function useGridWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.character.name,
-            characterDescription: state.character.description,
+            contentName: state.character.name,
+            contentDescription: state.character.description,
             model: state.model,
             prompt,
             filledGridImage: result.image.data,
@@ -161,7 +161,7 @@ export function useGridWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.character.name,
+            contentName: state.character.name,
             filledGridImage: result.image.data,
             filledGridMimeType: result.image.mimeType,
             sprites: spritePayload,

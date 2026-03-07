@@ -55,8 +55,8 @@ function AppContent() {
           dispatch({
             type: 'SET_BUILDING',
             building: {
-              name: data.character?.name || '',
-              description: data.character?.description || '',
+              name: data.content?.name || '',
+              description: data.content?.description || '',
               details: '',
               colorNotes: '',
               styleNotes: '',
@@ -70,8 +70,8 @@ function AppContent() {
           dispatch({
             type: 'SET_TERRAIN',
             terrain: {
-              name: data.character?.name || '',
-              description: data.character?.description || '',
+              name: data.content?.name || '',
+              description: data.content?.description || '',
               colorNotes: '',
               styleNotes: '',
               tileGuidance: '',
@@ -84,8 +84,8 @@ function AppContent() {
           dispatch({
             type: 'SET_BACKGROUND',
             background: {
-              name: data.character?.name || '',
-              description: data.character?.description || '',
+              name: data.content?.name || '',
+              description: data.content?.description || '',
               colorNotes: '',
               styleNotes: '',
               layerGuidance: '',
@@ -94,8 +94,8 @@ function AppContent() {
               cellLabels: spriteLabels,
             },
           });
-        } else if (data.character) {
-          dispatch({ type: 'SET_CHARACTER', character: data.character });
+        } else if (data.content) {
+          dispatch({ type: 'SET_CHARACTER', character: data.content });
         }
         const mimeType = data.filledGridMimeType || 'image/png';
         if (data.filledGridImage) {

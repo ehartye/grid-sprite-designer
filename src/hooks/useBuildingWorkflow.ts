@@ -116,8 +116,8 @@ export function useBuildingWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.building.name,
-            characterDescription: state.building.description,
+            contentName: state.building.name,
+            contentDescription: state.building.description,
             model: state.model,
             prompt,
             filledGridImage: result.image.data,
@@ -155,7 +155,7 @@ export function useBuildingWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.building.name,
+            contentName: state.building.name,
             filledGridImage: result.image.data,
             filledGridMimeType: result.image.mimeType,
             sprites: spritePayload,

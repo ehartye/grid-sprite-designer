@@ -116,8 +116,8 @@ export function useTerrainWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.terrain.name,
-            characterDescription: state.terrain.description,
+            contentName: state.terrain.name,
+            contentDescription: state.terrain.description,
             model: state.model,
             prompt,
             filledGridImage: result.image.data,
@@ -155,7 +155,7 @@ export function useTerrainWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.terrain.name,
+            contentName: state.terrain.name,
             filledGridImage: result.image.data,
             filledGridMimeType: result.image.mimeType,
             sprites: spritePayload,

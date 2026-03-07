@@ -117,8 +117,8 @@ export function useBackgroundWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.background.name,
-            characterDescription: state.background.description,
+            contentName: state.background.name,
+            contentDescription: state.background.description,
             model: state.model,
             prompt,
             filledGridImage: result.image.data,
@@ -156,7 +156,7 @@ export function useBackgroundWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: state.background.name,
+            contentName: state.background.name,
             filledGridImage: result.image.data,
             filledGridMimeType: result.image.mimeType,
             sprites: spritePayload,

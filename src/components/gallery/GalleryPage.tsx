@@ -12,7 +12,7 @@ import type { EditorSettings } from '../../hooks/useEditorSettings';
 
 interface GalleryEntry {
   id: number;
-  characterName: string;
+  contentName: string;
   createdAt: string;
   spriteType: string;
   gridSize: string | null;
@@ -85,7 +85,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
     // Second pass: group remaining by character name
     for (const entry of entries) {
       if (assigned.has(entry.id)) continue;
-      const key = `name:${entry.characterName}`;
+      const key = `name:${entry.contentName}`;
       if (!groupMap.has(key)) {
         groupMap.set(key, []);
         order.push(key);
@@ -99,7 +99,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
       if (group.length === 1) {
         result.push(group[0]);
       } else {
-        result.push({ name: group[0].characterName, entries: group });
+        result.push({ name: group[0].contentName, entries: group });
       }
     }
     return result;
@@ -175,8 +175,8 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           dispatch({
             type: 'SET_BUILDING',
             building: {
-              name: data.character?.name || '',
-              description: data.character?.description || '',
+              name: data.content?.name || '',
+              description: data.content?.description || '',
               details: '',
               colorNotes: '',
               styleNotes: '',
@@ -190,8 +190,8 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           dispatch({
             type: 'SET_TERRAIN',
             terrain: {
-              name: data.character?.name || '',
-              description: data.character?.description || '',
+              name: data.content?.name || '',
+              description: data.content?.description || '',
               colorNotes: '',
               styleNotes: '',
               tileGuidance: '',
@@ -204,8 +204,8 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           dispatch({
             type: 'SET_BACKGROUND',
             background: {
-              name: data.character?.name || '',
-              description: data.character?.description || '',
+              name: data.content?.name || '',
+              description: data.content?.description || '',
               colorNotes: '',
               styleNotes: '',
               layerGuidance: '',
@@ -214,8 +214,8 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
               cellLabels: spriteLabels,
             },
           });
-        } else if (data.character) {
-          dispatch({ type: 'SET_CHARACTER', character: data.character });
+        } else if (data.content) {
+          dispatch({ type: 'SET_CHARACTER', character: data.content });
         }
 
         // Compute grid dimensions — from gridSize if available, otherwise infer from sprite count
@@ -431,7 +431,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                                 animationDelay: `${i * 4}s`,
                               }}
                               src={`data:${e.thumbnailMime || 'image/png'};base64,${e.thumbnailData}`}
-                              alt={e.characterName}
+                              alt={e.contentName}
                             />
                           )
                         ))}
@@ -465,7 +465,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                           {entry.thumbnailData && (
                             <img
                               src={`data:${entry.thumbnailMime || 'image/png'};base64,${entry.thumbnailData}`}
-                              alt={entry.characterName}
+                              alt={entry.contentName}
                             />
                           )}
                         </div>
@@ -509,12 +509,12 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                       {entry.thumbnailData && (
                         <img
                           src={`data:${entry.thumbnailMime || 'image/png'};base64,${entry.thumbnailData}`}
-                          alt={entry.characterName}
+                          alt={entry.contentName}
                         />
                       )}
                     </div>
                     <div className="gallery-card-info">
-                      <div className="gallery-card-name">{entry.characterName}</div>
+                      <div className="gallery-card-name">{entry.contentName}</div>
                       <div className="gallery-card-meta">
                         <span className="gallery-type-badge">{typeLabel(entry.spriteType)}</span>
                         {' '}&middot;{' '}{formatDate(entry.createdAt)} &middot; {entry.spriteCount} sprites

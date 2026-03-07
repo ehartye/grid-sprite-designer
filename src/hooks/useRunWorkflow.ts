@@ -129,8 +129,8 @@ export function useRunWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: contentPreset.name,
-            characterDescription: contentPreset.description,
+            contentName: contentPreset.name,
+            contentDescription: contentPreset.description,
             model: state.model,
             prompt,
             filledGridImage: result.image.data,
@@ -169,7 +169,7 @@ export function useRunWorkflow() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            characterName: contentPreset.name,
+            contentName: contentPreset.name,
             filledGridImage: result.image.data,
             filledGridMimeType: result.image.mimeType,
             sprites: spritePayload,

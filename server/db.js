@@ -34,8 +34,8 @@ function createSchema(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS generations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      character_name TEXT NOT NULL,
-      character_description TEXT NOT NULL DEFAULT '',
+      content_name TEXT NOT NULL,
+      content_description TEXT NOT NULL DEFAULT '',
       character_preset_id TEXT,
       custom_instructions TEXT DEFAULT '',
       model TEXT NOT NULL DEFAULT 'gemini-2.5-flash-image',
@@ -209,20 +209,22 @@ function migrateSchema(db) {
     "ALTER TABLE generations ADD COLUMN aspect_ratio TEXT DEFAULT '1:1'",
     "ALTER TABLE generations ADD COLUMN group_id TEXT DEFAULT NULL",
     "ALTER TABLE generations ADD COLUMN content_preset_id TEXT DEFAULT NULL",
+    "ALTER TABLE generations RENAME COLUMN character_name TO content_name",
+    "ALTER TABLE generations RENAME COLUMN character_description TO content_description",
   ];
   for (const sql of migrations) {
-    try { db.exec(sql); } catch (_) { /* column already exists */ }
+    try { db.exec(sql); } catch (_) { /* column already exists or renamed */ }
   }
 
-  // Backfill content_preset_id from character_name for existing entries
+  // Backfill content_preset_id from content_name for existing entries
   const presetTables = ['character_presets', 'building_presets', 'terrain_presets', 'background_presets'];
   for (const table of presetTables) {
     try {
       db.exec(`
         UPDATE generations SET content_preset_id = (
-          SELECT id FROM ${table} WHERE name = generations.character_name LIMIT 1
+          SELECT id FROM ${table} WHERE name = generations.content_name LIMIT 1
         ) WHERE content_preset_id IS NULL AND EXISTS (
-          SELECT 1 FROM ${table} WHERE name = generations.character_name
+          SELECT 1 FROM ${table} WHERE name = generations.content_name
         )
       `);
     } catch (_) { /* table may not exist yet */ }
