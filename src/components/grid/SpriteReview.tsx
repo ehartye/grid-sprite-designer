@@ -4,15 +4,18 @@
  * Right sidebar: animation preview, export controls, re-extraction.
  */
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { useBuildingWorkflow } from '../../hooks/useBuildingWorkflow';
 import { useTerrainWorkflow } from '../../hooks/useTerrainWorkflow';
 import { useBackgroundWorkflow } from '../../hooks/useBackgroundWorkflow';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
+import { useChromaKeySettings } from '../../hooks/useChromaKeySettings';
+import { usePosterizeSettings } from '../../hooks/usePosterizeSettings';
+import { useAnimationLoop } from '../../hooks/useAnimationLoop';
+import { useSpriteSelection } from '../../hooks/useSpriteSelection';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
-import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
 import type { CellGroup, GridLink } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { applyChromaKey, defringeRecolor, strikeColors, detectKeyColor } from '../../lib/chromaKey';
@@ -148,12 +151,6 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
   // Use cellGroups from props, or from activeGridConfig, or from current grid link, or fall back to default ANIMATIONS
   const effectiveCellGroups = cellGroups ?? agc?.cellGroups ?? currentGridLink?.cellGroups;
-  const animations: AnimationDef[] = useMemo(
-    () => effectiveCellGroups?.length
-      ? effectiveCellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
-      : ANIMATIONS,
-    [effectiveCellGroups],
-  );
   const hasAnimGroups = isCharacter || (effectiveCellGroups?.length ?? 0) > 0;
   const reExtract =
     state.spriteType === 'building' ? buildingReExtract :
@@ -161,41 +158,33 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     state.spriteType === 'background' ? backgroundReExtract :
     charReExtract;
 
-  const [selectedAnim, setSelectedAnim] = useState(0);
-  const [frameIndex, setFrameIndex] = useState(0);
-  const [speed, setSpeed] = useState(150);
-  const [scale, setScale] = useState(2);
-  const [chromaEnabled, setChromaEnabled] = useState(false);
-  const [chromaTolerance, setChromaTolerance] = useState(80);
+  // Custom hooks
+  const chroma = useChromaKeySettings();
+  const post = usePosterizeSettings();
+  const selection = useSpriteSelection({ spriteCount: sprites.length, cellCount });
+
   const [processedSprites, setProcessedSprites] = useState<ExtractedSprite[]>(sprites);
-  const [aaInset, setAaInset] = useState(3);
-  const [posterizeBits, setPosterizeBits] = useState(4);
-  const [posterizeOutput, setPosterizeOutput] = useState(false);
   const [palette, setPalette] = useState<RGB[]>([]);
   const [struckColors, setStruckColors] = useState<RGB[]>([]);
   const [showRareColors, setShowRareColors] = useState(false);
-  const [swapSource, setSwapSource] = useState<number | null>(null);
-  const [displayOrder, setDisplayOrder] = useState<number[]>(() => Array.from({ length: sprites.length || cellCount }, (_, i) => i));
-  const [mirroredCells, setMirroredCells] = useState<Set<number>>(new Set());
-  const [thumbnailCell, setThumbnailCell] = useState<number | null>(null);
-  const [zoomSpriteIndex, setZoomSpriteIndex] = useState<number | null>(null);
-  const [erasedPixels, setErasedPixels] = useState<Map<number, Set<string>>>(new Map());
-  const [edgeRecolorPasses, setEdgeRecolorPasses] = useState(0);
-  const [recolorSensitivity, setRecolorSensitivity] = useState(50);
-  const [defringeCore, setDefringeCore] = useState(240);
+  const [aaInset, setAaInset] = useState(3);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const struckKey = JSON.stringify(struckColors);
-  const erasedKey = useMemo(() => {
-    let total = 0;
-    for (const s of erasedPixels.values()) total += s.size;
-    return total;
-  }, [erasedPixels]);
 
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animTimerRef = useRef<number>(0);
-  const lastKeyRef = useRef<string>('ArrowDown');
+  const displaySprites = useMemo(
+    () => selection.getDisplaySprites(processedSprites),
+    [selection.getDisplaySprites, processedSprites],
+  );
+
+  const anim = useAnimationLoop({
+    cellCount,
+    hasAnimGroups,
+    effectiveCellGroups,
+    displaySprites,
+    mirroredCells: selection.mirroredCells,
+  });
 
   // Detect palette from sprites with posterization only (never chroma/strikes,
   // so striking a color doesn't reshuffle the palette).
@@ -203,8 +192,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     if (sprites.length === 0) return;
     let cancelled = false;
 
-    const sourcePromise = posterizeOutput
-      ? Promise.all(sprites.map(s => processSprite(s, true, posterizeBits, false, 0, [])))
+    const sourcePromise = post.posterizeOutput
+      ? Promise.all(sprites.map(s => processSprite(s, true, post.posterizeBits, false, 0, [])))
       : Promise.resolve(sprites);
 
     sourcePromise.then(source => {
@@ -215,11 +204,11 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     });
 
     return () => { cancelled = true; };
-  }, [sprites, posterizeOutput, posterizeBits]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits]);
 
   // Process sprites through posterization + chroma key + color strikes + erasures
   useEffect(() => {
-    if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && erasedPixels.size === 0 && !edgeRecolorPasses) {
+    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses) {
       setProcessedSprites(sprites);
       return;
     }
@@ -229,7 +218,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     (async () => {
       // Auto-detect key color from the first sprite when chroma is enabled
       let keyR = 255, keyG = 0, keyB = 255;
-      if (chromaEnabled && sprites.length > 0) {
+      if (chroma.chromaEnabled && sprites.length > 0) {
         const first = sprites[0];
         const img = new Image();
         await new Promise<void>((resolve, reject) => {
@@ -248,178 +237,84 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       }
 
       const result = await Promise.all(sprites.map((s) =>
-        processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors, erasedPixels.get(s.cellIndex), edgeRecolorPasses, recolorSensitivity, defringeCore, keyR, keyG, keyB),
+        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB),
       ));
       if (!cancelled) setProcessedSprites(result);
     })();
 
     return () => { cancelled = true; };
-  }, [sprites, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckKey, erasedKey, edgeRecolorPasses, recolorSensitivity, defringeCore]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
 
-  // Derive display-ordered sprites: remap cellIndex based on displayOrder
-  const displaySprites = useMemo(() => {
-    const byCell = new Map<number, ExtractedSprite>();
-    for (const s of processedSprites) byCell.set(s.cellIndex, s);
-
-    return displayOrder.map((srcIdx, displayIdx) => {
-      const sprite = byCell.get(srcIdx);
-      if (!sprite) return null;
-      return { ...sprite, cellIndex: displayIdx };
-    }).filter(Boolean) as ExtractedSprite[];
-  }, [processedSprites, displayOrder]);
-
-  // For non-character types, cycle through all cells; for characters, use animation definitions
-  const allCellFrames = useMemo(
-    () => Array.from({ length: cellCount }, (_, i) => i),
-    [cellCount],
-  );
-  const currentAnim = !hasAnimGroups ? null : animations[selectedAnim];
-  const currentFrames = !hasAnimGroups ? allCellFrames : currentAnim!.frames;
-
-  // Build sprite lookup from display-ordered sprites
-  const spriteMap = new Map<number, ExtractedSprite>();
-  for (const s of displaySprites) {
-    spriteMap.set(s.cellIndex, s);
-  }
-
-  // Animation loop
+  // Load all persisted editor state when historyId changes.
+  // Resets to defaults first, then overwrites from DB — merged into one effect
+  // so the save effect can't clobber DB with reset values.
   useEffect(() => {
-    if (currentFrames.length <= 1) {
-      setFrameIndex(0);
+    if (!state.historyId) {
+      setSettingsLoaded(true);
       return;
     }
-
-    const shouldLoop = !hasAnimGroups || currentAnim?.loop;
-    const tick = () => {
-      setFrameIndex((prev) => {
-        const next = prev + 1;
-        if (next >= currentFrames.length) {
-          return shouldLoop ? 0 : currentFrames.length - 1;
-        }
-        return next;
-      });
-    };
-
-    animTimerRef.current = window.setInterval(tick, speed);
-    return () => window.clearInterval(animTimerRef.current);
-  }, [currentFrames.length, currentAnim?.loop, speed, selectedAnim, hasAnimGroups]);
-
-  // Reset frame on anim change
-  useEffect(() => {
-    setFrameIndex(0);
-  }, [selectedAnim]);
-
-  // Draw current frame to canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const cellIdx = currentFrames[frameIndex] ?? currentFrames[0];
-    const sprite = spriteMap.get(cellIdx);
-    if (!sprite) return;
-
+    setSettingsLoaded(false);
     let cancelled = false;
-    const ctx = canvas.getContext('2d')!;
-    const img = new Image();
-    img.onload = () => {
+
+    // Reset to defaults immediately
+    selection.resetSelection();
+    chroma.resetChromaKey();
+    setStruckColors([]);
+    setAaInset(3);
+    post.resetPosterize();
+
+    Promise.all([
+      loadSettings(),
+      fetch(`/api/history/${state.historyId}`).then((r) => r.json()).catch((err) => { console.error('Failed to load history data:', err); return null; }),
+    ]).then(([settings, histData]) => {
       if (cancelled) return;
-
-      const w = img.width * scale;
-      const h = img.height * scale;
-      canvas.width = Math.max(w, 128);
-      canvas.height = Math.max(h, 128);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw checkerboard
-      const tileSize = 8;
-      for (let y = 0; y < canvas.height; y += tileSize) {
-        for (let x = 0; x < canvas.width; x += tileSize) {
-          const light = ((x / tileSize + y / tileSize) % 2) === 0;
-          ctx.fillStyle = light ? '#1a1a3a' : '#12122a';
-          ctx.fillRect(x, y, tileSize, tileSize);
-        }
+      if (settings) {
+        chroma.restoreChromaKey({
+          chromaEnabled: settings.chromaEnabled,
+          chromaTolerance: settings.chromaTolerance,
+          edgeRecolorPasses: settings.edgeRecolorPasses || 0,
+          recolorSensitivity: settings.recolorSensitivity ?? 50,
+          defringeCore: settings.defringeCore ?? 240,
+        });
+        setStruckColors(settings.struckColors);
+        selection.restoreSelection({
+          mirroredCells: settings.mirroredCells,
+          cellOrder: settings.cellOrder,
+        });
+        setAaInset(settings.aaInset);
+        post.restorePosterize({
+          posterizeBits: settings.posterizeBits,
+          posterizeOutput: settings.posterizeOutput,
+        });
       }
-
-      ctx.imageSmoothingEnabled = false;
-
-      const dx = Math.floor((canvas.width - w) / 2);
-      const dy = Math.floor((canvas.height - h) / 2);
-
-      if (mirroredCells.has(cellIdx)) {
-        ctx.save();
-        ctx.translate(dx + w, dy);
-        ctx.scale(-1, 1);
-        ctx.drawImage(img, 0, 0, w, h);
-        ctx.restore();
-      } else {
-        ctx.drawImage(img, dx, dy, w, h);
+      if (histData?.thumbnailCellIndex != null) {
+        selection.setThumbnailCell(histData.thumbnailCellIndex);
       }
-    };
-    img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
+      setSettingsLoaded(true);
+    });
 
-    return () => {
-      cancelled = true;
-      img.src = '';
-    };
-  }, [frameIndex, currentFrames, spriteMap, scale, mirroredCells]);
+    return () => { cancelled = true; };
+  }, [state.historyId, loadSettings]);
 
-  // Swap click handler
-  const handleCellClick = useCallback((cellIndex: number) => {
-    if (swapSource === null) {
-      setSwapSource(cellIndex);
-    } else if (swapSource === cellIndex) {
-      setSwapSource(null);
-    } else {
-      setDisplayOrder((prev) => {
-        const next = [...prev];
-        const temp = next[swapSource];
-        next[swapSource] = next[cellIndex];
-        next[cellIndex] = temp;
-        return next;
-      });
-      setSwapSource(null);
-    }
-  }, [swapSource]);
-
-  const isOrderModified = useMemo(
-    () => displayOrder.some((v, i) => v !== i),
-    [displayOrder],
-  );
-
-  // Arrow key navigation (when animation groups available)
+  // Save settings on change (debounced internally) — skip until initial load completes
   useEffect(() => {
-    if (!hasAnimGroups) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (DIR_WALK[e.key]) {
-        e.preventDefault();
-        const walkName = DIR_WALK[e.key];
-        const idx = animations.findIndex((a) => a.name === walkName);
-        if (idx !== -1) {
-          setSelectedAnim(idx);
-          lastKeyRef.current = e.key;
-        }
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (DIR_IDLE[e.key] && e.key === lastKeyRef.current) {
-        const idleName = DIR_IDLE[e.key];
-        const idx = animations.findIndex((a) => a.name === idleName);
-        if (idx !== -1) setSelectedAnim(idx);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [hasAnimGroups, animations]);
+    if (!settingsLoaded) return;
+    saveSettings({
+      chromaEnabled: chroma.chromaEnabled,
+      chromaTolerance: chroma.chromaTolerance,
+      struckColors,
+      mirroredCells: Array.from(selection.mirroredCells),
+      cellOrder: selection.displayOrder,
+      aaInset,
+      posterizeBits: post.posterizeBits,
+      posterizeOutput: post.posterizeOutput,
+      edgeRecolorPasses: chroma.edgeRecolorPasses,
+      recolorSensitivity: chroma.recolorSensitivity,
+      defringeCore: chroma.defringeCore,
+    });
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -443,14 +338,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const getExportSprites = useCallback(async () => {
     const results: ExtractedSprite[] = [];
     for (const sprite of displaySprites) {
-      if (mirroredCells.has(sprite.cellIndex)) {
+      if (selection.mirroredCells.has(sprite.cellIndex)) {
         results.push(await flipSpriteHorizontally(sprite));
       } else {
         results.push(sprite);
       }
     }
     return results;
-  }, [displaySprites, mirroredCells, flipSpriteHorizontally]);
+  }, [displaySprites, selection.mirroredCells, flipSpriteHorizontally]);
 
   // Export sprite sheet
   const handleExportSheet = useCallback(async () => {
@@ -493,89 +388,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     dispatch({ type: 'SET_STATUS', message: `Exported ${exportSprites.length} individual sprites!`, statusType: 'success' });
   }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dispatch]);
 
-  // Load all persisted editor state when historyId changes.
-  // Resets to defaults first, then overwrites from DB — merged into one effect
-  // so the save effect can't clobber DB with reset values.
-  useEffect(() => {
-    if (!state.historyId) {
-      setSettingsLoaded(true);
-      return;
-    }
-    setSettingsLoaded(false);
-    let cancelled = false;
-
-    // Reset to defaults immediately
-    setDisplayOrder(Array.from({ length: sprites.length || cellCount }, (_, i) => i));
-    setSwapSource(null);
-    setMirroredCells(new Set());
-    setThumbnailCell(null);
-    setChromaEnabled(false);
-    setChromaTolerance(80);
-    setStruckColors([]);
-    setAaInset(3);
-    setPosterizeBits(4);
-    setPosterizeOutput(false);
-    setEdgeRecolorPasses(0);
-    setRecolorSensitivity(50);
-    setDefringeCore(240);
-
-    Promise.all([
-      loadSettings(),
-      fetch(`/api/history/${state.historyId}`).then((r) => r.json()).catch((err) => { console.error('Failed to load history data:', err); return null; }),
-    ]).then(([settings, histData]) => {
-      if (cancelled) return;
-      if (settings) {
-        setChromaEnabled(settings.chromaEnabled);
-        setChromaTolerance(settings.chromaTolerance);
-        setStruckColors(settings.struckColors);
-        if (settings.mirroredCells.length > 0) setMirroredCells(new Set(settings.mirroredCells));
-        if (settings.cellOrder.length > 0) setDisplayOrder(settings.cellOrder);
-        setAaInset(settings.aaInset);
-        setPosterizeBits(settings.posterizeBits);
-        setPosterizeOutput(settings.posterizeOutput);
-        if (settings.edgeRecolorPasses) setEdgeRecolorPasses(settings.edgeRecolorPasses);
-        if (settings.recolorSensitivity != null) setRecolorSensitivity(settings.recolorSensitivity);
-        if (settings.defringeCore != null) setDefringeCore(settings.defringeCore);
-      }
-      if (histData?.thumbnailCellIndex != null) {
-        setThumbnailCell(histData.thumbnailCellIndex);
-      }
-      setSettingsLoaded(true);
-    });
-
-    return () => { cancelled = true; };
-  }, [state.historyId, loadSettings]);
-
-  // Save settings on change (debounced internally) — skip until initial load completes
-  useEffect(() => {
-    if (!settingsLoaded) return;
-    saveSettings({
-      chromaEnabled,
-      chromaTolerance,
-      struckColors,
-      mirroredCells: Array.from(mirroredCells),
-      cellOrder: displayOrder,
-      aaInset,
-      posterizeBits,
-      posterizeOutput,
-      edgeRecolorPasses,
-      recolorSensitivity,
-      defringeCore,
-    });
-  }, [settingsLoaded, chromaEnabled, chromaTolerance, struckKey, mirroredCells, displayOrder, aaInset, posterizeBits, posterizeOutput, edgeRecolorPasses, recolorSensitivity, defringeCore, saveSettings]);
-
-  const handleMirrorToggle = useCallback((cellIndex: number) => {
-    setMirroredCells((prev) => {
-      const next = new Set(prev);
-      if (next.has(cellIndex)) next.delete(cellIndex);
-      else next.add(cellIndex);
-      return next;
-    });
-  }, []);
-
   const handleThumbnailSet = useCallback(async (cellIndex: number) => {
     if (!state.historyId) return;
-    setThumbnailCell(cellIndex);
+    selection.setThumbnailCell(cellIndex);
 
     // Find the processed sprite (chroma + color strikes applied)
     const sprite = displaySprites.find((s) => s.cellIndex === cellIndex);
@@ -583,7 +398,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     let mimeType = sprite?.mimeType ?? null;
 
     // Apply mirror if active
-    if (sprite && mirroredCells.has(cellIndex)) {
+    if (sprite && selection.mirroredCells.has(cellIndex)) {
       const flipped = await flipSpriteHorizontally(sprite);
       imageData = flipped.imageData;
       mimeType = flipped.mimeType;
@@ -597,11 +412,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       console.error('Failed to update thumbnail:', err);
       dispatch({ type: 'SET_STATUS', message: 'Failed to update thumbnail', statusType: 'warning' });
     });
-  }, [state.historyId, displaySprites, mirroredCells, flipSpriteHorizontally]);
-
-  const handleZoomClick = useCallback((cellIndex: number) => {
-    setZoomSpriteIndex(cellIndex);
-  }, []);
+  }, [state.historyId, displaySprites, selection.mirroredCells, flipSpriteHorizontally, selection.setThumbnailCell, dispatch]);
 
   const handleZoomStrikeColor = useCallback((color: RGB) => {
     setStruckColors((prev) => {
@@ -616,49 +427,35 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     );
   }, []);
 
-  const handleErasePixel = useCallback((x: number, y: number) => {
-    if (zoomSpriteIndex === null) return;
-    // Map display cellIndex back to source cellIndex
-    const srcIdx = displayOrder[zoomSpriteIndex];
-    setErasedPixels((prev) => {
-      const next = new Map(prev);
-      const existing = next.get(srcIdx);
-      const copy = existing ? new Set(existing) : new Set<string>();
-      copy.add(`${x},${y}`);
-      next.set(srcIdx, copy);
-      return next;
-    });
-  }, [zoomSpriteIndex, displayOrder]);
-
   return (
     <div className="review-layout">
       {/* Left: Sprite Grid */}
       <div className="review-main">
-        {swapSource !== null && (
+        {selection.swapSource !== null && (
           <div style={{ textAlign: 'center', padding: '6px 0', fontSize: '0.75rem', color: 'var(--accent)' }}>
             Click another cell to swap, or click the same cell to cancel
           </div>
         )}
         <SpriteGrid
           sprites={displaySprites}
-          onCellClick={handleCellClick}
-          selectedCell={swapSource}
-          mirroredCells={mirroredCells}
-          onMirrorToggle={handleMirrorToggle}
-          thumbnailCell={thumbnailCell}
+          onCellClick={selection.handleCellClick}
+          selectedCell={selection.swapSource}
+          mirroredCells={selection.mirroredCells}
+          onMirrorToggle={selection.handleMirrorToggle}
+          thumbnailCell={selection.thumbnailCell}
           onThumbnailSet={state.historyId ? handleThumbnailSet : undefined}
-          onZoomClick={handleZoomClick}
+          onZoomClick={selection.handleZoomClick}
           gridCols={dynamicCols}
           cellLabels={dynamicCellLabels}
           aspectRatio={dynamicAspectRatio}
         />
-        {isOrderModified && (
+        {selection.isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
             <button
               className="btn btn-sm"
               onClick={() => {
-                setDisplayOrder(Array.from({ length: sprites.length || cellCount }, (_, i) => i));
-                setSwapSource(null);
+                selection.setDisplayOrder(Array.from({ length: sprites.length || cellCount }, (_, i) => i));
+                selection.setSwapSource(null);
               }}
             >
               Reset Swaps
@@ -674,13 +471,13 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           <div className="sidebar-section">
             <h3>Animation</h3>
             <div className="anim-group-grid">
-              {animations.map((anim, idx) => (
+              {anim.animations.map((animDef, idx) => (
                 <button
-                  key={anim.name}
-                  className={`anim-group-btn ${idx === selectedAnim ? 'active' : ''}`}
-                  onClick={() => setSelectedAnim(idx)}
+                  key={animDef.name}
+                  className={`anim-group-btn ${idx === anim.selectedAnim ? 'active' : ''}`}
+                  onClick={() => anim.setSelectedAnim(idx)}
                 >
-                  {anim.name}
+                  {animDef.name}
                 </button>
               ))}
             </div>
@@ -690,7 +487,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         {/* Cell Cycling Preview */}
         <div className="sidebar-section">
           <h3>Preview</h3>
-          <canvas ref={canvasRef} className="anim-preview-canvas" />
+          <canvas ref={anim.canvasRef} className="anim-preview-canvas" />
         </div>
 
         {/* Speed Slider */}
@@ -701,10 +498,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
               type="range"
               min={50}
               max={500}
-              value={speed}
-              onChange={(e) => setSpeed(Number(e.target.value))}
+              value={anim.speed}
+              onChange={(e) => anim.setSpeed(Number(e.target.value))}
             />
-            <span className="slider-value">{speed}</span>
+            <span className="slider-value">{anim.speed}</span>
           </div>
         </div>
 
@@ -716,10 +513,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
               type="range"
               min={1}
               max={4}
-              value={scale}
-              onChange={(e) => setScale(Number(e.target.value))}
+              value={anim.scale}
+              onChange={(e) => anim.setScale(Number(e.target.value))}
             />
-            <span className="slider-value">{scale}x</span>
+            <span className="slider-value">{anim.scale}x</span>
           </div>
         </div>
 
@@ -755,34 +552,34 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                 Bit Depth
                 <span title="Bits per color channel. 8 = off (original colors). Lower = fewer colors." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
               </label>
-              <span className="slider-value">{posterizeBits === 8 ? 'off' : `${posterizeBits}-bit`}</span>
+              <span className="slider-value">{post.posterizeBits === 8 ? 'off' : `${post.posterizeBits}-bit`}</span>
             </div>
             <input
               type="range"
               min={1}
               max={8}
-              value={posterizeBits}
+              value={post.posterizeBits}
               onChange={(e) => {
                 const bits = Number(e.target.value);
-                setPosterizeBits(bits);
-                if (bits === 8) setPosterizeOutput(false);
+                post.setPosterizeBits(bits);
+                if (bits === 8) post.setPosterizeOutput(false);
               }}
               style={{ width: '100%' }}
             />
           </div>
-          {posterizeBits < 8 && (
+          {post.posterizeBits < 8 && (
             <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 4 }}>
               <button
                 type="button"
-                className={`anim-group-btn ${!posterizeOutput ? 'active' : ''}`}
-                onClick={() => setPosterizeOutput(false)}
+                className={`anim-group-btn ${!post.posterizeOutput ? 'active' : ''}`}
+                onClick={() => post.setPosterizeOutput(false)}
               >
                 Original
               </button>
               <button
                 type="button"
-                className={`anim-group-btn ${posterizeOutput ? 'active' : ''}`}
-                onClick={() => setPosterizeOutput(true)}
+                className={`anim-group-btn ${post.posterizeOutput ? 'active' : ''}`}
+                onClick={() => post.setPosterizeOutput(true)}
               >
                 Posterized
               </button>
@@ -798,19 +595,19 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           </h3>
           <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <button
-              className={`anim-group-btn ${!chromaEnabled ? 'active' : ''}`}
-              onClick={() => setChromaEnabled(false)}
+              className={`anim-group-btn ${!chroma.chromaEnabled ? 'active' : ''}`}
+              onClick={() => chroma.setChromaEnabled(false)}
             >
               Off
             </button>
             <button
-              className={`anim-group-btn ${chromaEnabled ? 'active' : ''}`}
-              onClick={() => setChromaEnabled(true)}
+              className={`anim-group-btn ${chroma.chromaEnabled ? 'active' : ''}`}
+              onClick={() => chroma.setChromaEnabled(true)}
             >
               On
             </button>
           </div>
-          {chromaEnabled && (
+          {chroma.chromaEnabled && (
             <>
               <div style={{ marginTop: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -818,14 +615,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                     Tolerance
                     <span title="How aggressively the background is removed. Lower values preserve more sprite color but may leave background remnants." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
                   </label>
-                  <span className="slider-value">{chromaTolerance}</span>
+                  <span className="slider-value">{chroma.chromaTolerance}</span>
                 </div>
                 <input
                   type="range"
                   min={1}
                   max={150}
-                  value={chromaTolerance}
-                  onChange={(e) => setChromaTolerance(Number(e.target.value))}
+                  value={chroma.chromaTolerance}
+                  onChange={(e) => chroma.setChromaTolerance(Number(e.target.value))}
                   style={{ width: '100%' }}
                 />
               </div>
@@ -835,14 +632,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                     Defringe
                     <span title="Fades the alpha of border pixels near the key color. Higher values remove more fringe. Independent of tolerance so edges stay clean even at low tolerance." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
                   </label>
-                  <span className="slider-value">{defringeCore}</span>
+                  <span className="slider-value">{chroma.defringeCore}</span>
                 </div>
                 <input
                   type="range"
                   min={0}
                   max={1000}
-                  value={defringeCore}
-                  onChange={(e) => setDefringeCore(Number(e.target.value))}
+                  value={chroma.defringeCore}
+                  onChange={(e) => chroma.setDefringeCore(Number(e.target.value))}
                   style={{ width: '100%' }}
                 />
               </div>
@@ -852,32 +649,32 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                     Edge Recolor
                     <span title="Replaces pink-tinted RGB on edge pixels with nearby sprite colors. Keeps alpha intact for smooth edges. Higher = more passes inward." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
                   </label>
-                  <span className="slider-value">{edgeRecolorPasses === 0 ? 'off' : edgeRecolorPasses}</span>
+                  <span className="slider-value">{chroma.edgeRecolorPasses === 0 ? 'off' : chroma.edgeRecolorPasses}</span>
                 </div>
                 <input
                   type="range"
                   min={0}
                   max={15}
-                  value={edgeRecolorPasses}
-                  onChange={(e) => setEdgeRecolorPasses(Number(e.target.value))}
+                  value={chroma.edgeRecolorPasses}
+                  onChange={(e) => chroma.setEdgeRecolorPasses(Number(e.target.value))}
                   style={{ width: '100%' }}
                 />
               </div>
-              {edgeRecolorPasses > 0 && (
+              {chroma.edgeRecolorPasses > 0 && (
                 <div style={{ marginTop: 4 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                       Recolor Sensitivity
                       <span title="How liberally pixels are classified as pink. Low = only obvious magenta. High = catches subtle pink tints." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
                     </label>
-                    <span className="slider-value">{recolorSensitivity}</span>
+                    <span className="slider-value">{chroma.recolorSensitivity}</span>
                   </div>
                   <input
                     type="range"
                     min={0}
                     max={100}
-                    value={recolorSensitivity}
-                    onChange={(e) => setRecolorSensitivity(Number(e.target.value))}
+                    value={chroma.recolorSensitivity}
+                    onChange={(e) => chroma.setRecolorSensitivity(Number(e.target.value))}
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -994,7 +791,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             type="button"
             className="btn btn-sm w-full"
             style={{ marginTop: 6 }}
-            onClick={() => reExtract({ aaInset, posterizeBits })}
+            onClick={() => reExtract({ aaInset, posterizeBits: post.posterizeBits })}
           >
             Re-extract Sprites
           </button>
@@ -1034,8 +831,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         />
       </aside>
 
-      {zoomSpriteIndex !== null && (() => {
-        const zoomSprite = displaySprites.find((s) => s.cellIndex === zoomSpriteIndex);
+      {selection.zoomSpriteIndex !== null && (() => {
+        const zoomSprite = displaySprites.find((s) => s.cellIndex === selection.zoomSpriteIndex);
         if (!zoomSprite) return null;
         return (
           <SpriteZoomModal
@@ -1043,8 +840,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             struckColors={struckColors}
             onStrikeColor={handleZoomStrikeColor}
             onUnstrikeColor={handleZoomUnstrikeColor}
-            onErasePixel={handleErasePixel}
-            onClose={() => setZoomSpriteIndex(null)}
+            onErasePixel={selection.handleErasePixel}
+            onClose={() => selection.setZoomSpriteIndex(null)}
           />
         );
       })()}
