@@ -127,141 +127,104 @@ app.post('/api/history/:id/sprites', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// Content presets — list, create, update, delete
-app.get('/api/presets', (req, res, next) => {
-  try {
-    const type = req.query.type;
-    if (type === 'building') {
-      const rows = db.prepare('SELECT * FROM building_presets WHERE is_preset = 1 ORDER BY name').all();
-      res.json(rows.map(r => {
-        const gridLinkCount = db.prepare('SELECT COUNT(*) as c FROM building_grid_links WHERE building_preset_id = ?').get(r.id).c;
-        return {
-          id: r.id, name: r.name, genre: r.genre, gridSize: r.grid_size,
-          description: r.description, details: r.details, colorNotes: r.color_notes,
-          cellLabels: JSON.parse(r.cell_labels || '[]'), cellGuidance: r.cell_guidance,
-          gridLinkCount,
-        };
-      }));
-    } else if (type === 'terrain') {
-      const rows = db.prepare('SELECT * FROM terrain_presets WHERE is_preset = 1 ORDER BY name').all();
-      res.json(rows.map(r => {
-        const gridLinkCount = db.prepare('SELECT COUNT(*) as c FROM terrain_grid_links WHERE terrain_preset_id = ?').get(r.id).c;
-        return {
-          id: r.id, name: r.name, genre: r.genre, gridSize: r.grid_size,
-          description: r.description, colorNotes: r.color_notes,
-          tileLabels: JSON.parse(r.tile_labels || '[]'), tileGuidance: r.tile_guidance,
-          gridLinkCount,
-        };
-      }));
-    } else if (type === 'background') {
-      const rows = db.prepare('SELECT * FROM background_presets WHERE is_preset = 1 ORDER BY name').all();
-      res.json(rows.map(r => {
-        const gridLinkCount = db.prepare('SELECT COUNT(*) as c FROM background_grid_links WHERE background_preset_id = ?').get(r.id).c;
-        return {
-          id: r.id, name: r.name, genre: r.genre, gridSize: r.grid_size, bgMode: r.bg_mode,
-          description: r.description, colorNotes: r.color_notes,
-          layerLabels: JSON.parse(r.layer_labels || '[]'), layerGuidance: r.layer_guidance,
-          gridLinkCount,
-        };
-      }));
-    } else {
-      const rows = db.prepare('SELECT * FROM character_presets WHERE is_preset = 1 ORDER BY name').all();
-      res.json(rows.map(r => {
-        const gridLinkCount = db.prepare('SELECT COUNT(*) as c FROM character_grid_links WHERE character_preset_id = ?').get(r.id).c;
-        return {
-          id: r.id, name: r.name, genre: r.genre,
-          description: r.description, equipment: r.equipment, colorNotes: r.color_notes,
-          rowGuidance: r.row_guidance, gridLinkCount,
-        };
-      }));
-    }
-  } catch (err) { next(err); }
-});
-
-// Content preset CRUD endpoints (create, update, delete)
+// Content preset CRUD endpoints — single data-driven implementation
+// Each column entry: [bodyField, dbColumn, default, json?]
 const PRESET_TABLES = {
-  character: { table: 'character_presets', linkTable: 'character_grid_links', fk: 'character_preset_id' },
-  building: { table: 'building_presets', linkTable: 'building_grid_links', fk: 'building_preset_id' },
-  terrain: { table: 'terrain_presets', linkTable: 'terrain_grid_links', fk: 'terrain_preset_id' },
-  background: { table: 'background_presets', linkTable: 'background_grid_links', fk: 'background_preset_id' },
+  character: {
+    table: 'character_presets', linkTable: 'character_grid_links', fk: 'character_preset_id',
+    columns: [
+      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
+      ['equipment', 'equipment', ''], ['colorNotes', 'color_notes', ''],
+      ['rowGuidance', 'row_guidance', ''],
+    ],
+  },
+  building: {
+    table: 'building_presets', linkTable: 'building_grid_links', fk: 'building_preset_id',
+    columns: [
+      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
+      ['details', 'details', ''], ['colorNotes', 'color_notes', ''],
+      ['gridSize', 'grid_size', '3x3'], ['cellLabels', 'cell_labels', [], true],
+      ['cellGuidance', 'cell_guidance', ''],
+    ],
+  },
+  terrain: {
+    table: 'terrain_presets', linkTable: 'terrain_grid_links', fk: 'terrain_preset_id',
+    columns: [
+      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
+      ['colorNotes', 'color_notes', ''], ['gridSize', 'grid_size', '4x4'],
+      ['tileLabels', 'tile_labels', [], true], ['tileGuidance', 'tile_guidance', ''],
+    ],
+  },
+  background: {
+    table: 'background_presets', linkTable: 'background_grid_links', fk: 'background_preset_id',
+    columns: [
+      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
+      ['colorNotes', 'color_notes', ''], ['gridSize', 'grid_size', '1x4'],
+      ['bgMode', 'bg_mode', 'parallax'], ['layerLabels', 'layer_labels', [], true],
+      ['layerGuidance', 'layer_guidance', ''],
+    ],
+  },
 };
 
-app.post('/api/presets/:type', (req, res, next) => {
+/** Extract body values for a preset type, applying defaults and JSON serialization. */
+function extractPresetValues(body, columns) {
+  return columns.map(([bodyField, , defaultVal, isJson]) => {
+    const raw = body[bodyField];
+    if (isJson) return JSON.stringify(raw || defaultVal);
+    return raw || defaultVal;
+  });
+}
+
+/** Map a DB row to a response object using column config. */
+function mapPresetRow(row, columns) {
+  const obj = { id: row.id };
+  for (const [bodyField, dbCol, , isJson] of columns) {
+    obj[bodyField] = isJson ? JSON.parse(row[dbCol] || '[]') : row[dbCol];
+  }
+  return obj;
+}
+
+app.get('/api/presets', (req, res, next) => {
   try {
-    const { type } = req.params;
+    const type = req.query.type || 'character';
     const config = PRESET_TABLES[type];
     if (!config) return res.status(400).json({ error: 'Invalid type' });
 
-    let result;
-    if (type === 'character') {
-      const { name, genre, description, equipment, colorNotes, rowGuidance } = req.body;
-      result = db.prepare(`
-        INSERT INTO character_presets (name, genre, description, equipment, color_notes, row_guidance, is_preset)
-        VALUES (?, ?, ?, ?, ?, ?, 1)
-      `).run(name, genre || '', description || '', equipment || '', colorNotes || '', rowGuidance || '');
-    } else if (type === 'building') {
-      const { name, genre, description, details, colorNotes, gridSize, cellLabels, cellGuidance } = req.body;
-      result = db.prepare(`
-        INSERT INTO building_presets (name, genre, description, details, color_notes, grid_size, cell_labels, cell_guidance, is_preset)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-      `).run(name, genre || '', description || '', details || '', colorNotes || '', gridSize || '3x3',
-        JSON.stringify(cellLabels || []), cellGuidance || '');
-    } else if (type === 'terrain') {
-      const { name, genre, description, colorNotes, gridSize, tileLabels, tileGuidance } = req.body;
-      result = db.prepare(`
-        INSERT INTO terrain_presets (name, genre, description, color_notes, grid_size, tile_labels, tile_guidance, is_preset)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-      `).run(name, genre || '', description || '', colorNotes || '', gridSize || '4x4',
-        JSON.stringify(tileLabels || []), tileGuidance || '');
-    } else {
-      const { name, genre, description, colorNotes, gridSize, bgMode, layerLabels, layerGuidance } = req.body;
-      result = db.prepare(`
-        INSERT INTO background_presets (name, genre, description, color_notes, grid_size, bg_mode, layer_labels, layer_guidance, is_preset)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-      `).run(name, genre || '', description || '', colorNotes || '', gridSize || '1x4',
-        bgMode || 'parallax', JSON.stringify(layerLabels || []), layerGuidance || '');
-    }
+    const rows = db.prepare(`SELECT * FROM ${config.table} WHERE is_preset = 1 ORDER BY name`).all();
+    res.json(rows.map(r => {
+      const gridLinkCount = db.prepare(`SELECT COUNT(*) as c FROM ${config.linkTable} WHERE ${config.fk} = ?`).get(r.id).c;
+      return { ...mapPresetRow(r, config.columns), gridLinkCount };
+    }));
+  } catch (err) { next(err); }
+});
+
+app.post('/api/presets/:type', (req, res, next) => {
+  try {
+    const config = PRESET_TABLES[req.params.type];
+    if (!config) return res.status(400).json({ error: 'Invalid type' });
+
+    const dbCols = config.columns.map(c => c[1]);
+    const placeholders = dbCols.map(() => '?').join(', ');
+    const values = extractPresetValues(req.body, config.columns);
+    const result = db.prepare(
+      `INSERT INTO ${config.table} (${dbCols.join(', ')}, is_preset) VALUES (${placeholders}, 1)`
+    ).run(...values);
     res.json({ id: Number(result.lastInsertRowid) });
   } catch (err) { next(err); }
 });
 
 app.put('/api/presets/:type/:id', (req, res, next) => {
   try {
-    const { type } = req.params;
     const id = parseIntParam(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid id' });
-    const config = PRESET_TABLES[type];
+    const config = PRESET_TABLES[req.params.type];
     if (!config) return res.status(400).json({ error: 'Invalid type' });
 
-    let result;
-    if (type === 'character') {
-      const { name, genre, description, equipment, colorNotes, rowGuidance } = req.body;
-      result = db.prepare(`
-        UPDATE character_presets SET name=?, genre=?, description=?, equipment=?, color_notes=?, row_guidance=?
-        WHERE id=?
-      `).run(name, genre || '', description || '', equipment || '', colorNotes || '', rowGuidance || '', id);
-    } else if (type === 'building') {
-      const { name, genre, description, details, colorNotes, gridSize, cellLabels, cellGuidance } = req.body;
-      result = db.prepare(`
-        UPDATE building_presets SET name=?, genre=?, description=?, details=?, color_notes=?, grid_size=?, cell_labels=?, cell_guidance=?
-        WHERE id=?
-      `).run(name, genre || '', description || '', details || '', colorNotes || '', gridSize || '3x3',
-        JSON.stringify(cellLabels || []), cellGuidance || '', id);
-    } else if (type === 'terrain') {
-      const { name, genre, description, colorNotes, gridSize, tileLabels, tileGuidance } = req.body;
-      result = db.prepare(`
-        UPDATE terrain_presets SET name=?, genre=?, description=?, color_notes=?, grid_size=?, tile_labels=?, tile_guidance=?
-        WHERE id=?
-      `).run(name, genre || '', description || '', colorNotes || '', gridSize || '4x4',
-        JSON.stringify(tileLabels || []), tileGuidance || '', id);
-    } else {
-      const { name, genre, description, colorNotes, gridSize, bgMode, layerLabels, layerGuidance } = req.body;
-      result = db.prepare(`
-        UPDATE background_presets SET name=?, genre=?, description=?, color_notes=?, grid_size=?, bg_mode=?, layer_labels=?, layer_guidance=?
-        WHERE id=?
-      `).run(name, genre || '', description || '', colorNotes || '', gridSize || '1x4',
-        bgMode || 'parallax', JSON.stringify(layerLabels || []), layerGuidance || '', id);
-    }
+    const setClauses = config.columns.map(c => `${c[1]}=?`).join(', ');
+    const values = extractPresetValues(req.body, config.columns);
+    const result = db.prepare(
+      `UPDATE ${config.table} SET ${setClauses} WHERE id=?`
+    ).run(...values, id);
     if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ success: true });
   } catch (err) { next(err); }
@@ -360,14 +323,12 @@ app.delete('/api/grid-presets/:id', (req, res, next) => {
 });
 
 // Grid link endpoints
-const VALID_LINK_TYPES = ['character', 'building', 'terrain', 'background'];
-
 app.get('/api/presets/:type/:id/grid-links', (req, res, next) => {
   try {
     const { type, id } = req.params;
-    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
-    const table = `${type}_grid_links`;
-    const fk = `${type}_preset_id`;
+    const config = PRESET_TABLES[type];
+    if (!config) return res.status(400).json({ error: 'Invalid type' });
+    const { linkTable: table, fk } = config;
     const links = db.prepare(`
       SELECT l.*, g.name as grid_name, g.grid_size, g.cols, g.rows,
              g.cell_labels, g.cell_groups, g.generic_guidance, g.bg_mode
@@ -396,11 +357,11 @@ app.get('/api/presets/:type/:id/grid-links', (req, res, next) => {
 app.post('/api/presets/:type/:id/grid-links', (req, res, next) => {
   try {
     const { type, id } = req.params;
-    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    const config = PRESET_TABLES[type];
+    if (!config) return res.status(400).json({ error: 'Invalid type' });
     const { gridPresetId, guidanceOverride, sortOrder } = req.body;
     if (!gridPresetId) return res.status(400).json({ error: 'Missing gridPresetId' });
-    const table = `${type}_grid_links`;
-    const fk = `${type}_preset_id`;
+    const { linkTable: table, fk } = config;
     const result = db.prepare(`
       INSERT INTO ${table} (${fk}, grid_preset_id, guidance_override, sort_order)
       VALUES (?, ?, ?, ?)
@@ -412,11 +373,12 @@ app.post('/api/presets/:type/:id/grid-links', (req, res, next) => {
 app.put('/api/grid-links/:type/:id', (req, res, next) => {
   try {
     const { type, id } = req.params;
-    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    const config = PRESET_TABLES[type];
+    if (!config) return res.status(400).json({ error: 'Invalid type' });
     const linkId = parseIntParam(id);
     if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
     const { guidanceOverride, sortOrder } = req.body;
-    const table = `${type}_grid_links`;
+    const { linkTable: table } = config;
     const result = db.prepare(`UPDATE ${table} SET guidance_override=?, sort_order=? WHERE id=?`)
       .run(guidanceOverride || '', sortOrder || 0, linkId);
     if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
@@ -427,10 +389,11 @@ app.put('/api/grid-links/:type/:id', (req, res, next) => {
 app.delete('/api/grid-links/:type/:id', (req, res, next) => {
   try {
     const { type, id } = req.params;
-    if (!VALID_LINK_TYPES.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    const config = PRESET_TABLES[type];
+    if (!config) return res.status(400).json({ error: 'Invalid type' });
     const linkId = parseIntParam(id);
     if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
-    const table = `${type}_grid_links`;
+    const { linkTable: table } = config;
     db.prepare(`DELETE FROM ${table} WHERE id=?`).run(linkId);
     res.json({ success: true });
   } catch (err) { next(err); }
