@@ -64,7 +64,7 @@ export function useAddSheet() {
           signal: abort.signal,
         });
         if (!groupRes.ok) {
-          console.warn('Failed to backfill group_id on legacy entry');
+          console.error('Failed to backfill group_id on legacy entry');
         }
         dispatch({ type: 'SET_SOURCE_CONTEXT', groupId, contentPresetId });
       }
@@ -207,7 +207,7 @@ export function useAddSheet() {
         });
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
-        console.warn('Failed to save add-sheet generation to history');
+        console.error('Failed to save add-sheet generation to history:', e);
       }
 
       // Archive
@@ -225,7 +225,7 @@ export function useAddSheet() {
         });
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
-        console.warn('Failed to archive add-sheet generation');
+        console.error('Failed to archive add-sheet generation:', e);
       }
 
     } catch (err: any) {

@@ -128,8 +128,8 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
       setTotal(data.total);
       setTotalPages(data.totalPages);
       setPage(data.page);
-    } catch {
-      console.warn('Failed to fetch gallery');
+    } catch (err) {
+      console.error('Failed to fetch gallery:', err);
     } finally {
       setLoading(false);
     }

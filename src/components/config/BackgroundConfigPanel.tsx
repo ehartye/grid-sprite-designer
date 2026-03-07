@@ -27,7 +27,10 @@ export function BackgroundConfigPanel() {
       .then((data: BackgroundPreset[]) => {
         dispatch({ type: 'SET_BACKGROUND_PRESETS', presets: data });
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Failed to load background presets:', err);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to load background presets', statusType: 'warning' });
+      });
   }, [dispatch]);
 
   const handleGridSelectionChange = useCallback((selected: GridLink[]) => {

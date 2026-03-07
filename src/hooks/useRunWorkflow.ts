@@ -160,7 +160,7 @@ export function useRunWorkflow() {
         });
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
-        console.warn('Failed to save run grid to history');
+        console.error('Failed to save run grid to history:', e);
       }
 
       // Archive to output/
@@ -178,7 +178,7 @@ export function useRunWorkflow() {
         });
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
-        console.warn('Failed to archive run grid to disk');
+        console.error('Failed to archive run grid to disk:', e);
       }
 
     } catch (err: any) {

@@ -52,7 +52,7 @@ export function useEditorSettings(historyId: number | null) {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: json,
-        }).catch(() => {});
+        }).catch((err) => console.error('Failed to save editor settings:', err));
       }, 500);
     },
     [historyId],
@@ -83,7 +83,7 @@ export function useEditorSettings(historyId: number | null) {
           headers: { 'Content-Type': 'application/json' },
           body: lastJsonRef.current,
           keepalive: true,
-        }).catch(() => {});
+        }).catch((err) => console.error('Failed to flush editor settings on unload:', err));
       }
     };
     window.addEventListener('beforeunload', flush);

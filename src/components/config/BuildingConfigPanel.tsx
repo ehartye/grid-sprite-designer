@@ -27,7 +27,10 @@ export function BuildingConfigPanel() {
       .then((data: BuildingPreset[]) => {
         dispatch({ type: 'SET_BUILDING_PRESETS', presets: data });
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Failed to load building presets:', err);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to load building presets', statusType: 'warning' });
+      });
   }, [dispatch]);
 
   const handleGridSelectionChange = useCallback((selected: GridLink[]) => {

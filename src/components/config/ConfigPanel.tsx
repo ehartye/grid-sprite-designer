@@ -32,7 +32,10 @@ export function ConfigPanel() {
       .then((data: CharacterPreset[]) => {
         dispatch({ type: 'SET_PRESETS', presets: data });
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Failed to load character presets:', err);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to load character presets', statusType: 'warning' });
+      });
   }, [dispatch]);
 
   const handleGridSelectionChange = useCallback((selected: GridLink[]) => {

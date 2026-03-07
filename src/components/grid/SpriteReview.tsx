@@ -593,7 +593,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cellIndex, imageData, mimeType }),
-    }).catch(() => {});
+    }).catch((err) => console.error('Failed to update thumbnail:', err));
   }, [state.historyId, displaySprites, mirroredCells, flipSpriteHorizontally]);
 
   const handleZoomClick = useCallback((cellIndex: number) => {

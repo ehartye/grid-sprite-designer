@@ -557,10 +557,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value: curr }),
-      }).catch(() => {});
+      }).catch((err) => console.error('Failed to sync historyId:', err));
     } else if (curr === null && prev !== null) {
       // historyId was cleared (RESET) — delete it
-      fetch('/api/state/lastHistoryId', { method: 'DELETE' }).catch(() => {});
+      fetch('/api/state/lastHistoryId', { method: 'DELETE' }).catch((err) => console.error('Failed to clear historyId:', err));
     }
   }, [state.historyId]);
 

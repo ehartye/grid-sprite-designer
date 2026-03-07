@@ -147,7 +147,7 @@ export function useBackgroundWorkflow() {
         });
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
-        console.warn('Failed to save to history');
+        console.error('Failed to save to history:', e);
       }
 
       // Archive to output/ folder
@@ -165,7 +165,7 @@ export function useBackgroundWorkflow() {
         });
       } catch (e: any) {
         if (e?.name === 'AbortError') return;
-        console.warn('Failed to archive to disk');
+        console.error('Failed to archive to disk:', e);
       }
 
     } catch (err: any) {

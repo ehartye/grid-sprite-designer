@@ -35,7 +35,9 @@ export function RunBuilderPage() {
     fetch(`/api/presets?type=${spriteType}`)
       .then((res) => res.json())
       .then((data: ContentPresetOption[]) => setPresets(data))
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Failed to load presets:', err);
+      });
   }, [spriteType]);
 
   // Fetch grid links when a content preset is selected

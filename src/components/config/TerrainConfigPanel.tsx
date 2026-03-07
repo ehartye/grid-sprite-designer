@@ -27,7 +27,10 @@ export function TerrainConfigPanel() {
       .then((data: TerrainPreset[]) => {
         dispatch({ type: 'SET_TERRAIN_PRESETS', presets: data });
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Failed to load terrain presets:', err);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to load terrain presets', statusType: 'warning' });
+      });
   }, [dispatch]);
 
   const handleGridSelectionChange = useCallback((selected: GridLink[]) => {
