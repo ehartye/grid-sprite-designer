@@ -11,3 +11,4 @@ output/
 !screenshots/*.png
 !test-fixtures/*.png
 test-fixtures/*.b64
+.worktrees/
