@@ -2,10 +2,11 @@
  * Modal for generating a new sprite sheet linked to an existing generation.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppContext, SpriteType, GridLink } from '../../context/AppContext';
 import { useAddSheet, AddSheetOptions } from '../../hooks/useAddSheet';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
+import { useModalFocus } from '../../hooks/useModalFocus';
 
 interface Props {
   open: boolean;
@@ -16,6 +17,7 @@ interface Props {
 export function AddSheetModal({ open, onClose, currentSprites }: Props) {
   const { state } = useAppContext();
   const { generate, cancel, generating } = useAddSheet();
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
   const [selectedLinkIndex, setSelectedLinkIndex] = useState(0);
@@ -50,7 +52,10 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
         const matchIdx = links.findIndex(l => l.gridSize === currentGridSize);
         setSelectedLinkIndex(matchIdx >= 0 ? matchIdx : 0);
       })
-      .catch(() => setGridLinks([]))
+      .catch((err) => {
+        console.error('Failed to load grid links:', err);
+        setGridLinks([]);
+      })
       .finally(() => setLoading(false));
   }, [open, contentPresetId, spriteType, state.activeGridConfig]);
 
@@ -116,14 +121,16 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
     onClose();
   }, [cancel, onClose]);
 
+  useModalFocus(modalRef, open, handleCancel);
+
   if (!open) return null;
 
   const hasGridLinks = gridLinks.length > 0;
 
   return (
     <div className="add-sheet-overlay" onClick={handleCancel}>
-      <div className="add-sheet-modal" onClick={e => e.stopPropagation()}>
-        <h3>Add Sprite Sheet</h3>
+      <div className="add-sheet-modal" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="add-sheet-title" onClick={e => e.stopPropagation()}>
+        <h3 id="add-sheet-title">Add Sprite Sheet</h3>
 
         {/* Grid Layout */}
         <div className="add-sheet-section">

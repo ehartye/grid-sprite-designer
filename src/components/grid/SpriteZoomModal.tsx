@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
+import { useModalFocus } from '../../hooks/useModalFocus';
 
 type RGB = [number, number, number];
 
@@ -34,10 +35,13 @@ export function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrik
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
   const initialCenterDone = useRef(false);
   // Prevent backdrop close right after finishing a drag
   const justPannedRef = useRef(false);
+
+  useModalFocus(modalRef, true, onClose);
 
   // Stable ref for panOffset/zoom so global listeners always have latest values
   const panOffsetRef = useRef(panOffset);
@@ -318,12 +322,10 @@ export function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrik
     return () => canvas.removeEventListener('wheel', handleWheel);
   }, []);
 
-  // Keyboard: Escape, +/-, E for eraser toggle
+  // Keyboard: +/-, E for eraser toggle (Escape handled by useModalFocus)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      } else if (e.key === '+' || e.key === '=') {
+      if (e.key === '+' || e.key === '=') {
         setZoom((z) => Math.min(32, z + 1));
       } else if (e.key === '-') {
         setZoom((z) => Math.max(1, z - 1));
@@ -334,7 +336,7 @@ export function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrik
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
+  }, []);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !justPannedRef.current) onClose();
@@ -351,7 +353,7 @@ export function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrik
 
   return (
     <div className="zoom-modal-backdrop" onClick={handleBackdropClick}>
-      <div className="zoom-modal">
+      <div className="zoom-modal" ref={modalRef} role="dialog" aria-modal="true" aria-label="Sprite zoom inspector">
         {/* Header */}
         <div className="zoom-modal-header">
           <span className="zoom-title">{sprite.label}</span>
