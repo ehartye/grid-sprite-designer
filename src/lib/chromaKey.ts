@@ -7,6 +7,66 @@
  */
 
 /**
+ * Auto-detect the dominant background color from a sprite's edge pixels.
+ * Samples a border ring, buckets colors, and returns the most frequent.
+ * Falls back to #FF00FF if no dominant color is found.
+ */
+export function detectKeyColor(
+  source: ImageData,
+  borderWidth = 3,
+): [number, number, number] {
+  const { width, height, data } = source;
+  const BUCKET_SIZE = 16;
+  const counts = new Map<string, { count: number; sumR: number; sumG: number; sumB: number }>();
+  let totalEdgePixels = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      // Only sample border pixels
+      if (x >= borderWidth && x < width - borderWidth &&
+          y >= borderWidth && y < height - borderWidth) continue;
+
+      const i = (y * width + x) * 4;
+      if (data[i + 3] === 0) continue; // skip transparent
+
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const br = Math.round(r / BUCKET_SIZE) * BUCKET_SIZE;
+      const bg = Math.round(g / BUCKET_SIZE) * BUCKET_SIZE;
+      const bb = Math.round(b / BUCKET_SIZE) * BUCKET_SIZE;
+      const key = `${br},${bg},${bb}`;
+
+      const entry = counts.get(key);
+      if (entry) {
+        entry.count++;
+        entry.sumR += r;
+        entry.sumG += g;
+        entry.sumB += b;
+      } else {
+        counts.set(key, { count: 1, sumR: r, sumG: g, sumB: b });
+      }
+      totalEdgePixels++;
+    }
+  }
+
+  if (totalEdgePixels === 0) return [255, 0, 255];
+
+  // Find the most frequent bucket
+  let best: { count: number; sumR: number; sumG: number; sumB: number } | null = null;
+  for (const entry of counts.values()) {
+    if (!best || entry.count > best.count) best = entry;
+  }
+
+  if (!best || best.count / totalEdgePixels < 0.2) return [255, 0, 255];
+
+  // Return the average color within the winning bucket
+  return [
+    Math.round(best.sumR / best.count),
+    Math.round(best.sumG / best.count),
+    Math.round(best.sumB / best.count),
+  ];
+}
+
+/**
  * Apply chroma-key removal to ImageData with defringe.
  * Default target: #FF00FF (magenta).
  */

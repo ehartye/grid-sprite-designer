@@ -15,7 +15,7 @@ import { SpriteZoomModal } from './SpriteZoomModal';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
 import type { CellGroup, GridLink } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
-import { applyChromaKey, defringeRecolor, strikeColors } from '../../lib/chromaKey';
+import { applyChromaKey, defringeRecolor, strikeColors, detectKeyColor } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 import { AddSheetModal } from './AddSheetModal';
 
@@ -32,6 +32,9 @@ async function processSprite(
   edgeRecolorPasses = 0,
   recolorSensitivity = 50,
   defringeCore = 240,
+  keyR = 255,
+  keyG = 0,
+  keyB = 255,
 ): Promise<ExtractedSprite> {
   const hasErasure = erasedPixels && erasedPixels.size > 0;
   if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses) return sprite;
@@ -51,8 +54,8 @@ async function processSprite(
 
   let imageData = ctx.getImageData(0, 0, img.width, img.height);
   if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
-  if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore);
-  if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, 255, 0, 255, edgeRecolorPasses, recolorSensitivity);
+  if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore, keyR, keyG, keyB);
+  if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, keyR, keyG, keyB, edgeRecolorPasses, recolorSensitivity);
   if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
   if (hasErasure) {
     for (const key of erasedPixels) {
@@ -222,12 +225,33 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     }
 
     let cancelled = false;
-    Promise.all(sprites.map((s) =>
-      processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors, erasedPixels.get(s.cellIndex), edgeRecolorPasses, recolorSensitivity, defringeCore),
-    ))
-      .then((result) => {
-        if (!cancelled) setProcessedSprites(result);
-      });
+
+    (async () => {
+      // Auto-detect key color from the first sprite when chroma is enabled
+      let keyR = 255, keyG = 0, keyB = 255;
+      if (chromaEnabled && sprites.length > 0) {
+        const first = sprites[0];
+        const img = new Image();
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Failed to load sprite for key detection'));
+          img.src = `data:${first.mimeType};base64,${first.imageData}`;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, img.width, img.height);
+        [keyR, keyG, keyB] = detectKeyColor(imageData);
+        console.log(`[ChromaKey] Auto-detected key color: rgb(${keyR}, ${keyG}, ${keyB})`);
+      }
+
+      const result = await Promise.all(sprites.map((s) =>
+        processSprite(s, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckColors, erasedPixels.get(s.cellIndex), edgeRecolorPasses, recolorSensitivity, defringeCore, keyR, keyG, keyB),
+      ));
+      if (!cancelled) setProcessedSprites(result);
+    })();
 
     return () => { cancelled = true; };
   }, [sprites, posterizeOutput, posterizeBits, chromaEnabled, chromaTolerance, struckKey, erasedKey, edgeRecolorPasses, recolorSensitivity, defringeCore]);
@@ -795,7 +819,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                 </div>
                 <input
                   type="range"
-                  min={10}
+                  min={1}
                   max={150}
                   value={chromaTolerance}
                   onChange={(e) => setChromaTolerance(Number(e.target.value))}
