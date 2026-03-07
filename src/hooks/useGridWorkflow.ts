@@ -1,224 +1,34 @@
 /**
- * Main workflow hook for the grid sprite designer.
- * Orchestrates: generate template → call Gemini → extract sprites.
+ * Workflow hook for character sprite generation.
+ * Thin wrapper around useGenericWorkflow with character-specific config.
  */
 
-import { useCallback, useRef } from 'react';
-import { useAppContext, type GridLink } from '../context/AppContext';
-import { generateTemplate, CONFIG_2K, CONFIG_4K } from '../lib/templateGenerator';
-import { extractSprites } from '../lib/spriteExtractor';
+import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
+import { CHARACTER_GRID, gridPresetToConfig } from '../lib/gridConfig';
 import { buildGridFillPrompt } from '../lib/promptBuilder';
-import { generateGrid } from '../api/geminiClient';
-import { gridPresetToConfig } from '../lib/gridConfig';
+
+const characterConfig: WorkflowConfig = {
+  spriteType: 'character',
+  validationLabel: 'character',
+  getContent: (state) => state.character,
+  buildGridConfig: (state, gridLink) => {
+    if (gridLink) return gridPresetToConfig(gridLink, 'character');
+    return CHARACTER_GRID;
+  },
+  buildPrompt: (state, _gridConfig, gridLink) =>
+    buildGridFillPrompt(
+      state.character,
+      gridLink?.genericGuidance,
+      gridLink?.guidanceOverride,
+      gridLink?.cellLabels,
+    ),
+  getReExtractGridConfig: (state) => {
+    const agc = state.activeGridConfig;
+    if (!agc || (agc.cols === 6 && agc.rows === 6)) return null;
+    return { cols: agc.cols, rows: agc.rows, totalCells: agc.cols * agc.rows, cellLabels: agc.cellLabels };
+  },
+};
 
 export function useGridWorkflow() {
-  const { state, dispatch } = useAppContext();
-  const abortRef = useRef<AbortController | null>(null);
-  const isGeneratingRef = useRef(false);
-
-  const cancelGeneration = useCallback(() => {
-    if (abortRef.current) {
-      abortRef.current.abort();
-      abortRef.current = null;
-    }
-    isGeneratingRef.current = false;
-    dispatch({ type: 'RESET' });
-  }, [dispatch]);
-
-  const generate = useCallback(async (gridLink?: GridLink) => {
-    if (!state.character.name.trim() || !state.character.description.trim()) {
-      dispatch({ type: 'SET_STATUS', message: 'Please enter a character name and description.', statusType: 'warning' });
-      return;
-    }
-
-    if (isGeneratingRef.current) return;
-    isGeneratingRef.current = true;
-
-    const abort = new AbortController();
-    abortRef.current = abort;
-
-    try {
-      // 1. Generate template grid — use dynamic grid config when gridLink is provided
-      let templateConfig;
-      let gridConfig;
-      if (gridLink) {
-        gridConfig = gridPresetToConfig(gridLink, 'character');
-        templateConfig = gridConfig.templates[state.imageSize as '2K' | '4K'];
-      } else {
-        templateConfig = state.imageSize === '4K' ? CONFIG_4K : CONFIG_2K;
-      }
-      const aspectRatio = gridConfig?.aspectRatio || state.aspectRatio;
-      const template = generateTemplate(templateConfig, gridConfig, aspectRatio);
-
-      dispatch({ type: 'GENERATE_START', templateImage: template.base64, gridConfig: gridConfig ? { cols: gridConfig.cols, rows: gridConfig.rows, cellLabels: gridConfig.cellLabels, cellGroups: gridLink?.cellGroups, aspectRatio: gridConfig.aspectRatio } : undefined });
-
-      // 2. Build prompt with layered guidance
-      const prompt = buildGridFillPrompt(
-        state.character,
-        gridLink?.genericGuidance,
-        gridLink?.guidanceOverride,
-        gridLink?.cellLabels,
-      );
-
-      // 3. Call Gemini API
-      const result = await generateGrid(
-        state.model,
-        prompt,
-        { data: template.base64, mimeType: 'image/png' },
-        state.imageSize,
-        abort.signal,
-        undefined,
-        aspectRatio,
-      );
-
-      if (abort.signal.aborted) return;
-
-      if (!result.image) {
-        dispatch({ type: 'GENERATE_ERROR', error: 'Gemini returned no image. Try again.' });
-        return;
-      }
-
-      if (abort.signal.aborted) return;
-
-      dispatch({
-        type: 'GENERATE_COMPLETE',
-        filledGridImage: result.image.data,
-        filledGridMimeType: result.image.mimeType,
-        geminiText: result.text || '',
-      });
-
-      // 4. Extract sprites from the filled grid
-      const extractionConfig = gridConfig
-        ? {
-            gridOverride: {
-              cols: gridConfig.cols,
-              rows: gridConfig.rows,
-              totalCells: gridConfig.totalCells,
-              cellLabels: gridConfig.cellLabels,
-            },
-          }
-        : {};
-      const sprites = await extractSprites(
-        result.image.data,
-        result.image.mimeType,
-        extractionConfig,
-      );
-
-      if (abort.signal.aborted) return;
-
-      dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-
-      // 5. Save to history + archive to disk
-      const spritePayload = sprites.map(s => ({
-        cellIndex: s.cellIndex,
-        poseId: s.label.toLowerCase().replace(/\s+/g, '-'),
-        poseName: s.label,
-        imageData: s.imageData,
-        mimeType: s.mimeType,
-      }));
-
-      try {
-        const histResp = await fetch('/api/history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contentName: state.character.name,
-            contentDescription: state.character.description,
-            model: state.model,
-            prompt,
-            filledGridImage: result.image.data,
-            spriteType: 'character',
-            gridSize: gridConfig ? `${gridConfig.cols}x${gridConfig.rows}` : '6x6',
-            aspectRatio,
-            contentPresetId: state.activeContentPresetId,
-          }),
-          signal: abort.signal,
-        });
-        const histData = await histResp.json();
-
-        if (abort.signal.aborted) return;
-        dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
-        dispatch({
-          type: 'SET_SOURCE_CONTEXT',
-          groupId: null,
-          contentPresetId: state.activeContentPresetId,
-        });
-
-        await fetch(`/api/history/${histData.id}/sprites`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sprites: spritePayload }),
-          signal: abort.signal,
-        });
-      } catch (e: any) {
-        if (e?.name === 'AbortError') return;
-        console.error('Failed to save to history:', e);
-      }
-
-      // Archive to output/ folder
-      try {
-        await fetch('/api/archive', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contentName: state.character.name,
-            filledGridImage: result.image.data,
-            filledGridMimeType: result.image.mimeType,
-            sprites: spritePayload,
-          }),
-          signal: abort.signal,
-        });
-      } catch (e: any) {
-        if (e?.name === 'AbortError') return;
-        console.error('Failed to archive to disk:', e);
-      }
-
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
-    } finally {
-      isGeneratingRef.current = false;
-      abortRef.current = null;
-    }
-  }, [state.character, state.model, state.imageSize, state.aspectRatio, dispatch]);
-
-  const reExtract = useCallback(async (overrides?: {
-    aaInset?: number;
-    posterizeBits?: number;
-  }) => {
-    if (!state.filledGridImage) return;
-
-    dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
-
-    const agc = state.activeGridConfig;
-    const needsOverride = agc && (agc.cols !== 6 || agc.rows !== 6);
-
-    const sprites = await extractSprites(
-      state.filledGridImage,
-      state.filledGridMimeType,
-      {
-        ...(needsOverride ? {
-          gridOverride: {
-            cols: agc.cols,
-            rows: agc.rows,
-            totalCells: agc.cols * agc.rows,
-            cellLabels: agc.cellLabels,
-          },
-        } : {}),
-        ...overrides,
-      },
-    );
-
-    dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-  }, [state.filledGridImage, state.filledGridMimeType, state.activeGridConfig, dispatch]);
-
-  const reset = useCallback(() => {
-    dispatch({ type: 'RESET' });
-  }, [dispatch]);
-
-  const setStep = useCallback((step: 'configure' | 'generating' | 'review' | 'preview') => {
-    dispatch({ type: 'SET_STEP', step });
-  }, [dispatch]);
-
-  return { state, dispatch, generate, reExtract, reset, cancelGeneration, setStep };
+  return useGenericWorkflow(characterConfig);
 }
