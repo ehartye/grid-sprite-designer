@@ -6,7 +6,7 @@ import cors from 'cors';
 import { mkdirSync, writeFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { getDb } from './db.js';
+import { getDb } from './db/index.js';
 import { createGenerateRouter } from './routes/generate.js';
 import { parseIntParam, extractPresetValues, mapPresetRow } from './utils.js';
 import { PRESET_TABLES } from './presetTables.js';
