@@ -1,6 +1,7 @@
 /**
  * Fixed-position status notification banner.
- * Color-coded by status type, auto-fades after 5 seconds.
+ * Color-coded by status type. Error banners persist for 30 seconds;
+ * all other types auto-fade after 5 seconds.
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -30,7 +31,8 @@ export function StatusBanner() {
         window.clearTimeout(fadeTimerRef.current);
       }
 
-      // Auto-fade after 5 seconds
+      // Error banners persist longer (30s); others fade after 5s
+      const timeout = statusType === 'error' ? 30000 : 5000;
       timerRef.current = window.setTimeout(() => {
         setFading(true);
         // Remove from DOM after fade animation
@@ -39,7 +41,7 @@ export function StatusBanner() {
           setFading(false);
           dispatch({ type: 'CLEAR_STATUS' });
         }, 300);
-      }, 5000);
+      }, timeout);
     } else if (!status) {
       setVisible(false);
       setFading(false);
@@ -55,7 +57,7 @@ export function StatusBanner() {
         window.clearTimeout(fadeTimerRef.current);
       }
     };
-  }, [status, dispatch]);
+  }, [status, statusType, dispatch]);
 
   const handleDismiss = useCallback(() => {
     if (timerRef.current) {

@@ -246,18 +246,24 @@ export function useGenericWorkflow(config: WorkflowConfig) {
 
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
 
-    const gridOverride = config.getReExtractGridConfig(state);
+    try {
+      const gridOverride = config.getReExtractGridConfig(state);
 
-    const sprites = await extractSprites(
-      state.filledGridImage,
-      state.filledGridMimeType,
-      {
-        ...(gridOverride ? { gridOverride } : {}),
-        ...overrides,
-      },
-    );
+      const sprites = await extractSprites(
+        state.filledGridImage,
+        state.filledGridMimeType,
+        {
+          ...(gridOverride ? { gridOverride } : {}),
+          ...overrides,
+        },
+      );
 
-    dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
+      dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      console.error('Re-extraction failed:', err);
+      dispatch({ type: 'SET_STATUS', message: `Re-extraction failed: ${message}`, statusType: 'error' });
+    }
   }, [state.filledGridImage, state.filledGridMimeType, state, config, dispatch]);
 
   const reset = useCallback(() => {
