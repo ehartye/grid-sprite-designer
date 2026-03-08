@@ -194,8 +194,9 @@ export function UnifiedConfigPanel() {
     setSelectedPresetId('');
   }, [spriteType]);
 
-  // Fetch presets on mount and when sprite type changes
+  // Fetch presets on mount and when sprite type changes, skip if already cached
   useEffect(() => {
+    if (presetList.length > 0) return;
     fetch(config.presetFetchUrl)
       .then((res) => res.json())
       .then((data: AnyPreset[]) => {
@@ -209,7 +210,7 @@ export function UnifiedConfigPanel() {
           statusType: 'warning',
         });
       });
-  }, [dispatch, config.presetFetchUrl, config.setPresetsAction, config.label]);
+  }, [dispatch, config.presetFetchUrl, config.setPresetsAction, config.label, presetList.length]);
 
   const handleGridSelectionChange = useCallback((selected: GridLink[]) => {
     setSelectedGridLinks(selected);
