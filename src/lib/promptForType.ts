@@ -9,6 +9,7 @@ import { buildBuildingPrompt } from './buildingPromptBuilder';
 import { buildTerrainPrompt } from './terrainPromptBuilder';
 import { buildBackgroundPrompt } from './backgroundPromptBuilder';
 import { type GridConfig } from './gridConfig';
+import type { ContentPreset } from '../types/api';
 
 export const REFERENCE_PREFIX = `\
 You are given two images.
@@ -21,7 +22,7 @@ guidance below.
 `;
 
 /** Fetch a single content preset by type and id */
-export async function fetchContentPreset(spriteType: SpriteType, presetId: string): Promise<any> {
+export async function fetchContentPreset(spriteType: SpriteType, presetId: string): Promise<ContentPreset> {
   const type = spriteType === 'character' ? 'character' : spriteType;
   const res = await fetch(`/api/presets/${type}/${presetId}`);
   if (!res.ok) throw new Error(`Content preset "${presetId}" not found`);
@@ -31,7 +32,7 @@ export async function fetchContentPreset(spriteType: SpriteType, presetId: strin
 /** Build prompt for any sprite type */
 export function buildPromptForType(
   spriteType: SpriteType,
-  contentPreset: any,
+  contentPreset: ContentPreset,
   gridLink: GridLink,
   gridConfig: GridConfig,
   isSubsequentGrid: boolean,

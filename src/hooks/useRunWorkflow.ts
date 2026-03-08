@@ -80,9 +80,10 @@ export function useRunWorkflow() {
       if (result?.image) {
         dispatch({ type: 'COMPLETE_GRID', payload: { filledGridImage: result.image.data } });
       }
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      const message = err instanceof Error ? err.message : 'Generation failed';
+      dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
       isGeneratingRef.current = false;
       abortRef.current = null;

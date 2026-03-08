@@ -3,6 +3,7 @@
  * Used by both App.tsx (session restore) and GalleryPage.tsx (gallery load).
  */
 
+import type { Dispatch } from 'react';
 import { extractSprites } from './spriteExtractor';
 import {
   getBuildingGridConfig,
@@ -12,28 +13,8 @@ import {
   type TerrainGridSize,
   type BackgroundGridSize,
 } from './gridConfig';
-import type { SpriteType } from '../context/AppContext';
-
-/** Shape of the data returned by /api/history/:id */
-interface GenerationData {
-  spriteType?: string;
-  gridSize?: string;
-  filledGridImage?: string;
-  filledGridMimeType?: string;
-  geminiText?: string;
-  aspectRatio?: string;
-  groupId?: string | null;
-  contentPresetId?: string | null;
-  content?: {
-    name?: string;
-    description?: string;
-    equipment?: string;
-    colorNotes?: string;
-    styleNotes?: string;
-    rowGuidance?: string;
-  };
-  sprites?: Array<{ label: string; cellIndex: number; imageData: string; mimeType: string }>;
-}
+import type { SpriteType, Action } from '../context/AppContext';
+import type { HistoryResponse } from '../types/api';
 
 interface LoadOptions {
   /** History entry ID */
@@ -47,8 +28,8 @@ interface LoadOptions {
  * Handles sprite-type branching, grid config inference, extraction, and state restoration.
  */
 export async function loadGenerationIntoState(
-  data: GenerationData,
-  dispatch: (action: any) => void,
+  data: HistoryResponse,
+  dispatch: Dispatch<Action>,
   opts: LoadOptions,
 ): Promise<void> {
   const spriteType = (data.spriteType || 'character') as SpriteType;

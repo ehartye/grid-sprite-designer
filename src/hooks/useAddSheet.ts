@@ -10,6 +10,7 @@ import { extractSprites, composeSpriteSheet, ExtractedSprite } from '../lib/spri
 import { generateGrid } from '../api/geminiClient';
 import { gridPresetToConfig } from '../lib/gridConfig';
 import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
+import type { ContentPreset, HistorySaveResponse } from '../types/api';
 
 export interface AddSheetOptions {
   /** Grid link to use for the new sheet */
@@ -81,7 +82,7 @@ export function useAddSheet() {
       }
 
       // Fetch content preset for prompt building
-      let contentPreset: any;
+      let contentPreset: ContentPreset;
       if (contentPresetId) {
         contentPreset = await fetchContentPreset(spriteType, contentPresetId);
       } else {
@@ -202,7 +203,7 @@ export function useAddSheet() {
           return;
         }
 
-        const histData = await histResp.json();
+        const histData: HistorySaveResponse = await histResp.json();
         const histId = Number(histData.id);
 
         if (!Number.isFinite(histId)) {
@@ -220,8 +221,8 @@ export function useAddSheet() {
           body: JSON.stringify({ sprites: spritePayload }),
           signal: abort.signal,
         });
-      } catch (e: any) {
-        if (e?.name === 'AbortError') return;
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === 'AbortError') return;
         console.error('Failed to save add-sheet generation to history:', e);
         dispatch({ type: 'SET_STATUS', message: 'Failed to save generation to history', statusType: 'warning' });
       }
@@ -239,15 +240,16 @@ export function useAddSheet() {
           }),
           signal: abort.signal,
         });
-      } catch (e: any) {
-        if (e?.name === 'AbortError') return;
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === 'AbortError') return;
         console.error('Failed to archive add-sheet generation:', e);
         dispatch({ type: 'SET_STATUS', message: 'Failed to archive generation to disk', statusType: 'warning' });
       }
 
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      const message = err instanceof Error ? err.message : 'Generation failed';
+      dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
       setGenerating(false);
       abortRef.current = null;

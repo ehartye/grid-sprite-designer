@@ -4,12 +4,13 @@
  * Each sprite type provides a small config object to customize behavior.
  */
 
-import { useCallback, useRef } from 'react';
-import { useAppContext, type AppState, type GridLink, type SpriteType } from '../context/AppContext';
+import { useCallback, useRef, type Dispatch } from 'react';
+import { useAppContext, type AppState, type GridLink, type SpriteType, type Action, type CellGroup } from '../context/AppContext';
 import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
 import { generateGrid } from '../api/geminiClient';
 import type { GridConfig } from '../lib/gridConfig';
+import type { HistorySaveResponse } from '../types/api';
 
 export interface WorkflowConfig {
   spriteType: SpriteType;
@@ -40,7 +41,7 @@ export interface PipelineParams {
   spriteType: SpriteType;
   contentName: string;
   contentDescription: string;
-  cellGroups?: any[];
+  cellGroups?: CellGroup[];
   referenceImage?: { data: string; mimeType: string };
   /** Extra fields merged into the /api/history POST body */
   historyExtras?: Record<string, any>;
@@ -54,7 +55,7 @@ export interface PipelineParams {
  */
 export async function runGeneratePipeline(
   params: PipelineParams,
-  dispatch: (action: any) => void,
+  dispatch: Dispatch<Action>,
   signal: AbortSignal,
 ) {
   const { gridConfig, prompt, model, imageSize, aspectRatio, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
@@ -150,7 +151,7 @@ export async function runGeneratePipeline(
       return result;
     }
 
-    const histData = await histResp.json();
+    const histData: HistorySaveResponse = await histResp.json();
     const histId = Number(histData.id);
 
     if (!Number.isFinite(histId)) {
@@ -171,8 +172,8 @@ export async function runGeneratePipeline(
       body: JSON.stringify({ sprites: spritePayload }),
       signal,
     });
-  } catch (e: any) {
-    if (e?.name === 'AbortError') return null;
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') return null;
     console.error('Failed to save to history:', e);
     dispatch({ type: 'SET_STATUS', message: 'Failed to save to history', statusType: 'warning' });
   }
@@ -189,8 +190,8 @@ export async function runGeneratePipeline(
       }),
       signal,
     });
-  } catch (e: any) {
-    if (e?.name === 'AbortError') return null;
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') return null;
     console.error('Failed to archive to disk:', e);
     dispatch({ type: 'SET_STATUS', message: 'Failed to archive to disk', statusType: 'warning' });
   }
@@ -243,9 +244,10 @@ export function useGenericWorkflow(config: WorkflowConfig) {
         historyExtras: { contentPresetId: state.activeContentPresetId },
         sourceContext: { groupId: null, contentPresetId: state.activeContentPresetId },
       }, dispatch, abort.signal);
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      const message = err instanceof Error ? err.message : 'Generation failed';
+      dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
       isGeneratingRef.current = false;
       abortRef.current = null;
