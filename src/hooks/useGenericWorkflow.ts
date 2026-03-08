@@ -101,18 +101,29 @@ export async function runGeneratePipeline(
   });
 
   // 3. Extract sprites
-  const sprites = await extractSprites(
-    result.image.data,
-    result.image.mimeType,
-    {
-      gridOverride: {
-        cols: gridConfig.cols,
-        rows: gridConfig.rows,
-        totalCells: gridConfig.totalCells,
-        cellLabels: gridConfig.cellLabels,
+  let sprites: Awaited<ReturnType<typeof extractSprites>>;
+  try {
+    sprites = await extractSprites(
+      result.image.data,
+      result.image.mimeType,
+      {
+        gridOverride: {
+          cols: gridConfig.cols,
+          rows: gridConfig.rows,
+          totalCells: gridConfig.totalCells,
+          cellLabels: gridConfig.cellLabels,
+        },
       },
-    },
-  );
+    );
+  } catch (extractionErr: unknown) {
+    // Generation succeeded but extraction failed — transition to review
+    // so the user can retry via the existing re-extract UI.
+    const msg = extractionErr instanceof Error ? extractionErr.message : 'Unknown extraction error';
+    console.error('Sprite extraction failed:', extractionErr);
+    dispatch({ type: 'EXTRACTION_COMPLETE', sprites: [] });
+    dispatch({ type: 'SET_STATUS', message: `Extraction failed: ${msg}. Use re-extract to retry.`, statusType: 'warning' });
+    return result;
+  }
 
   if (signal.aborted) return null;
 
