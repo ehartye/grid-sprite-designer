@@ -71,6 +71,18 @@ describe('appReducer', () => {
       expect(result.step).toBe('configure');
     });
 
+    it('returns state unchanged when switching to the same type', () => {
+      const state: AppState = {
+        ...initialState,
+        spriteType: 'building',
+        step: 'review',
+        filledGridImage: 'important-image',
+        historyId: 99,
+      };
+      const result = reducer(state, { type: 'SET_SPRITE_TYPE', spriteType: 'building' });
+      expect(result).toBe(state);
+    });
+
     it('preserves per-type config and presets', () => {
       const state: AppState = {
         ...initialState,

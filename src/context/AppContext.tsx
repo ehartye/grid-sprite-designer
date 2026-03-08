@@ -329,6 +329,7 @@ function gridSizeToCellCount(gridSize: BuildingGridSize): number {
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_SPRITE_TYPE':
+      if (action.spriteType === state.spriteType) return state;
       return {
         ...state,
         spriteType: action.spriteType,
