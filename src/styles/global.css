@@ -19,7 +19,7 @@
 
   --text: #e4e4ec;
   --text-secondary: #9c9cb0;
-  --text-muted: #5e5e74;
+  --text-muted: #8585a0;
 
   --accent: #c8ff00;
   --accent-hover: #d4ff33;
@@ -626,6 +626,12 @@ button {
 .btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.btn:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 /* Primary / Accent — the lime button */
@@ -1868,8 +1874,8 @@ img.sprite-image {
 }
 
 .add-sheet-modal {
-  background: var(--bg-secondary, #1e1e2e);
-  border: 1px solid var(--border, #444);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
   width: 420px;
@@ -1890,7 +1896,7 @@ img.sprite-image {
 .add-sheet-section label {
   display: block;
   font-size: 0.85rem;
-  color: var(--text-secondary, #aaa);
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
@@ -1926,7 +1932,7 @@ img.sprite-image {
 }
 
 .add-sheet-sprite-check.selected {
-  border-color: var(--accent, #7c3aed);
+  border-color: var(--accent);
 }
 
 .add-sheet-sprite-check img {
@@ -1954,11 +1960,23 @@ img.sprite-image {
   width: 100%;
   min-height: 60px;
   padding: 8px;
-  border: 1px solid var(--border, #444);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--bg-primary, #121220);
-  color: var(--text-primary, #eee);
+  background: var(--bg-base);
+  color: var(--text);
   font-size: 0.85rem;
   font-family: inherit;
   resize: vertical;
+}
+
+/* --- Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

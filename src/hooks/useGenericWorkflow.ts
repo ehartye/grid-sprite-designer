@@ -4,7 +4,7 @@
  * Each sprite type provides a small config object to customize behavior.
  */
 
-import { useCallback, useRef, useMemo, type Dispatch } from 'react';
+import { useCallback, useEffect, useRef, useMemo, type Dispatch } from 'react';
 import { useAppContext, type AppState, type GridLink, type SpriteType, type Action, type CellGroup } from '../context/AppContext';
 import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
@@ -204,6 +204,13 @@ export function useGenericWorkflow(config: WorkflowConfig) {
   const abortRef = useRef<AbortController | null>(null);
   const isGeneratingRef = useRef(false);
 
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const configRef = useRef(config);
+  configRef.current = config;
+
+  useEffect(() => () => { abortRef.current?.abort(); }, []);
+
   const cancelGeneration = useCallback(() => {
     if (abortRef.current) {
       abortRef.current.abort();
@@ -214,9 +221,11 @@ export function useGenericWorkflow(config: WorkflowConfig) {
   }, [dispatch]);
 
   const generate = useCallback(async (gridLink?: GridLink) => {
-    const content = config.getContent(state);
+    const currentState = stateRef.current;
+    const currentConfig = configRef.current;
+    const content = currentConfig.getContent(currentState);
     if (!content.name.trim() || !content.description.trim()) {
-      dispatch({ type: 'SET_STATUS', message: `Please enter a ${config.validationLabel} name and description.`, statusType: 'warning' });
+      dispatch({ type: 'SET_STATUS', message: `Please enter a ${currentConfig.validationLabel} name and description.`, statusType: 'warning' });
       return;
     }
 
@@ -227,22 +236,22 @@ export function useGenericWorkflow(config: WorkflowConfig) {
     abortRef.current = abort;
 
     try {
-      const gridConfig = config.buildGridConfig(state, gridLink);
-      const aspectRatio = gridConfig.aspectRatio || state.aspectRatio;
-      const prompt = config.buildPrompt(state, gridConfig, gridLink);
+      const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
+      const aspectRatio = gridConfig.aspectRatio || currentState.aspectRatio;
+      const prompt = currentConfig.buildPrompt(currentState, gridConfig, gridLink);
 
       await runGeneratePipeline({
         gridConfig,
         prompt,
-        model: state.model,
-        imageSize: state.imageSize,
+        model: currentState.model,
+        imageSize: currentState.imageSize,
         aspectRatio,
-        spriteType: config.spriteType,
+        spriteType: currentConfig.spriteType,
         contentName: content.name,
         contentDescription: content.description,
         cellGroups: gridLink?.cellGroups,
-        historyExtras: { contentPresetId: state.activeContentPresetIds[config.spriteType] },
-        sourceContext: { groupId: null, contentPresetId: state.activeContentPresetIds[config.spriteType] },
+        historyExtras: { contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType] },
+        sourceContext: { groupId: null, contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType] },
       }, dispatch, abort.signal);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
@@ -252,22 +261,24 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       isGeneratingRef.current = false;
       abortRef.current = null;
     }
-  }, [state, config, dispatch]);
+  }, [dispatch]);
 
   const reExtract = useCallback(async (overrides?: {
     aaInset?: number;
     posterizeBits?: number;
   }) => {
-    if (!state.filledGridImage) return;
+    const currentState = stateRef.current;
+    const currentConfig = configRef.current;
+    if (!currentState.filledGridImage) return;
 
     dispatch({ type: 'SET_STATUS', message: 'Re-extracting sprites...', statusType: 'info' });
 
     try {
-      const gridOverride = config.getReExtractGridConfig(state);
+      const gridOverride = currentConfig.getReExtractGridConfig(currentState);
 
       const sprites = await extractSprites(
-        state.filledGridImage,
-        state.filledGridMimeType,
+        currentState.filledGridImage,
+        currentState.filledGridMimeType,
         {
           ...(gridOverride ? { gridOverride } : {}),
           ...overrides,
@@ -280,7 +291,7 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       console.error('Re-extraction failed:', err);
       dispatch({ type: 'SET_STATUS', message: `Re-extraction failed: ${message}`, statusType: 'error' });
     }
-  }, [state.filledGridImage, state.filledGridMimeType, state, config, dispatch]);
+  }, [dispatch]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });

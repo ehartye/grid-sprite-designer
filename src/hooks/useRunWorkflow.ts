@@ -7,7 +7,7 @@
  * runGeneratePipeline from useGenericWorkflow.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { gridPresetToConfig } from '../lib/gridConfig';
 import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
@@ -17,6 +17,11 @@ export function useRunWorkflow() {
   const { state, dispatch } = useAppContext();
   const abortRef = useRef<AbortController | null>(null);
   const isGeneratingRef = useRef(false);
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  useEffect(() => () => { abortRef.current?.abort(); }, []);
 
   const cancelRun = useCallback(() => {
     if (abortRef.current) {
@@ -28,7 +33,8 @@ export function useRunWorkflow() {
   }, [dispatch]);
 
   const generateCurrentGrid = useCallback(async () => {
-    const run = state.run;
+    const currentState = stateRef.current;
+    const run = currentState.run;
     if (!run) return;
     if (isGeneratingRef.current) return;
 
@@ -58,7 +64,7 @@ export function useRunWorkflow() {
       const result = await runGeneratePipeline({
         gridConfig,
         prompt,
-        model: state.model,
+        model: currentState.model,
         imageSize: run.imageSize,
         aspectRatio,
         spriteType: run.spriteType,
@@ -88,7 +94,7 @@ export function useRunWorkflow() {
       isGeneratingRef.current = false;
       abortRef.current = null;
     }
-  }, [state.run, state.model, dispatch]);
+  }, [dispatch]);
 
   const proceedToNextGrid = useCallback(() => {
     if (isGeneratingRef.current) {
