@@ -12,6 +12,8 @@ const MIGRATIONS = [
   { name: '011_rename_character_name', sql: 'ALTER TABLE generations RENAME COLUMN character_name TO content_name' },
   { name: '012_rename_character_description', sql: 'ALTER TABLE generations RENAME COLUMN character_description TO content_description' },
   { name: '013_add_sprites_unique_index', sql: 'CREATE UNIQUE INDEX IF NOT EXISTS idx_sprites_gen_cell ON sprites(generation_id, cell_index)' },
+  { name: '014_add_generations_sprite_type_index', sql: 'CREATE INDEX IF NOT EXISTS idx_generations_sprite_type ON generations(sprite_type)' },
+  { name: '015_add_generations_type_created_index', sql: 'CREATE INDEX IF NOT EXISTS idx_generations_type_created ON generations(sprite_type, created_at DESC)' },
 ];
 
 export function migrateSchema(db) {
