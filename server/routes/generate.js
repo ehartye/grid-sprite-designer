@@ -168,7 +168,15 @@ export function createGenerateRouter(apiKey) {
     }
   });
 
-  router.post('/test-connection', async (req, res) => {
+  const testConnectionLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 5,              // 5 requests per minute per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many connection test requests. Please wait before trying again.' },
+  });
+
+  router.post('/test-connection', testConnectionLimiter, async (req, res) => {
     try {
       const { model = 'nano-banana-pro-preview' } = req.body || {};
 
