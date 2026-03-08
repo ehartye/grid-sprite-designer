@@ -7,10 +7,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AppHeader, AppTab } from './components/layout/AppHeader';
-import { ConfigPanel } from './components/config/ConfigPanel';
-import { BuildingConfigPanel } from './components/config/BuildingConfigPanel';
-import { TerrainConfigPanel } from './components/config/TerrainConfigPanel';
-import { BackgroundConfigPanel } from './components/config/BackgroundConfigPanel';
+import { UnifiedConfigPanel } from './components/config/UnifiedConfigPanel';
 import { SpriteReview } from './components/grid/SpriteReview';
 import { GeneratingOverlay } from './components/shared/GeneratingOverlay';
 import { StatusBanner } from './components/shared/StatusBanner';
@@ -19,8 +16,7 @@ import { GalleryPage } from './components/gallery/GalleryPage';
 import { AdminPage } from './components/admin/AdminPage';
 
 import { useRunWorkflow } from './hooks/useRunWorkflow';
-import { extractSprites } from './lib/spriteExtractor';
-import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from './lib/gridConfig';
+import { loadGenerationIntoState } from './lib/loadGeneration';
 
 function AppContent() {
   const { state, dispatch } = useAppContext();
@@ -43,115 +39,9 @@ function AppContent() {
         if (!res.ok) return;
         const data = await res.json();
 
-        // Restore sprite type if saved
-        const spriteType = data.spriteType || 'character';
-        if (spriteType !== 'character') {
-          dispatch({ type: 'SET_SPRITE_TYPE', spriteType });
-        }
-
-        if (spriteType === 'building' && data.gridSize) {
-          // Restore building config state
-          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-          dispatch({
-            type: 'SET_BUILDING',
-            building: {
-              name: data.content?.name || '',
-              description: data.content?.description || '',
-              details: '',
-              colorNotes: '',
-              styleNotes: '',
-              cellGuidance: '',
-              gridSize: data.gridSize,
-              cellLabels: spriteLabels,
-            },
-          });
-        } else if (spriteType === 'terrain' && data.gridSize) {
-          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-          dispatch({
-            type: 'SET_TERRAIN',
-            terrain: {
-              name: data.content?.name || '',
-              description: data.content?.description || '',
-              colorNotes: '',
-              styleNotes: '',
-              tileGuidance: '',
-              gridSize: data.gridSize,
-              cellLabels: spriteLabels,
-            },
-          });
-        } else if (spriteType === 'background' && data.gridSize) {
-          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-          dispatch({
-            type: 'SET_BACKGROUND',
-            background: {
-              name: data.content?.name || '',
-              description: data.content?.description || '',
-              colorNotes: '',
-              styleNotes: '',
-              layerGuidance: '',
-              bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
-              gridSize: data.gridSize,
-              cellLabels: spriteLabels,
-            },
-          });
-        } else if (data.content) {
-          dispatch({ type: 'SET_CHARACTER', character: data.content });
-        }
-        const mimeType = data.filledGridMimeType || 'image/png';
-        if (data.filledGridImage) {
-          dispatch({
-            type: 'GENERATE_COMPLETE',
-            filledGridImage: data.filledGridImage,
-            filledGridMimeType: mimeType,
-            geminiText: data.geminiText || '',
-          });
-
-          // Use the correct extraction config based on sprite type
-          let extractionConfig: Parameters<typeof extractSprites>[2] = {};
-
-          if (spriteType === 'building' && data.gridSize) {
-            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-            const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
-            extractionConfig = {
-              gridOverride: {
-                cols: gridConfig.cols,
-                rows: gridConfig.rows,
-                totalCells: gridConfig.totalCells,
-                cellLabels: gridConfig.cellLabels,
-              },
-            };
-          } else if (spriteType === 'terrain' && data.gridSize) {
-            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-            const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, spriteLabels);
-            extractionConfig = {
-              gridOverride: {
-                cols: gridConfig.cols,
-                rows: gridConfig.rows,
-                totalCells: gridConfig.totalCells,
-                cellLabels: gridConfig.cellLabels,
-              },
-            };
-          } else if (spriteType === 'background' && data.gridSize) {
-            const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-            const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, spriteLabels);
-            extractionConfig = {
-              gridOverride: {
-                cols: gridConfig.cols,
-                rows: gridConfig.rows,
-                totalCells: gridConfig.totalCells,
-                cellLabels: gridConfig.cellLabels,
-              },
-            };
-          }
-
-          const sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
-          dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-        } else if (data.sprites && data.sprites.length > 0) {
-          dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
-        }
-        dispatch({ type: 'SET_HISTORY_ID', id: id! });
+        await loadGenerationIntoState(data, dispatch, { historyId: id });
       } catch (err) {
-        console.warn('Failed to restore last session:', err);
+        dispatch({ type: 'SET_STATUS', message: 'Failed to restore last session', statusType: 'warning' });
       }
     })();
   }, [dispatch]);
@@ -190,14 +80,7 @@ function AppContent() {
       <div className="app-layout">
         {tab === 'designer' && (
           <>
-            {state.step === 'configure' && (() => {
-              switch (state.spriteType) {
-                case 'building': return <BuildingConfigPanel />;
-                case 'terrain': return <TerrainConfigPanel />;
-                case 'background': return <BackgroundConfigPanel />;
-                default: return <ConfigPanel />;
-              }
-            })()}
+            {state.step === 'configure' && <UnifiedConfigPanel />}
             {state.step === 'generating' && (
               <>
                 <GeneratingOverlay />

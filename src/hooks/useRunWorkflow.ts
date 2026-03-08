@@ -80,9 +80,10 @@ export function useRunWorkflow() {
       if (result?.image) {
         dispatch({ type: 'COMPLETE_GRID', payload: { filledGridImage: result.image.data } });
       }
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      dispatch({ type: 'GENERATE_ERROR', error: err.message || 'Generation failed' });
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      const message = err instanceof Error ? err.message : 'Generation failed';
+      dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
       isGeneratingRef.current = false;
       abortRef.current = null;
@@ -90,10 +91,18 @@ export function useRunWorkflow() {
   }, [state.run, state.model, dispatch]);
 
   const proceedToNextGrid = useCallback(() => {
+    if (isGeneratingRef.current) {
+      dispatch({ type: 'SET_STATUS', message: 'Cannot proceed while generation is in progress', statusType: 'warning' });
+      return;
+    }
     dispatch({ type: 'NEXT_GRID' });
   }, [dispatch]);
 
   const skipCurrentGrid = useCallback(() => {
+    if (isGeneratingRef.current) {
+      dispatch({ type: 'SET_STATUS', message: 'Cannot skip while generation is in progress — cancel first', statusType: 'warning' });
+      return;
+    }
     dispatch({ type: 'NEXT_GRID' });
   }, [dispatch]);
 

@@ -16,6 +16,7 @@
 
 import { COLS, ROWS, TOTAL_CELLS, CELL_LABELS } from './poses';
 import { posterize } from './imagePreprocess';
+import { debugLog } from './debugLog';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -248,29 +249,29 @@ function detectCuts(
   for (let i = 1; i < hCuts.length; i++) {
     hCuts[i].start = Math.max(0, hCuts[i].start - 3);
   }
-  console.log(`[CutDetect] Horizontal cuts: ${hCuts.length}`, hCuts.map(b => `${b.start}-${b.end} (${b.end - b.start + 1}px)`));
+  debugLog(`[CutDetect] Horizontal cuts: ${hCuts.length}`, hCuts.map(b => `${b.start}-${b.end} (${b.end - b.start + 1}px)`));
 
   // ── Vertical cuts ──
   const colScores = computeColDividerScore(data, width, height);
   const vCuts = findCutBands(colScores);
-  console.log(`[CutDetect] Vertical cuts: ${vCuts.length}`, vCuts.map(b => `${b.start}-${b.end} (${b.end - b.start + 1}px)`));
+  debugLog(`[CutDetect] Vertical cuts: ${vCuts.length}`, vCuts.map(b => `${b.start}-${b.end} (${b.end - b.start + 1}px)`));
 
   // ── Compute content spans between cuts ──
   let hSpans = cutBandsToContentSpans(hCuts, height, aaInset);
   let vSpans = cutBandsToContentSpans(vCuts, width, aaInset);
-  console.log(`[CutDetect] Content regions: ${hSpans.length} rows x ${vSpans.length} cols`);
+  debugLog(`[CutDetect] Content regions: ${hSpans.length} rows x ${vSpans.length} cols`);
 
   // If we have too many content spans, keep only the N largest.
   // Extra small spans come from false-positive edge cuts or artifacts.
   if (hSpans.length > gridRows) {
     const sorted = [...hSpans].sort((a, b) => b.size - a.size);
     hSpans = sorted.slice(0, gridRows).sort((a, b) => a.start - b.start);
-    console.log(`[CutDetect] Pruned rows: kept ${gridRows} largest of ${sorted.length}`);
+    debugLog(`[CutDetect] Pruned rows: kept ${gridRows} largest of ${sorted.length}`);
   }
   if (vSpans.length > gridCols) {
     const sorted = [...vSpans].sort((a, b) => b.size - a.size);
     vSpans = sorted.slice(0, gridCols).sort((a, b) => a.start - b.start);
-    console.log(`[CutDetect] Pruned cols: kept ${gridCols} largest of ${sorted.length}`);
+    debugLog(`[CutDetect] Pruned cols: kept ${gridCols} largest of ${sorted.length}`);
   }
 
   const rowsOk = hSpans.length === gridRows;
@@ -285,7 +286,7 @@ function detectCuts(
     let headerEnd = 0;
     if (hCuts.length > 0 && hCuts[0].start < height * 0.1) {
       headerEnd = hCuts[0].end + 1;
-      console.log(`[CutDetect] Stripping detected header: rows 0-${hCuts[0].end} (${headerEnd}px)`);
+      debugLog(`[CutDetect] Stripping detected header: rows 0-${hCuts[0].end} (${headerEnd}px)`);
     }
     const contentHeight = height - headerEnd;
     const rowSize = Math.floor(contentHeight / gridRows);
@@ -314,11 +315,11 @@ function detectCuts(
   }
 
   if (rowsOk && colsOk) {
-    console.log(`[CutDetect] Full detection succeeded.`);
+    debugLog(`[CutDetect] Full detection succeeded.`);
   } else if (rowsOk) {
-    console.log(`[CutDetect] HYBRID: detected rows + symmetrical columns.`);
+    debugLog(`[CutDetect] HYBRID: detected rows + symmetrical columns.`);
   } else if (colsOk) {
-    console.log(`[CutDetect] HYBRID: symmetrical rows + detected columns.`);
+    debugLog(`[CutDetect] HYBRID: symmetrical rows + detected columns.`);
   }
 
   // ── Build cell rects ──
@@ -449,7 +450,7 @@ async function normalizeSprites(sprites: ExtractedSprite[]): Promise<ExtractedSp
   // Already uniform — skip work
   if (minW === maxW && minH === maxH) return sprites;
 
-  console.log(
+  debugLog(
     `[Normalize] Resized sprites to ${maxW}×${maxH} (was ${minW}-${maxW} × ${minH}-${maxH})`,
   );
 

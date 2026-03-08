@@ -3,7 +3,7 @@
  * Manages the full workflow: configure → generate → extract → review → export
  */
 
-import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useMemo } from 'react';
 import { ExtractedSprite } from '../lib/spriteExtractor';
 import type { TerrainGridSize, BackgroundGridSize, BackgroundMode } from '../lib/gridConfig';
 import { TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../lib/gridConfig';
@@ -534,12 +534,8 @@ function reducer(state: AppState, action: Action): AppState {
 
 // ── Context ──────────────────────────────────────────────────────────────────
 
-interface AppContextValue {
-  state: AppState;
-  dispatch: React.Dispatch<Action>;
-}
-
-const AppContext = createContext<AppContextValue | null>(null);
+const AppStateContext = createContext<AppState | null>(null);
+const AppDispatchContext = createContext<React.Dispatch<Action> | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -564,17 +560,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.historyId]);
 
+  // dispatch from useReducer is already stable, but wrapping in useMemo
+  // makes the intent explicit and future-proof
+  const stableDispatch = useMemo(() => dispatch, []);
+
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
-      {children}
-    </AppContext.Provider>
+    <AppStateContext.Provider value={state}>
+      <AppDispatchContext.Provider value={stableDispatch}>
+        {children}
+      </AppDispatchContext.Provider>
+    </AppStateContext.Provider>
   );
 }
 
+/** Read only state — re-renders when state changes */
+export function useAppState(): AppState {
+  const state = useContext(AppStateContext);
+  if (!state) throw new Error('useAppState must be used within AppProvider');
+  return state;
+}
+
+/** Stable dispatch ref — never triggers re-renders */
+export function useAppDispatch(): React.Dispatch<Action> {
+  const dispatch = useContext(AppDispatchContext);
+  if (!dispatch) throw new Error('useAppDispatch must be used within AppProvider');
+  return dispatch;
+}
+
+/** Backward-compatible hook returning both state and dispatch */
 export function useAppContext() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useAppContext must be used within AppProvider');
-  return ctx;
+  const state = useAppState();
+  const dispatch = useAppDispatch();
+  return { state, dispatch };
 }
 
 export type { Action };

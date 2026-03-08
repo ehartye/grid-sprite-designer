@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext';
+import { useAppState } from '../../context/AppContext';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { testConnection } from '../../api/geminiClient';
 
@@ -17,7 +17,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
-  const { state } = useAppContext();
+  const state = useAppState();
   const { reset } = useGridWorkflow();
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);

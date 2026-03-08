@@ -20,7 +20,7 @@ interface SpriteZoomModalProps {
   onClose: () => void;
 }
 
-export function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrikeColor, onErasePixel, onClose }: SpriteZoomModalProps) {
+export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrikeColor, onErasePixel, onClose }: SpriteZoomModalProps) {
   const [zoom, setZoom] = useState(8);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -448,4 +448,4 @@ export function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrik
       </div>
     </div>
   );
-}
+});

@@ -198,6 +198,19 @@ app.get('/api/presets', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+app.get('/api/presets/:type/:id', (req, res, next) => {
+  try {
+    const id = parseIntParam(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid id' });
+    const config = PRESET_TABLES[req.params.type];
+    if (!config) return res.status(400).json({ error: 'Invalid type' });
+
+    const row = db.prepare(`SELECT * FROM ${config.table} WHERE id = ? AND is_preset = 1`).get(id);
+    if (!row) return res.status(404).json({ error: 'Not found' });
+    res.json(mapPresetRow(row, config.columns));
+  } catch (err) { next(err); }
+});
+
 app.post('/api/presets/:type', (req, res, next) => {
   try {
     const config = PRESET_TABLES[req.params.type];

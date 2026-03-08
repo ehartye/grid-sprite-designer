@@ -5,7 +5,7 @@
  * Supports variable grid sizes (6x6 character default, 3x3/2x3/2x2 buildings).
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CELL_LABELS } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
 
@@ -26,15 +26,18 @@ interface SpriteGridProps {
   aspectRatio?: string;
 }
 
-export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels, aspectRatio }: SpriteGridProps) {
+export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels, aspectRatio }: SpriteGridProps) {
   const cols = gridCols ?? 6;
   const labels = cellLabels ?? CELL_LABELS;
 
   // Build a lookup map from cellIndex to sprite
-  const spriteMap = new Map<number, ExtractedSprite>();
-  for (const sprite of sprites) {
-    spriteMap.set(sprite.cellIndex, sprite);
-  }
+  const spriteMap = useMemo(() => {
+    const map = new Map<number, ExtractedSprite>();
+    for (const sprite of sprites) {
+      map.set(sprite.cellIndex, sprite);
+    }
+    return map;
+  }, [sprites]);
 
   // Derive cell aspect ratio from the first sprite's actual dimensions,
   // falling back to the grid aspect ratio for non-square grids
@@ -132,4 +135,4 @@ export function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, 
       })}
     </div>
   );
-}
+});
