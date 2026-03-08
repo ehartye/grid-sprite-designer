@@ -76,11 +76,11 @@ describe('appReducer', () => {
       const state: AppState = {
         ...initialState,
         character: { ...initialState.character, name: 'Hero' },
-        presets: [{ id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' }],
+        characterPresets: [{ id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' }],
       };
       const result = reducer(state, { type: 'SET_SPRITE_TYPE', spriteType: 'terrain' });
       expect(result.character.name).toBe('Hero');
-      expect(result.presets).toBe(state.presets);
+      expect(result.characterPresets).toBe(state.characterPresets);
     });
   });
 
@@ -350,9 +350,9 @@ describe('appReducer', () => {
     });
   });
 
-  // ── LOAD_PRESET (character) ─────────────────────────────────────────────
+  // ── LOAD_CHARACTER_PRESET ───────────────────────────────────────────────
 
-  describe('LOAD_PRESET', () => {
+  describe('LOAD_CHARACTER_PRESET', () => {
     it('loads character preset into character config', () => {
       const preset: CharacterPreset = {
         id: 'char-1',
@@ -363,7 +363,7 @@ describe('appReducer', () => {
         colorNotes: 'Silver and blue',
         rowGuidance: 'Walk, attack, idle',
       };
-      const result = reducer(initialState, { type: 'LOAD_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CHARACTER_PRESET', preset });
       expect(result.activeContentPresetIds.character).toBe('char-1');
       expect(result.character.name).toBe('Knight');
       expect(result.character.description).toBe('A noble knight');
@@ -513,15 +513,15 @@ describe('appReducer', () => {
     });
   });
 
-  // ── SET_PRESETS / SET_*_PRESETS / SET_GRID_PRESETS ───────────────────────
+  // ── SET_CHARACTER_PRESETS / SET_*_PRESETS / SET_GRID_PRESETS ─────────────
 
-  describe('SET_PRESETS', () => {
+  describe('SET_CHARACTER_PRESETS', () => {
     it('sets character presets', () => {
       const presets: CharacterPreset[] = [
         { id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' },
       ];
-      const result = reducer(initialState, { type: 'SET_PRESETS', presets });
-      expect(result.presets).toEqual(presets);
+      const result = reducer(initialState, { type: 'SET_CHARACTER_PRESETS', presets });
+      expect(result.characterPresets).toEqual(presets);
     });
   });
 
@@ -733,7 +733,7 @@ describe('appReducer', () => {
         character: { ...initialState.character, name: 'Modified' },
         filledGridImage: 'some-image',
         historyId: 99,
-        presets: charPresets,
+        characterPresets: charPresets,
         buildingPresets: buildPresets,
         terrainPresets: terrPresets,
         backgroundPresets: bgPresets,
@@ -746,7 +746,7 @@ describe('appReducer', () => {
       expect(result.character.name).toBe('');
       expect(result.filledGridImage).toBeNull();
       expect(result.historyId).toBeNull();
-      expect(result.presets).toBe(charPresets);
+      expect(result.characterPresets).toBe(charPresets);
       expect(result.buildingPresets).toBe(buildPresets);
       expect(result.terrainPresets).toBe(terrPresets);
       expect(result.backgroundPresets).toBe(bgPresets);

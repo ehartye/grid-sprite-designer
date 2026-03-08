@@ -12,6 +12,7 @@ import {
   useAppState,
   type SpriteType,
   type GridLink,
+  type Action,
   type CharacterPreset,
   type BuildingPreset,
   type TerrainPreset,
@@ -29,14 +30,18 @@ import '../../styles/run-builder.css';
 
 type AnyPreset = CharacterPreset | BuildingPreset | TerrainPreset | BackgroundPreset;
 
+type SetPresetsAction = 'SET_CHARACTER_PRESETS' | 'SET_BUILDING_PRESETS' | 'SET_TERRAIN_PRESETS' | 'SET_BACKGROUND_PRESETS';
+type LoadPresetAction = 'LOAD_CHARACTER_PRESET' | 'LOAD_BUILDING_PRESET' | 'LOAD_TERRAIN_PRESET' | 'LOAD_BACKGROUND_PRESET';
+type SetContentAction = 'SET_CHARACTER' | 'SET_BUILDING' | 'SET_TERRAIN' | 'SET_BACKGROUND';
+
 interface SpriteTypeConfig {
   label: string;
   presetFetchUrl: string;
-  setPresetsAction: string;
-  loadPresetAction: string;
+  setPresetsAction: SetPresetsAction;
+  loadPresetAction: LoadPresetAction;
   contentStateKey: 'character' | 'building' | 'terrain' | 'background';
-  presetsStateKey: 'presets' | 'buildingPresets' | 'terrainPresets' | 'backgroundPresets';
-  setContentAction: string;
+  presetsStateKey: 'characterPresets' | 'buildingPresets' | 'terrainPresets' | 'backgroundPresets';
+  setContentAction: SetContentAction;
   defaultContent: Record<string, unknown>;
   /** Extra content fields beyond name/description/colorNotes/styleNotes */
   extraFields: Array<{
@@ -62,11 +67,11 @@ interface SpriteTypeConfig {
 const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
   character: {
     label: 'Character',
-    presetFetchUrl: '/api/presets',
-    setPresetsAction: 'SET_PRESETS',
-    loadPresetAction: 'LOAD_PRESET',
+    presetFetchUrl: '/api/presets?type=character',
+    setPresetsAction: 'SET_CHARACTER_PRESETS',
+    loadPresetAction: 'LOAD_CHARACTER_PRESET',
     contentStateKey: 'character',
-    presetsStateKey: 'presets',
+    presetsStateKey: 'characterPresets',
     setContentAction: 'SET_CHARACTER',
     defaultContent: {
       name: '', description: '', equipment: '', colorNotes: '', styleNotes: '', rowGuidance: '',
@@ -180,7 +185,7 @@ export function UnifiedConfigPanel() {
     fetch(config.presetFetchUrl)
       .then((res) => res.json())
       .then((data: AnyPreset[]) => {
-        dispatch({ type: config.setPresetsAction, presets: data } as any);
+        dispatch({ type: config.setPresetsAction, presets: data } as Action);
       })
       .catch((err: unknown) => {
         console.error(`Failed to load ${config.label.toLowerCase()} presets:`, err);
@@ -204,7 +209,7 @@ export function UnifiedConfigPanel() {
       dispatch({
         type: config.setContentAction,
         [config.contentStateKey]: { ...content, [field]: value },
-      } as any);
+      } as Action);
     },
     [content, dispatch, config.setContentAction, config.contentStateKey],
   );
@@ -230,12 +235,12 @@ export function UnifiedConfigPanel() {
         dispatch({
           type: config.setContentAction,
           [config.contentStateKey]: resetContent,
-        } as any);
+        } as Action);
         return;
       }
       const preset = presetList.find((p) => p.id === presetId);
       if (preset) {
-        dispatch({ type: config.loadPresetAction, preset } as any);
+        dispatch({ type: config.loadPresetAction, preset } as Action);
       }
     },
     [presetList, dispatch, config, content, spriteType],
