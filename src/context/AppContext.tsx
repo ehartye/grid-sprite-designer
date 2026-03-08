@@ -3,7 +3,7 @@
  * Manages the full workflow: configure → generate → extract → review → export
  */
 
-import React, { createContext, useContext, useReducer, useEffect, useRef, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { ExtractedSprite } from '../lib/spriteExtractor';
 import type { TerrainGridSize, BackgroundGridSize, BackgroundMode } from '../lib/gridConfig';
 import { TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../lib/gridConfig';
@@ -610,13 +610,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.historyId]);
 
-  // dispatch from useReducer is already stable, but wrapping in useMemo
-  // makes the intent explicit and future-proof
-  const stableDispatch = useMemo(() => dispatch, []);
-
   return (
     <AppStateContext.Provider value={state}>
-      <AppDispatchContext.Provider value={stableDispatch}>
+      <AppDispatchContext.Provider value={dispatch}>
         {children}
       </AppDispatchContext.Provider>
     </AppStateContext.Provider>

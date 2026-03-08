@@ -246,9 +246,7 @@ export function UnifiedConfigPanel() {
     [presetList, dispatch, config, content, spriteType],
   );
 
-  const canGenerate =
-    (content.name as string).trim().length > 0 &&
-    (content.description as string).trim().length > 0;
+  const canGenerate = !validationMessage;
 
   const promptPreview = useMemo(() => {
     switch (spriteType) {
