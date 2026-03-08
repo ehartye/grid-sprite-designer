@@ -45,6 +45,7 @@ export function migrateSchema(db) {
         console.log(`[Migration] Recorded (already applied): ${name}`);
       } else {
         console.error(`[Migration] Failed: ${name}\n  ${msg}`);
+        throw e;
       }
     }
   }
