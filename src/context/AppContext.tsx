@@ -218,7 +218,7 @@ export interface AppState {
   run: RunState | null;
 }
 
-const initialState: AppState = {
+export const initialState: AppState = {
   step: 'configure',
   spriteType: 'character',
   character: {
@@ -327,7 +327,7 @@ function gridSizeToCellCount(gridSize: BuildingGridSize): number {
   }
 }
 
-function reducer(state: AppState, action: Action): AppState {
+export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_SPRITE_TYPE':
       return { ...state, spriteType: action.spriteType };
