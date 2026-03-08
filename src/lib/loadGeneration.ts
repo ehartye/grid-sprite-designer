@@ -1,10 +1,13 @@
 /**
  * Shared logic for loading a saved generation into app state.
  * Used by both App.tsx (session restore) and GalleryPage.tsx (gallery load).
+ *
+ * Computes all derived state (config, grid dimensions, sprites) first,
+ * then dispatches a single RESTORE_SESSION action for atomic state update.
  */
 
 import type { Dispatch } from 'react';
-import { extractSprites } from './spriteExtractor';
+import { extractSprites, type ExtractedSprite } from './spriteExtractor';
 import {
   getBuildingGridConfig,
   getTerrainGridConfig,
@@ -16,7 +19,7 @@ import {
   type TerrainGridSize,
   type BackgroundGridSize,
 } from './gridConfig';
-import type { SpriteType, Action } from '../context/AppContext';
+import type { SpriteType, Action, AppState, RestoreSessionPayload } from '../context/AppContext';
 import type { HistoryResponse } from '../types/api';
 
 interface LoadOptions {
@@ -27,7 +30,7 @@ interface LoadOptions {
 }
 
 /**
- * Load a generation's data into app state via dispatch calls.
+ * Load a generation's data into app state via a single RESTORE_SESSION dispatch.
  * Handles sprite-type branching, grid config inference, extraction, and state restoration.
  */
 export async function loadGenerationIntoState(
@@ -38,81 +41,68 @@ export async function loadGenerationIntoState(
   const spriteType = (data.spriteType || 'character') as SpriteType;
   const spriteLabels = data.sprites?.map(s => s.label) || [];
 
-  // 1. Set sprite type
-  if (spriteType !== 'character') {
-    dispatch({ type: 'SET_SPRITE_TYPE', spriteType });
-  }
+  // 1. Build config state based on sprite type
+  let character: AppState['character'] | undefined;
+  let building: AppState['building'] | undefined;
+  let terrain: AppState['terrain'] | undefined;
+  let background: AppState['background'] | undefined;
 
-  // 2. Populate config state based on sprite type
-  //    Validate gridSize at runtime before casting to type-specific unions
   if (spriteType === 'building' && data.gridSize) {
     if (!(data.gridSize in BUILDING_GRIDS)) {
       console.warn(`Invalid building gridSize "${data.gridSize}", skipping grid override`);
     } else {
-      dispatch({
-        type: 'SET_BUILDING',
-        building: {
-          name: data.content?.name || '',
-          description: data.content?.description || '',
-          details: '',
-          colorNotes: '',
-          styleNotes: '',
-          cellGuidance: '',
-          gridSize: data.gridSize as BuildingGridSize,
-          cellLabels: spriteLabels,
-        },
-      });
+      building = {
+        name: data.content?.name || '',
+        description: data.content?.description || '',
+        details: '',
+        colorNotes: '',
+        styleNotes: '',
+        cellGuidance: '',
+        gridSize: data.gridSize as BuildingGridSize,
+        cellLabels: spriteLabels,
+      };
     }
   } else if (spriteType === 'terrain' && data.gridSize) {
     if (!(data.gridSize in TERRAIN_GRIDS)) {
       console.warn(`Invalid terrain gridSize "${data.gridSize}", skipping grid override`);
     } else {
-      dispatch({
-        type: 'SET_TERRAIN',
-        terrain: {
-          name: data.content?.name || '',
-          description: data.content?.description || '',
-          colorNotes: '',
-          styleNotes: '',
-          tileGuidance: '',
-          gridSize: data.gridSize as TerrainGridSize,
-          cellLabels: spriteLabels,
-        },
-      });
+      terrain = {
+        name: data.content?.name || '',
+        description: data.content?.description || '',
+        colorNotes: '',
+        styleNotes: '',
+        tileGuidance: '',
+        gridSize: data.gridSize as TerrainGridSize,
+        cellLabels: spriteLabels,
+      };
     }
   } else if (spriteType === 'background' && data.gridSize) {
     if (!(data.gridSize in BACKGROUND_GRIDS)) {
       console.warn(`Invalid background gridSize "${data.gridSize}", skipping grid override`);
     } else {
-      dispatch({
-        type: 'SET_BACKGROUND',
-        background: {
-          name: data.content?.name || '',
-          description: data.content?.description || '',
-          colorNotes: '',
-          styleNotes: '',
-          layerGuidance: '',
-          bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
-          gridSize: data.gridSize as BackgroundGridSize,
-          cellLabels: spriteLabels,
-        },
-      });
+      background = {
+        name: data.content?.name || '',
+        description: data.content?.description || '',
+        colorNotes: '',
+        styleNotes: '',
+        layerGuidance: '',
+        bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
+        gridSize: data.gridSize as BackgroundGridSize,
+        cellLabels: spriteLabels,
+      };
     }
   } else if (data.content) {
-    dispatch({
-      type: 'SET_CHARACTER',
-      character: {
-        name: data.content.name || '',
-        description: data.content.description || '',
-        equipment: data.content.equipment || '',
-        colorNotes: data.content.colorNotes || '',
-        styleNotes: data.content.styleNotes || '',
-        rowGuidance: data.content.rowGuidance || '',
-      },
-    });
+    character = {
+      name: data.content.name || '',
+      description: data.content.description || '',
+      equipment: data.content.equipment || '',
+      colorNotes: data.content.colorNotes || '',
+      styleNotes: data.content.styleNotes || '',
+      rowGuidance: data.content.rowGuidance || '',
+    };
   }
 
-  // 3. Infer grid dimensions
+  // 2. Infer grid dimensions
   let gridCols: number;
   let gridRows: number;
   if (data.gridSize) {
@@ -128,22 +118,11 @@ export async function loadGenerationIntoState(
     gridRows = 6;
   }
 
-  // 4. Set active grid config
-  dispatch({
-    type: 'SET_ACTIVE_GRID_CONFIG',
-    gridConfig: { cols: gridCols, rows: gridRows, cellLabels: spriteLabels, aspectRatio: data.aspectRatio },
-  });
-
-  // 5. Load filled grid and extract sprites
+  // 3. Extract sprites or restore from history
   const mimeType = data.filledGridMimeType || 'image/png';
-  if (data.filledGridImage) {
-    dispatch({
-      type: 'GENERATE_COMPLETE',
-      filledGridImage: data.filledGridImage,
-      filledGridMimeType: mimeType,
-      geminiText: data.geminiText || '',
-    });
+  let sprites: ExtractedSprite[] = [];
 
+  if (data.filledGridImage) {
     // Build extraction config
     let extractionConfig: Parameters<typeof extractSprites>[2] = {
       ...(opts.editorSettings?.aaInset != null ? { aaInset: opts.editorSettings.aaInset } : {}),
@@ -175,23 +154,32 @@ export async function loadGenerationIntoState(
       };
     }
 
-    const sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
-    dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
+    sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
   } else if (data.sprites && data.sprites.length > 0) {
     // Sprites loaded from history may lack width/height; default to 0
-    const restored = data.sprites.map(s => ({
+    sprites = data.sprites.map(s => ({
       ...s,
       width: s.width ?? 0,
       height: s.height ?? 0,
     }));
-    dispatch({ type: 'EXTRACTION_COMPLETE', sprites: restored });
   }
 
-  // 6. Set history and source context
-  dispatch({ type: 'SET_HISTORY_ID', id: opts.historyId });
-  dispatch({
-    type: 'SET_SOURCE_CONTEXT',
-    groupId: data.groupId || null,
-    contentPresetId: data.contentPresetId || null,
-  });
+  // 4. Dispatch single atomic state update
+  const payload: RestoreSessionPayload = {
+    spriteType,
+    ...(character ? { character } : {}),
+    ...(building ? { building } : {}),
+    ...(terrain ? { terrain } : {}),
+    ...(background ? { background } : {}),
+    activeGridConfig: { cols: gridCols, rows: gridRows, cellLabels: spriteLabels, aspectRatio: data.aspectRatio },
+    filledGridImage: data.filledGridImage || null,
+    filledGridMimeType: mimeType,
+    geminiText: data.geminiText || '',
+    sprites,
+    historyId: opts.historyId,
+    sourceGroupId: data.groupId || null,
+    sourceContentPresetId: data.contentPresetId || null,
+  };
+
+  dispatch({ type: 'RESTORE_SESSION', payload });
 }
