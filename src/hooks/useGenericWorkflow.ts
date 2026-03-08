@@ -143,15 +143,29 @@ export async function runGeneratePipeline(
       }),
       signal,
     });
+
+    if (!histResp.ok) {
+      console.error('History save failed:', histResp.status, histResp.statusText);
+      dispatch({ type: 'SET_STATUS', message: `Failed to save to history (${histResp.status})`, statusType: 'warning' });
+      return result;
+    }
+
     const histData = await histResp.json();
+    const histId = Number(histData.id);
+
+    if (!Number.isFinite(histId)) {
+      console.error('History save returned invalid id:', histData.id);
+      dispatch({ type: 'SET_STATUS', message: 'Failed to save to history: invalid ID returned', statusType: 'warning' });
+      return result;
+    }
 
     if (signal.aborted) return null;
-    dispatch({ type: 'SET_HISTORY_ID', id: histData.id });
+    dispatch({ type: 'SET_HISTORY_ID', id: histId });
     if (sourceContext) {
       dispatch({ type: 'SET_SOURCE_CONTEXT', ...sourceContext });
     }
 
-    await fetch(`/api/history/${histData.id}/sprites`, {
+    await fetch(`/api/history/${histId}/sprites`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sprites: spritePayload }),
