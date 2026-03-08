@@ -6,12 +6,14 @@
 
 import React from 'react';
 import { useAppState } from '../../context/AppContext';
-import { useGenericWorkflow, WORKFLOW_CONFIGS } from '../../hooks/useGenericWorkflow';
 import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 
-export function GeneratingOverlay() {
+interface GeneratingOverlayProps {
+  onCancel: () => void;
+}
+
+export function GeneratingOverlay({ onCancel }: GeneratingOverlayProps) {
   const state = useAppState();
-  const { cancelGeneration } = useGenericWorkflow(WORKFLOW_CONFIGS[state.spriteType]);
 
   let cellCount = 36;
   if (state.spriteType === 'building') {
@@ -34,7 +36,7 @@ export function GeneratingOverlay() {
         This may take up to 60 seconds
       </p>
 
-      <button className="btn btn-danger" onClick={cancelGeneration}>
+      <button className="btn btn-danger" onClick={onCancel}>
         Cancel
       </button>
     </div>

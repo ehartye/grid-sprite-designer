@@ -17,6 +17,7 @@ import { AdminPage } from './components/admin/AdminPage';
 
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useRunWorkflow } from './hooks/useRunWorkflow';
+import { cancelActiveGeneration } from './hooks/useGenericWorkflow';
 import { loadGenerationIntoState } from './lib/loadGeneration';
 
 function AppContent() {
@@ -64,6 +65,14 @@ function AppContent() {
 
   const { generateCurrentGrid, proceedToNextGrid, skipCurrentGrid, cancelRun, run } = useRunWorkflow();
 
+  const handleCancelGeneration = useCallback(() => {
+    if (run) {
+      cancelRun();
+    } else {
+      cancelActiveGeneration(dispatch);
+    }
+  }, [run, cancelRun, dispatch]);
+
   // Auto-switch to designer tab when a run becomes active
   useEffect(() => {
     if (state.step === 'run-active' && tab !== 'designer') {
@@ -99,7 +108,7 @@ function AppContent() {
             {state.step === 'configure' && <UnifiedConfigPanel />}
             {state.step === 'generating' && (
               <>
-                <GeneratingOverlay />
+                <GeneratingOverlay onCancel={handleCancelGeneration} />
                 {run && (
                   <div style={{ textAlign: 'center', marginTop: 8 }}>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>

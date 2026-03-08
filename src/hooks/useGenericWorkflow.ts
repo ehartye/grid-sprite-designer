@@ -199,25 +199,39 @@ export async function runGeneratePipeline(
   return result;
 }
 
+/**
+ * Module-level AbortController for the active single-grid generation.
+ * Shared across all useGenericWorkflow instances so that any instance
+ * (including GeneratingOverlay's cancel) can abort the real in-flight request.
+ */
+let activeAbortController: AbortController | null = null;
+let activeGenerating = false;
+
+/**
+ * Cancel the active single-grid generation (if any).
+ * Safe to call from any component — operates on the shared module-level controller.
+ */
+export function cancelActiveGeneration(dispatch: Dispatch<Action>) {
+  if (activeAbortController) {
+    activeAbortController.abort();
+    activeAbortController = null;
+  }
+  activeGenerating = false;
+  dispatch({ type: 'RESET' });
+}
+
 export function useGenericWorkflow(config: WorkflowConfig) {
   const { state, dispatch } = useAppContext();
-  const abortRef = useRef<AbortController | null>(null);
-  const isGeneratingRef = useRef(false);
 
   const stateRef = useRef(state);
   stateRef.current = state;
   const configRef = useRef(config);
   configRef.current = config;
 
-  useEffect(() => () => { abortRef.current?.abort(); }, []);
+  useEffect(() => () => { activeAbortController?.abort(); }, []);
 
   const cancelGeneration = useCallback(() => {
-    if (abortRef.current) {
-      abortRef.current.abort();
-      abortRef.current = null;
-    }
-    isGeneratingRef.current = false;
-    dispatch({ type: 'RESET' });
+    cancelActiveGeneration(dispatch);
   }, [dispatch]);
 
   const generate = useCallback(async (gridLink?: GridLink) => {
@@ -229,11 +243,11 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       return;
     }
 
-    if (isGeneratingRef.current) return;
-    isGeneratingRef.current = true;
+    if (activeGenerating) return;
+    activeGenerating = true;
 
     const abort = new AbortController();
-    abortRef.current = abort;
+    activeAbortController = abort;
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
@@ -258,8 +272,8 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       const message = err instanceof Error ? err.message : 'Generation failed';
       dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
-      isGeneratingRef.current = false;
-      abortRef.current = null;
+      activeGenerating = false;
+      activeAbortController = null;
     }
   }, [dispatch]);
 
