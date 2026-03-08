@@ -25,7 +25,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:5173', 'http://localhost:5174'];
 app.use(cors({ origin: allowedOrigins }));
-app.use(express.json({ limit: '50mb' }));
+
+// Routes that carry base64 image data need a larger body limit.
+// Apply the 50MB parser to those paths first, then fall back to 1MB for everything else.
+const largeBodyParser = express.json({ limit: '50mb' });
+app.use('/api/generate-grid', largeBodyParser);
+app.use('/api/history', largeBodyParser);
+app.use('/api/archive', largeBodyParser);
+app.use(express.json({ limit: '1mb' }));
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
