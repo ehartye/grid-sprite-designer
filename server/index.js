@@ -16,7 +16,10 @@ const OUTPUT_DIR = join(__dirname, '..', 'output');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'] }));
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:5174'];
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: '50mb' }));
 
 const apiKey = process.env.GEMINI_API_KEY;
