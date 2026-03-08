@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { mkdirSync, writeFileSync, readdirSync, statSync, existsSync } from 'fs';
-import { join, resolve } from 'path';
+import { join, resolve, sep } from 'path';
 
 export function createArchiveRouter(outputDir) {
-  const resolvedOutputDir = resolve(outputDir);
+  const resolvedOutputDir = resolve(outputDir) + sep;
   const router = Router();
 
   router.post('/', (req, res, next) => {
