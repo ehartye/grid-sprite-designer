@@ -5,12 +5,12 @@
  */
 
 import React from 'react';
-import { useAppContext } from '../../context/AppContext';
+import { useAppState } from '../../context/AppContext';
 import { useGridWorkflow } from '../../hooks/useGridWorkflow';
 import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 
 export function GeneratingOverlay() {
-  const { state } = useAppContext();
+  const state = useAppState();
   const { cancelGeneration } = useGridWorkflow();
 
   let cellCount = 36;

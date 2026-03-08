@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { useAppContext } from '../../context/AppContext';
+import { useAppDispatch } from '../../context/AppContext';
 import { extractSprites } from '../../lib/spriteExtractor';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from '../../lib/gridConfig';
 import type { EditorSettings } from '../../hooks/useEditorSettings';
@@ -50,7 +50,7 @@ interface GalleryPageProps {
 }
 
 export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
-  const { dispatch } = useAppContext();
+  const dispatch = useAppDispatch();
   const [entries, setEntries] = useState<GalleryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
