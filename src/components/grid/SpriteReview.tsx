@@ -5,10 +5,8 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useGridWorkflow } from '../../hooks/useGridWorkflow';
-import { useBuildingWorkflow } from '../../hooks/useBuildingWorkflow';
-import { useTerrainWorkflow } from '../../hooks/useTerrainWorkflow';
-import { useBackgroundWorkflow } from '../../hooks/useBackgroundWorkflow';
+import { useGenericWorkflow, WORKFLOW_CONFIGS } from '../../hooks/useGenericWorkflow';
+import { useAppState, type CellGroup, type GridLink } from '../../context/AppContext';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { useChromaKeySettings } from '../../hooks/useChromaKeySettings';
 import { usePosterizeSettings } from '../../hooks/usePosterizeSettings';
@@ -16,7 +14,6 @@ import { useAnimationLoop } from '../../hooks/useAnimationLoop';
 import { useSpriteSelection } from '../../hooks/useSpriteSelection';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
-import type { CellGroup, GridLink } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { debugLog } from '../../lib/debugLog';
 import { applyChromaKey, defringeRecolor, strikeColors, detectKeyColor } from '../../lib/chromaKey';
@@ -130,10 +127,8 @@ interface SpriteReviewProps {
 }
 
 export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
-  const { state, dispatch, reExtract: charReExtract, setStep } = useGridWorkflow();
-  const { reExtract: buildingReExtract } = useBuildingWorkflow();
-  const { reExtract: terrainReExtract } = useTerrainWorkflow();
-  const { reExtract: backgroundReExtract } = useBackgroundWorkflow();
+  const { spriteType: currentSpriteType } = useAppState();
+  const { state, dispatch, reExtract, setStep } = useGenericWorkflow(WORKFLOW_CONFIGS[currentSpriteType]);
   const { sprites } = state;
   const isCharacter = state.spriteType === 'character';
 
@@ -153,11 +148,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   // Use cellGroups from props, or from activeGridConfig, or from current grid link, or fall back to default ANIMATIONS
   const effectiveCellGroups = cellGroups ?? agc?.cellGroups ?? currentGridLink?.cellGroups;
   const hasAnimGroups = isCharacter || (effectiveCellGroups?.length ?? 0) > 0;
-  const reExtract =
-    state.spriteType === 'building' ? buildingReExtract :
-    state.spriteType === 'terrain' ? terrainReExtract :
-    state.spriteType === 'background' ? backgroundReExtract :
-    charReExtract;
+
 
   // Custom hooks
   const chroma = useChromaKeySettings();

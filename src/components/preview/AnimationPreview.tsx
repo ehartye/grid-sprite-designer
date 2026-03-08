@@ -5,17 +5,20 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useGridWorkflow } from '../../hooks/useGridWorkflow';
+import { useAppState, useAppDispatch, type CellGroup } from '../../context/AppContext';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
-import type { CellGroup } from '../../context/AppContext';
 
 interface AnimationPreviewProps {
   cellGroups?: CellGroup[];
 }
 
 export function AnimationPreview({ cellGroups }: AnimationPreviewProps) {
-  const { state, setStep } = useGridWorkflow();
+  const state = useAppState();
+  const dispatch = useAppDispatch();
+  const setStep = useCallback((step: 'configure' | 'generating' | 'review' | 'preview') => {
+    dispatch({ type: 'SET_STEP', step });
+  }, [dispatch]);
   const { sprites } = state;
 
   const [selectedAnim, setSelectedAnim] = useState(0);

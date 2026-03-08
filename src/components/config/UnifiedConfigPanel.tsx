@@ -7,11 +7,9 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useGridWorkflow } from '../../hooks/useGridWorkflow';
-import { useBuildingWorkflow } from '../../hooks/useBuildingWorkflow';
-import { useTerrainWorkflow } from '../../hooks/useTerrainWorkflow';
-import { useBackgroundWorkflow } from '../../hooks/useBackgroundWorkflow';
+import { useGenericWorkflow, WORKFLOW_CONFIGS } from '../../hooks/useGenericWorkflow';
 import {
+  useAppState,
   type SpriteType,
   type GridLink,
   type CharacterPreset,
@@ -155,29 +153,11 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
   },
 };
 
-// ── Hook selector ───────────────────────────────────────────────────────────
-
-function useActiveWorkflow() {
-  const grid = useGridWorkflow();
-  const building = useBuildingWorkflow();
-  const terrain = useTerrainWorkflow();
-  const background = useBackgroundWorkflow();
-
-  // All hooks share the same AppContext state, so spriteType is the same across all
-  const spriteType = grid.state.spriteType;
-
-  switch (spriteType) {
-    case 'building': return building;
-    case 'terrain': return terrain;
-    case 'background': return background;
-    default: return grid;
-  }
-}
-
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function UnifiedConfigPanel() {
-  const { state, dispatch, generate } = useActiveWorkflow();
+  const { spriteType: currentSpriteType } = useAppState();
+  const { state, dispatch, generate, validationMessage } = useGenericWorkflow(WORKFLOW_CONFIGS[currentSpriteType]);
   const spriteType = state.spriteType;
   const { imageSize } = state;
 
@@ -467,6 +447,11 @@ export function UnifiedConfigPanel() {
 
       {/* Generate Button */}
       <div className="config-actions">
+        {(!canGenerate || selectedGridLinks.length === 0) && (
+          <p className="validation-hint">
+            {validationMessage ?? (selectedGridLinks.length === 0 ? 'Select a grid preset above' : null)}
+          </p>
+        )}
         <button
           type="button"
           className="btn btn-accent btn-lg w-full"
