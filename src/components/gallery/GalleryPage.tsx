@@ -216,7 +216,15 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
       }
 
       try {
-        await fetch(`/api/history/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          dispatch({
+            type: 'SET_STATUS',
+            message: `Failed to delete entry (${res.status})`,
+            statusType: 'warning',
+          });
+          return;
+        }
         // Refetch current page to keep pagination consistent
         fetchGallery(page, search, spriteType);
       } catch {
@@ -225,8 +233,9 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           message: 'Failed to delete entry',
           statusType: 'error',
         });
+      } finally {
+        setDeleteConfirm(null);
       }
-      setDeleteConfirm(null);
     },
     [deleteConfirm, dispatch, fetchGallery, page, search, spriteType],
   );

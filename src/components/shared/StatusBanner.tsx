@@ -80,8 +80,8 @@ export function StatusBanner() {
     <div
       className={`status-banner status-${statusType} visible ${fading ? 'fading' : ''}`}
       onClick={handleDismiss}
-      role="status"
-      aria-live="polite"
+      role={statusType === 'error' ? 'alert' : 'status'}
+      aria-live={statusType === 'error' ? 'assertive' : 'polite'}
     >
       {status}
     </div>

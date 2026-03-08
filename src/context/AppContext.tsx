@@ -315,7 +315,24 @@ type Action =
   | { type: 'COMPLETE_GRID'; payload: { filledGridImage: string } }
   | { type: 'NEXT_GRID' }
   | { type: 'END_RUN' }
+  | { type: 'RESTORE_SESSION'; payload: RestoreSessionPayload }
   | { type: 'RESET' };
+
+export interface RestoreSessionPayload {
+  spriteType: SpriteType;
+  character?: AppState['character'];
+  building?: AppState['building'];
+  terrain?: AppState['terrain'];
+  background?: AppState['background'];
+  activeGridConfig: AppState['activeGridConfig'];
+  filledGridImage: string | null;
+  filledGridMimeType: string;
+  geminiText: string;
+  sprites: ExtractedSprite[];
+  historyId: number;
+  sourceGroupId: string | null;
+  sourceContentPresetId: string | null;
+}
 
 /** Get the default cell label count for a building grid size */
 function gridSizeToCellCount(gridSize: BuildingGridSize): number {
@@ -526,6 +543,29 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'END_RUN':
       return { ...state, step: 'configure', run: null };
+    case 'RESTORE_SESSION': {
+      const p = action.payload;
+      return {
+        ...state,
+        step: 'review',
+        spriteType: p.spriteType,
+        ...(p.character ? { character: p.character } : {}),
+        ...(p.building ? { building: p.building } : {}),
+        ...(p.terrain ? { terrain: p.terrain } : {}),
+        ...(p.background ? { background: p.background } : {}),
+        activeGridConfig: p.activeGridConfig,
+        filledGridImage: p.filledGridImage,
+        filledGridMimeType: p.filledGridMimeType,
+        geminiText: p.geminiText,
+        sprites: p.sprites,
+        historyId: p.historyId,
+        sourceGroupId: p.sourceGroupId,
+        sourceContentPresetId: p.sourceContentPresetId,
+        status: `Restored ${p.sprites.length} sprites`,
+        statusType: 'success',
+        error: null,
+      };
+    }
     case 'RESET':
       return {
         ...initialState,

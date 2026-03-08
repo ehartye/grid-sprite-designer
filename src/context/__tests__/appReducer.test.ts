@@ -726,6 +726,98 @@ describe('appReducer', () => {
     });
   });
 
+  // ── RESTORE_SESSION ──────────────────────────────────────────────────────
+
+  describe('RESTORE_SESSION', () => {
+    it('atomically sets all session state', () => {
+      const sprites = [makeSprite({ cellIndex: 0 }), makeSprite({ cellIndex: 1 })];
+      const gridConfig = { cols: 3, rows: 3, cellLabels: ['a', 'b', 'c'] };
+      const result = reducer(initialState, {
+        type: 'RESTORE_SESSION',
+        payload: {
+          spriteType: 'building',
+          building: {
+            name: 'Castle',
+            description: 'Big',
+            details: '',
+            colorNotes: '',
+            styleNotes: '',
+            cellGuidance: '',
+            gridSize: '3x3' as const,
+            cellLabels: ['a', 'b', 'c'],
+          },
+          activeGridConfig: gridConfig,
+          filledGridImage: 'img-data',
+          filledGridMimeType: 'image/webp',
+          geminiText: 'Generated',
+          sprites,
+          historyId: 42,
+          sourceGroupId: 'g1',
+          sourceContentPresetId: 'p1',
+        },
+      });
+      expect(result.step).toBe('review');
+      expect(result.spriteType).toBe('building');
+      expect(result.building.name).toBe('Castle');
+      expect(result.activeGridConfig).toEqual(gridConfig);
+      expect(result.filledGridImage).toBe('img-data');
+      expect(result.filledGridMimeType).toBe('image/webp');
+      expect(result.geminiText).toBe('Generated');
+      expect(result.sprites).toEqual(sprites);
+      expect(result.historyId).toBe(42);
+      expect(result.sourceGroupId).toBe('g1');
+      expect(result.sourceContentPresetId).toBe('p1');
+      expect(result.status).toBe('Restored 2 sprites');
+      expect(result.statusType).toBe('success');
+      expect(result.error).toBeNull();
+    });
+
+    it('preserves presets from existing state', () => {
+      const charPresets: CharacterPreset[] = [
+        { id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' },
+      ];
+      const state: AppState = { ...initialState, characterPresets: charPresets };
+      const result = reducer(state, {
+        type: 'RESTORE_SESSION',
+        payload: {
+          spriteType: 'character',
+          activeGridConfig: null,
+          filledGridImage: null,
+          filledGridMimeType: 'image/png',
+          geminiText: '',
+          sprites: [],
+          historyId: 1,
+          sourceGroupId: null,
+          sourceContentPresetId: null,
+        },
+      });
+      expect(result.characterPresets).toBe(charPresets);
+    });
+
+    it('does not overwrite type-specific config when not provided', () => {
+      const state: AppState = {
+        ...initialState,
+        character: { ...initialState.character, name: 'Existing' },
+      };
+      const result = reducer(state, {
+        type: 'RESTORE_SESSION',
+        payload: {
+          spriteType: 'character',
+          // No character field — should preserve existing
+          activeGridConfig: null,
+          filledGridImage: null,
+          filledGridMimeType: 'image/png',
+          geminiText: '',
+          sprites: [],
+          historyId: 1,
+          sourceGroupId: null,
+          sourceContentPresetId: null,
+        },
+      });
+      expect(result.character.name).toBe('Existing');
+    });
+  });
+
   // ── RESET ───────────────────────────────────────────────────────────────
 
   describe('RESET', () => {

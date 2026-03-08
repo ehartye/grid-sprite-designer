@@ -101,18 +101,29 @@ export async function runGeneratePipeline(
   });
 
   // 3. Extract sprites
-  const sprites = await extractSprites(
-    result.image.data,
-    result.image.mimeType,
-    {
-      gridOverride: {
-        cols: gridConfig.cols,
-        rows: gridConfig.rows,
-        totalCells: gridConfig.totalCells,
-        cellLabels: gridConfig.cellLabels,
+  let sprites: Awaited<ReturnType<typeof extractSprites>>;
+  try {
+    sprites = await extractSprites(
+      result.image.data,
+      result.image.mimeType,
+      {
+        gridOverride: {
+          cols: gridConfig.cols,
+          rows: gridConfig.rows,
+          totalCells: gridConfig.totalCells,
+          cellLabels: gridConfig.cellLabels,
+        },
       },
-    },
-  );
+    );
+  } catch (extractionErr: unknown) {
+    // Generation succeeded but extraction failed — transition to review
+    // so the user can retry via the existing re-extract UI.
+    const msg = extractionErr instanceof Error ? extractionErr.message : 'Unknown extraction error';
+    console.error('Sprite extraction failed:', extractionErr);
+    dispatch({ type: 'EXTRACTION_COMPLETE', sprites: [] });
+    dispatch({ type: 'SET_STATUS', message: `Extraction failed: ${msg}. Use re-extract to retry.`, statusType: 'warning' });
+    return result;
+  }
 
   if (signal.aborted) return null;
 
@@ -166,12 +177,17 @@ export async function runGeneratePipeline(
       dispatch({ type: 'SET_SOURCE_CONTEXT', ...sourceContext });
     }
 
-    await fetch(`/api/history/${histId}/sprites`, {
+    const spriteRes = await fetch(`/api/history/${histId}/sprites`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sprites: spritePayload }),
       signal,
     });
+
+    if (!spriteRes.ok) {
+      console.error('Sprite save failed:', spriteRes.status, spriteRes.statusText);
+      dispatch({ type: 'SET_STATUS', message: `Failed to save sprites (${spriteRes.status})`, statusType: 'warning' });
+    }
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') return null;
     console.error('Failed to save to history:', e);
@@ -179,7 +195,7 @@ export async function runGeneratePipeline(
   }
 
   try {
-    await fetch('/api/archive', {
+    const archiveRes = await fetch('/api/archive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -190,6 +206,11 @@ export async function runGeneratePipeline(
       }),
       signal,
     });
+
+    if (!archiveRes.ok) {
+      console.error('Archive save failed:', archiveRes.status, archiveRes.statusText);
+      dispatch({ type: 'SET_STATUS', message: `Failed to archive to disk (${archiveRes.status})`, statusType: 'warning' });
+    }
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') return null;
     console.error('Failed to archive to disk:', e);
@@ -200,23 +221,21 @@ export async function runGeneratePipeline(
 }
 
 /**
- * Module-level AbortController for the active single-grid generation.
- * Shared across all useGenericWorkflow instances so that any instance
- * (including GeneratingOverlay's cancel) can abort the real in-flight request.
+ * Module-level pointer to the active AbortController. Updated by whichever
+ * useGenericWorkflow instance starts a generation, read by cancelActiveGeneration
+ * so App.tsx can cancel without holding a hook reference.
  */
-let activeAbortController: AbortController | null = null;
-let activeGenerating = false;
+let sharedAbortController: AbortController | null = null;
 
 /**
  * Cancel the active single-grid generation (if any).
- * Safe to call from any component — operates on the shared module-level controller.
+ * Safe to call from any component — reads the module-level pointer.
  */
 export function cancelActiveGeneration(dispatch: Dispatch<Action>) {
-  if (activeAbortController) {
-    activeAbortController.abort();
-    activeAbortController = null;
+  if (sharedAbortController) {
+    sharedAbortController.abort();
+    sharedAbortController = null;
   }
-  activeGenerating = false;
   dispatch({ type: 'RESET' });
 }
 
@@ -228,10 +247,25 @@ export function useGenericWorkflow(config: WorkflowConfig) {
   const configRef = useRef(config);
   configRef.current = config;
 
-  useEffect(() => () => { activeAbortController?.abort(); }, []);
+  const abortRef = useRef<AbortController | null>(null);
+  const isGeneratingRef = useRef(false);
+
+  // Cleanup: only abort if this instance owns the shared controller
+  useEffect(() => () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      if (sharedAbortController === abortRef.current) {
+        sharedAbortController = null;
+      }
+      abortRef.current = null;
+    }
+    isGeneratingRef.current = false;
+  }, []);
 
   const cancelGeneration = useCallback(() => {
     cancelActiveGeneration(dispatch);
+    abortRef.current = null;
+    isGeneratingRef.current = false;
   }, [dispatch]);
 
   const generate = useCallback(async (gridLink?: GridLink) => {
@@ -243,12 +277,13 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       return;
     }
 
-    if (activeGenerating) return;
-    activeGenerating = true;
+    if (isGeneratingRef.current) return;
+    isGeneratingRef.current = true;
 
-    activeAbortController?.abort();
+    abortRef.current?.abort();
     const abort = new AbortController();
-    activeAbortController = abort;
+    abortRef.current = abort;
+    sharedAbortController = abort;
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
@@ -273,8 +308,11 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       const message = err instanceof Error ? err.message : 'Generation failed';
       dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
-      activeGenerating = false;
-      activeAbortController = null;
+      isGeneratingRef.current = false;
+      abortRef.current = null;
+      if (sharedAbortController === abort) {
+        sharedAbortController = null;
+      }
     }
   }, [dispatch]);
 
