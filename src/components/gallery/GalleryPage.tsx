@@ -233,8 +233,9 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
           message: 'Failed to delete entry',
           statusType: 'error',
         });
+      } finally {
+        setDeleteConfirm(null);
       }
-      setDeleteConfirm(null);
     },
     [deleteConfirm, dispatch, fetchGallery, page, search, spriteType],
   );
