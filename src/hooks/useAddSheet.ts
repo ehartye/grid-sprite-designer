@@ -3,7 +3,7 @@
  * Handles reference image preparation, prompt building, generation, and history saving.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppContext, SpriteType, GridLink } from '../context/AppContext';
 import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites, composeSpriteSheet, ExtractedSprite } from '../lib/spriteExtractor';
@@ -32,6 +32,11 @@ export function useAddSheet() {
   const abortRef = useRef<AbortController | null>(null);
   const [generating, setGenerating] = useState(false);
 
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  useEffect(() => () => { abortRef.current?.abort(); }, []);
+
   const cancel = useCallback(() => {
     if (abortRef.current) {
       abortRef.current.abort();
@@ -42,11 +47,12 @@ export function useAddSheet() {
 
   const generate = useCallback(async (opts: AddSheetOptions) => {
     const { gridLink, imageSize, referenceMode, selectedSprites, followUpGuidance, aspectRatioOverride } = opts;
-    const spriteType = state.spriteType as SpriteType;
-    const contentPresetId = state.sourceContentPresetId;
-    const filledGridImage = state.filledGridImage;
-    let groupId = state.sourceGroupId;
-    const historyId = state.historyId;
+    const currentState = stateRef.current;
+    const spriteType = currentState.spriteType as SpriteType;
+    const contentPresetId = currentState.sourceContentPresetId;
+    const filledGridImage = currentState.filledGridImage;
+    let groupId = currentState.sourceGroupId;
+    const historyId = currentState.historyId;
 
     if (!filledGridImage) throw new Error('No filled grid image available');
 
@@ -74,7 +80,7 @@ export function useAddSheet() {
       // Build reference image
       let refBase64: string;
       if (referenceMode === 'selected' && selectedSprites && selectedSprites.length > 0) {
-        const gridCols = state.activeGridConfig?.cols;
+        const gridCols = currentState.activeGridConfig?.cols;
         const { base64 } = await composeSpriteSheet(selectedSprites, gridCols);
         refBase64 = base64;
       } else {
@@ -88,15 +94,15 @@ export function useAddSheet() {
       } else {
         // Legacy entry — build a minimal preset from state
         const name =
-          spriteType === 'building' ? state.building.name :
-          spriteType === 'terrain' ? state.terrain.name :
-          spriteType === 'background' ? state.background.name :
-          state.character.name;
+          spriteType === 'building' ? currentState.building.name :
+          spriteType === 'terrain' ? currentState.terrain.name :
+          spriteType === 'background' ? currentState.background.name :
+          currentState.character.name;
         const description =
-          spriteType === 'building' ? state.building.description :
-          spriteType === 'terrain' ? state.terrain.description :
-          spriteType === 'background' ? state.background.description :
-          state.character.description;
+          spriteType === 'building' ? currentState.building.description :
+          spriteType === 'terrain' ? currentState.terrain.description :
+          spriteType === 'background' ? currentState.background.description :
+          currentState.character.description;
         contentPreset = { name, description };
       }
 
@@ -129,7 +135,7 @@ export function useAddSheet() {
 
       // Call Gemini
       const result = await generateGrid(
-        state.model,
+        currentState.model,
         prompt,
         { data: template.base64, mimeType: 'image/png' },
         imageSize,
@@ -185,7 +191,7 @@ export function useAddSheet() {
           body: JSON.stringify({
             contentName: contentPreset.name,
             contentDescription: contentPreset.description,
-            model: state.model,
+            model: currentState.model,
             prompt,
             filledGridImage: result.image.data,
             spriteType,
@@ -254,7 +260,7 @@ export function useAddSheet() {
       setGenerating(false);
       abortRef.current = null;
     }
-  }, [state, dispatch]);
+  }, [dispatch]);
 
   return { generate, cancel, generating };
 }
