@@ -166,12 +166,17 @@ export async function runGeneratePipeline(
       dispatch({ type: 'SET_SOURCE_CONTEXT', ...sourceContext });
     }
 
-    await fetch(`/api/history/${histId}/sprites`, {
+    const spriteRes = await fetch(`/api/history/${histId}/sprites`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sprites: spritePayload }),
       signal,
     });
+
+    if (!spriteRes.ok) {
+      console.error('Sprite save failed:', spriteRes.status, spriteRes.statusText);
+      dispatch({ type: 'SET_STATUS', message: `Failed to save sprites (${spriteRes.status})`, statusType: 'warning' });
+    }
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') return null;
     console.error('Failed to save to history:', e);
@@ -179,7 +184,7 @@ export async function runGeneratePipeline(
   }
 
   try {
-    await fetch('/api/archive', {
+    const archiveRes = await fetch('/api/archive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -190,6 +195,11 @@ export async function runGeneratePipeline(
       }),
       signal,
     });
+
+    if (!archiveRes.ok) {
+      console.error('Archive save failed:', archiveRes.status, archiveRes.statusText);
+      dispatch({ type: 'SET_STATUS', message: `Failed to archive to disk (${archiveRes.status})`, statusType: 'warning' });
+    }
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') return null;
     console.error('Failed to archive to disk:', e);
