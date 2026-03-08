@@ -12,6 +12,7 @@
     "test": "playwright test",
     "test:report": "npx tsx tests/report-generator.ts",
     "test:sync-manifests": "npx tsx scripts/sync-fixture-manifests.ts",
+    "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:export-fixtures": "npx tsx scripts/export-fixtures-from-db.ts && npx tsx scripts/generate-fixture-index.ts"
