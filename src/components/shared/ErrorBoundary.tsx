@@ -25,12 +25,6 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null };
-  private prevResetKeys: unknown[] | undefined;
-
-  constructor(props: Props) {
-    super(props);
-    this.prevResetKeys = props.resetKeys;
-  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
