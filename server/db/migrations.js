@@ -63,6 +63,11 @@ export function migrateSchema(db) {
           SELECT 1 FROM ${table} WHERE name = generations.content_name
         )
       `);
-    } catch (_) { /* table may not exist yet */ }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes('no such table') && !msg.includes('SQLITE_ERROR')) {
+        throw err;
+      }
+    }
   }
 }

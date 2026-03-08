@@ -14,6 +14,7 @@ import { createGridLinksRouter } from './routes/gridLinks.js';
 import { createGalleryRouter } from './routes/gallery.js';
 import { createStateRouter } from './routes/state.js';
 import { createArchiveRouter } from './routes/archive.js';
+import { createHealthHandler } from './healthCheck.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, '..', 'output');
@@ -64,9 +65,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Health check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
-});
+app.get('/health', createHealthHandler(db, !!apiKey));
 
 // Global error handler
 app.use((err, req, res, _next) => {
