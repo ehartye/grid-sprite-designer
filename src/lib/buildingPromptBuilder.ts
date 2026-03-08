@@ -4,6 +4,7 @@
  */
 
 import type { GridConfig } from './gridConfig';
+import { buildCellDescriptions, composeGuidance, CLOSING_INSTRUCTION } from './promptBuilderBase';
 
 export interface BuildingConfig {
   name: string;
@@ -40,23 +41,14 @@ export function buildBuildingPrompt(
   ].filter(Boolean).join('\n');
 
   // Build cell-by-cell layout description from labels
-  const cellDescriptions: string[] = [];
-  for (let idx = 0; idx < grid.totalCells; idx++) {
-    const row = Math.floor(idx / grid.cols);
-    const col = idx % grid.cols;
-    const label = idx < grid.cellLabels.length ? grid.cellLabels[idx] : `Cell ${row},${col}`;
-    cellDescriptions.push(`  Header "${label}" (${row},${col}): Fill with the building sprite matching this label.`);
-  }
-
-  const cellLayout = cellDescriptions.join('\n');
+  const cellLayout = buildCellDescriptions(grid, 'building sprite').join('\n');
 
   // Use grid preset guidance if provided, otherwise fall back to building.cellGuidance
-  const genericText = gridGenericGuidance?.trim() || '';
-  const overrideText = guidanceOverride?.trim() || building.cellGuidance.trim();
-  const combinedGuidance = [genericText, overrideText].filter(Boolean).join('\n\n');
-  const customGuidance = combinedGuidance
-    ? `\nBUILDING-SPECIFIC CELL NOTES (use these to refine each cell):\n${combinedGuidance}\n`
-    : '';
+  const customGuidance = composeGuidance(
+    gridGenericGuidance,
+    guidanceOverride?.trim() || building.cellGuidance.trim(),
+    'BUILDING-SPECIFIC CELL NOTES (use these to refine each cell)',
+  );
 
   return `\
 You are filling in a sprite sheet template. The attached image is a ${grid.cols}\u00d7${grid.rows} grid
@@ -98,5 +90,5 @@ CELL LAYOUT (${grid.cols}\u00d7${grid.rows} grid, 0-indexed):
 
 ${cellLayout}
 ${customGuidance}
-Return the completed sprite sheet as a single image. Preserve ALL header text exactly.`;
+${CLOSING_INSTRUCTION}`;
 }
