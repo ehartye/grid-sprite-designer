@@ -39,7 +39,7 @@ async function callGemini(apiKey, model, body, retries = 0) {
 
   if (response.status === 429 && retries < MAX_RETRIES) {
     const delay = BASE_DELAY_MS * Math.pow(2, retries);
-    console.log(`Rate limited (429). Retrying in ${delay}ms (attempt ${retries + 1}/${MAX_RETRIES})...`);
+    console.warn(`[Gemini] Rate limited (429). Retrying in ${delay}ms (attempt ${retries + 1}/${MAX_RETRIES})...`);
     await new Promise((resolve) => setTimeout(resolve, delay));
     return callGemini(apiKey, model, body, retries + 1);
   }
@@ -158,8 +158,21 @@ export function createGenerateRouter(apiKey) {
       const data = await response.json();
 
       const finishReason = data?.candidates?.[0]?.finishReason;
+      if (finishReason && finishReason !== 'STOP') {
+        console.warn(`[Generate:${rid}] finishReason=${finishReason}`, {
+          candidateCount: data?.candidates?.length,
+          partTypes: (data?.candidates?.[0]?.content?.parts ?? []).map(p => p.text ? 'text' : p.inlineData ? 'image' : 'unknown'),
+        });
+      }
+
       if (finishReason === 'SAFETY' || finishReason === 'BLOCKED') {
         return res.status(400).json({ error: 'Content was filtered by safety settings' });
+      }
+      if (finishReason === 'MAX_TOKENS') {
+        return res.status(400).json({ error: 'Response truncated: max tokens reached' });
+      }
+      if (finishReason === 'RECITATION') {
+        return res.status(400).json({ error: 'Response blocked: recitation policy' });
       }
 
       const result = parseGeminiResponse(data);
