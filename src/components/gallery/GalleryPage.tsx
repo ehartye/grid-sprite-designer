@@ -165,12 +165,12 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
         dispatch({ type: 'RESET' });
 
         // Load saved editor settings so extraction uses the saved aaInset/posterizeBits
-        let savedSettings: EditorSettings | null = null;
+        let savedSettings: { aaInset?: number; posterizeBits?: number } | null = null;
         try {
           const settingsRes = await fetch(`/api/history/${id}/settings`);
           savedSettings = await settingsRes.json();
-        } catch (err) {
-          console.warn('Failed to load editor settings:', err);
+        } catch {
+          dispatch({ type: 'SET_STATUS', message: 'Failed to load editor settings', statusType: 'warning' });
         }
 
         await loadGenerationIntoState(data, dispatch, {
