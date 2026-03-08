@@ -33,6 +33,7 @@ function AppContent() {
     (async () => {
       try {
         const stateRes = await fetch('/api/state/lastHistoryId');
+        if (!stateRes.ok) return;
         const { value } = await stateRes.json();
         const id = value ? Number(value) : null;
         if (!id || isNaN(id)) return;
