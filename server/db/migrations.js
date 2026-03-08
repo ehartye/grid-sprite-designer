@@ -12,6 +12,7 @@ export function migrateSchema(db) {
     "ALTER TABLE generations ADD COLUMN content_preset_id TEXT DEFAULT NULL",
     "ALTER TABLE generations RENAME COLUMN character_name TO content_name",
     "ALTER TABLE generations RENAME COLUMN character_description TO content_description",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_sprites_gen_cell ON sprites(generation_id, cell_index)",
   ];
   for (const sql of migrations) {
     try {

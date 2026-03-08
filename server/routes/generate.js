@@ -145,13 +145,13 @@ export function createGenerateRouter(apiKey) {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error(`[Gemini] Test connection error (${response.status}):`, errorData?.error?.message);
-        return res.json({ success: false, error: `Connection test failed (${response.status})` });
+        return res.status(502).json({ error: `Connection test failed (upstream ${response.status})` });
       }
 
       return res.json({ success: true, model });
     } catch (err) {
       console.error('[Gemini] Test connection error:', err);
-      return res.json({ success: false, error: 'Connection test failed unexpectedly' });
+      return res.status(502).json({ error: 'Connection test failed unexpectedly' });
     }
   });
 

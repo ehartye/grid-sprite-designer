@@ -30,6 +30,7 @@ export function createSchema(db) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_sprites_generation ON sprites(generation_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_sprites_gen_cell ON sprites(generation_id, cell_index);
 
     CREATE TABLE IF NOT EXISTS editor_settings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
