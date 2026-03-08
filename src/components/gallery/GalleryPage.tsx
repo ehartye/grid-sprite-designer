@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { useAppDispatch } from '../../context/AppContext';
+import { useAppDispatch, useAppState } from '../../context/AppContext';
 import { loadGenerationIntoState } from '../../lib/loadGeneration';
 
 interface GalleryEntry {
@@ -49,6 +49,7 @@ interface GalleryPageProps {
 
 export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
   const dispatch = useAppDispatch();
+  const state = useAppState();
   const [entries, setEntries] = useState<GalleryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
@@ -156,6 +157,11 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
 
   const handleLoad = useCallback(
     async (id: number) => {
+      // Confirm before discarding in-progress work
+      if (state.step !== 'configure' && !window.confirm('You have work in progress. Load this generation and discard current work?')) {
+        return;
+      }
+
       try {
         const res = await fetch(`/api/history/${id}`);
         if (!res.ok) throw new Error('Failed to load generation');
@@ -187,7 +193,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
         });
       }
     },
-    [dispatch, onSwitchToDesigner],
+    [dispatch, onSwitchToDesigner, state.step],
   );
 
   const handleDelete = useCallback(

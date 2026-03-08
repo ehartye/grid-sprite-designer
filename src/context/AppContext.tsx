@@ -367,6 +367,7 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         step: 'configure',
+        run: null,
         error: action.error,
         status: action.error,
         statusType: 'error',
