@@ -1874,8 +1874,8 @@ img.sprite-image {
 }
 
 .add-sheet-modal {
-  background: var(--bg-secondary, #1e1e2e);
-  border: 1px solid var(--border, #444);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
   width: 420px;
@@ -1896,7 +1896,7 @@ img.sprite-image {
 .add-sheet-section label {
   display: block;
   font-size: 0.85rem;
-  color: var(--text-secondary, #aaa);
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
@@ -1932,7 +1932,7 @@ img.sprite-image {
 }
 
 .add-sheet-sprite-check.selected {
-  border-color: var(--accent, #7c3aed);
+  border-color: var(--accent);
 }
 
 .add-sheet-sprite-check img {
@@ -1960,10 +1960,10 @@ img.sprite-image {
   width: 100%;
   min-height: 60px;
   padding: 8px;
-  border: 1px solid var(--border, #444);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--bg-primary, #121220);
-  color: var(--text-primary, #eee);
+  background: var(--bg-base);
+  color: var(--text);
   font-size: 0.85rem;
   font-family: inherit;
   resize: vertical;
