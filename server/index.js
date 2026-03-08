@@ -8,6 +8,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { getDb } from './db.js';
 import { createGenerateRouter } from './routes/generate.js';
+import { parseIntParam, extractPresetValues, mapPresetRow } from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, '..', 'output');
@@ -27,13 +28,6 @@ if (!apiKey) {
 // Initialize database
 const db = getDb();
 console.log('[Server] Database initialized.');
-
-/** Parse a route :id param as a positive integer. Returns null if invalid. */
-function parseIntParam(val) {
-  const n = Number(val);
-  if (!Number.isInteger(n) || n <= 0) return null;
-  return n;
-}
 
 // Mount routes
 app.use('/api', createGenerateRouter(apiKey));
@@ -165,24 +159,6 @@ const PRESET_TABLES = {
     ],
   },
 };
-
-/** Extract body values for a preset type, applying defaults and JSON serialization. */
-function extractPresetValues(body, columns) {
-  return columns.map(([bodyField, , defaultVal, isJson]) => {
-    const raw = body[bodyField];
-    if (isJson) return JSON.stringify(raw || defaultVal);
-    return raw || defaultVal;
-  });
-}
-
-/** Map a DB row to a response object using column config. */
-function mapPresetRow(row, columns) {
-  const obj = { id: row.id };
-  for (const [bodyField, dbCol, , isJson] of columns) {
-    obj[bodyField] = isJson ? JSON.parse(row[dbCol] || '[]') : row[dbCol];
-  }
-  return obj;
-}
 
 app.get('/api/presets', (req, res, next) => {
   try {

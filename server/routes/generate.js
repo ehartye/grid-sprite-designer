@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import { parseGeminiResponse } from '../utils.js';
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_RETRIES = 3;
@@ -28,27 +29,6 @@ async function callGemini(apiKey, model, body, retries = 0) {
   }
 
   return response;
-}
-
-function parseGeminiResponse(data) {
-  const text = [];
-  let image = null;
-
-  const parts = data?.candidates?.[0]?.content?.parts ?? [];
-
-  for (const part of parts) {
-    if (part.text) {
-      text.push(part.text);
-    }
-    if (part.inlineData) {
-      image = {
-        data: part.inlineData.data,
-        mimeType: part.inlineData.mimeType,
-      };
-    }
-  }
-
-  return { text: text.join('\n'), image };
 }
 
 export function createGenerateRouter(apiKey) {
