@@ -15,6 +15,7 @@ import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
 import { AdminPage } from './components/admin/AdminPage';
 
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useRunWorkflow } from './hooks/useRunWorkflow';
 import { loadGenerationIntoState } from './lib/loadGeneration';
 
@@ -169,7 +170,9 @@ function AppContent() {
 export default function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </AppProvider>
   );
 }
