@@ -362,8 +362,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       link.download = `${exportName || 'sprites'}-sheet.png`;
       link.click();
       dispatch({ type: 'SET_STATUS', message: 'Sprite sheet exported!', statusType: 'success' });
-    } catch (err: any) {
-      dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + message, statusType: 'error' });
     }
   }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dynamicCols, dispatch]);
 
@@ -385,8 +386,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         link.click();
       }
       dispatch({ type: 'SET_STATUS', message: `Exported ${exportSprites.length} individual sprites!`, statusType: 'success' });
-    } catch (err: any) {
-      dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + message, statusType: 'error' });
     }
   }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dispatch]);
 

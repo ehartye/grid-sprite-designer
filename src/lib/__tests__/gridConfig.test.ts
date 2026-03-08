@@ -9,6 +9,7 @@ import {
   getBackgroundGridConfig,
   gridPresetToConfig,
 } from '../gridConfig';
+import type { GridLink } from '../../context/AppContext';
 
 describe('CHARACTER_GRID', () => {
   it('has 6x6 = 36 cells', () => {
@@ -132,26 +133,40 @@ describe('gridPresetToConfig', () => {
   });
 
   it('falls back to gridSize label when name is absent', () => {
-    const preset = {
+    const preset: GridLink = {
       id: 1,
+      gridPresetId: 1,
+      guidanceOverride: '',
+      sortOrder: 0,
+      gridName: '',
       cols: 2,
       rows: 2,
       gridSize: '2x2',
       cellLabels: [],
+      cellGroups: [],
+      genericGuidance: '',
+      aspectRatio: '1:1',
+      tileShape: 'square',
     };
     const config = gridPresetToConfig(preset, 'building');
     expect(config.label).toBe('Grid 2x2');
   });
 
   it('uses gridPresetId over id when present', () => {
-    const preset = {
+    const preset: GridLink = {
       id: 10,
       gridPresetId: 99,
+      guidanceOverride: '',
+      sortOrder: 0,
       gridName: 'Linked Grid',
       cols: 4,
       rows: 4,
       gridSize: '4x4',
       cellLabels: [],
+      cellGroups: [],
+      genericGuidance: '',
+      aspectRatio: '1:1',
+      tileShape: 'square',
     };
     const config = gridPresetToConfig(preset, 'terrain');
     expect(config.id).toBe('preset-99');

@@ -5,7 +5,7 @@
  */
 
 import { COLS, ROWS, TOTAL_CELLS, CELL_LABELS } from './poses';
-import type { GridPreset } from '../context/AppContext';
+import type { GridPreset, GridLink } from '../context/AppContext';
 
 export interface TemplateParams {
   cellW: number;
@@ -279,21 +279,11 @@ function getTemplateParams(gridSize: string, spriteType: string, aspectRatio: st
 }
 
 export function gridPresetToConfig(preset: GridPreset): GridConfig;
-export function gridPresetToConfig(preset: {
-  id?: number;
-  gridPresetId?: number;
-  gridName?: string;
-  name?: string;
-  cols: number;
-  rows: number;
-  gridSize: string;
-  cellLabels: string[];
-  spriteType?: string;
-}, spriteType?: string): GridConfig;
-export function gridPresetToConfig(preset: any, spriteType?: string): GridConfig {
-  const resolvedSpriteType = spriteType || preset.spriteType || 'character';
-  const label = preset.name || preset.gridName || `Grid ${preset.gridSize}`;
-  const id = preset.gridPresetId || preset.id;
+export function gridPresetToConfig(preset: GridLink, spriteType?: string): GridConfig;
+export function gridPresetToConfig(preset: GridPreset | GridLink, spriteType?: string): GridConfig {
+  const resolvedSpriteType = spriteType || ('spriteType' in preset ? preset.spriteType : undefined) || 'character';
+  const label = ('name' in preset ? preset.name : undefined) || ('gridName' in preset ? preset.gridName : undefined) || `Grid ${preset.gridSize}`;
+  const id = 'gridPresetId' in preset ? preset.gridPresetId : preset.id;
   const aspectRatio = preset.aspectRatio || '1:1';
   const tileShape = preset.tileShape || 'square';
   return {
