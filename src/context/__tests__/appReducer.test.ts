@@ -338,7 +338,7 @@ describe('appReducer', () => {
         rowGuidance: 'Walk, attack, idle',
       };
       const result = reducer(initialState, { type: 'LOAD_PRESET', preset });
-      expect(result.activeContentPresetId).toBe('char-1');
+      expect(result.activeContentPresetIds.character).toBe('char-1');
       expect(result.character.name).toBe('Knight');
       expect(result.character.description).toBe('A noble knight');
       expect(result.character.equipment).toBe('Plate armor, sword');
@@ -364,7 +364,7 @@ describe('appReducer', () => {
         cellGuidance: 'Front',
       };
       const result = reducer(initialState, { type: 'LOAD_BUILDING_PRESET', preset });
-      expect(result.activeContentPresetId).toBe('bld-1');
+      expect(result.activeContentPresetIds.building).toBe('bld-1');
       expect(result.building.cellLabels).toHaveLength(9);
       expect(result.building.gridSize).toBe('3x3');
     });
@@ -420,7 +420,7 @@ describe('appReducer', () => {
         tileGuidance: 'Top-down view',
       };
       const result = reducer(initialState, { type: 'LOAD_TERRAIN_PRESET', preset });
-      expect(result.activeContentPresetId).toBe('ter-1');
+      expect(result.activeContentPresetIds.terrain).toBe('ter-1');
       expect(result.terrain.name).toBe('Grasslands');
       expect(result.terrain.gridSize).toBe('4x4');
       // 4x4 grid = 16 cells, so labels should be padded
@@ -462,7 +462,7 @@ describe('appReducer', () => {
         layerGuidance: 'Horizontal strips',
       };
       const result = reducer(initialState, { type: 'LOAD_BACKGROUND_PRESET', preset });
-      expect(result.activeContentPresetId).toBe('bg-1');
+      expect(result.activeContentPresetIds.background).toBe('bg-1');
       expect(result.background.bgMode).toBe('parallax');
       expect(result.background.gridSize).toBe('1x4');
       expect(result.background.cellLabels).toHaveLength(4);
@@ -563,7 +563,7 @@ describe('appReducer', () => {
         },
       });
       expect(result.step).toBe('run-active');
-      expect(result.activeContentPresetId).toBe('p1');
+      expect(result.activeContentPresetIds.character).toBe('p1');
       expect(result.run).not.toBeNull();
       expect(result.run!.active).toBe(true);
       expect(result.run!.currentGridIndex).toBe(0);
