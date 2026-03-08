@@ -34,8 +34,8 @@ describe('migration version tracking', () => {
 
     const rows = db.prepare('SELECT name FROM migrations ORDER BY id').all();
     expect(rows.length).toBeGreaterThan(0);
-    // The last migration should be the sprites unique index
-    expect(rows.at(-1).name).toBe('013_add_sprites_unique_index');
+    // The last migration should be the generations type+created index
+    expect(rows.at(-1).name).toBe('015_add_generations_type_created_index');
   });
 
   it('does not re-run migrations on second call', () => {

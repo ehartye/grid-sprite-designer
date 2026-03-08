@@ -9,7 +9,7 @@ import { useAppContext, SpriteType, GridLink } from '../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../lib/spriteExtractor';
 import { gridPresetToConfig } from '../lib/gridConfig';
 import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
-import { runGeneratePipeline } from './useGenericWorkflow';
+import { runGeneratePipeline, WORKFLOW_CONFIGS } from './useGenericWorkflow';
 import type { ContentPreset } from '../types/api';
 
 export interface AddSheetOptions {
@@ -103,16 +103,7 @@ export function useAddSheet() {
         contentPreset = await fetchContentPreset(spriteType, contentPresetId);
       } else {
         // Legacy entry — build a minimal preset from state
-        const name =
-          spriteType === 'building' ? currentState.building.name :
-          spriteType === 'terrain' ? currentState.terrain.name :
-          spriteType === 'background' ? currentState.background.name :
-          currentState.character.name;
-        const description =
-          spriteType === 'building' ? currentState.building.description :
-          spriteType === 'terrain' ? currentState.terrain.description :
-          spriteType === 'background' ? currentState.background.description :
-          currentState.character.description;
+        const { name, description } = WORKFLOW_CONFIGS[spriteType].getContent(currentState);
         contentPreset = { name, description };
       }
 

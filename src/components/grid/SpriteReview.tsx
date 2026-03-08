@@ -364,11 +364,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       const gridCols = dynamicCols;
       const { base64 } = await composeSpriteSheet(exportSprites, gridCols);
       const link = document.createElement('a');
-      const exportName =
-        state.spriteType === 'building' ? state.building.name :
-        state.spriteType === 'terrain' ? state.terrain.name :
-        state.spriteType === 'background' ? state.background.name :
-        state.character.name;
+      const exportName = WORKFLOW_CONFIGS[state.spriteType].getContent(state).name;
       link.href = `data:image/png;base64,${base64}`;
       link.download = `${exportName || 'sprites'}-sheet.png`;
       link.click();
@@ -377,18 +373,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       const message = err instanceof Error ? err.message : String(err);
       dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + message, statusType: 'error' });
     }
-  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dynamicCols, dispatch]);
+  }, [displaySprites, getExportSprites, state, dynamicCols, dispatch]);
 
   // Export individual PNGs
   const handleExportIndividual = useCallback(async () => {
     if (displaySprites.length === 0) return;
     try {
       const exportSprites = await getExportSprites();
-      const baseName =
-        state.spriteType === 'building' ? state.building.name :
-        state.spriteType === 'terrain' ? state.terrain.name :
-        state.spriteType === 'background' ? state.background.name :
-        state.character.name;
+      const baseName = WORKFLOW_CONFIGS[state.spriteType].getContent(state).name;
       for (const sprite of exportSprites) {
         const link = document.createElement('a');
         link.href = `data:${sprite.mimeType};base64,${sprite.imageData}`;
@@ -401,7 +393,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       const message = err instanceof Error ? err.message : String(err);
       dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + message, statusType: 'error' });
     }
-  }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dispatch]);
+  }, [displaySprites, getExportSprites, state, dispatch]);
 
   const handleThumbnailSet = useCallback(async (cellIndex: number) => {
     if (!state.historyId) return;

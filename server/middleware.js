@@ -1,4 +1,14 @@
+import { randomUUID } from 'crypto';
 import { PRESET_TABLES } from './presetTables.js';
+
+/**
+ * Express middleware that assigns a short unique ID to each request.
+ * Attaches it as req.id for use in logging.
+ */
+export function requestId(req, _res, next) {
+  req.id = randomUUID().slice(0, 8);
+  next();
+}
 
 /**
  * Express middleware that validates req.params.type against PRESET_TABLES.

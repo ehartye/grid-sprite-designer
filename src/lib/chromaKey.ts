@@ -280,7 +280,9 @@ export function defringeRecolor(
     }
   }
 
-  console.log(`[DefringeRecolor] Recolored ${totalRecolored} pixels across ${passes} passes (${width}x${height})`);
+  if (import.meta.env.DEV) {
+    console.log(`[DefringeRecolor] Recolored ${totalRecolored} pixels across ${passes} passes (${width}x${height})`);
+  }
   return out;
 }
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { parseIntParam, extractPresetValues, mapPresetRow, parseGeminiResponse } from '../utils.js';
 
 // ── parseIntParam ───────────────────────────────────────────────────────────
@@ -230,5 +230,36 @@ describe('parseGeminiResponse', () => {
     };
     const result = parseGeminiResponse(data);
     expect(result.text).toBe('Line 1\nLine 2\nLine 3');
+  });
+
+  it('warns when response has zero candidates', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    parseGeminiResponse({ candidates: [] });
+    expect(spy).toHaveBeenCalledWith('[Gemini] Response has zero candidates');
+    spy.mockRestore();
+  });
+
+  it('warns when candidate has no content', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    parseGeminiResponse({ candidates: [{}] });
+    expect(spy).toHaveBeenCalledWith('[Gemini] Response candidate has no content/parts');
+    spy.mockRestore();
+  });
+
+  it('warns when multiple image parts are found', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const data = {
+      candidates: [{
+        content: {
+          parts: [
+            { inlineData: { data: 'first', mimeType: 'image/png' } },
+            { inlineData: { data: 'second', mimeType: 'image/jpeg' } },
+          ],
+        },
+      }],
+    };
+    parseGeminiResponse(data);
+    expect(spy).toHaveBeenCalledWith('[Gemini] Response contained 2 image parts; only the last is kept');
+    spy.mockRestore();
   });
 });

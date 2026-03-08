@@ -12,11 +12,15 @@ export function createPresetsRouter(db) {
       const config = PRESET_TABLES[type];
       if (!config) return res.status(400).json({ error: 'Invalid type' });
 
-      const rows = db.prepare(`SELECT * FROM ${config.table} WHERE is_preset = 1 ORDER BY name`).all();
-      res.json(rows.map(r => {
-        const gridLinkCount = db.prepare(`SELECT COUNT(*) as c FROM ${config.linkTable} WHERE ${config.fk} = ?`).get(r.id).c;
-        return { ...mapPresetRow(r, config.columns), gridLinkCount };
-      }));
+      const rows = db.prepare(`
+        SELECT p.*, COUNT(l.id) as grid_link_count
+        FROM ${config.table} p
+        LEFT JOIN ${config.linkTable} l ON l.${config.fk} = p.id
+        WHERE p.is_preset = 1
+        GROUP BY p.id
+        ORDER BY p.name
+      `).all();
+      res.json(rows.map(r => ({ ...mapPresetRow(r, config.columns), gridLinkCount: r.grid_link_count })));
     } catch (err) { next(err); }
   });
 

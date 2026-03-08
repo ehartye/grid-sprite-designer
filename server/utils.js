@@ -25,21 +25,38 @@ export function mapPresetRow(row, columns) {
 
 /** Parse Gemini API response, extracting text and image data. */
 export function parseGeminiResponse(data) {
+  const candidates = data?.candidates;
+  if (!candidates || candidates.length === 0) {
+    console.warn('[Gemini] Response has zero candidates');
+    return { text: '', image: null };
+  }
+
+  const candidate = candidates[0];
+  const parts = candidate?.content?.parts ?? [];
+
+  if (!candidate?.content || parts.length === 0) {
+    console.warn('[Gemini] Response candidate has no content/parts');
+  }
+
   const text = [];
   let image = null;
-
-  const parts = data?.candidates?.[0]?.content?.parts ?? [];
+  let imageCount = 0;
 
   for (const part of parts) {
     if (part.text) {
       text.push(part.text);
     }
     if (part.inlineData) {
+      imageCount++;
       image = {
         data: part.inlineData.data,
         mimeType: part.inlineData.mimeType,
       };
     }
+  }
+
+  if (imageCount > 1) {
+    console.warn(`[Gemini] Response contained ${imageCount} image parts; only the last is kept`);
   }
 
   return { text: text.join('\n'), image };

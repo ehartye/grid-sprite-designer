@@ -7,11 +7,15 @@ import { seedIsometricGridPresets } from './isometricGridPresets.js';
 import { seedAnimationSeries } from './animationSeries.js';
 
 export function runAllSeeds(db) {
-  seedGridPresets(db);
-  seedCharacterPresets(db);
-  seedBuildingPresets(db);
-  seedTerrainPresets(db);
-  seedBackgroundPresets(db);
-  seedIsometricGridPresets(db);
-  seedAnimationSeries(db);
+  const seeds = [
+    seedGridPresets,
+    seedCharacterPresets,
+    seedBuildingPresets,
+    seedTerrainPresets,
+    seedBackgroundPresets,
+    seedIsometricGridPresets,
+    seedAnimationSeries,
+  ];
+  for (const seed of seeds) seed(db);
+  return seeds.length;
 }
