@@ -221,23 +221,21 @@ export async function runGeneratePipeline(
 }
 
 /**
- * Module-level AbortController for the active single-grid generation.
- * Shared across all useGenericWorkflow instances so that any instance
- * (including GeneratingOverlay's cancel) can abort the real in-flight request.
+ * Module-level pointer to the active AbortController. Updated by whichever
+ * useGenericWorkflow instance starts a generation, read by cancelActiveGeneration
+ * so App.tsx can cancel without holding a hook reference.
  */
-let activeAbortController: AbortController | null = null;
-let activeGenerating = false;
+let sharedAbortController: AbortController | null = null;
 
 /**
  * Cancel the active single-grid generation (if any).
- * Safe to call from any component — operates on the shared module-level controller.
+ * Safe to call from any component — reads the module-level pointer.
  */
 export function cancelActiveGeneration(dispatch: Dispatch<Action>) {
-  if (activeAbortController) {
-    activeAbortController.abort();
-    activeAbortController = null;
+  if (sharedAbortController) {
+    sharedAbortController.abort();
+    sharedAbortController = null;
   }
-  activeGenerating = false;
   dispatch({ type: 'RESET' });
 }
 
@@ -249,10 +247,25 @@ export function useGenericWorkflow(config: WorkflowConfig) {
   const configRef = useRef(config);
   configRef.current = config;
 
-  useEffect(() => () => { activeAbortController?.abort(); }, []);
+  const abortRef = useRef<AbortController | null>(null);
+  const isGeneratingRef = useRef(false);
+
+  // Cleanup: only abort if this instance owns the shared controller
+  useEffect(() => () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      if (sharedAbortController === abortRef.current) {
+        sharedAbortController = null;
+      }
+      abortRef.current = null;
+    }
+    isGeneratingRef.current = false;
+  }, []);
 
   const cancelGeneration = useCallback(() => {
     cancelActiveGeneration(dispatch);
+    abortRef.current = null;
+    isGeneratingRef.current = false;
   }, [dispatch]);
 
   const generate = useCallback(async (gridLink?: GridLink) => {
@@ -264,12 +277,13 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       return;
     }
 
-    if (activeGenerating) return;
-    activeGenerating = true;
+    if (isGeneratingRef.current) return;
+    isGeneratingRef.current = true;
 
-    activeAbortController?.abort();
+    abortRef.current?.abort();
     const abort = new AbortController();
-    activeAbortController = abort;
+    abortRef.current = abort;
+    sharedAbortController = abort;
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
@@ -294,8 +308,11 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       const message = err instanceof Error ? err.message : 'Generation failed';
       dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
-      activeGenerating = false;
-      activeAbortController = null;
+      isGeneratingRef.current = false;
+      abortRef.current = null;
+      if (sharedAbortController === abort) {
+        sharedAbortController = null;
+      }
     }
   }, [dispatch]);
 
