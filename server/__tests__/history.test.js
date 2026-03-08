@@ -98,10 +98,10 @@ describe('POST / validation', () => {
     expect(res.body.error).toMatch(/sprite_type/);
   });
 
-  it('succeeds with valid body and converts lastInsertRowid to Number', () => {
+  it('returns 201 with valid body and converts lastInsertRowid to Number', () => {
     const res = mockRes();
     handler(mockReq({ contentName: 'Warrior', model: 'gemini-2.0' }), res, vi.fn());
-    expect(res.statusCode).toBe(200);
+    expect(res.statusCode).toBe(201);
     expect(res.body.id).toBe(42);
     expect(typeof res.body.id).toBe('number');
   });
@@ -194,10 +194,10 @@ describe('POST /:id/sprites validation', () => {
     expect(res.body.error).toMatch(/sprites\[1\]/);
   });
 
-  it('succeeds with valid sprites', () => {
+  it('returns 201 with valid sprites', () => {
     const res = mockRes();
     handler(mockReq({ sprites: [validSprite] }, { id: '1' }), res, vi.fn());
-    expect(res.statusCode).toBe(200);
+    expect(res.statusCode).toBe(201);
     expect(res.body.count).toBe(1);
   });
 
@@ -206,5 +206,35 @@ describe('POST /:id/sprites validation', () => {
     handler(mockReq({ sprites: [validSprite] }, { id: 'abc' }), res, vi.fn());
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/id/i);
+  });
+});
+
+// ── GET /  (list generations) ───────────────────────────────────────────────
+
+describe('GET / response format', () => {
+  it('returns camelCase field names', () => {
+    const db = {
+      prepare: vi.fn(() => ({
+        all: vi.fn(() => [
+          { id: 1, content_name: 'Warrior', content_description: 'A brave warrior', model: 'gemini-2.0', created_at: '2025-01-01' },
+        ]),
+      })),
+    };
+    const router = createHistoryRouter(db);
+    const handler = findHandler(router, 'get', '/');
+    const res = mockRes();
+    handler(mockReq(undefined), res, vi.fn());
+
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0]).toEqual({
+      id: 1,
+      contentName: 'Warrior',
+      contentDescription: 'A brave warrior',
+      model: 'gemini-2.0',
+      createdAt: '2025-01-01',
+    });
+    // Ensure no snake_case keys leak through
+    expect(res.body[0]).not.toHaveProperty('content_name');
+    expect(res.body[0]).not.toHaveProperty('created_at');
   });
 });

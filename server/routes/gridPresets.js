@@ -45,7 +45,7 @@ export function createGridPresetsRouter(db) {
       `).run(name, spriteType, genre || '', gridSize, cols, rows,
         JSON.stringify(cellLabels || []), JSON.stringify(cellGroups || []), genericGuidance || '', bgMode || null,
         aspectRatio || '1:1', tileShape || 'square');
-      res.json({ id: Number(result.lastInsertRowid) });
+      res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
   });
 

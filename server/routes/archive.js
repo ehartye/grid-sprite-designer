@@ -43,7 +43,7 @@ export function createArchiveRouter(outputDir) {
       }
 
       console.log(`[Archive] Saved to ${folderName}: grid + ${spriteCount} sprites`);
-      res.json({ folder: folderName, spriteCount });
+      res.status(201).json({ folder: folderName, spriteCount });
     } catch (err) { next(err); }
   });
 

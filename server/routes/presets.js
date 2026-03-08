@@ -43,7 +43,7 @@ export function createPresetsRouter(db) {
       const result = db.prepare(
         `INSERT INTO ${config.table} (${dbCols.join(', ')}, is_preset) VALUES (${placeholders}, 1)`
       ).run(...values);
-      res.json({ id: Number(result.lastInsertRowid) });
+      res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
   });
 
@@ -124,7 +124,7 @@ export function createPresetsRouter(db) {
         INSERT INTO ${table} (${fk}, grid_preset_id, guidance_override, sort_order)
         VALUES (?, ?, ?, ?)
       `).run(id, gridPresetId, guidanceOverride || '', sortOrder || 0);
-      res.json({ id: Number(result.lastInsertRowid) });
+      res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
   });
 

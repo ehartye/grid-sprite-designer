@@ -12,7 +12,13 @@ export function createHistoryRouter(db) {
       const rows = db.prepare(
         'SELECT id, content_name, content_description, model, created_at FROM generations ORDER BY created_at DESC LIMIT 50'
       ).all();
-      res.json(rows);
+      res.json(rows.map(r => ({
+        id: r.id,
+        contentName: r.content_name,
+        contentDescription: r.content_description,
+        model: r.model,
+        createdAt: r.created_at,
+      })));
     } catch (err) { next(err); }
   });
 
@@ -81,7 +87,7 @@ export function createHistoryRouter(db) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
 
-      res.json({ id: Number(result.lastInsertRowid) });
+      res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
   });
 
@@ -131,7 +137,7 @@ export function createHistoryRouter(db) {
       });
 
       insertAll();
-      res.json({ count: sprites.length });
+      res.status(201).json({ count: sprites.length });
     } catch (err) { next(err); }
   });
 
