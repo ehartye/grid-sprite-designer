@@ -25,11 +25,11 @@ export function getDb() {
 
   createSchema(db);
   migrateSchema(db);
-  runAllSeeds(db);
+  const seedCount = runAllSeeds(db);
 
   const migrationCount = db.prepare('SELECT COUNT(*) as c FROM migrations').get().c;
   const duration = Date.now() - startTime;
-  console.log(`[DB] Initialized: path=${dbPath}, migrations=${migrationCount}, duration=${duration}ms`);
+  console.log(`[DB] Initialized: path=${dbPath}, migrations=${migrationCount}, seeds=${seedCount}, duration=${duration}ms`);
 
   return db;
 }
