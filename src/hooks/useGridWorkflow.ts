@@ -7,7 +7,7 @@ import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { CHARACTER_GRID, gridPresetToConfig } from '../lib/gridConfig';
 import { buildGridFillPrompt } from '../lib/promptBuilder';
 
-const characterConfig: WorkflowConfig = {
+export const characterConfig: WorkflowConfig = {
   spriteType: 'character',
   validationLabel: 'character',
   getContent: (state) => state.character,

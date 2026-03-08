@@ -7,7 +7,7 @@ import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { getBuildingGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 import { buildBuildingPrompt } from '../lib/buildingPromptBuilder';
 
-const buildingConfig: WorkflowConfig = {
+export const buildingConfig: WorkflowConfig = {
   spriteType: 'building',
   validationLabel: 'building',
   getContent: (state) => state.building,

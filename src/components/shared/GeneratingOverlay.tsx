@@ -6,12 +6,12 @@
 
 import React from 'react';
 import { useAppState } from '../../context/AppContext';
-import { useGridWorkflow } from '../../hooks/useGridWorkflow';
+import { useGenericWorkflow, WORKFLOW_CONFIGS } from '../../hooks/useGenericWorkflow';
 import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 
 export function GeneratingOverlay() {
   const state = useAppState();
-  const { cancelGeneration } = useGridWorkflow();
+  const { cancelGeneration } = useGenericWorkflow(WORKFLOW_CONFIGS[state.spriteType]);
 
   let cellCount = 36;
   if (state.spriteType === 'building') {

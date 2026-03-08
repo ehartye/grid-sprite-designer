@@ -4,7 +4,7 @@
  * Each sprite type provides a small config object to customize behavior.
  */
 
-import { useCallback, useRef, type Dispatch } from 'react';
+import { useCallback, useRef, useMemo, type Dispatch } from 'react';
 import { useAppContext, type AppState, type GridLink, type SpriteType, type Action, type CellGroup } from '../context/AppContext';
 import { generateTemplate } from '../lib/templateGenerator';
 import { extractSprites } from '../lib/spriteExtractor';
@@ -241,8 +241,8 @@ export function useGenericWorkflow(config: WorkflowConfig) {
         contentName: content.name,
         contentDescription: content.description,
         cellGroups: gridLink?.cellGroups,
-        historyExtras: { contentPresetId: state.activeContentPresetId },
-        sourceContext: { groupId: null, contentPresetId: state.activeContentPresetId },
+        historyExtras: { contentPresetId: state.activeContentPresetIds[config.spriteType] },
+        sourceContext: { groupId: null, contentPresetId: state.activeContentPresetIds[config.spriteType] },
       }, dispatch, abort.signal);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
@@ -290,5 +290,30 @@ export function useGenericWorkflow(config: WorkflowConfig) {
     dispatch({ type: 'SET_STEP', step });
   }, [dispatch]);
 
-  return { state, dispatch, generate, reExtract, reset, cancelGeneration, setStep };
+  const validationMessage = useMemo(() => {
+    const content = config.getContent(state);
+    const missing: string[] = [];
+    if (!content.name.trim()) missing.push('name');
+    if (!content.description.trim()) missing.push('description');
+    if (missing.length === 0) return null;
+    return `Enter a ${config.validationLabel} ${missing.join(' and ')}`;
+  }, [state, config]);
+
+  return { state, dispatch, generate, reExtract, reset, cancelGeneration, setStep, validationMessage };
 }
+
+// ── WORKFLOW_CONFIGS map ──────────────────────────────────────────────────────
+
+// Lazy-loaded to avoid circular imports; the individual config modules are
+// lightweight (no hooks, only pure functions and constants).
+import { characterConfig } from './useGridWorkflow';
+import { buildingConfig } from './useBuildingWorkflow';
+import { terrainConfig } from './useTerrainWorkflow';
+import { backgroundConfig } from './useBackgroundWorkflow';
+
+export const WORKFLOW_CONFIGS: Record<SpriteType, WorkflowConfig> = {
+  character: characterConfig,
+  building: buildingConfig,
+  terrain: terrainConfig,
+  background: backgroundConfig,
+};

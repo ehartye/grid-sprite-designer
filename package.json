@@ -13,6 +13,7 @@
     "test:report": "npx tsx tests/report-generator.ts",
     "test:sync-manifests": "npx tsx scripts/sync-fixture-manifests.ts",
     "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:export-fixtures": "npx tsx scripts/export-fixtures-from-db.ts && npx tsx scripts/generate-fixture-index.ts"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/coverage-v8": "^4.0.18",
     "concurrently": "^9.2.1",
     "sharp": "^0.34.5",
     "typescript": "^5.5.4",

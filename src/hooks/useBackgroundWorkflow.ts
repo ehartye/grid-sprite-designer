@@ -7,7 +7,7 @@ import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { getBackgroundGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 import { buildBackgroundPrompt } from '../lib/backgroundPromptBuilder';
 
-const backgroundConfig: WorkflowConfig = {
+export const backgroundConfig: WorkflowConfig = {
   spriteType: 'background',
   validationLabel: 'background',
   getContent: (state) => state.background,

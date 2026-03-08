@@ -8,6 +8,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { getDb } from './db.js';
 import { createGenerateRouter } from './routes/generate.js';
+import { parseIntParam, extractPresetValues, mapPresetRow } from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, '..', 'output');
@@ -15,7 +16,10 @@ const OUTPUT_DIR = join(__dirname, '..', 'output');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'] }));
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:5174'];
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: '50mb' }));
 
 const apiKey = process.env.GEMINI_API_KEY;
@@ -27,13 +31,6 @@ if (!apiKey) {
 // Initialize database
 const db = getDb();
 console.log('[Server] Database initialized.');
-
-/** Parse a route :id param as a positive integer. Returns null if invalid. */
-function parseIntParam(val) {
-  const n = Number(val);
-  if (!Number.isInteger(n) || n <= 0) return null;
-  return n;
-}
 
 // Mount routes
 app.use('/api', createGenerateRouter(apiKey));
@@ -165,24 +162,6 @@ const PRESET_TABLES = {
     ],
   },
 };
-
-/** Extract body values for a preset type, applying defaults and JSON serialization. */
-function extractPresetValues(body, columns) {
-  return columns.map(([bodyField, , defaultVal, isJson]) => {
-    const raw = body[bodyField];
-    if (isJson) return JSON.stringify(raw || defaultVal);
-    return raw || defaultVal;
-  });
-}
-
-/** Map a DB row to a response object using column config. */
-function mapPresetRow(row, columns) {
-  const obj = { id: row.id };
-  for (const [bodyField, dbCol, , isJson] of columns) {
-    obj[bodyField] = isJson ? JSON.parse(row[dbCol] || '[]') : row[dbCol];
-  }
-  return obj;
-}
 
 app.get('/api/presets', (req, res, next) => {
   try {
@@ -641,8 +620,15 @@ app.get('/api/archive', (req, res, next) => {
 app.use('/output', express.static(OUTPUT_DIR));
 
 // Serve test files (dev only)
-app.use('/tests', express.static(join(__dirname, '..', 'tests')));
-app.use('/test-fixtures', express.static(join(__dirname, '..', 'test-fixtures')));
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/tests', express.static(join(__dirname, '..', 'tests')));
+  app.use('/test-fixtures', express.static(join(__dirname, '..', 'test-fixtures')));
+}
+
+// Health check
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Global error handler
 app.use((err, req, res, _next) => {
@@ -655,7 +641,7 @@ const server = app.listen(PORT, () => {
 });
 
 server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
+  if (err.code === 'EADDRINUSE' && process.env.NODE_ENV === 'development') {
     console.log(`[Server] Port ${PORT} in use, killing existing process...`);
     import('child_process').then(({ execSync }) => {
       try {
@@ -685,3 +671,21 @@ server.on('error', (err) => {
     throw err;
   }
 });
+
+// Graceful shutdown
+function shutdown(signal) {
+  console.log(`[Server] ${signal} received, shutting down gracefully...`);
+  server.close(() => {
+    console.log('[Server] HTTP server closed.');
+    try {
+      db.close();
+      console.log('[Server] Database closed.');
+    } catch (err) {
+      console.error('[Server] Error closing database:', err);
+    }
+    process.exit(0);
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

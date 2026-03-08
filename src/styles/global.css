@@ -383,6 +383,12 @@ body > #root {
   text-align: center;
 }
 
+.validation-hint {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--warning, #e6a817);
+}
+
 /* Grid badges in config panel */
 .config-grid-badges {
   display: flex;

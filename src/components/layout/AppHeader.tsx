@@ -5,8 +5,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { useAppState } from '../../context/AppContext';
-import { useGridWorkflow } from '../../hooks/useGridWorkflow';
+import { useAppState, useAppDispatch } from '../../context/AppContext';
 import { testConnection } from '../../api/geminiClient';
 
 export type AppTab = 'designer' | 'gallery' | 'admin';
@@ -18,7 +17,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
   const state = useAppState();
-  const { reset } = useGridWorkflow();
+  const dispatch = useAppDispatch();
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
 
@@ -41,9 +40,9 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
   const showNewSprite = state.step === 'review' || state.step === 'preview' || tab === 'gallery';
 
   const handleNewSprite = useCallback(() => {
-    reset();
+    dispatch({ type: 'RESET' });
     onTabChange('designer');
-  }, [reset, onTabChange]);
+  }, [dispatch, onTabChange]);
 
   return (
     <header className="app-header">

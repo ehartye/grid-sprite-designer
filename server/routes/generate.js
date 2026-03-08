@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import { parseGeminiResponse } from '../utils.js';
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_RETRIES = 3;
@@ -28,27 +29,6 @@ async function callGemini(apiKey, model, body, retries = 0) {
   }
 
   return response;
-}
-
-function parseGeminiResponse(data) {
-  const text = [];
-  let image = null;
-
-  const parts = data?.candidates?.[0]?.content?.parts ?? [];
-
-  for (const part of parts) {
-    if (part.text) {
-      text.push(part.text);
-    }
-    if (part.inlineData) {
-      image = {
-        data: part.inlineData.data,
-        mimeType: part.inlineData.mimeType,
-      };
-    }
-  }
-
-  return { text: text.join('\n'), image };
 }
 
 export function createGenerateRouter(apiKey) {
@@ -123,7 +103,8 @@ export function createGenerateRouter(apiKey) {
 
       if (response.status === 401 || response.status === 403) {
         const errorData = await response.json().catch(() => ({}));
-        return res.status(401).json({ error: errorData?.error?.message || 'Invalid API key' });
+        console.error('[Gemini] Auth error:', errorData?.error?.message);
+        return res.status(401).json({ error: 'Invalid or unauthorized API key' });
       }
 
       if (response.status === 429) {
@@ -132,8 +113,8 @@ export function createGenerateRouter(apiKey) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const message = errorData?.error?.message || `Gemini API error (${response.status})`;
-        return res.status(502).json({ error: message });
+        console.error(`[Gemini] API error (${response.status}):`, errorData?.error?.message);
+        return res.status(502).json({ error: `Image generation failed (upstream ${response.status})` });
       }
 
       const data = await response.json();
@@ -146,8 +127,8 @@ export function createGenerateRouter(apiKey) {
       const result = parseGeminiResponse(data);
       return res.json(result);
     } catch (err) {
-      console.error('Generate grid error:', err);
-      return res.status(502).json({ error: err.message || 'Internal server error' });
+      console.error('[Gemini] Generate grid error:', err);
+      return res.status(502).json({ error: 'Image generation failed unexpectedly' });
     }
   });
 
@@ -163,14 +144,14 @@ export function createGenerateRouter(apiKey) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const message = errorData?.error?.message || `API error (${response.status})`;
-        return res.json({ success: false, error: message });
+        console.error(`[Gemini] Test connection error (${response.status}):`, errorData?.error?.message);
+        return res.json({ success: false, error: `Connection test failed (${response.status})` });
       }
 
       return res.json({ success: true, model });
     } catch (err) {
-      console.error('Test connection error:', err);
-      return res.json({ success: false, error: err.message || 'Connection failed' });
+      console.error('[Gemini] Test connection error:', err);
+      return res.json({ success: false, error: 'Connection test failed unexpectedly' });
     }
   });
 

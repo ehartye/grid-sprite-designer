@@ -19,6 +19,8 @@ export interface EditorSettings {
   edgeRecolorPasses: number;
   recolorSensitivity: number;
   defringeCore: number;
+  /** Erased pixel coordinates keyed by sprite cell index */
+  erasedPixels: Record<string, string[]>;
 }
 
 const DEFAULTS: EditorSettings = {
@@ -33,6 +35,7 @@ const DEFAULTS: EditorSettings = {
   edgeRecolorPasses: 0,
   recolorSensitivity: 50,
   defringeCore: 240,
+  erasedPixels: {},
 };
 
 export function useEditorSettings(historyId: number | null) {

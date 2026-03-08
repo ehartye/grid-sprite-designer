@@ -7,7 +7,7 @@ import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { getTerrainGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 import { buildTerrainPrompt } from '../lib/terrainPromptBuilder';
 
-const terrainConfig: WorkflowConfig = {
+export const terrainConfig: WorkflowConfig = {
   spriteType: 'terrain',
   validationLabel: 'terrain',
   getContent: (state) => state.terrain,
