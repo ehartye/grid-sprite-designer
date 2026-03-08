@@ -93,6 +93,8 @@ export function BackgroundPresetsTab() {
         setEditing({ ...editing, id: data.id });
       }
       await fetchPresets();
+    } catch (err) {
+      window.alert(`Failed to save preset: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSaving(false);
     }
