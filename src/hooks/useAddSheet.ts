@@ -1,16 +1,16 @@
 /**
  * Hook for generating a new sprite sheet from an existing generation.
- * Handles reference image preparation, prompt building, generation, and history saving.
+ * Handles reference image preparation, prompt building, then delegates
+ * the generate → extract → save pipeline to runGeneratePipeline.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppContext, SpriteType, GridLink } from '../context/AppContext';
-import { generateTemplate } from '../lib/templateGenerator';
-import { extractSprites, composeSpriteSheet, ExtractedSprite } from '../lib/spriteExtractor';
-import { generateGrid } from '../api/geminiClient';
+import { composeSpriteSheet, ExtractedSprite } from '../lib/spriteExtractor';
 import { gridPresetToConfig } from '../lib/gridConfig';
 import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
-import type { ContentPreset, HistorySaveResponse } from '../types/api';
+import { runGeneratePipeline } from './useGenericWorkflow';
+import type { ContentPreset } from '../types/api';
 
 export interface AddSheetOptions {
   /** Grid link to use for the new sheet */
@@ -108,23 +108,9 @@ export function useAddSheet() {
 
       if (abort.signal.aborted) return;
 
-      // Build grid config and template
+      // Build grid config and prompt
       const gridConfig = gridPresetToConfig(gridLink, spriteType);
-      const templateParams = gridConfig.templates[imageSize];
       const aspectRatio = aspectRatioOverride || gridConfig.aspectRatio || '1:1';
-      const template = generateTemplate(templateParams, gridConfig, aspectRatio);
-
-      dispatch({
-        type: 'GENERATE_START',
-        templateImage: template.base64,
-        gridConfig: {
-          cols: gridConfig.cols,
-          rows: gridConfig.rows,
-          cellLabels: gridConfig.cellLabels,
-          cellGroups: gridLink.cellGroups,
-          aspectRatio: gridConfig.aspectRatio,
-        },
-      });
 
       // Build prompt (always as subsequent grid since we have a reference)
       let prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, true);
@@ -133,124 +119,21 @@ export function useAddSheet() {
         prompt += `\n\nADDITIONAL GUIDANCE:\n${followUpGuidance.trim()}`;
       }
 
-      // Call Gemini
-      const result = await generateGrid(
-        currentState.model,
+      // Delegate to shared pipeline
+      await runGeneratePipeline({
+        gridConfig,
         prompt,
-        { data: template.base64, mimeType: 'image/png' },
+        model: currentState.model,
         imageSize,
-        abort.signal,
-        { data: refBase64, mimeType: 'image/png' },
         aspectRatio,
-      );
-
-      if (abort.signal.aborted) return;
-
-      if (!result.image) {
-        dispatch({ type: 'GENERATE_ERROR', error: 'Gemini returned no image. Try again.' });
-        return;
-      }
-
-      dispatch({
-        type: 'GENERATE_COMPLETE',
-        filledGridImage: result.image.data,
-        filledGridMimeType: result.image.mimeType,
-        geminiText: result.text || '',
-      });
-
-      // Extract sprites
-      const sprites = await extractSprites(
-        result.image.data,
-        result.image.mimeType,
-        {
-          gridOverride: {
-            cols: gridConfig.cols,
-            rows: gridConfig.rows,
-            totalCells: gridConfig.totalCells,
-            cellLabels: gridConfig.cellLabels,
-          },
-        },
-      );
-
-      if (abort.signal.aborted) return;
-      dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-
-      // Save to history
-      const spritePayload = sprites.map(s => ({
-        cellIndex: s.cellIndex,
-        poseId: s.label.toLowerCase().replace(/\s+/g, '-'),
-        poseName: s.label,
-        imageData: s.imageData,
-        mimeType: s.mimeType,
-      }));
-
-      try {
-        const histResp = await fetch('/api/history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contentName: contentPreset.name,
-            contentDescription: contentPreset.description,
-            model: currentState.model,
-            prompt,
-            filledGridImage: result.image.data,
-            spriteType,
-            gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
-            aspectRatio,
-            groupId,
-            contentPresetId,
-          }),
-          signal: abort.signal,
-        });
-
-        if (!histResp.ok) {
-          console.error('History save failed:', histResp.status, histResp.statusText);
-          dispatch({ type: 'SET_STATUS', message: `Failed to save to history (${histResp.status})`, statusType: 'warning' });
-          return;
-        }
-
-        const histData: HistorySaveResponse = await histResp.json();
-        const histId = Number(histData.id);
-
-        if (!Number.isFinite(histId)) {
-          console.error('History save returned invalid id:', histData.id);
-          dispatch({ type: 'SET_STATUS', message: 'Failed to save to history: invalid ID returned', statusType: 'warning' });
-          return;
-        }
-
-        if (abort.signal.aborted) return;
-        dispatch({ type: 'SET_HISTORY_ID', id: histId });
-
-        await fetch(`/api/history/${histId}/sprites`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sprites: spritePayload }),
-          signal: abort.signal,
-        });
-      } catch (e: unknown) {
-        if (e instanceof Error && e.name === 'AbortError') return;
-        console.error('Failed to save add-sheet generation to history:', e);
-        dispatch({ type: 'SET_STATUS', message: 'Failed to save generation to history', statusType: 'warning' });
-      }
-
-      // Archive
-      try {
-        await fetch('/api/archive', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contentName: contentPreset.name,
-            filledGridImage: result.image.data,
-            filledGridMimeType: result.image.mimeType,
-            sprites: spritePayload,
-          }),
-          signal: abort.signal,
-        });
-      } catch (e: unknown) {
-        if (e instanceof Error && e.name === 'AbortError') return;
-        console.error('Failed to archive add-sheet generation:', e);
-        dispatch({ type: 'SET_STATUS', message: 'Failed to archive generation to disk', statusType: 'warning' });
-      }
+        spriteType,
+        contentName: contentPreset.name,
+        contentDescription: contentPreset.description,
+        cellGroups: gridLink.cellGroups,
+        referenceImage: { data: refBase64, mimeType: 'image/png' },
+        historyExtras: { groupId, contentPresetId },
+        sourceContext: { groupId: groupId ?? null, contentPresetId: contentPresetId ?? null },
+      }, dispatch, abort.signal);
 
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
