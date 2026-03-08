@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { parseIntParam, extractPresetValues, mapPresetRow } from '../utils.js';
 import { PRESET_TABLES } from '../presetTables.js';
+import { validatePresetType } from '../middleware.js';
 
 export function createPresetsRouter(db) {
   const router = Router();
@@ -19,12 +20,11 @@ export function createPresetsRouter(db) {
     } catch (err) { next(err); }
   });
 
-  router.get('/:type/:id', (req, res, next) => {
+  router.get('/:type/:id', validatePresetType, (req, res, next) => {
     try {
       const id = parseIntParam(req.params.id);
       if (id === null) return res.status(400).json({ error: 'Invalid id' });
-      const config = PRESET_TABLES[req.params.type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const config = req.presetConfig;
 
       const row = db.prepare(`SELECT * FROM ${config.table} WHERE id = ? AND is_preset = 1`).get(id);
       if (!row) return res.status(404).json({ error: 'Not found' });
@@ -32,10 +32,9 @@ export function createPresetsRouter(db) {
     } catch (err) { next(err); }
   });
 
-  router.post('/:type', (req, res, next) => {
+  router.post('/:type', validatePresetType, (req, res, next) => {
     try {
-      const config = PRESET_TABLES[req.params.type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const config = req.presetConfig;
 
       const dbCols = config.columns.map(c => c[1]);
       const placeholders = dbCols.map(() => '?').join(', ');
@@ -47,12 +46,11 @@ export function createPresetsRouter(db) {
     } catch (err) { next(err); }
   });
 
-  router.put('/:type/:id', (req, res, next) => {
+  router.put('/:type/:id', validatePresetType, (req, res, next) => {
     try {
       const id = parseIntParam(req.params.id);
       if (id === null) return res.status(400).json({ error: 'Invalid id' });
-      const config = PRESET_TABLES[req.params.type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const config = req.presetConfig;
 
       const setClauses = config.columns.map(c => `${c[1]}=?`).join(', ');
       const values = extractPresetValues(req.body, config.columns);
@@ -64,13 +62,11 @@ export function createPresetsRouter(db) {
     } catch (err) { next(err); }
   });
 
-  router.delete('/:type/:id', (req, res, next) => {
+  router.delete('/:type/:id', validatePresetType, (req, res, next) => {
     try {
-      const { type } = req.params;
       const id = parseIntParam(req.params.id);
       if (id === null) return res.status(400).json({ error: 'Invalid id' });
-      const config = PRESET_TABLES[type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const config = req.presetConfig;
 
       // Junction links cascade via ON DELETE CASCADE, but delete explicitly just in case
       db.prepare(`DELETE FROM ${config.linkTable} WHERE ${config.fk} = ?`).run(id);
@@ -81,11 +77,10 @@ export function createPresetsRouter(db) {
   });
 
   // Grid link endpoints for presets
-  router.get('/:type/:id/grid-links', (req, res, next) => {
+  router.get('/:type/:id/grid-links', validatePresetType, (req, res, next) => {
     try {
-      const { type, id } = req.params;
-      const config = PRESET_TABLES[type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const { id } = req.params;
+      const config = req.presetConfig;
       const { linkTable: table, fk } = config;
       const links = db.prepare(`
         SELECT l.*, g.name as grid_name, g.grid_size, g.cols, g.rows,
@@ -112,11 +107,10 @@ export function createPresetsRouter(db) {
     } catch (err) { next(err); }
   });
 
-  router.post('/:type/:id/grid-links', (req, res, next) => {
+  router.post('/:type/:id/grid-links', validatePresetType, (req, res, next) => {
     try {
-      const { type, id } = req.params;
-      const config = PRESET_TABLES[type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const { id } = req.params;
+      const config = req.presetConfig;
       const { gridPresetId, guidanceOverride, sortOrder } = req.body;
       if (!gridPresetId) return res.status(400).json({ error: 'Missing gridPresetId' });
       const { linkTable: table, fk } = config;

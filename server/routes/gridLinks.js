@@ -1,15 +1,14 @@
 import { Router } from 'express';
 import { parseIntParam } from '../utils.js';
-import { PRESET_TABLES } from '../presetTables.js';
+import { validatePresetType } from '../middleware.js';
 
 export function createGridLinksRouter(db) {
   const router = Router();
 
-  router.put('/:type/:id', (req, res, next) => {
+  router.put('/:type/:id', validatePresetType, (req, res, next) => {
     try {
-      const { type, id } = req.params;
-      const config = PRESET_TABLES[type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const { id } = req.params;
+      const config = req.presetConfig;
       const linkId = parseIntParam(id);
       if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
       const { guidanceOverride, sortOrder } = req.body;
@@ -21,11 +20,10 @@ export function createGridLinksRouter(db) {
     } catch (err) { next(err); }
   });
 
-  router.delete('/:type/:id', (req, res, next) => {
+  router.delete('/:type/:id', validatePresetType, (req, res, next) => {
     try {
-      const { type, id } = req.params;
-      const config = PRESET_TABLES[type];
-      if (!config) return res.status(400).json({ error: 'Invalid type' });
+      const { id } = req.params;
+      const config = req.presetConfig;
       const linkId = parseIntParam(id);
       if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
       const { linkTable: table } = config;
