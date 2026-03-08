@@ -641,8 +641,15 @@ app.get('/api/archive', (req, res, next) => {
 app.use('/output', express.static(OUTPUT_DIR));
 
 // Serve test files (dev only)
-app.use('/tests', express.static(join(__dirname, '..', 'tests')));
-app.use('/test-fixtures', express.static(join(__dirname, '..', 'test-fixtures')));
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/tests', express.static(join(__dirname, '..', 'tests')));
+  app.use('/test-fixtures', express.static(join(__dirname, '..', 'test-fixtures')));
+}
+
+// Health check
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Global error handler
 app.use((err, req, res, _next) => {
@@ -655,7 +662,7 @@ const server = app.listen(PORT, () => {
 });
 
 server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
+  if (err.code === 'EADDRINUSE' && process.env.NODE_ENV === 'development') {
     console.log(`[Server] Port ${PORT} in use, killing existing process...`);
     import('child_process').then(({ execSync }) => {
       try {
@@ -685,3 +692,21 @@ server.on('error', (err) => {
     throw err;
   }
 });
+
+// Graceful shutdown
+function shutdown(signal) {
+  console.log(`[Server] ${signal} received, shutting down gracefully...`);
+  server.close(() => {
+    console.log('[Server] HTTP server closed.');
+    try {
+      db.close();
+      console.log('[Server] Database closed.');
+    } catch (err) {
+      console.error('[Server] Error closing database:', err);
+    }
+    process.exit(0);
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
