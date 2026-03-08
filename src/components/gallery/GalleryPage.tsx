@@ -6,9 +6,7 @@
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useAppDispatch } from '../../context/AppContext';
-import { extractSprites } from '../../lib/spriteExtractor';
-import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig, type BuildingGridSize, type TerrainGridSize, type BackgroundGridSize } from '../../lib/gridConfig';
-import type { EditorSettings } from '../../hooks/useEditorSettings';
+import { loadGenerationIntoState } from '../../lib/loadGeneration';
 
 interface GalleryEntry {
   id: number;
@@ -166,145 +164,18 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
         // Reset previous state before loading new generation
         dispatch({ type: 'RESET' });
 
-        // Set sprite type first
-        const loadedSpriteType = data.spriteType || 'character';
-        dispatch({ type: 'SET_SPRITE_TYPE', spriteType: loadedSpriteType });
-
-        // Populate config state
-        if (loadedSpriteType === 'building' && data.gridSize) {
-          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-          dispatch({
-            type: 'SET_BUILDING',
-            building: {
-              name: data.content?.name || '',
-              description: data.content?.description || '',
-              details: '',
-              colorNotes: '',
-              styleNotes: '',
-              cellGuidance: '',
-              gridSize: data.gridSize,
-              cellLabels: spriteLabels,
-            },
-          });
-        } else if (loadedSpriteType === 'terrain' && data.gridSize) {
-          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-          dispatch({
-            type: 'SET_TERRAIN',
-            terrain: {
-              name: data.content?.name || '',
-              description: data.content?.description || '',
-              colorNotes: '',
-              styleNotes: '',
-              tileGuidance: '',
-              gridSize: data.gridSize,
-              cellLabels: spriteLabels,
-            },
-          });
-        } else if (loadedSpriteType === 'background' && data.gridSize) {
-          const spriteLabels = data.sprites?.map((s: any) => s.label) || [];
-          dispatch({
-            type: 'SET_BACKGROUND',
-            background: {
-              name: data.content?.name || '',
-              description: data.content?.description || '',
-              colorNotes: '',
-              styleNotes: '',
-              layerGuidance: '',
-              bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
-              gridSize: data.gridSize,
-              cellLabels: spriteLabels,
-            },
-          });
-        } else if (data.content) {
-          dispatch({ type: 'SET_CHARACTER', character: data.content });
-        }
-
-        // Compute grid dimensions — from gridSize if available, otherwise infer from sprite count
-        const allLabels = data.sprites?.map((s: any) => s.label) || [];
-        let gridCols: number;
-        let gridRows: number;
-        if (data.gridSize) {
-          const [colStr, rowStr] = (data.gridSize as string).split('x');
-          gridCols = parseInt(colStr, 10) || 6;
-          gridRows = parseInt(rowStr, 10) || 6;
-        } else if (allLabels.length > 0 && allLabels.length !== 36) {
-          // Infer grid dimensions from sprite count for legacy entries without gridSize
-          const total = allLabels.length;
-          gridCols = [8, 6, 5, 4, 3, 2, 1].find(c => total % c === 0 && total / c >= 1) || 6;
-          gridRows = Math.ceil(total / gridCols);
-        } else {
-          gridCols = 6;
-          gridRows = 6;
-        }
-
-        // Set active grid config for the review view
-        dispatch({ type: 'SET_ACTIVE_GRID_CONFIG', gridConfig: { cols: gridCols, rows: gridRows, cellLabels: allLabels, aspectRatio: data.aspectRatio } });
-
         // Load saved editor settings so extraction uses the saved aaInset/posterizeBits
         let savedSettings: EditorSettings | null = null;
         try {
           const settingsRes = await fetch(`/api/history/${id}/settings`);
           savedSettings = await settingsRes.json();
-        } catch (err) { console.warn('Failed to load editor settings:', err); }
-
-        const mimeType = data.filledGridMimeType || 'image/png';
-        if (data.filledGridImage) {
-          dispatch({
-            type: 'GENERATE_COMPLETE',
-            filledGridImage: data.filledGridImage,
-            filledGridMimeType: mimeType,
-            geminiText: data.geminiText || '',
-          });
-
-          // Build extraction config — use known grid configs for typed grids, generic override otherwise
-          let extractionConfig: Parameters<typeof extractSprites>[2] = {
-            ...(savedSettings?.aaInset != null ? { aaInset: savedSettings.aaInset } : {}),
-            ...(savedSettings?.posterizeBits != null ? { posterizeBits: savedSettings.posterizeBits } : {}),
-          };
-
-          if (loadedSpriteType === 'building' && data.gridSize) {
-            const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, allLabels);
-            extractionConfig.gridOverride = {
-              cols: gridConfig.cols,
-              rows: gridConfig.rows,
-              totalCells: gridConfig.totalCells,
-              cellLabels: gridConfig.cellLabels,
-            };
-          } else if (loadedSpriteType === 'terrain' && data.gridSize) {
-            const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, allLabels);
-            extractionConfig.gridOverride = {
-              cols: gridConfig.cols,
-              rows: gridConfig.rows,
-              totalCells: gridConfig.totalCells,
-              cellLabels: gridConfig.cellLabels,
-            };
-          } else if (loadedSpriteType === 'background' && data.gridSize) {
-            const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, allLabels);
-            extractionConfig.gridOverride = {
-              cols: gridConfig.cols,
-              rows: gridConfig.rows,
-              totalCells: gridConfig.totalCells,
-              cellLabels: gridConfig.cellLabels,
-            };
-          } else if (gridCols !== 6 || gridRows !== 6) {
-            extractionConfig.gridOverride = {
-              cols: gridCols,
-              rows: gridRows,
-              totalCells: gridCols * gridRows,
-              cellLabels: allLabels,
-            };
-          }
-
-          const sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
-          dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
-        } else if (data.sprites && data.sprites.length > 0) {
-          dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
+        } catch (err) {
+          console.warn('Failed to load editor settings:', err);
         }
-        dispatch({ type: 'SET_HISTORY_ID', id });
-        dispatch({
-          type: 'SET_SOURCE_CONTEXT',
-          groupId: data.groupId || null,
-          contentPresetId: data.contentPresetId || null,
+
+        await loadGenerationIntoState(data, dispatch, {
+          historyId: id,
+          editorSettings: savedSettings,
         });
 
         onSwitchToDesigner();
