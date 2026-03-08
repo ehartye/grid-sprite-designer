@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { parseIntParam } from '../utils.js';
 import { PRESET_TABLES } from '../presetTables.js';
+import { ALLOWED_MIME_TYPES } from './generate.js';
 
 const VALID_SPRITE_TYPES = new Set(Object.keys(PRESET_TABLES));
 
@@ -123,6 +124,9 @@ export function createHistoryRouter(db) {
         if (typeof s.mimeType !== 'string' || s.mimeType.trim() === '') {
           return res.status(400).json({ error: `sprites[${i}].mimeType must be a non-empty string` });
         }
+        if (!ALLOWED_MIME_TYPES.includes(s.mimeType)) {
+          return res.status(400).json({ error: `sprites[${i}].mimeType is invalid. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}` });
+        }
       }
 
       const insert = db.prepare(
@@ -147,6 +151,9 @@ export function createHistoryRouter(db) {
       if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
       const { cellIndex, imageData, mimeType } = req.body;
+      if (mimeType && !ALLOWED_MIME_TYPES.includes(mimeType)) {
+        return res.status(400).json({ error: `Invalid mimeType. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}` });
+      }
       const result = db.prepare(
         `UPDATE generations SET thumbnail_cell_index = ?, thumbnail_image = ?, thumbnail_mime = ?, updated_at = datetime('now') WHERE id = ?`
       ).run(cellIndex, imageData || null, mimeType || null, id);
