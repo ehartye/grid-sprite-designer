@@ -75,7 +75,8 @@ export function createGridPresetsRouter(db) {
                (SELECT COUNT(*) FROM terrain_grid_links WHERE grid_preset_id=?) +
                (SELECT COUNT(*) FROM background_grid_links WHERE grid_preset_id=?) as total
       `).get(id, id, id, id);
-      db.prepare('DELETE FROM grid_presets WHERE id=?').run(id);
+      const result = db.prepare('DELETE FROM grid_presets WHERE id=?').run(id);
+      if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
       res.json({ success: true, unlinked: linkCount.total });
     } catch (err) { next(err); }
   });

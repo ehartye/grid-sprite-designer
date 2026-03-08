@@ -32,7 +32,8 @@ export function createStateRouter(db) {
 
   router.delete('/:key', (req, res, next) => {
     try {
-      db.prepare('DELETE FROM app_state WHERE key = ?').run(req.params.key);
+      const result = db.prepare('DELETE FROM app_state WHERE key = ?').run(req.params.key);
+      if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
       res.json({ success: true });
     } catch (err) { next(err); }
   });
