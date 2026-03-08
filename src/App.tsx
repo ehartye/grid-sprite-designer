@@ -7,10 +7,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AppHeader, AppTab } from './components/layout/AppHeader';
-import { ConfigPanel } from './components/config/ConfigPanel';
-import { BuildingConfigPanel } from './components/config/BuildingConfigPanel';
-import { TerrainConfigPanel } from './components/config/TerrainConfigPanel';
-import { BackgroundConfigPanel } from './components/config/BackgroundConfigPanel';
+import { UnifiedConfigPanel } from './components/config/UnifiedConfigPanel';
 import { SpriteReview } from './components/grid/SpriteReview';
 import { GeneratingOverlay } from './components/shared/GeneratingOverlay';
 import { StatusBanner } from './components/shared/StatusBanner';
@@ -190,14 +187,7 @@ function AppContent() {
       <div className="app-layout">
         {tab === 'designer' && (
           <>
-            {state.step === 'configure' && (() => {
-              switch (state.spriteType) {
-                case 'building': return <BuildingConfigPanel />;
-                case 'terrain': return <TerrainConfigPanel />;
-                case 'background': return <BackgroundConfigPanel />;
-                default: return <ConfigPanel />;
-              }
-            })()}
+            {state.step === 'configure' && <UnifiedConfigPanel />}
             {state.step === 'generating' && (
               <>
                 <GeneratingOverlay />
