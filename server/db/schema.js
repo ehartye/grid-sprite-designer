@@ -30,6 +30,7 @@ export function createSchema(db) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_sprites_generation ON sprites(generation_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_sprites_gen_cell ON sprites(generation_id, cell_index);
 
     CREATE TABLE IF NOT EXISTS editor_settings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,6 +45,12 @@ export function createSchema(db) {
     CREATE TABLE IF NOT EXISTS app_state (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
     CREATE TABLE IF NOT EXISTS character_presets (

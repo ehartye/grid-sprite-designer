@@ -29,7 +29,8 @@ export function createGridLinksRouter(db) {
       const linkId = parseIntParam(id);
       if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
       const { linkTable: table } = config;
-      db.prepare(`DELETE FROM ${table} WHERE id=?`).run(linkId);
+      const result = db.prepare(`DELETE FROM ${table} WHERE id=?`).run(linkId);
+      if (result.changes === 0) return res.status(404).json({ error: 'Link not found' });
       res.json({ success: true });
     } catch (err) { next(err); }
   });

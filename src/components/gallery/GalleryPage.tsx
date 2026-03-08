@@ -62,6 +62,12 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
   const [searchInput, setSearchInput] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
+  useEffect(() => {
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+  }, []);
+
   // Group entries: prefer explicit groupId, fall back to matching character name
   const grouped = useMemo((): (GalleryEntry | GalleryGroup)[] => {
     const groupMap = new Map<string, GalleryEntry[]>();

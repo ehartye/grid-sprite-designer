@@ -4,7 +4,7 @@
  * Right sidebar: animation preview, export controls, re-extraction.
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useGenericWorkflow, WORKFLOW_CONFIGS } from '../../hooks/useGenericWorkflow';
 import { useAppState, type CellGroup, type GridLink } from '../../context/AppContext';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
@@ -238,6 +238,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
+  // Guard: skip the first save effect after load completes to prevent
+  // overwriting DB with default/stale values in the same render cycle.
+  const skipNextSaveRef = useRef(false);
 
   // Load all persisted editor state when historyId changes.
   // Resets to defaults first, then overwrites from DB — merged into one effect
@@ -285,6 +288,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       if (histData?.thumbnailCellIndex != null) {
         selection.setThumbnailCell(histData.thumbnailCellIndex);
       }
+      // Skip the next save cycle so restored values don't trigger a write-back
+      skipNextSaveRef.current = true;
       setSettingsLoaded(true);
     });
 
@@ -294,6 +299,12 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   // Save settings on change (debounced internally) — skip until initial load completes
   useEffect(() => {
     if (!settingsLoaded) return;
+    // After load completes, the first save-effect invocation is the
+    // restored values echoing back — skip it to avoid a pointless write.
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false;
+      return;
+    }
     const serializedErased: Record<string, string[]> = {};
     for (const [idx, coords] of selection.erasedPixels) {
       if (coords.size > 0) serializedErased[String(idx)] = Array.from(coords);

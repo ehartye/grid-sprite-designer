@@ -4,7 +4,7 @@
  * test-connection button, and contextual actions.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppState, useAppDispatch } from '../../context/AppContext';
 import { testConnection } from '../../api/geminiClient';
 
@@ -20,18 +20,26 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
   const dispatch = useAppDispatch();
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
+  const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (clearTimer.current) clearTimeout(clearTimer.current);
+    };
+  }, []);
 
   const handleTestConnection = useCallback(async () => {
     setTesting(true);
     setTestResult(null);
+    if (clearTimer.current) clearTimeout(clearTimer.current);
     try {
       const result = await testConnection(state.model);
       setTestResult(result);
-      setTimeout(() => setTestResult(null), 4000);
+      clearTimer.current = setTimeout(() => setTestResult(null), 4000);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       setTestResult({ success: false, error: message });
-      setTimeout(() => setTestResult(null), 4000);
+      clearTimer.current = setTimeout(() => setTestResult(null), 4000);
     } finally {
       setTesting(false);
     }
