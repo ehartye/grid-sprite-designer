@@ -51,7 +51,7 @@ export async function loadGenerationIntoState(
         colorNotes: '',
         styleNotes: '',
         cellGuidance: '',
-        gridSize: data.gridSize,
+        gridSize: data.gridSize as BuildingGridSize,
         cellLabels: spriteLabels,
       },
     });
@@ -64,7 +64,7 @@ export async function loadGenerationIntoState(
         colorNotes: '',
         styleNotes: '',
         tileGuidance: '',
-        gridSize: data.gridSize,
+        gridSize: data.gridSize as TerrainGridSize,
         cellLabels: spriteLabels,
       },
     });
@@ -78,12 +78,22 @@ export async function loadGenerationIntoState(
         styleNotes: '',
         layerGuidance: '',
         bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
-        gridSize: data.gridSize,
+        gridSize: data.gridSize as BackgroundGridSize,
         cellLabels: spriteLabels,
       },
     });
   } else if (data.content) {
-    dispatch({ type: 'SET_CHARACTER', character: data.content });
+    dispatch({
+      type: 'SET_CHARACTER',
+      character: {
+        name: data.content.name || '',
+        description: data.content.description || '',
+        equipment: data.content.equipment || '',
+        colorNotes: data.content.colorNotes || '',
+        styleNotes: data.content.styleNotes || '',
+        rowGuidance: data.content.rowGuidance || '',
+      },
+    });
   }
 
   // 3. Infer grid dimensions
@@ -152,7 +162,8 @@ export async function loadGenerationIntoState(
     const sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
     dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
   } else if (data.sprites && data.sprites.length > 0) {
-    dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites });
+    // Sprites loaded from history already have full data; cast to match ExtractedSprite
+    dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites as any });
   }
 
   // 6. Set history and source context
