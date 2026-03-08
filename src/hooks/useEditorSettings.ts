@@ -41,6 +41,8 @@ const DEFAULTS: EditorSettings = {
 export function useEditorSettings(historyId: number | null) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastJsonRef = useRef<string>('');
+  const historyIdRef = useRef(historyId);
+  historyIdRef.current = historyId;
 
   const save = useCallback(
     (settings: EditorSettings) => {
@@ -75,13 +77,16 @@ export function useEditorSettings(historyId: number | null) {
     }
   }, [historyId]);
 
-  // Flush any pending debounced save on page unload
+  // Flush any pending debounced save on page unload.
+  // Uses historyIdRef so the handler always reads the current value,
+  // even if beforeunload fires between effect cleanup cycles.
   useEffect(() => {
     const flush = () => {
-      if (timerRef.current && historyId && lastJsonRef.current) {
+      const id = historyIdRef.current;
+      if (timerRef.current && id && lastJsonRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
-        fetch(`/api/history/${historyId}/settings`, {
+        fetch(`/api/history/${id}/settings`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: lastJsonRef.current,
@@ -91,7 +96,7 @@ export function useEditorSettings(historyId: number | null) {
     };
     window.addEventListener('beforeunload', flush);
     return () => window.removeEventListener('beforeunload', flush);
-  }, [historyId]);
+  }, []);
 
   return { save, load };
 }
