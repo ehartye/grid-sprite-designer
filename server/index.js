@@ -3,6 +3,7 @@ dotenv.config({ path: '.env.local' });
 
 import express from 'express';
 import cors from 'cors';
+import morgan from 'morgan';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { getDb } from './db/index.js';
@@ -15,6 +16,7 @@ import { createGalleryRouter } from './routes/gallery.js';
 import { createStateRouter } from './routes/state.js';
 import { createArchiveRouter } from './routes/archive.js';
 import { createHealthHandler } from './healthCheck.js';
+import { requestId } from './middleware.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, '..', 'output');
@@ -26,6 +28,11 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:5173', 'http://localhost:5174'];
 app.use(cors({ origin: allowedOrigins }));
+app.use(requestId);
+
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
 
 // Routes that carry base64 image data need a larger body limit.
 // Apply the 50MB parser to those paths first, then fall back to 1MB for everything else.
@@ -69,7 +76,7 @@ app.get('/health', createHealthHandler(db, !!apiKey));
 
 // Global error handler
 app.use((err, req, res, _next) => {
-  console.error('[Server] Unhandled error:', err);
+  console.error(`[Server] Unhandled error [${req.id || '?'}] ${req.method} ${req.url}:`, err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
@@ -127,8 +134,8 @@ function shutdown(signal) {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[Server] Unhandled promise rejection:', reason);
+process.on('unhandledRejection', (reason) => {
+  console.error('[Server] Unhandled promise rejection:', reason instanceof Error ? reason.stack : reason);
 });
 
 process.on('uncaughtException', (err) => {

@@ -133,23 +133,25 @@ export function createGenerateRouter(apiKey) {
       };
 
       const payloadSize = JSON.stringify(body).length;
-      console.log(`[GenerateGrid] payload ~${(payloadSize / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}`);
+      const rid = req.id || '?';
+      console.log(`[Generate:${rid}] payload ~${(payloadSize / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}`);
 
       const response = await callGemini(apiKey, model, body);
 
       if (response.status === 401 || response.status === 403) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('[Gemini] Auth error:', errorData?.error?.message);
+        console.error(`[Generate:${rid}] Auth error:`, errorData?.error?.message);
         return res.status(401).json({ error: 'Invalid or unauthorized API key' });
       }
 
       if (response.status === 429) {
+        console.warn(`[Generate:${rid}] Rate limited (429)`);
         return res.status(429).json({ error: 'Rate limited — try again in a moment' });
       }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error(`[Gemini] API error (${response.status}):`, errorData?.error?.message);
+        console.error(`[Generate:${rid}] API error (${response.status}):`, errorData?.error?.message);
         return res.status(502).json({ error: `Image generation failed (upstream ${response.status})` });
       }
 
@@ -163,7 +165,7 @@ export function createGenerateRouter(apiKey) {
       const result = parseGeminiResponse(data);
       return res.json(result);
     } catch (err) {
-      console.error('[Gemini] Generate grid error:', err);
+      console.error(`[Generate:${req.id || '?'}] Generate grid error:`, err);
       return res.status(502).json({ error: 'Image generation failed unexpectedly' });
     }
   });
