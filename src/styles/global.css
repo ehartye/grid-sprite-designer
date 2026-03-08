@@ -628,6 +628,12 @@ button {
   cursor: not-allowed;
 }
 
+.btn:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
 /* Primary / Accent — the lime button */
 .btn-primary,
 .btn-accent {
