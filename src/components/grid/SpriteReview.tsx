@@ -18,6 +18,7 @@ import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
 import type { CellGroup, GridLink } from '../../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
+import { debugLog } from '../../lib/debugLog';
 import { applyChromaKey, defringeRecolor, strikeColors, detectKeyColor } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 import { AddSheetModal } from './AddSheetModal';
@@ -233,7 +234,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         ctx.drawImage(img, 0, 0);
         const imageData = ctx.getImageData(0, 0, img.width, img.height);
         [keyR, keyG, keyB] = detectKeyColor(imageData);
-        console.log(`[ChromaKey] Auto-detected key color: rgb(${keyR}, ${keyG}, ${keyB})`);
+        debugLog(`[ChromaKey] Auto-detected key color: rgb(${keyR}, ${keyG}, ${keyB})`);
       }
 
       const result = await Promise.all(sprites.map((s) =>
