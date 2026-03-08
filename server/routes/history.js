@@ -61,7 +61,16 @@ export function createHistoryRouter(db) {
 
   router.post('/', (req, res, next) => {
     try {
+      if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ error: 'Request body is required' });
+      }
       const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId } = req.body;
+      if (typeof contentName !== 'string' || contentName.trim() === '') {
+        return res.status(400).json({ error: 'contentName is required and must be a non-empty string' });
+      }
+      if (typeof model !== 'string' || model.trim() === '') {
+        return res.status(400).json({ error: 'model is required and must be a non-empty string' });
+      }
       const effectiveSpriteType = spriteType || 'character';
       if (!VALID_SPRITE_TYPES.has(effectiveSpriteType)) {
         return res.status(400).json({ error: `Invalid sprite_type: ${effectiveSpriteType}` });
@@ -72,7 +81,7 @@ export function createHistoryRouter(db) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
 
-      res.json({ id: result.lastInsertRowid });
+      res.json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
   });
 
@@ -81,7 +90,34 @@ export function createHistoryRouter(db) {
       const id = parseIntParam(req.params.id);
       if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
-      const { sprites } = req.body; // Array of { cellIndex, poseId, poseName, imageData, mimeType }
+      if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ error: 'Request body is required' });
+      }
+      const { sprites } = req.body;
+      if (!Array.isArray(sprites)) {
+        return res.status(400).json({ error: 'sprites must be an array' });
+      }
+      if (sprites.length === 0) {
+        return res.status(400).json({ error: 'sprites array must not be empty' });
+      }
+      for (let i = 0; i < sprites.length; i++) {
+        const s = sprites[i];
+        if (typeof s.cellIndex !== 'number') {
+          return res.status(400).json({ error: `sprites[${i}].cellIndex must be a number` });
+        }
+        if (typeof s.poseId !== 'string' || s.poseId.trim() === '') {
+          return res.status(400).json({ error: `sprites[${i}].poseId must be a non-empty string` });
+        }
+        if (typeof s.poseName !== 'string' || s.poseName.trim() === '') {
+          return res.status(400).json({ error: `sprites[${i}].poseName must be a non-empty string` });
+        }
+        if (typeof s.imageData !== 'string' || s.imageData.trim() === '') {
+          return res.status(400).json({ error: `sprites[${i}].imageData must be a non-empty string` });
+        }
+        if (typeof s.mimeType !== 'string' || s.mimeType.trim() === '') {
+          return res.status(400).json({ error: `sprites[${i}].mimeType must be a non-empty string` });
+        }
+      }
 
       const insert = db.prepare(
         `INSERT INTO sprites (generation_id, cell_index, pose_id, pose_name, image_data, mime_type)
