@@ -29,7 +29,7 @@ export function useRunWorkflow() {
 
   const generateCurrentGrid = useCallback(async () => {
     const run = state.run;
-    if (!run || !run.active) return;
+    if (!run) return;
     if (isGeneratingRef.current) return;
 
     const gridLink = run.selectedGridLinks[run.currentGridIndex];
@@ -112,6 +112,6 @@ export function useRunWorkflow() {
     skipCurrentGrid,
     cancelRun,
     run: state.run,
-    isRunActive: state.run?.active ?? false,
+    isRunActive: state.run !== null,
   };
 }

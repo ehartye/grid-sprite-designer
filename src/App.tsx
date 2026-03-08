@@ -36,7 +36,11 @@ function AppContent() {
         if (!id || isNaN(id)) return;
 
         const res = await fetch(`/api/history/${id}`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          // History entry no longer exists — clear the stale reference
+          fetch('/api/state/lastHistoryId', { method: 'DELETE' }).catch(() => {});
+          return;
+        }
         const data = await res.json();
 
         await loadGenerationIntoState(data, dispatch, { historyId: id });
@@ -58,7 +62,7 @@ function AppContent() {
   // Auto-trigger generation when entering run-active step
   const runTriggerRef = useRef<string | null>(null);
   useEffect(() => {
-    if (state.step === 'run-active' && run?.active) {
+    if (state.step === 'run-active' && run) {
       const key = `${run.currentGridIndex}`;
       if (runTriggerRef.current !== key) {
         runTriggerRef.current = key;
@@ -84,7 +88,7 @@ function AppContent() {
             {state.step === 'generating' && (
               <>
                 <GeneratingOverlay />
-                {run?.active && (
+                {run && (
                   <div style={{ textAlign: 'center', marginTop: 8 }}>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                       Run: Grid {(run.currentGridIndex ?? 0) + 1} of {run.selectedGridLinks.length}
@@ -100,7 +104,7 @@ function AppContent() {
             {state.step === 'review' && (
               <>
                 <SpriteReview />
-                {run?.active && (
+                {run && (
                   <div className="run-review-bar">
                     <span className="run-review-progress">
                       Grid {(run.currentGridIndex ?? 0) + 1} of {run.selectedGridLinks.length}
@@ -128,7 +132,7 @@ function AppContent() {
               </>
             )}
             {state.step === 'preview' && <AnimationPreview />}
-            {state.step === 'run-active' && run?.active && (
+            {state.step === 'run-active' && run && (
               <div className="config-panel" style={{ textAlign: 'center' }}>
                 <h2>Preparing Grid</h2>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>

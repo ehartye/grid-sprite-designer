@@ -13,6 +13,7 @@ import { PRESET_TABLES } from './presetTables.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, '..', 'output');
+const VALID_SPRITE_TYPES = new Set(Object.keys(PRESET_TABLES));
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -92,11 +93,15 @@ app.get('/api/history/:id', (req, res, next) => {
 app.post('/api/history', (req, res, next) => {
   try {
     const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId } = req.body;
+    const effectiveSpriteType = spriteType || 'character';
+    if (!VALID_SPRITE_TYPES.has(effectiveSpriteType)) {
+      return res.status(400).json({ error: `Invalid sprite_type: ${effectiveSpriteType}` });
+    }
 
     const result = db.prepare(
       `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', spriteType || 'character', gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
+    ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
 
     res.json({ id: result.lastInsertRowid });
   } catch (err) { next(err); }

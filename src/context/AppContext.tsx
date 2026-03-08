@@ -101,7 +101,6 @@ export interface BackgroundPreset {
 export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview' | 'run-builder' | 'run-active';
 
 export interface RunState {
-  active: boolean;
   contentPresetId: string | null;
   spriteType: SpriteType;
   selectedGridLinks: GridLink[];
@@ -491,7 +490,6 @@ export function reducer(state: AppState, action: Action): AppState {
         step: 'run-active',
         activeContentPresetIds: { ...state.activeContentPresetIds, [action.payload.spriteType]: action.payload.contentPresetId },
         run: {
-          active: true,
           contentPresetId: action.payload.contentPresetId,
           groupId: action.payload.groupId || `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           spriteType: action.payload.spriteType,

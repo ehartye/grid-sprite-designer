@@ -16,7 +16,6 @@ import type { ExtractedSprite } from '../../lib/spriteExtractor';
 
 function makeRunState(overrides: Partial<RunState> = {}): RunState {
   return {
-    active: true,
     contentPresetId: 'preset-1',
     spriteType: 'character',
     selectedGridLinks: [{} as GridLink, {} as GridLink, {} as GridLink],
@@ -591,7 +590,6 @@ describe('appReducer', () => {
       expect(result.step).toBe('run-active');
       expect(result.activeContentPresetIds.character).toBe('p1');
       expect(result.run).not.toBeNull();
-      expect(result.run!.active).toBe(true);
       expect(result.run!.currentGridIndex).toBe(0);
       expect(result.run!.referenceSheet).toBeNull();
       expect(result.run!.imageSize).toBe('4K');

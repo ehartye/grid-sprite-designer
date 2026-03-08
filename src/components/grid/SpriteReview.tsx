@@ -133,7 +133,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const isCharacter = state.spriteType === 'character';
 
   // Derive current grid link from run state (if active)
-  const currentGridLink: GridLink | null = state.run?.active
+  const currentGridLink: GridLink | null = state.run
     ? state.run.selectedGridLinks[state.run.currentGridIndex] ?? null
     : null;
 
