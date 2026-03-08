@@ -29,6 +29,7 @@ export interface SpriteSelectionState {
     mirroredCells?: number[];
     cellOrder?: number[];
     thumbnailCell?: number | null;
+    erasedPixels?: Record<string, string[]>;
   }) => void;
   getDisplaySprites: (processedSprites: ExtractedSprite[]) => ExtractedSprite[];
 }
@@ -108,10 +109,18 @@ export function useSpriteSelection({ spriteCount, cellCount }: UseSpriteSelectio
     mirroredCells?: number[];
     cellOrder?: number[];
     thumbnailCell?: number | null;
+    erasedPixels?: Record<string, string[]>;
   }) => {
     if (opts.mirroredCells && opts.mirroredCells.length > 0) setMirroredCells(new Set(opts.mirroredCells));
     if (opts.cellOrder && opts.cellOrder.length > 0) setDisplayOrder(opts.cellOrder);
     if (opts.thumbnailCell != null) setThumbnailCell(opts.thumbnailCell);
+    if (opts.erasedPixels && Object.keys(opts.erasedPixels).length > 0) {
+      const map = new Map<number, Set<string>>();
+      for (const [key, coords] of Object.entries(opts.erasedPixels)) {
+        map.set(Number(key), new Set(coords));
+      }
+      setErasedPixels(map);
+    }
   }, []);
 
   const getDisplaySprites = useCallback((processedSprites: ExtractedSprite[]) => {

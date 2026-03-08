@@ -274,6 +274,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         selection.restoreSelection({
           mirroredCells: settings.mirroredCells,
           cellOrder: settings.cellOrder,
+          erasedPixels: settings.erasedPixels,
         });
         setAaInset(settings.aaInset);
         post.restorePosterize({
@@ -293,6 +294,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   // Save settings on change (debounced internally) — skip until initial load completes
   useEffect(() => {
     if (!settingsLoaded) return;
+    const serializedErased: Record<string, string[]> = {};
+    for (const [idx, coords] of selection.erasedPixels) {
+      if (coords.size > 0) serializedErased[String(idx)] = Array.from(coords);
+    }
     saveSettings({
       chromaEnabled: chroma.chromaEnabled,
       chromaTolerance: chroma.chromaTolerance,
@@ -305,8 +310,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       edgeRecolorPasses: chroma.edgeRecolorPasses,
       recolorSensitivity: chroma.recolorSensitivity,
       defringeCore: chroma.defringeCore,
+      erasedPixels: serializedErased,
     });
-  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, saveSettings]);
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
