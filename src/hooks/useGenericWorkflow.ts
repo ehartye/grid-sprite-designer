@@ -36,7 +36,7 @@ export interface PipelineParams {
   gridConfig: GridConfig;
   prompt: string;
   model: string;
-  imageSize: string;
+  imageSize: '2K' | '4K';
   aspectRatio: string;
   spriteType: SpriteType;
   contentName: string;
@@ -61,7 +61,7 @@ export async function runGeneratePipeline(
   const { gridConfig, prompt, model, imageSize, aspectRatio, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
 
   // 1. Generate template grid
-  const templateParams = gridConfig.templates[imageSize as '2K' | '4K'];
+  const templateParams = gridConfig.templates[imageSize];
   const template = generateTemplate(templateParams, gridConfig, aspectRatio);
   dispatch({
     type: 'GENERATE_START',

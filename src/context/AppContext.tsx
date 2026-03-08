@@ -98,7 +98,7 @@ export interface BackgroundPreset {
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview' | 'run-builder' | 'run-active';
+export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview' | 'run-active';
 
 export interface RunState {
   contentPresetId: string | null;
@@ -158,7 +158,7 @@ export interface AppState {
   };
 
   model: string;
-  imageSize: string;
+  imageSize: '2K' | '4K';
   aspectRatio: string;
 
   /** Currently selected content preset ID per sprite type */
@@ -288,7 +288,7 @@ type Action =
   | { type: 'SET_CHARACTER'; character: AppState['character'] }
   | { type: 'SET_BUILDING'; building: AppState['building'] }
   | { type: 'SET_MODEL'; model: string }
-  | { type: 'SET_IMAGE_SIZE'; imageSize: string }
+  | { type: 'SET_IMAGE_SIZE'; imageSize: '2K' | '4K' }
   | { type: 'SET_ASPECT_RATIO'; payload: string }
   | { type: 'GENERATE_START'; templateImage: string; gridConfig?: { cols: number; rows: number; cellLabels: string[]; cellGroups?: CellGroup[]; aspectRatio?: string } }
   | { type: 'GENERATE_COMPLETE'; filledGridImage: string; filledGridMimeType: string; geminiText: string }

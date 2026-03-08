@@ -362,28 +362,34 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       link.download = `${exportName || 'sprites'}-sheet.png`;
       link.click();
       dispatch({ type: 'SET_STATUS', message: 'Sprite sheet exported!', statusType: 'success' });
-    } catch (err: any) {
-      dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + err.message, statusType: 'error' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + message, statusType: 'error' });
     }
   }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dynamicCols, dispatch]);
 
   // Export individual PNGs
   const handleExportIndividual = useCallback(async () => {
     if (displaySprites.length === 0) return;
-    const exportSprites = await getExportSprites();
-    const baseName =
-      state.spriteType === 'building' ? state.building.name :
-      state.spriteType === 'terrain' ? state.terrain.name :
-      state.spriteType === 'background' ? state.background.name :
-      state.character.name;
-    for (const sprite of exportSprites) {
-      const link = document.createElement('a');
-      link.href = `data:${sprite.mimeType};base64,${sprite.imageData}`;
-      const safeName = sprite.label.toLowerCase().replace(/\s+/g, '-');
-      link.download = `${baseName || 'sprite'}-${safeName}.png`;
-      link.click();
+    try {
+      const exportSprites = await getExportSprites();
+      const baseName =
+        state.spriteType === 'building' ? state.building.name :
+        state.spriteType === 'terrain' ? state.terrain.name :
+        state.spriteType === 'background' ? state.background.name :
+        state.character.name;
+      for (const sprite of exportSprites) {
+        const link = document.createElement('a');
+        link.href = `data:${sprite.mimeType};base64,${sprite.imageData}`;
+        const safeName = sprite.label.toLowerCase().replace(/\s+/g, '-');
+        link.download = `${baseName || 'sprite'}-${safeName}.png`;
+        link.click();
+      }
+      dispatch({ type: 'SET_STATUS', message: `Exported ${exportSprites.length} individual sprites!`, statusType: 'success' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      dispatch({ type: 'SET_STATUS', message: 'Export failed: ' + message, statusType: 'error' });
     }
-    dispatch({ type: 'SET_STATUS', message: `Exported ${exportSprites.length} individual sprites!`, statusType: 'success' });
   }, [displaySprites, getExportSprites, state.character.name, state.building.name, state.terrain.name, state.background.name, state.spriteType, dispatch]);
 
   const handleThumbnailSet = useCallback(async (cellIndex: number) => {

@@ -15,6 +15,7 @@ import { AnimationPreview } from './components/preview/AnimationPreview';
 import { GalleryPage } from './components/gallery/GalleryPage';
 import { AdminPage } from './components/admin/AdminPage';
 
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useRunWorkflow } from './hooks/useRunWorkflow';
 import { loadGenerationIntoState } from './lib/loadGeneration';
 
@@ -48,6 +49,17 @@ function AppContent() {
         dispatch({ type: 'SET_STATUS', message: 'Failed to restore last session', statusType: 'warning' });
       }
     })();
+  }, [dispatch]);
+
+  // Global unhandled promise rejection handler
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
+      console.error('[Unhandled Rejection]', event.reason);
+      dispatch({ type: 'SET_STATUS', message: `Unhandled error: ${message}`, statusType: 'error' });
+    };
+    window.addEventListener('unhandledrejection', handler);
+    return () => window.removeEventListener('unhandledrejection', handler);
   }, [dispatch]);
 
   const { generateCurrentGrid, proceedToNextGrid, skipCurrentGrid, cancelRun, run } = useRunWorkflow();
@@ -169,7 +181,9 @@ function AppContent() {
 export default function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </AppProvider>
   );
 }
