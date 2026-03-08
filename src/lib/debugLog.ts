@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * Debug logging utility gated behind import.meta.env.DEV.
  * No-op in production builds to keep the console clean.

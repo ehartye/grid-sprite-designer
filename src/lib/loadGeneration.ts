@@ -162,8 +162,13 @@ export async function loadGenerationIntoState(
     const sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
     dispatch({ type: 'EXTRACTION_COMPLETE', sprites });
   } else if (data.sprites && data.sprites.length > 0) {
-    // Sprites loaded from history already have full data; cast to match ExtractedSprite
-    dispatch({ type: 'EXTRACTION_COMPLETE', sprites: data.sprites as any });
+    // Sprites loaded from history may lack width/height; default to 0
+    const restored = data.sprites.map(s => ({
+      ...s,
+      width: s.width ?? 0,
+      height: s.height ?? 0,
+    }));
+    dispatch({ type: 'EXTRACTION_COMPLETE', sprites: restored });
   }
 
   // 6. Set history and source context

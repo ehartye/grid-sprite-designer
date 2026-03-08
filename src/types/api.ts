@@ -29,6 +29,8 @@ export interface HistoryResponse {
     cellIndex: number;
     imageData: string;
     mimeType: string;
+    width?: number;
+    height?: number;
   }>;
 }
 
