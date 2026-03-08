@@ -213,7 +213,14 @@ function migrateSchema(db) {
     "ALTER TABLE generations RENAME COLUMN character_description TO content_description",
   ];
   for (const sql of migrations) {
-    try { db.exec(sql); } catch (_) { /* column already exists or renamed */ }
+    try {
+      db.exec(sql);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!msg.includes('duplicate column') && !msg.includes('already exists') && !msg.includes('no such column')) {
+        console.error(`Migration failed: ${sql}\n  ${msg}`);
+      }
+    }
   }
 
   // Backfill content_preset_id from content_name for existing entries

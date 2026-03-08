@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { getDb } from './db.js';
 import { createGenerateRouter } from './routes/generate.js';
 import { parseIntParam, extractPresetValues, mapPresetRow } from './utils.js';
+import { PRESET_TABLES } from './presetTables.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, '..', 'output');
@@ -125,43 +126,6 @@ app.post('/api/history/:id/sprites', (req, res, next) => {
 });
 
 // Content preset CRUD endpoints — single data-driven implementation
-// Each column entry: [bodyField, dbColumn, default, json?]
-const PRESET_TABLES = {
-  character: {
-    table: 'character_presets', linkTable: 'character_grid_links', fk: 'character_preset_id',
-    columns: [
-      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
-      ['equipment', 'equipment', ''], ['colorNotes', 'color_notes', ''],
-      ['rowGuidance', 'row_guidance', ''],
-    ],
-  },
-  building: {
-    table: 'building_presets', linkTable: 'building_grid_links', fk: 'building_preset_id',
-    columns: [
-      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
-      ['details', 'details', ''], ['colorNotes', 'color_notes', ''],
-      ['gridSize', 'grid_size', '3x3'], ['cellLabels', 'cell_labels', [], true],
-      ['cellGuidance', 'cell_guidance', ''],
-    ],
-  },
-  terrain: {
-    table: 'terrain_presets', linkTable: 'terrain_grid_links', fk: 'terrain_preset_id',
-    columns: [
-      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
-      ['colorNotes', 'color_notes', ''], ['gridSize', 'grid_size', '4x4'],
-      ['tileLabels', 'tile_labels', [], true], ['tileGuidance', 'tile_guidance', ''],
-    ],
-  },
-  background: {
-    table: 'background_presets', linkTable: 'background_grid_links', fk: 'background_preset_id',
-    columns: [
-      ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
-      ['colorNotes', 'color_notes', ''], ['gridSize', 'grid_size', '1x4'],
-      ['bgMode', 'bg_mode', 'parallax'], ['layerLabels', 'layer_labels', [], true],
-      ['layerGuidance', 'layer_guidance', ''],
-    ],
-  },
-};
 
 app.get('/api/presets', (req, res, next) => {
   try {
