@@ -74,7 +74,7 @@ describe('buildPromptForType', () => {
   });
 
   it('builds background prompt in parallax mode', () => {
-    const preset = { name: 'Forest', description: 'Dense forest', colorNotes: '', layerGuidance: '', bgMode: 'parallax' };
+    const preset = { name: 'Forest', description: 'Dense forest', colorNotes: '', layerGuidance: '', bgMode: 'parallax' as const };
     const link = makeGridLink({ bgMode: 'parallax' });
     const prompt = buildPromptForType('background', preset, link, makeGridConfig(), false);
     expect(prompt).toContain('FOREST');
@@ -82,7 +82,7 @@ describe('buildPromptForType', () => {
   });
 
   it('builds background prompt in scene mode', () => {
-    const preset = { name: 'Village', description: 'A village', colorNotes: '', layerGuidance: '', bgMode: 'scene' };
+    const preset = { name: 'Village', description: 'A village', colorNotes: '', layerGuidance: '', bgMode: 'scene' as const };
     const link = makeGridLink({ bgMode: 'scene' });
     const prompt = buildPromptForType('background', preset, link, makeGridConfig(), false);
     expect(prompt).toContain('VILLAGE');
