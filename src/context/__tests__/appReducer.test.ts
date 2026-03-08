@@ -51,10 +51,36 @@ describe('appReducer', () => {
       expect(result.spriteType).toBe('building');
     });
 
-    it('does not change other state', () => {
-      const result = reducer(initialState, { type: 'SET_SPRITE_TYPE', spriteType: 'terrain' });
-      expect(result.step).toBe(initialState.step);
-      expect(result.character).toBe(initialState.character);
+    it('clears shared workflow state to prevent cross-type contamination', () => {
+      const state: AppState = {
+        ...initialState,
+        spriteType: 'character',
+        step: 'review',
+        activeGridConfig: { cols: 6, rows: 6, cellLabels: ['a'] },
+        filledGridImage: 'some-image',
+        templateImage: 'some-template',
+        sprites: [makeSprite()],
+        historyId: 42,
+      };
+      const result = reducer(state, { type: 'SET_SPRITE_TYPE', spriteType: 'building' });
+      expect(result.spriteType).toBe('building');
+      expect(result.activeGridConfig).toBeNull();
+      expect(result.filledGridImage).toBeNull();
+      expect(result.templateImage).toBeNull();
+      expect(result.sprites).toEqual([]);
+      expect(result.historyId).toBeNull();
+      expect(result.step).toBe('configure');
+    });
+
+    it('preserves per-type config and presets', () => {
+      const state: AppState = {
+        ...initialState,
+        character: { ...initialState.character, name: 'Hero' },
+        presets: [{ id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' }],
+      };
+      const result = reducer(state, { type: 'SET_SPRITE_TYPE', spriteType: 'terrain' });
+      expect(result.character.name).toBe('Hero');
+      expect(result.presets).toBe(state.presets);
     });
   });
 

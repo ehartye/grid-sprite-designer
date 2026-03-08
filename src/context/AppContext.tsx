@@ -330,7 +330,17 @@ function gridSizeToCellCount(gridSize: BuildingGridSize): number {
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_SPRITE_TYPE':
-      return { ...state, spriteType: action.spriteType };
+      return {
+        ...state,
+        spriteType: action.spriteType,
+        // Clear shared workflow state to prevent cross-type contamination
+        activeGridConfig: null,
+        filledGridImage: null,
+        templateImage: null,
+        sprites: [],
+        historyId: null,
+        step: 'configure',
+      };
     case 'SET_CHARACTER':
       return { ...state, character: action.character };
     case 'SET_BUILDING':
