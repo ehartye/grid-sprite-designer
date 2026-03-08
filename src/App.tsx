@@ -51,6 +51,17 @@ function AppContent() {
     })();
   }, [dispatch]);
 
+  // Global unhandled promise rejection handler
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
+      console.error('[Unhandled Rejection]', event.reason);
+      dispatch({ type: 'SET_STATUS', message: `Unhandled error: ${message}`, statusType: 'error' });
+    };
+    window.addEventListener('unhandledrejection', handler);
+    return () => window.removeEventListener('unhandledrejection', handler);
+  }, [dispatch]);
+
   const { generateCurrentGrid, proceedToNextGrid, skipCurrentGrid, cancelRun, run } = useRunWorkflow();
 
   // Auto-switch to designer tab when a run becomes active

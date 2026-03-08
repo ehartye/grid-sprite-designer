@@ -658,3 +658,12 @@ function shutdown(signal) {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Server] Unhandled promise rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[Server] Uncaught exception:', err);
+  shutdown('uncaughtException');
+});
