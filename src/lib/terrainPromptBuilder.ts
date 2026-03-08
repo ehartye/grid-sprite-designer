@@ -5,6 +5,7 @@
  */
 
 import type { GridConfig } from './gridConfig';
+import { buildCellDescriptions, composeGuidance, CLOSING_INSTRUCTION } from './promptBuilderBase';
 
 export interface TerrainConfig {
   name: string;
@@ -37,21 +38,14 @@ export function buildTerrainPrompt(
     `  \u2022 Each cell is one distinct tile variant — base tiles, edges, corners, or transitions as labeled`,
   ].filter(Boolean).join('\n');
 
-  const cellDescriptions: string[] = [];
-  for (let idx = 0; idx < grid.totalCells; idx++) {
-    const row = Math.floor(idx / grid.cols);
-    const col = idx % grid.cols;
-    const label = idx < grid.cellLabels.length ? grid.cellLabels[idx] : `Tile ${row},${col}`;
-    cellDescriptions.push(`  Header "${label}" (${row},${col}): Fill with the terrain tile matching this label.`);
-  }
+  const cellDescriptions = buildCellDescriptions(grid, 'terrain tile', 'Tile');
 
   // Use grid preset guidance if provided, otherwise fall back to terrain.tileGuidance
-  const genericText = gridGenericGuidance?.trim() || '';
-  const overrideText = guidanceOverride?.trim() || terrain.tileGuidance.trim();
-  const combinedGuidance = [genericText, overrideText].filter(Boolean).join('\n\n');
-  const customGuidance = combinedGuidance
-    ? `\nTERRAIN-SPECIFIC TILE NOTES (use these to refine each tile):\n${combinedGuidance}\n`
-    : '';
+  const customGuidance = composeGuidance(
+    gridGenericGuidance,
+    guidanceOverride?.trim() || terrain.tileGuidance.trim(),
+    'TERRAIN-SPECIFIC TILE NOTES (use these to refine each tile)',
+  );
 
   return `\
 You are filling in a sprite sheet template. The attached image is a ${grid.cols}\u00d7${grid.rows} grid
@@ -86,5 +80,5 @@ CELL LAYOUT (${grid.cols}\u00d7${grid.rows} grid, 0-indexed):
 
 ${cellDescriptions.join('\n')}
 ${customGuidance}
-Return the completed sprite sheet as a single image. Preserve ALL header text exactly.`;
+${CLOSING_INSTRUCTION}`;
 }

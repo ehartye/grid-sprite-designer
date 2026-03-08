@@ -3,6 +3,8 @@
  * Combines the template structure instructions with character-specific details.
  */
 
+import { CLOSING_INSTRUCTION } from './promptBuilderBase';
+
 export interface CharacterConfig {
   name: string;
   description: string;
@@ -216,7 +218,7 @@ coordinates are 0-indexed. Every sprite must match its header's pose exactly.
 
 ${genericGuidance}
 ${characterGuidance}
-Return the completed sprite sheet as a single image. Preserve ALL header text exactly.`;
+${CLOSING_INSTRUCTION}`;
 }
 
 /**

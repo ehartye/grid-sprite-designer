@@ -11,9 +11,9 @@ export default defineConfig({
       exclude: ['**/__tests__/**', '**/*.test.*', '**/node_modules/**'],
       thresholds: {
         statements: 8,
-        branches: 10,
+        branches: 15,
         functions: 2,
-        lines: 7,
+        lines: 8,
       },
     },
   },

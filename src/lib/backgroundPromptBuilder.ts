@@ -4,8 +4,8 @@
  * and scene variations (full scenes with lighting/weather changes).
  */
 
-import type { GridConfig } from './gridConfig';
-import type { BackgroundMode } from './gridConfig';
+import type { GridConfig, BackgroundMode } from './gridConfig';
+import { buildCellDescriptions, composeGuidance, CLOSING_INSTRUCTION } from './promptBuilderBase';
 
 export interface BackgroundConfig {
   name: string;
@@ -40,22 +40,15 @@ export function buildBackgroundPrompt(
     `  \u2022 Consistent palette and art style across ALL ${grid.totalCells} cells`,
   ].filter(Boolean).join('\n');
 
-  const cellDescriptions: string[] = [];
-  for (let idx = 0; idx < grid.totalCells; idx++) {
-    const row = Math.floor(idx / grid.cols);
-    const col = idx % grid.cols;
-    const label = idx < grid.cellLabels.length ? grid.cellLabels[idx] : `Cell ${row},${col}`;
-    cellDescriptions.push(`  Header "${label}" (${row},${col}): Fill with the background ${bg.bgMode === 'parallax' ? 'layer' : 'scene'} matching this label.`);
-  }
+  const modeLabel = bg.bgMode === 'parallax' ? 'layer' : 'scene';
+  const cellDescriptions = buildCellDescriptions(grid, `background ${modeLabel}`);
 
   // Use grid preset guidance if provided, otherwise fall back to bg.layerGuidance
-  const genericText = gridGenericGuidance?.trim() || '';
-  const overrideText = guidanceOverride?.trim() || bg.layerGuidance.trim();
-  const combinedGuidance = [genericText, overrideText].filter(Boolean).join('\n\n');
-  const modeLabel = bg.bgMode === 'parallax' ? 'layer' : 'scene';
-  const customGuidance = combinedGuidance
-    ? `\nBACKGROUND-SPECIFIC NOTES (use these to refine each ${modeLabel}):\n${combinedGuidance}\n`
-    : '';
+  const customGuidance = composeGuidance(
+    gridGenericGuidance,
+    guidanceOverride?.trim() || bg.layerGuidance.trim(),
+    `BACKGROUND-SPECIFIC NOTES (use these to refine each ${modeLabel})`,
+  );
 
   const modeGuidance = bg.bgMode === 'parallax'
     ? `PARALLAX LAYER DESIGN: Each cell is one horizontal layer of a parallax
@@ -108,5 +101,5 @@ CELL LAYOUT (${grid.cols}\u00d7${grid.rows} grid, 0-indexed):
 
 ${cellDescriptions.join('\n')}
 ${customGuidance}
-Return the completed sprite sheet as a single image. Preserve ALL header text exactly.`;
+${CLOSING_INSTRUCTION}`;
 }

@@ -35,6 +35,8 @@ export function useAddSheet() {
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  const isGeneratingRef = useRef(false);
+
   useEffect(() => () => { abortRef.current?.abort(); }, []);
 
   const cancel = useCallback(() => {
@@ -42,10 +44,14 @@ export function useAddSheet() {
       abortRef.current.abort();
       abortRef.current = null;
     }
+    isGeneratingRef.current = false;
     setGenerating(false);
   }, []);
 
   const generate = useCallback(async (opts: AddSheetOptions) => {
+    if (isGeneratingRef.current) return;
+    isGeneratingRef.current = true;
+
     const { gridLink, imageSize, referenceMode, selectedSprites, followUpGuidance, aspectRatioOverride } = opts;
     const currentState = stateRef.current;
     const spriteType = currentState.spriteType as SpriteType;
@@ -54,9 +60,13 @@ export function useAddSheet() {
     let groupId = currentState.sourceGroupId;
     const historyId = currentState.historyId;
 
-    if (!filledGridImage) throw new Error('No filled grid image available');
+    if (!filledGridImage) {
+      isGeneratingRef.current = false;
+      throw new Error('No filled grid image available');
+    }
 
     setGenerating(true);
+    abortRef.current?.abort();
     const abort = new AbortController();
     abortRef.current = abort;
 
@@ -140,6 +150,7 @@ export function useAddSheet() {
       const message = err instanceof Error ? err.message : 'Generation failed';
       dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
+      isGeneratingRef.current = false;
       setGenerating(false);
       abortRef.current = null;
     }

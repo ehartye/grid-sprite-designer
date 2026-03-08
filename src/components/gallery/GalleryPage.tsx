@@ -119,7 +119,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
     });
   }, []);
 
-  const fetchGallery = useCallback(async (p: number, q: string, type: string) => {
+  const fetchGallery = useCallback(async (p: number, q: string, type: string, signal?: AbortSignal) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -127,23 +127,27 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
       params.set('limit', String(PAGE_SIZE));
       if (q) params.set('search', q);
       if (type) params.set('spriteType', type);
-      const res = await fetch(`/api/gallery?${params}`);
+      const res = await fetch(`/api/gallery?${params}`, { signal });
       const data: GalleryResponse = await res.json();
+      if (signal?.aborted) return;
       setEntries(data.entries);
       setTotal(data.total);
       setTotalPages(data.totalPages);
       setPage(data.page);
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error('Failed to fetch gallery:', err);
       dispatch({ type: 'SET_STATUS', message: 'Failed to load gallery', statusType: 'warning' });
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, [dispatch]);
 
   // Fetch on mount and when filters change
   useEffect(() => {
-    fetchGallery(page, search, spriteType);
+    const abort = new AbortController();
+    fetchGallery(page, search, spriteType, abort.signal);
+    return () => { abort.abort(); };
   }, [page, search, spriteType, fetchGallery]);
 
   // Debounce search input

@@ -246,6 +246,7 @@ export function useGenericWorkflow(config: WorkflowConfig) {
     if (activeGenerating) return;
     activeGenerating = true;
 
+    activeAbortController?.abort();
     const abort = new AbortController();
     activeAbortController = abort;
 
