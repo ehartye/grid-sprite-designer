@@ -99,6 +99,10 @@ function AppContent() {
     setTab('designer');
   }, []);
 
+  const resetToConfig = useCallback(() => {
+    dispatch({ type: 'SET_STEP', step: 'configure' });
+  }, [dispatch]);
+
   return (
     <>
       <AppHeader tab={tab} onTabChange={setTab} />
@@ -106,7 +110,11 @@ function AppContent() {
       <div className="app-layout">
         {tab === 'designer' && (
           <>
-            {state.step === 'configure' && <UnifiedConfigPanel />}
+            {state.step === 'configure' && (
+              <ErrorBoundary resetKeys={[state.step]} onReset={resetToConfig} sectionLabel="the config panel">
+                <UnifiedConfigPanel />
+              </ErrorBoundary>
+            )}
             {state.step === 'generating' && (
               <>
                 <GeneratingOverlay onCancel={handleCancelGeneration} />
@@ -124,7 +132,7 @@ function AppContent() {
               </>
             )}
             {state.step === 'review' && (
-              <>
+              <ErrorBoundary resetKeys={[state.step]} onReset={resetToConfig} sectionLabel="the sprite review">
                 <SpriteReview />
                 {run && (
                   <div className="run-review-bar">
@@ -151,9 +159,13 @@ function AppContent() {
                     </div>
                   </div>
                 )}
-              </>
+              </ErrorBoundary>
             )}
-            {state.step === 'preview' && <AnimationPreview />}
+            {state.step === 'preview' && (
+              <ErrorBoundary resetKeys={[state.step]} onReset={resetToConfig} sectionLabel="the animation preview">
+                <AnimationPreview />
+              </ErrorBoundary>
+            )}
             {state.step === 'run-active' && run && (
               <div className="config-panel" style={{ textAlign: 'center' }}>
                 <h2>Preparing Grid</h2>
@@ -177,10 +189,16 @@ function AppContent() {
         )}
 
         {tab === 'gallery' && (
-          <GalleryPage onSwitchToDesigner={switchToDesigner} />
+          <ErrorBoundary resetKeys={[tab]} onReset={resetToConfig} sectionLabel="the gallery">
+            <GalleryPage onSwitchToDesigner={switchToDesigner} />
+          </ErrorBoundary>
         )}
 
-        {tab === 'admin' && <AdminPage />}
+        {tab === 'admin' && (
+          <ErrorBoundary resetKeys={[tab]} onReset={resetToConfig} sectionLabel="the admin panel">
+            <AdminPage />
+          </ErrorBoundary>
+        )}
       </div>
 
       <StatusBanner />

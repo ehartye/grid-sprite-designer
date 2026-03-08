@@ -1,12 +1,21 @@
 /**
- * Top-level error boundary that catches render-time exceptions
+ * Error boundary that catches render-time exceptions
  * and displays a recovery UI instead of a white screen.
+ *
+ * Supports resetKeys: when any key changes, the error state auto-clears.
+ * Supports onReset: called when the user clicks "Try Again".
  */
 
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
+  /** When any value in this array changes, the error state auto-clears. */
+  resetKeys?: unknown[];
+  /** Called when the user clicks "Try Again". Use to dispatch state resets. */
+  onReset?: () => void;
+  /** Fallback label for the section name in the error message. */
+  sectionLabel?: string;
 }
 
 interface State {
@@ -16,6 +25,12 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null };
+  private prevResetKeys: unknown[] | undefined;
+
+  constructor(props: Props) {
+    super(props);
+    this.prevResetKeys = props.resetKeys;
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -25,7 +40,19 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('[ErrorBoundary] Uncaught render error:', error, info.componentStack);
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (this.state.hasError && this.props.resetKeys) {
+      const changed = !prevProps.resetKeys ||
+        this.props.resetKeys.length !== prevProps.resetKeys.length ||
+        this.props.resetKeys.some((key, i) => key !== prevProps.resetKeys![i]);
+      if (changed) {
+        this.setState({ hasError: false, error: null });
+      }
+    }
+  }
+
   private handleReset = () => {
+    this.props.onReset?.();
     this.setState({ hasError: false, error: null });
   };
 
@@ -37,6 +64,8 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.hasError) {
       return this.props.children;
     }
+
+    const label = this.props.sectionLabel ?? 'this section';
 
     return (
       <div
@@ -71,7 +100,7 @@ export class ErrorBoundary extends Component<Props, State> {
             marginBottom: '1.5rem',
           }}
         >
-          An unexpected error occurred while rendering the application.
+          An unexpected error occurred while rendering {label}.
         </p>
 
         {this.state.error && (
