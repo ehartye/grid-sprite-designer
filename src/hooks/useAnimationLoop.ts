@@ -19,7 +19,7 @@ export interface AnimationLoopState {
   setSpeed: (v: number) => void;
   scale: number;
   setScale: (v: number) => void;
-  canvasRef: RefObject<HTMLCanvasElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement>;
   animations: AnimationDef[];
   currentFrames: number[];
 }
