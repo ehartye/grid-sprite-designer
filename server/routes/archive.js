@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { mkdirSync, writeFileSync, readdirSync, statSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, resolve, sep } from 'path';
 
 export function createArchiveRouter(outputDir) {
+  const resolvedOutputDir = resolve(outputDir) + sep;
   const router = Router();
 
   router.post('/', (req, res, next) => {
@@ -18,6 +19,10 @@ export function createArchiveRouter(outputDir) {
       const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14).replace(/(\d{8})(\d{6})/, '$1-$2');
       const folderName = `${slug}_${ts}`;
       const folderPath = join(outputDir, folderName);
+
+      if (!resolve(folderPath).startsWith(resolvedOutputDir)) {
+        return res.status(400).json({ error: 'Invalid content name' });
+      }
 
       mkdirSync(folderPath, { recursive: true });
 
@@ -37,7 +42,11 @@ export function createArchiveRouter(outputDir) {
           const poseSlug = (s.poseName || s.poseId || `cell-${idx}`)
             .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
           const filename = `${idx}-${poseSlug}.${ext}`;
-          writeFileSync(join(spritesDir, filename), Buffer.from(s.imageData, 'base64'));
+          const spritePath = join(spritesDir, filename);
+          if (!resolve(spritePath).startsWith(resolvedOutputDir)) {
+            return res.status(400).json({ error: 'Invalid sprite name' });
+          }
+          writeFileSync(spritePath, Buffer.from(s.imageData, 'base64'));
           spriteCount++;
         }
       }

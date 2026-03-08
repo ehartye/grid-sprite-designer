@@ -301,7 +301,14 @@ export function UnifiedConfigPanel() {
               key={t}
               type="button"
               className={spriteType === t ? 'active' : ''}
-              onClick={() => dispatch({ type: 'SET_SPRITE_TYPE', spriteType: t })}
+              onClick={() => {
+                if (
+                  t !== spriteType &&
+                  (state.filledGridImage || state.sprites.length > 0) &&
+                  !window.confirm('Switch sprite type? Current work will be lost.')
+                ) return;
+                dispatch({ type: 'SET_SPRITE_TYPE', spriteType: t });
+              }}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>

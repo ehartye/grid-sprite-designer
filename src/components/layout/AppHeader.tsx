@@ -48,9 +48,12 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
   const showNewSprite = state.step === 'review' || state.step === 'preview' || tab === 'gallery';
 
   const handleNewSprite = useCallback(() => {
+    if (state.step !== 'configure') {
+      if (!window.confirm('Start a new sprite? Current work will be lost.')) return;
+    }
     dispatch({ type: 'RESET' });
     onTabChange('designer');
-  }, [dispatch, onTabChange]);
+  }, [dispatch, onTabChange, state.step]);
 
   return (
     <header className="app-header">
