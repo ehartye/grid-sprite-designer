@@ -30,7 +30,7 @@ export function AnimationPreview({ cellGroups }: AnimationPreviewProps) {
   const lastKeyRef = useRef<string>('ArrowDown');
 
   // Derive cellGroups from props, run state, or fall back to default ANIMATIONS
-  const currentGridLink = state.run?.active
+  const currentGridLink = state.run
     ? state.run.selectedGridLinks[state.run.currentGridIndex] ?? null
     : null;
   const effectiveCellGroups = cellGroups ?? currentGridLink?.cellGroups;

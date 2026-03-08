@@ -5,10 +5,8 @@
 
 import React, { useState } from 'react';
 import { GridPresetsTab } from './GridPresetsTab';
-import { CharacterPresetsTab } from './CharacterPresetsTab';
-import { BuildingPresetsTab } from './BuildingPresetsTab';
-import { TerrainPresetsTab } from './TerrainPresetsTab';
-import { BackgroundPresetsTab } from './BackgroundPresetsTab';
+import { GenericPresetsTab } from './GenericPresetsTab';
+import type { SpriteType } from '../../context/AppContext';
 import '../../styles/admin.css';
 
 type AdminTab = 'grid-presets' | 'characters' | 'buildings' | 'terrain' | 'backgrounds';
@@ -21,8 +19,16 @@ const ADMIN_TABS: { key: AdminTab; label: string }[] = [
   { key: 'backgrounds', label: 'Backgrounds' },
 ];
 
+const TAB_TO_SPRITE_TYPE: Partial<Record<AdminTab, SpriteType>> = {
+  characters: 'character',
+  buildings: 'building',
+  terrain: 'terrain',
+  backgrounds: 'background',
+};
+
 export function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('grid-presets');
+  const spriteType = TAB_TO_SPRITE_TYPE[activeTab];
 
   return (
     <div className="admin-page">
@@ -39,10 +45,7 @@ export function AdminPage() {
       </nav>
       <main className="admin-content">
         {activeTab === 'grid-presets' && <GridPresetsTab />}
-        {activeTab === 'characters' && <CharacterPresetsTab />}
-        {activeTab === 'buildings' && <BuildingPresetsTab />}
-        {activeTab === 'terrain' && <TerrainPresetsTab />}
-        {activeTab === 'backgrounds' && <BackgroundPresetsTab />}
+        {spriteType && <GenericPresetsTab spriteType={spriteType} />}
       </main>
     </div>
   );

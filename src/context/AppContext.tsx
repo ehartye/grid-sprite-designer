@@ -101,7 +101,6 @@ export interface BackgroundPreset {
 export type WorkflowStep = 'configure' | 'generating' | 'review' | 'preview' | 'run-builder' | 'run-active';
 
 export interface RunState {
-  active: boolean;
   contentPresetId: string | null;
   spriteType: SpriteType;
   selectedGridLinks: GridLink[];
@@ -200,7 +199,7 @@ export interface AppState {
   sourceContentPresetId: string | null;
 
   /** Character presets */
-  presets: CharacterPreset[];
+  characterPresets: CharacterPreset[];
 
   /** Building presets */
   buildingPresets: BuildingPreset[];
@@ -274,7 +273,7 @@ export const initialState: AppState = {
   historyId: null,
   sourceGroupId: null,
   sourceContentPresetId: null,
-  presets: [],
+  characterPresets: [],
   buildingPresets: [],
   terrainPresets: [],
   backgroundPresets: [],
@@ -300,8 +299,8 @@ type Action =
   | { type: 'SET_STEP'; step: WorkflowStep }
   | { type: 'SET_HISTORY_ID'; id: number }
   | { type: 'SET_SOURCE_CONTEXT'; groupId: string | null; contentPresetId: string | null }
-  | { type: 'SET_PRESETS'; presets: CharacterPreset[] }
-  | { type: 'LOAD_PRESET'; preset: CharacterPreset }
+  | { type: 'SET_CHARACTER_PRESETS'; presets: CharacterPreset[] }
+  | { type: 'LOAD_CHARACTER_PRESET'; preset: CharacterPreset }
   | { type: 'SET_BUILDING_PRESETS'; presets: BuildingPreset[] }
   | { type: 'LOAD_BUILDING_PRESET'; preset: BuildingPreset }
   | { type: 'SET_TERRAIN'; terrain: AppState['terrain'] }
@@ -330,7 +329,18 @@ function gridSizeToCellCount(gridSize: BuildingGridSize): number {
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_SPRITE_TYPE':
-      return { ...state, spriteType: action.spriteType };
+      if (action.spriteType === state.spriteType) return state;
+      return {
+        ...state,
+        spriteType: action.spriteType,
+        // Clear shared workflow state to prevent cross-type contamination
+        activeGridConfig: null,
+        filledGridImage: null,
+        templateImage: null,
+        sprites: [],
+        historyId: null,
+        step: 'configure',
+      };
     case 'SET_CHARACTER':
       return { ...state, character: action.character };
     case 'SET_BUILDING':
@@ -390,9 +400,9 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, historyId: action.id };
     case 'SET_SOURCE_CONTEXT':
       return { ...state, sourceGroupId: action.groupId, sourceContentPresetId: action.contentPresetId };
-    case 'SET_PRESETS':
-      return { ...state, presets: action.presets };
-    case 'LOAD_PRESET':
+    case 'SET_CHARACTER_PRESETS':
+      return { ...state, characterPresets: action.presets };
+    case 'LOAD_CHARACTER_PRESET':
       return {
         ...state,
         activeContentPresetIds: { ...state.activeContentPresetIds, character: action.preset.id },
@@ -481,7 +491,6 @@ export function reducer(state: AppState, action: Action): AppState {
         step: 'run-active',
         activeContentPresetIds: { ...state.activeContentPresetIds, [action.payload.spriteType]: action.payload.contentPresetId },
         run: {
-          active: true,
           contentPresetId: action.payload.contentPresetId,
           groupId: action.payload.groupId || `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           spriteType: action.payload.spriteType,
@@ -520,7 +529,7 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'RESET':
       return {
         ...initialState,
-        presets: state.presets,
+        characterPresets: state.characterPresets,
         buildingPresets: state.buildingPresets,
         terrainPresets: state.terrainPresets,
         backgroundPresets: state.backgroundPresets,

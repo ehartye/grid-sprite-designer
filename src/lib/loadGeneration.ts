@@ -9,6 +9,9 @@ import {
   getBuildingGridConfig,
   getTerrainGridConfig,
   getBackgroundGridConfig,
+  BUILDING_GRIDS,
+  TERRAIN_GRIDS,
+  BACKGROUND_GRIDS,
   type BuildingGridSize,
   type TerrainGridSize,
   type BackgroundGridSize,
@@ -41,47 +44,60 @@ export async function loadGenerationIntoState(
   }
 
   // 2. Populate config state based on sprite type
+  //    Validate gridSize at runtime before casting to type-specific unions
   if (spriteType === 'building' && data.gridSize) {
-    dispatch({
-      type: 'SET_BUILDING',
-      building: {
-        name: data.content?.name || '',
-        description: data.content?.description || '',
-        details: '',
-        colorNotes: '',
-        styleNotes: '',
-        cellGuidance: '',
-        gridSize: data.gridSize as BuildingGridSize,
-        cellLabels: spriteLabels,
-      },
-    });
+    if (!(data.gridSize in BUILDING_GRIDS)) {
+      console.warn(`Invalid building gridSize "${data.gridSize}", skipping grid override`);
+    } else {
+      dispatch({
+        type: 'SET_BUILDING',
+        building: {
+          name: data.content?.name || '',
+          description: data.content?.description || '',
+          details: '',
+          colorNotes: '',
+          styleNotes: '',
+          cellGuidance: '',
+          gridSize: data.gridSize as BuildingGridSize,
+          cellLabels: spriteLabels,
+        },
+      });
+    }
   } else if (spriteType === 'terrain' && data.gridSize) {
-    dispatch({
-      type: 'SET_TERRAIN',
-      terrain: {
-        name: data.content?.name || '',
-        description: data.content?.description || '',
-        colorNotes: '',
-        styleNotes: '',
-        tileGuidance: '',
-        gridSize: data.gridSize as TerrainGridSize,
-        cellLabels: spriteLabels,
-      },
-    });
+    if (!(data.gridSize in TERRAIN_GRIDS)) {
+      console.warn(`Invalid terrain gridSize "${data.gridSize}", skipping grid override`);
+    } else {
+      dispatch({
+        type: 'SET_TERRAIN',
+        terrain: {
+          name: data.content?.name || '',
+          description: data.content?.description || '',
+          colorNotes: '',
+          styleNotes: '',
+          tileGuidance: '',
+          gridSize: data.gridSize as TerrainGridSize,
+          cellLabels: spriteLabels,
+        },
+      });
+    }
   } else if (spriteType === 'background' && data.gridSize) {
-    dispatch({
-      type: 'SET_BACKGROUND',
-      background: {
-        name: data.content?.name || '',
-        description: data.content?.description || '',
-        colorNotes: '',
-        styleNotes: '',
-        layerGuidance: '',
-        bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
-        gridSize: data.gridSize as BackgroundGridSize,
-        cellLabels: spriteLabels,
-      },
-    });
+    if (!(data.gridSize in BACKGROUND_GRIDS)) {
+      console.warn(`Invalid background gridSize "${data.gridSize}", skipping grid override`);
+    } else {
+      dispatch({
+        type: 'SET_BACKGROUND',
+        background: {
+          name: data.content?.name || '',
+          description: data.content?.description || '',
+          colorNotes: '',
+          styleNotes: '',
+          layerGuidance: '',
+          bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
+          gridSize: data.gridSize as BackgroundGridSize,
+          cellLabels: spriteLabels,
+        },
+      });
+    }
   } else if (data.content) {
     dispatch({
       type: 'SET_CHARACTER',
@@ -134,19 +150,19 @@ export async function loadGenerationIntoState(
       ...(opts.editorSettings?.posterizeBits != null ? { posterizeBits: opts.editorSettings.posterizeBits } : {}),
     };
 
-    if (spriteType === 'building' && data.gridSize) {
+    if (spriteType === 'building' && data.gridSize && data.gridSize in BUILDING_GRIDS) {
       const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
       extractionConfig.gridOverride = {
         cols: gridConfig.cols, rows: gridConfig.rows,
         totalCells: gridConfig.totalCells, cellLabels: gridConfig.cellLabels,
       };
-    } else if (spriteType === 'terrain' && data.gridSize) {
+    } else if (spriteType === 'terrain' && data.gridSize && data.gridSize in TERRAIN_GRIDS) {
       const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, spriteLabels);
       extractionConfig.gridOverride = {
         cols: gridConfig.cols, rows: gridConfig.rows,
         totalCells: gridConfig.totalCells, cellLabels: gridConfig.cellLabels,
       };
-    } else if (spriteType === 'background' && data.gridSize) {
+    } else if (spriteType === 'background' && data.gridSize && data.gridSize in BACKGROUND_GRIDS) {
       const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, spriteLabels);
       extractionConfig.gridOverride = {
         cols: gridConfig.cols, rows: gridConfig.rows,
