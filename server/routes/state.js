@@ -1,7 +1,17 @@
 import { Router } from 'express';
 
+const VALID_STATE_KEYS = ['lastHistoryId'];
+
 export function createStateRouter(db) {
   const router = Router();
+
+  // Validate key for all routes
+  router.use('/:key', (req, res, next) => {
+    if (!VALID_STATE_KEYS.includes(req.params.key)) {
+      return res.status(400).json({ error: `Invalid state key. Allowed keys: ${VALID_STATE_KEYS.join(', ')}` });
+    }
+    next();
+  });
 
   router.get('/:key', (req, res, next) => {
     try {
