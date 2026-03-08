@@ -19,7 +19,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, '..', 'output');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = Number.isFinite(Number(process.env.PORT)) ? Number(process.env.PORT) : 3002;
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
