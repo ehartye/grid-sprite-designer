@@ -23,8 +23,7 @@ guidance below.
 
 /** Fetch a single content preset by type and id */
 export async function fetchContentPreset(spriteType: SpriteType, presetId: string): Promise<ContentPreset> {
-  const type = spriteType === 'character' ? 'character' : spriteType;
-  const res = await fetch(`/api/presets/${type}/${presetId}`);
+  const res = await fetch(`/api/presets/${spriteType}/${presetId}`);
   if (!res.ok) throw new Error(`Content preset "${presetId}" not found`);
   return res.json();
 }
