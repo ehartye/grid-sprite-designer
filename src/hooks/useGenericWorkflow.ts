@@ -256,16 +256,17 @@ export function useGenericWorkflow(config: WorkflowConfig) {
   const abortRef = useRef<AbortController | null>(null);
   const isGeneratingRef = useRef(false);
 
-  // Cleanup: only abort if this instance owns the shared controller
+  // Cleanup: abort on unmount only if NOT actively generating.
+  // When generating, the async pipeline still owns the controller and
+  // cancelActiveGeneration() can cancel via the module-level sharedAbortController.
   useEffect(() => () => {
-    if (abortRef.current) {
+    if (abortRef.current && !isGeneratingRef.current) {
       abortRef.current.abort();
       if (sharedAbortController === abortRef.current) {
         sharedAbortController = null;
       }
       abortRef.current = null;
     }
-    isGeneratingRef.current = false;
   }, []);
 
   const cancelGeneration = useCallback(() => {
