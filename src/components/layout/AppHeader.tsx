@@ -48,12 +48,15 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
   const showNewSprite = state.step === 'review' || state.step === 'preview' || tab === 'gallery';
 
   const handleNewSprite = useCallback(() => {
-    if (state.step !== 'configure') {
+    // Only warn if there's an in-progress generation that hasn't been saved yet
+    const hasUnsavedWork = state.step === 'generating' ||
+      ((state.step === 'review' || state.step === 'preview') && state.historyId === null);
+    if (hasUnsavedWork) {
       if (!window.confirm('Start a new sprite? Current work will be lost.')) return;
     }
     dispatch({ type: 'RESET' });
     onTabChange('designer');
-  }, [dispatch, onTabChange, state.step]);
+  }, [dispatch, onTabChange, state.step, state.historyId]);
 
   return (
     <header className="app-header">
