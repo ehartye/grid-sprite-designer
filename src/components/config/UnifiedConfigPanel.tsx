@@ -303,6 +303,7 @@ export function UnifiedConfigPanel() {
                 if (
                   t !== spriteType &&
                   (state.filledGridImage || state.sprites.length > 0) &&
+                  state.historyId === null &&
                   !window.confirm('Switch sprite type? Current work will be lost.')
                 ) return;
                 dispatch({ type: 'SET_SPRITE_TYPE', spriteType: t });
