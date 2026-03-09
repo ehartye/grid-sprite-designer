@@ -11,7 +11,7 @@ export const characterConfig: WorkflowConfig = {
   spriteType: 'character',
   validationLabel: 'character',
   getContent: (state) => state.character,
-  buildGridConfig: (state, gridLink) => {
+  buildGridConfig: (_state, gridLink) => {
     if (gridLink) return gridPresetToConfig(gridLink, 'character');
     return CHARACTER_GRID;
   },

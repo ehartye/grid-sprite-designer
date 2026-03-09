@@ -4,7 +4,7 @@
  * and the active tab (Designer / Gallery).
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AppHeader, AppTab } from './components/layout/AppHeader';
 import { UnifiedConfigPanel } from './components/config/UnifiedConfigPanel';
@@ -47,7 +47,7 @@ function AppContent() {
         const data = await res.json();
 
         await loadGenerationIntoState(data, dispatch, { historyId: id });
-      } catch (err) {
+      } catch (_err) {
         dispatch({ type: 'SET_STATUS', message: 'Failed to restore last session', statusType: 'warning' });
       }
     })();
@@ -64,7 +64,7 @@ function AppContent() {
     return () => window.removeEventListener('unhandledrejection', handler);
   }, [dispatch]);
 
-  const { generateCurrentGrid, proceedToNextGrid, skipCurrentGrid, cancelRun, run } = useRunWorkflow();
+  const { generateCurrentGrid, advanceToNextGrid, cancelRun, run } = useRunWorkflow();
 
   const handleCancelGeneration = useCallback(() => {
     if (run) {
@@ -141,15 +141,15 @@ function AppContent() {
                       {' '}&mdash; {run.selectedGridLinks[run.currentGridIndex]?.gridName}
                     </span>
                     <div className="run-review-actions">
-                      <button className="btn btn-sm" onClick={skipCurrentGrid}>
+                      <button className="btn btn-sm" onClick={advanceToNextGrid}>
                         Skip
                       </button>
                       {run.currentGridIndex < run.selectedGridLinks.length - 1 ? (
-                        <button className="btn btn-sm btn-primary" onClick={proceedToNextGrid}>
+                        <button className="btn btn-sm btn-primary" onClick={advanceToNextGrid}>
                           Next Grid
                         </button>
                       ) : (
-                        <button className="btn btn-sm btn-primary" onClick={proceedToNextGrid}>
+                        <button className="btn btn-sm btn-primary" onClick={advanceToNextGrid}>
                           Finish Run
                         </button>
                       )}

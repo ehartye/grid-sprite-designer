@@ -20,17 +20,6 @@ interface CellRangeSelectorProps {
   onChange: (cells: number[]) => void;
 }
 
-const GROUP_COLORS = [
-  'var(--accent)',       // lime
-  'var(--info)',         // teal
-  '#ff6b9d',            // pink
-  'var(--warning)',      // orange
-  '#a78bfa',            // violet
-  '#67e8f9',            // cyan
-  '#fbbf24',            // amber
-  '#34d399',            // emerald
-];
-
 export function CellRangeSelector({
   cols,
   rows,

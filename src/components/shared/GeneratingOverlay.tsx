@@ -4,7 +4,6 @@
  * generates the sprite grid.
  */
 
-import React from 'react';
 import { useAppState } from '../../context/AppContext';
 import { BUILDING_GRIDS, TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../../lib/gridConfig';
 

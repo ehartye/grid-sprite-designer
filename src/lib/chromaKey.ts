@@ -6,6 +6,8 @@
  *     cleaning up magenta fringe without punching holes in the sprite.
  */
 
+import { debugLog } from './debugLog';
+
 /**
  * Auto-detect the dominant background color from a sprite's edge pixels.
  * Samples a border ring, buckets colors, and returns the most frequent.
@@ -173,9 +175,9 @@ export function applyChromaKey(
  */
 export function defringeRecolor(
   source: ImageData,
-  keyR = 255,
-  keyG = 0,
-  keyB = 255,
+  _keyR = 255,
+  _keyG = 0,
+  _keyB = 255,
   passes = 3,
   sensitivity = 50,
 ): ImageData {
@@ -280,9 +282,7 @@ export function defringeRecolor(
     }
   }
 
-  if (import.meta.env.DEV) {
-    console.log(`[DefringeRecolor] Recolored ${totalRecolored} pixels across ${passes} passes (${width}x${height})`);
-  }
+  debugLog(`[DefringeRecolor] Recolored ${totalRecolored} pixels across ${passes} passes (${width}x${height})`);
   return out;
 }
 

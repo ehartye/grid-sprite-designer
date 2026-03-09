@@ -4,7 +4,7 @@
  * Right sidebar: animation preview, export controls, re-extraction.
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useGenericWorkflow, WORKFLOW_CONFIGS } from '../../hooks/useGenericWorkflow';
 import { useAppState, type CellGroup, type GridLink } from '../../context/AppContext';
 import { useEditorSettings } from '../../hooks/useEditorSettings';

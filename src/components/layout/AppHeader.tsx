@@ -4,7 +4,7 @@
  * test-connection button, and contextual actions.
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAppState, useAppDispatch } from '../../context/AppContext';
 import { testConnection } from '../../api/geminiClient';
 

@@ -4,7 +4,7 @@
  * and the separate Run Builder page.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { GridLink } from '../../context/AppContext';
 
 interface GridLinkSelectorProps {

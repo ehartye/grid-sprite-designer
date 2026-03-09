@@ -7,30 +7,7 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useAppDispatch, useAppState } from '../../context/AppContext';
 import { loadGenerationIntoState } from '../../lib/loadGeneration';
-
-interface GalleryEntry {
-  id: number;
-  contentName: string;
-  createdAt: string;
-  spriteType: string;
-  gridSize: string | null;
-  groupId: string | null;
-  spriteCount: number;
-  thumbnailData: string | null;
-  thumbnailMime: string | null;
-}
-
-interface GalleryGroup {
-  name: string;
-  entries: GalleryEntry[];
-}
-
-interface GalleryResponse {
-  entries: GalleryEntry[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
+import type { GalleryEntry, GalleryGroup, GalleryResponse } from '../../types/api';
 
 const SPRITE_TYPES = [
   { value: '', label: 'All Types' },

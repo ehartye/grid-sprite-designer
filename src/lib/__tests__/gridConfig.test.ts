@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   CHARACTER_GRID,
   BUILDING_GRIDS,
-  TERRAIN_GRIDS,
-  BACKGROUND_GRIDS,
   getBuildingGridConfig,
   getTerrainGridConfig,
   getBackgroundGridConfig,

@@ -9,17 +9,10 @@ import { buildBuildingPrompt } from './buildingPromptBuilder';
 import { buildTerrainPrompt } from './terrainPromptBuilder';
 import { buildBackgroundPrompt } from './backgroundPromptBuilder';
 import { type GridConfig } from './gridConfig';
+import { REFERENCE_PREFIX } from './promptBuilderBase';
 import type { ContentPreset } from '../types/api';
 
-export const REFERENCE_PREFIX = `\
-You are given two images.
-IMAGE 1 is a previously completed sprite sheet for this character — use it as
-your visual reference to maintain consistent proportions, color palette, art
-style, and character identity.
-IMAGE 2 is a blank template grid — fill each labeled cell according to the
-guidance below.
-
-`;
+export { REFERENCE_PREFIX };
 
 /** Fetch a single content preset by type and id */
 export async function fetchContentPreset(spriteType: SpriteType, presetId: string): Promise<ContentPreset> {

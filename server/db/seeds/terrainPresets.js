@@ -467,7 +467,7 @@ ROW 3 — Rock-to-Pool Edge Transitions:
   const linkAll = db.transaction(() => {
     for (const p of PRESETS) {
       const [cols, rows] = terrainSizeToDims[p.gridSize] || [4, 4];
-      const labels = JSON.parse(p.tileLabels);
+      const _labels = JSON.parse(p.tileLabels);
       const cellGroups = [];
       for (let r = 0; r < rows; r++) {
         const cells = [];

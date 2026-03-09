@@ -4,7 +4,7 @@
  * Accessible from the review step.
  */
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAppState, useAppDispatch, type CellGroup } from '../../context/AppContext';
 import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';

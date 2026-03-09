@@ -3,7 +3,7 @@
  * Combines the template structure instructions with character-specific details.
  */
 
-import { CLOSING_INSTRUCTION } from './promptBuilderBase';
+import { CLOSING_INSTRUCTION, REFERENCE_PREFIX } from './promptBuilderBase';
 
 export interface CharacterConfig {
   name: string;
@@ -233,15 +233,5 @@ export function buildGridFillPromptWithReference(
 ): string {
   const basePrompt = buildGridFillPrompt(character, gridGenericGuidance, guidanceOverride, cellLabels);
 
-  const referencePrefix = `\
-You are given two images.
-IMAGE 1 is a previously completed sprite sheet for this character — use it as
-your visual reference to maintain consistent proportions, color palette, art
-style, and character identity.
-IMAGE 2 is a blank template grid — fill each labeled cell according to the
-guidance below.
-
-`;
-
-  return referencePrefix + basePrompt;
+  return REFERENCE_PREFIX + basePrompt;
 }

@@ -2,7 +2,7 @@
  * Modal for generating a new sprite sheet linked to an existing generation.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppContext, SpriteType, GridLink } from '../../context/AppContext';
 import { useAddSheet, AddSheetOptions } from '../../hooks/useAddSheet';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
