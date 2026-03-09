@@ -3,7 +3,6 @@
  * Used to replace `any` types throughout the codebase.
  */
 
-import type { SpriteType, CellGroup } from '../context/AppContext';
 
 /** Response from GET /api/history/:id */
 export interface HistoryResponse {

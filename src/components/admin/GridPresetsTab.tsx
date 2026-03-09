@@ -4,7 +4,7 @@
  * cell labels editor, cell groups editor, and generic guidance textarea.
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { GridPreset, CellGroup, SpriteType } from '../../context/AppContext';
 import { CellRangeSelector } from './CellRangeSelector';
 

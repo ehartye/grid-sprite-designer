@@ -158,7 +158,7 @@ describe('POST /:id/sprites validation', () => {
 
   it('returns 400 when poseId is missing', () => {
     const res = mockRes();
-    const { poseId, ...rest } = validSprite;
+    const { poseId: _poseId, ...rest } = validSprite;
     handler(mockReq({ sprites: [rest] }, { id: '1' }), res, vi.fn());
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/poseId/);
@@ -173,7 +173,7 @@ describe('POST /:id/sprites validation', () => {
 
   it('returns 400 when imageData is missing', () => {
     const res = mockRes();
-    const { imageData, ...rest } = validSprite;
+    const { imageData: _imageData, ...rest } = validSprite;
     handler(mockReq({ sprites: [rest] }, { id: '1' }), res, vi.fn());
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/imageData/);
@@ -181,7 +181,7 @@ describe('POST /:id/sprites validation', () => {
 
   it('returns 400 when mimeType is missing', () => {
     const res = mockRes();
-    const { mimeType, ...rest } = validSprite;
+    const { mimeType: _mimeType, ...rest } = validSprite;
     handler(mockReq({ sprites: [rest] }, { id: '1' }), res, vi.fn());
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toMatch(/mimeType/);

@@ -16,6 +16,7 @@
     "test:report": "npx tsx tests/report-generator.ts",
     "test:sync-manifests": "npx tsx scripts/sync-fixture-manifests.ts",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src server",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:export-fixtures": "npx tsx scripts/export-fixtures-from-db.ts && npx tsx scripts/generate-fixture-index.ts"
@@ -31,6 +32,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.58.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
@@ -39,7 +41,10 @@
     "@vitejs/plugin-react": "^4.3.1",
     "@vitest/coverage-v8": "^4.0.18",
     "concurrently": "^9.2.1",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "typescript": "^5.5.4",
+    "typescript-eslint": "^8.56.1",
     "vite": "^5.4.2",
     "vitest": "^4.0.18"
   }

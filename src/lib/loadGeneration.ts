@@ -124,7 +124,7 @@ export async function loadGenerationIntoState(
 
   if (data.filledGridImage) {
     // Build extraction config
-    let extractionConfig: Parameters<typeof extractSprites>[2] = {
+    const extractionConfig: Parameters<typeof extractSprites>[2] = {
       ...(opts.editorSettings?.aaInset != null ? { aaInset: opts.editorSettings.aaInset } : {}),
       ...(opts.editorSettings?.posterizeBits != null ? { posterizeBits: opts.editorSettings.posterizeBits } : {}),
     };

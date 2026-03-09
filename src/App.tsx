@@ -4,7 +4,7 @@
  * and the active tab (Designer / Gallery).
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { AppHeader, AppTab } from './components/layout/AppHeader';
 import { UnifiedConfigPanel } from './components/config/UnifiedConfigPanel';
@@ -47,7 +47,7 @@ function AppContent() {
         const data = await res.json();
 
         await loadGenerationIntoState(data, dispatch, { historyId: id });
-      } catch (err) {
+      } catch (_err) {
         dispatch({ type: 'SET_STATUS', message: 'Failed to restore last session', statusType: 'warning' });
       }
     })();

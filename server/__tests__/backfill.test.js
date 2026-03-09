@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { createSchema } from '../db/schema.js';
 import { migrateSchema } from '../db/migrations.js';

@@ -547,7 +547,7 @@ ROW 2 — Extreme States:
   const linkAll = db.transaction(() => {
     for (const p of PRESETS) {
       const [cols, rows] = gridSizeToDims[p.gridSize] || [3, 3];
-      const labels = JSON.parse(p.cellLabels);
+      const _labels = JSON.parse(p.cellLabels);
       const cellGroups = [];
       for (let r = 0; r < rows; r++) {
         const cells = [];

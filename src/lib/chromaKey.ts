@@ -175,9 +175,9 @@ export function applyChromaKey(
  */
 export function defringeRecolor(
   source: ImageData,
-  keyR = 255,
-  keyG = 0,
-  keyB = 255,
+  _keyR = 255,
+  _keyG = 0,
+  _keyB = 255,
   passes = 3,
   sensitivity = 50,
 ): ImageData {
