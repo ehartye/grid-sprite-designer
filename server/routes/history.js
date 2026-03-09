@@ -42,13 +42,8 @@ export function createHistoryRouter(db) {
         content: {
           name: gen.content_name || '',
           description: gen.content_description || '',
-          equipment: '',
-          colorNotes: '',
-          styleNotes: '',
-          rowGuidance: '',
         },
         filledGridImage: gen.filled_grid_image,
-        filledGridMimeType: 'image/png',
         geminiText: gen.prompt || '',
         aspectRatio: gen.aspect_ratio || '1:1',
         groupId: gen.group_id || null,
@@ -59,8 +54,6 @@ export function createHistoryRouter(db) {
           label: s.pose_name,
           imageData: s.image_data,
           mimeType: s.mime_type,
-          width: 0,
-          height: 0,
         })),
       });
     } catch (err) { next(err); }
