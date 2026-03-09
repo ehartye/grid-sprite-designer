@@ -3,7 +3,7 @@
  * Tabbed interface: Grid Presets, Characters, Buildings, Terrain, Backgrounds.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { GridPresetsTab } from './GridPresetsTab';
 import { GenericPresetsTab } from './GenericPresetsTab';
 import type { SpriteType } from '../../context/AppContext';

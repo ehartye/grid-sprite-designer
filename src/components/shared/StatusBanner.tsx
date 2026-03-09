@@ -4,7 +4,7 @@
  * all other types auto-fade after 5 seconds.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
 export function StatusBanner() {

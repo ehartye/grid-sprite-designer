@@ -3,7 +3,7 @@
  * Config-driven CRUD for all sprite type presets (character, building, terrain, background).
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAppDispatch } from '../../context/AppContext';
 import { LinkedGridPresets } from './LinkedGridPresets';
 import type { SpriteType } from '../../context/AppContext';

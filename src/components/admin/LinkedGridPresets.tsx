@@ -3,7 +3,7 @@
  * Shows linked grids with guidance override textareas, add/remove/reorder controls.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { GridLink, GridPreset, SpriteType } from '../../context/AppContext';
 
 interface LinkedGridPresetsProps {

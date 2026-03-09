@@ -6,7 +6,7 @@
  * Supports onReset: called when the user clicks "Try Again".
  */
 
-import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
