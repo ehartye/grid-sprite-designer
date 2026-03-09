@@ -73,19 +73,28 @@ export interface ContentPreset {
   styleNotes?: string;
 }
 
+/** A single entry in the gallery listing */
+export interface GalleryEntry {
+  id: number;
+  contentName: string;
+  createdAt: string;
+  spriteType: string;
+  gridSize: string | null;
+  groupId: string | null;
+  spriteCount: number;
+  thumbnailData: string | null;
+  thumbnailMime: string | null;
+}
+
+/** A group of gallery entries sharing the same name or groupId */
+export interface GalleryGroup {
+  name: string;
+  entries: GalleryEntry[];
+}
+
 /** Response from GET /api/gallery */
 export interface GalleryResponse {
-  entries: Array<{
-    id: number;
-    contentName: string;
-    createdAt: string;
-    spriteType: string;
-    gridSize: string | null;
-    groupId: string | null;
-    spriteCount: number;
-    thumbnailData: string | null;
-    thumbnailMime: string | null;
-  }>;
+  entries: GalleryEntry[];
   total: number;
   page: number;
   totalPages: number;

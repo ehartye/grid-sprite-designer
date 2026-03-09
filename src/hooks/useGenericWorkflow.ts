@@ -12,6 +12,12 @@ import { generateGrid } from '../api/geminiClient';
 import type { GridConfig } from '../lib/gridConfig';
 import type { HistorySaveResponse } from '../types/api';
 
+/** Extra fields merged into the /api/history POST body */
+export interface HistoryExtras {
+  groupId?: number | string | null;
+  contentPresetId?: number | string | null;
+}
+
 export interface WorkflowConfig {
   spriteType: SpriteType;
   /** Human-readable label for validation messages (e.g. "character", "building") */
@@ -44,7 +50,7 @@ export interface PipelineParams {
   cellGroups?: CellGroup[];
   referenceImage?: { data: string; mimeType: string };
   /** Extra fields merged into the /api/history POST body */
-  historyExtras?: Record<string, any>;
+  historyExtras?: HistoryExtras;
   /** Source context for SET_SOURCE_CONTEXT dispatch */
   sourceContext?: { groupId: string | null; contentPresetId: string | null };
 }

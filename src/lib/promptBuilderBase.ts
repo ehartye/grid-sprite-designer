@@ -44,3 +44,14 @@ export function composeGuidance(
 
 /** The closing instruction shared by all prompt builders. */
 export const CLOSING_INSTRUCTION = 'Return the completed sprite sheet as a single image. Preserve ALL header text exactly.';
+
+/** Prefix for multi-grid reference image prompts, shared by all sprite types. */
+export const REFERENCE_PREFIX = `\
+You are given two images.
+IMAGE 1 is a previously completed sprite sheet for this character — use it as
+your visual reference to maintain consistent proportions, color palette, art
+style, and character identity.
+IMAGE 2 is a blank template grid — fill each labeled cell according to the
+guidance below.
+
+`;

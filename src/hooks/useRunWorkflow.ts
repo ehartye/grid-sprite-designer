@@ -96,17 +96,9 @@ export function useRunWorkflow() {
     }
   }, [dispatch]);
 
-  const proceedToNextGrid = useCallback(() => {
+  const advanceToNextGrid = useCallback(() => {
     if (isGeneratingRef.current) {
-      dispatch({ type: 'SET_STATUS', message: 'Cannot proceed while generation is in progress', statusType: 'warning' });
-      return;
-    }
-    dispatch({ type: 'NEXT_GRID' });
-  }, [dispatch]);
-
-  const skipCurrentGrid = useCallback(() => {
-    if (isGeneratingRef.current) {
-      dispatch({ type: 'SET_STATUS', message: 'Cannot skip while generation is in progress — cancel first', statusType: 'warning' });
+      dispatch({ type: 'SET_STATUS', message: 'Cannot advance while generation is in progress', statusType: 'warning' });
       return;
     }
     dispatch({ type: 'NEXT_GRID' });
@@ -114,8 +106,7 @@ export function useRunWorkflow() {
 
   return {
     generateCurrentGrid,
-    proceedToNextGrid,
-    skipCurrentGrid,
+    advanceToNextGrid,
     cancelRun,
     run: state.run,
     isRunActive: state.run !== null,
