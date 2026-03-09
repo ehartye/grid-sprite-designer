@@ -88,7 +88,8 @@ export function createPresetsRouter(db) {
       const { linkTable: table, fk } = config;
       const links = db.prepare(`
         SELECT l.*, g.name as grid_name, g.grid_size, g.cols, g.rows,
-               g.cell_labels, g.cell_groups, g.generic_guidance, g.bg_mode
+               g.cell_labels, g.cell_groups, g.generic_guidance, g.bg_mode,
+               g.aspect_ratio, g.tile_shape
         FROM ${table} l
         JOIN grid_presets g ON g.id = l.grid_preset_id
         WHERE l.${fk} = ?
@@ -107,6 +108,8 @@ export function createPresetsRouter(db) {
         cellGroups: JSON.parse(l.cell_groups),
         genericGuidance: l.generic_guidance,
         bgMode: l.bg_mode,
+        aspectRatio: l.aspect_ratio || '1:1',
+        tileShape: l.tile_shape || 'square',
       })));
     } catch (err) { next(err); }
   });

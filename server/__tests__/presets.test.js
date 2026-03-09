@@ -3,6 +3,7 @@ import Database from 'better-sqlite3';
 import { createSchema } from '../db/schema.js';
 import { migrateSchema } from '../db/migrations.js';
 import { createPresetsRouter } from '../routes/presets.js';
+import { PRESET_TABLES } from '../presetTables.js';
 
 function freshDb() {
   const db = new Database(':memory:');
@@ -140,5 +141,73 @@ describe('GET / preset list with gridLinkCount', () => {
 
     // Should use exactly 1 query, not 1 + N (where N is number of presets)
     expect(prepareCount).toBe(1);
+  });
+});
+
+describe('GET /:type/:id/grid-links returns aspectRatio and tileShape', () => {
+  let db, handler;
+
+  beforeEach(() => {
+    db = freshDb();
+    const router = createPresetsRouter(db);
+    handler = findHandler(router, 'get', '/:type/:id/grid-links');
+  });
+
+  it('returns aspectRatio and tileShape from grid preset', () => {
+    // Insert a character preset
+    db.prepare(
+      "INSERT INTO character_presets (id, name, is_preset) VALUES ('cp1', 'Warrior', 1)"
+    ).run();
+
+    // Insert a grid preset with specific aspect_ratio and tile_shape
+    db.prepare(
+      `INSERT INTO grid_presets (name, sprite_type, grid_size, cols, rows, cell_labels, cell_groups, aspect_ratio, tile_shape)
+       VALUES ('Wide Grid', 'character', '4x4', 4, 4, '[]', '[]', '16:9', 'diamond')`
+    ).run();
+
+    // Link them
+    db.prepare(
+      "INSERT INTO character_grid_links (character_preset_id, grid_preset_id) VALUES ('cp1', 1)"
+    ).run();
+
+    const res = mockRes();
+    const req = {
+      params: { type: 'character', id: 'cp1' },
+      presetConfig: PRESET_TABLES.character,
+    };
+    handler(req, res, () => {});
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].aspectRatio).toBe('16:9');
+    expect(res.body[0].tileShape).toBe('diamond');
+  });
+
+  it('defaults aspectRatio to 1:1 and tileShape to square when null', () => {
+    db.prepare(
+      "INSERT INTO character_presets (id, name, is_preset) VALUES ('cp1', 'Warrior', 1)"
+    ).run();
+
+    // Insert grid preset without aspect_ratio or tile_shape (uses schema defaults)
+    db.prepare(
+      `INSERT INTO grid_presets (name, sprite_type, grid_size, cols, rows, cell_labels, cell_groups)
+       VALUES ('Basic Grid', 'character', '3x3', 3, 3, '[]', '[]')`
+    ).run();
+
+    db.prepare(
+      "INSERT INTO character_grid_links (character_preset_id, grid_preset_id) VALUES ('cp1', 1)"
+    ).run();
+
+    const res = mockRes();
+    const req = {
+      params: { type: 'character', id: 'cp1' },
+      presetConfig: PRESET_TABLES.character,
+    };
+    handler(req, res, () => {});
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].aspectRatio).toBe('1:1');
+    expect(res.body[0].tileShape).toBe('square');
   });
 });
