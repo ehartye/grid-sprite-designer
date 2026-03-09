@@ -144,8 +144,8 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
 
   const handleLoad = useCallback(
     async (id: number) => {
-      // Confirm before discarding in-progress work
-      if (state.step !== 'configure' && !window.confirm('You have work in progress. Load this generation and discard current work?')) {
+      // Only warn if there's an unsaved generation (no historyId means it hasn't been persisted)
+      if (state.historyId === null && state.step !== 'configure' && !window.confirm('You have an unsaved generation. Load this and discard current work?')) {
         return;
       }
 
