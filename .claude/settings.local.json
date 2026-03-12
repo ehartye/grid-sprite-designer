@@ -13,7 +13,5 @@
       "Bash(npx playwright install chromium)"
     ]
   },
-  "enabledPlugins": {
-    "hartye-superpowers@hartye-plugins": true
-  }
+  "enabledPlugins": {}
 }

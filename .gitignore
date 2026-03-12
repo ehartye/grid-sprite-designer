@@ -12,3 +12,4 @@ output/
 !test-fixtures/*.png
 test-fixtures/*.b64
 .worktrees/
+coverage/
