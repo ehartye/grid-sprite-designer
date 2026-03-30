@@ -1,5 +1,5 @@
 export function seedIsometricGridPresets(db) {
-  const existing = db.prepare("SELECT COUNT(*) as count FROM grid_presets WHERE genre IN ('Post-Apocalyptic','Sci-Fi Horror','Isometric') AND aspect_ratio = '16:9'").get();
+  const existing = db.prepare("SELECT COUNT(*) as count FROM grid_presets WHERE genre IN ('Post-Apocalyptic','Sci-Fi Horror','Isometric')").get();
   if (existing.count > 0) return;
 
   const GRIDS = [
@@ -10,7 +10,7 @@ export function seedIsometricGridPresets(db) {
       genre: 'Post-Apocalyptic',
       gridSize: '4x4',
       cols: 4, rows: 4,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'diamond',
       cellLabels: ['Center 1','Center 2','Center 3','Edge N','Edge S','Edge E','Edge W',
                    'Corner NE','Corner NW','Corner SE','Corner SW',
@@ -18,8 +18,7 @@ export function seedIsometricGridPresets(db) {
       genericGuidance: `Isometric 2:1 diamond tile set for a post-apocalyptic wasteland floor. Each cell contains one diamond-shaped tile drawn at isometric perspective (roughly 30-degree top-down angle). Tiles must seamlessly connect when placed adjacent in an isometric grid.
 
 TILE DRAWING RULES:
-- Each tile is a diamond (rhombus) shape with 2:1 width-to-height ratio
-- Draw the tile centered in the cell on a magenta (#FF00FF) background
+- Each tile is a 2:1 isometric diamond (rhombus) centered within the square cell on a magenta (#FF00FF) background. The diamond's width is the full cell width, its height is half the cell width.
 - Edges of adjacent tiles must match perfectly when tiled
 - Maintain consistent lighting from top-left
 - Use cracked concrete, sand, rubble, and sparse dead vegetation textures
@@ -37,7 +36,7 @@ TILE TYPES:
       genre: 'Sci-Fi Horror',
       gridSize: '4x4',
       cols: 4, rows: 4,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'diamond',
       cellLabels: ['Center 1','Center 2','Center 3','Edge N','Edge S','Edge E','Edge W',
                    'Corner NE','Corner NW','Corner SE','Corner SW',
@@ -45,8 +44,7 @@ TILE TYPES:
       genericGuidance: `Isometric 2:1 diamond tile set for an alien hive floor. Each cell contains one diamond-shaped tile drawn at isometric perspective (roughly 30-degree top-down angle). Tiles must seamlessly connect when placed adjacent in an isometric grid.
 
 TILE DRAWING RULES:
-- Each tile is a diamond (rhombus) shape with 2:1 width-to-height ratio
-- Draw the tile centered in the cell on a magenta (#FF00FF) background
+- Each tile is a 2:1 isometric diamond (rhombus) centered within the square cell on a magenta (#FF00FF) background. The diamond's width is the full cell width, its height is half the cell width.
 - Edges of adjacent tiles must match perfectly when tiled
 - Maintain consistent lighting from bioluminescent sources within the floor
 - Use organic textures: resin-coated chitin, membrane, pulsing veins, hardened secretions
@@ -65,7 +63,7 @@ TILE TYPES:
       genre: 'Post-Apocalyptic',
       gridSize: '4x2',
       cols: 4, rows: 2,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'square',
       cellLabels: ['Wall Left','Wall Upper','Corner Upper-Left (Upper)','Corner Upper-Left (Left)',
                    'Corner Upper-Right','Corner Lower-Left','Corner Lower-Right','Pillar'],
@@ -91,7 +89,7 @@ WALL TYPES:
       genre: 'Sci-Fi Horror',
       gridSize: '4x2',
       cols: 4, rows: 2,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'square',
       cellLabels: ['Wall Left','Wall Upper','Corner Upper-Left (Upper)','Corner Upper-Left (Left)',
                    'Corner Upper-Right','Corner Lower-Left','Corner Lower-Right','Pillar'],
@@ -118,7 +116,7 @@ WALL TYPES:
       genre: 'Isometric',
       gridSize: '8x6',
       cols: 8, rows: 6,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'square',
       cellLabels: [
         'S Frame 1','S Frame 2','S Frame 3','S Frame 4','S Frame 5','S Frame 6','S Frame 7','S Frame 8',
@@ -154,7 +152,7 @@ ANIMATION RULES:
       genre: 'Isometric',
       gridSize: '8x4',
       cols: 8, rows: 4,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'square',
       cellLabels: [
         'S Atk 1','S Atk 2','S Atk 3','S Atk 4','S Atk 5','S Atk 6','S Atk 7','S Atk 8',
@@ -179,7 +177,7 @@ ANIMATION RULES:
       genre: 'Isometric',
       gridSize: '8x4',
       cols: 8, rows: 4,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'square',
       cellLabels: [
         'S Idle 1','S Idle 2','S Idle 3','S Idle 4','S Idle 5','S Idle 6','S Idle 7','S Idle 8',
@@ -206,7 +204,7 @@ ANIMATION RULES:
       genre: 'Isometric',
       gridSize: '8x4',
       cols: 8, rows: 4,
-      aspectRatio: '16:9',
+      aspectRatio: '1:1',
       tileShape: 'square',
       cellLabels: [
         'S Death 1','S Death 2','S Death 3','S Death 4','S Death 5','S Death 6','S Death 7','S Death 8',

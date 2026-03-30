@@ -159,10 +159,10 @@ describe('GET /:type/:id/grid-links returns aspectRatio and tileShape', () => {
       "INSERT INTO character_presets (id, name, is_preset) VALUES ('cp1', 'Warrior', 1)"
     ).run();
 
-    // Insert a grid preset with specific aspect_ratio and tile_shape
+    // Insert a grid preset with 1:1 aspect ratio (non-background types are always 1:1) and diamond tile shape
     db.prepare(
       `INSERT INTO grid_presets (name, sprite_type, grid_size, cols, rows, cell_labels, cell_groups, aspect_ratio, tile_shape)
-       VALUES ('Wide Grid', 'character', '4x4', 4, 4, '[]', '[]', '16:9', 'diamond')`
+       VALUES ('Iso Grid', 'character', '4x4', 4, 4, '[]', '[]', '1:1', 'diamond')`
     ).run();
 
     // Link them
@@ -179,7 +179,7 @@ describe('GET /:type/:id/grid-links returns aspectRatio and tileShape', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveLength(1);
-    expect(res.body[0].aspectRatio).toBe('16:9');
+    expect(res.body[0].aspectRatio).toBe('1:1');
     expect(res.body[0].tileShape).toBe('diamond');
   });
 
