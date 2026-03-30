@@ -52,7 +52,7 @@ export function useAddSheet() {
     if (isGeneratingRef.current) return;
     isGeneratingRef.current = true;
 
-    const { gridLink, imageSize, referenceMode, selectedSprites, followUpGuidance, aspectRatioOverride } = opts;
+    const { gridLink, imageSize, referenceMode, selectedSprites, followUpGuidance } = opts;
     const currentState = stateRef.current;
     const spriteType = currentState.spriteType as SpriteType;
     const contentPresetId = currentState.sourceContentPresetId;
@@ -111,7 +111,6 @@ export function useAddSheet() {
 
       // Build grid config and prompt
       const gridConfig = gridPresetToConfig(gridLink, spriteType);
-      const aspectRatio = aspectRatioOverride || gridConfig.aspectRatio || '1:1';
 
       // Build prompt (always as subsequent grid since we have a reference)
       let prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, true);
@@ -126,7 +125,6 @@ export function useAddSheet() {
         prompt,
         model: currentState.model,
         imageSize,
-        aspectRatio,
         spriteType,
         contentName: contentPreset.name,
         contentDescription: contentPreset.description,
