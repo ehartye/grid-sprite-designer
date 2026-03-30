@@ -24,7 +24,8 @@ export interface GridConfig {
   cellLabels: string[];
   aspectRatio?: string;
   tileShape?: 'square' | 'diamond';
-  templates: {
+  /** Only present on background grids (exempt from 1:1 enforcement) */
+  templates?: {
     '2K': TemplateParams;
     '4K': TemplateParams;
   };
@@ -38,10 +39,6 @@ export const CHARACTER_GRID: GridConfig = {
   rows: ROWS,
   totalCells: TOTAL_CELLS,
   cellLabels: CELL_LABELS,
-  templates: {
-    '2K': { cellW: 339, cellH: 339, headerH: 14, border: 2, fontSize: 9 },
-    '4K': { cellW: 678, cellH: 678, headerH: 22, border: 4, fontSize: 14 },
-  },
 };
 
 /**
@@ -61,10 +58,6 @@ export const BUILDING_GRIDS: Record<string, GridConfig> = {
     rows: 3,
     totalCells: 9,
     cellLabels: [],
-    templates: {
-      '2K': { cellW: 680, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
-      '4K': { cellW: 1360, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
-    },
   },
   '2x3': {
     id: 'building-2x3',
@@ -73,10 +66,6 @@ export const BUILDING_GRIDS: Record<string, GridConfig> = {
     rows: 3,
     totalCells: 6,
     cellLabels: [],
-    templates: {
-      '2K': { cellW: 1021, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
-      '4K': { cellW: 2042, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
-    },
   },
   '2x2': {
     id: 'building-2x2',
@@ -85,10 +74,6 @@ export const BUILDING_GRIDS: Record<string, GridConfig> = {
     rows: 2,
     totalCells: 4,
     cellLabels: [],
-    templates: {
-      '2K': { cellW: 1021, cellH: 1021, headerH: 28, border: 2, fontSize: 18 },
-      '4K': { cellW: 2042, cellH: 2042, headerH: 44, border: 4, fontSize: 28 },
-    },
   },
 };
 
@@ -123,28 +108,16 @@ export const TERRAIN_GRIDS: Record<string, GridConfig> = {
     id: 'terrain-3x3',
     label: 'Terrain 3\u00d73',
     cols: 3, rows: 3, totalCells: 9, cellLabels: [],
-    templates: {
-      '2K': { cellW: 680, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
-      '4K': { cellW: 1360, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
-    },
   },
   '4x4': {
     id: 'terrain-4x4',
     label: 'Terrain 4\u00d74',
     cols: 4, rows: 4, totalCells: 16, cellLabels: [],
-    templates: {
-      '2K': { cellW: 509, cellH: 509, headerH: 18, border: 2, fontSize: 11 },
-      '4K': { cellW: 1018, cellH: 1018, headerH: 30, border: 4, fontSize: 18 },
-    },
   },
   '5x5': {
     id: 'terrain-5x5',
     label: 'Terrain 5\u00d75',
     cols: 5, rows: 5, totalCells: 25, cellLabels: [],
-    templates: {
-      '2K': { cellW: 406, cellH: 406, headerH: 16, border: 2, fontSize: 10 },
-      '4K': { cellW: 812, cellH: 812, headerH: 26, border: 4, fontSize: 16 },
-    },
   },
 };
 
@@ -242,46 +215,9 @@ export function getBackgroundGridConfig(
 
 // ── Grid preset conversion ─────────────────────────────────────────────────
 
-function getTemplateParams(gridSize: string, spriteType: string, aspectRatio: string = '1:1'): GridConfig['templates'] {
-  if (spriteType === 'character' && gridSize === '6x6') return CHARACTER_GRID.templates;
-  if (spriteType === 'building' && BUILDING_GRIDS[gridSize]) return BUILDING_GRIDS[gridSize].templates;
-  if (spriteType === 'terrain' && TERRAIN_GRIDS[gridSize]) return TERRAIN_GRIDS[gridSize].templates;
-  if (spriteType === 'background' && BACKGROUND_GRIDS[gridSize]) return BACKGROUND_GRIDS[gridSize].templates;
-
-  // Fallback: calculate proportional cell sizes for unknown grid sizes
-  const [colStr, rowStr] = gridSize.split('x');
-  const cols = parseInt(colStr, 10) || 3;
-  const rows = parseInt(rowStr, 10) || 3;
-
-  // Parse aspect ratio for canvas size calculation
-  const [arW, arH] = aspectRatio.split(':').map(Number);
-  const arFactor = (arW && arH) ? arW / arH : 1;
-
-  // Base sizes: 2048 for 2K, 4096 for 4K
-  const base2K = 2048;
-  const base4K = 4096;
-
-  const canvasW2K = arFactor >= 1 ? base2K : Math.round(base2K * arFactor);
-  const canvasH2K = arFactor >= 1 ? Math.round(base2K / arFactor) : base2K;
-  const canvasW4K = arFactor >= 1 ? base4K : Math.round(base4K * arFactor);
-  const canvasH4K = arFactor >= 1 ? Math.round(base4K / arFactor) : base4K;
-
-  // Subtract border space: (cols+1)*2 for 2K, (cols+1)*4 for 4K
-  const cellW2K = Math.floor((canvasW2K - (cols + 1) * 2) / cols);
-  const cellH2K = Math.floor((canvasH2K - (rows + 1) * 2) / rows);
-  const cellW4K = Math.floor((canvasW4K - (cols + 1) * 4) / cols);
-  const cellH4K = Math.floor((canvasH4K - (rows + 1) * 4) / rows);
-
-  return {
-    '2K': { cellW: cellW2K, cellH: cellH2K, headerH: 22, border: 2, fontSize: 14 },
-    '4K': { cellW: cellW4K, cellH: cellH4K, headerH: 36, border: 4, fontSize: 22 },
-  };
-}
-
 export function gridPresetToConfig(preset: GridPreset): GridConfig;
 export function gridPresetToConfig(preset: GridLink, spriteType?: string): GridConfig;
-export function gridPresetToConfig(preset: GridPreset | GridLink, spriteType?: string): GridConfig {
-  const resolvedSpriteType = spriteType || ('spriteType' in preset ? preset.spriteType : undefined) || 'character';
+export function gridPresetToConfig(preset: GridPreset | GridLink, _spriteType?: string): GridConfig {
   const label = ('name' in preset ? preset.name : undefined) || ('gridName' in preset ? preset.gridName : undefined) || `Grid ${preset.gridSize}`;
   const id = 'gridPresetId' in preset ? preset.gridPresetId : preset.id;
   const aspectRatio = preset.aspectRatio || '1:1';
@@ -295,6 +231,5 @@ export function gridPresetToConfig(preset: GridPreset | GridLink, spriteType?: s
     cellLabels: preset.cellLabels,
     aspectRatio,
     tileShape,
-    templates: getTemplateParams(preset.gridSize, resolvedSpriteType, aspectRatio),
   };
 }
