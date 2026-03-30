@@ -20,10 +20,8 @@ describe('CHARACTER_GRID', () => {
     expect(CHARACTER_GRID.cellLabels).toHaveLength(36);
   });
 
-  it('has 2K and 4K templates', () => {
-    expect(CHARACTER_GRID.templates['2K']).toBeDefined();
-    expect(CHARACTER_GRID.templates['4K']).toBeDefined();
-    expect(CHARACTER_GRID.templates['4K'].cellW).toBeGreaterThan(CHARACTER_GRID.templates['2K'].cellW);
+  it('does not have templates (non-background grids use computeSquareLayout)', () => {
+    expect(CHARACTER_GRID).not.toHaveProperty('templates');
   });
 });
 
@@ -171,7 +169,7 @@ describe('gridPresetToConfig', () => {
     expect(config.label).toBe('Linked Grid');
   });
 
-  it('calculates template params for known grid sizes', () => {
+  it('does not include templates property for non-background types', () => {
     const preset = {
       id: 1,
       name: 'Test',
@@ -187,28 +185,6 @@ describe('gridPresetToConfig', () => {
       tileShape: 'square' as const,
     };
     const config = gridPresetToConfig(preset);
-    // Should use the known BUILDING_GRIDS['3x3'] templates
-    expect(config.templates['2K'].cellW).toBe(680);
-    expect(config.templates['4K'].cellW).toBe(1360);
-  });
-
-  it('calculates fallback template params for unknown grid sizes', () => {
-    const preset = {
-      id: 1,
-      name: 'Unusual',
-      spriteType: 'character' as const,
-      genre: '',
-      gridSize: '7x7',
-      cols: 7,
-      rows: 7,
-      cellLabels: [],
-      cellGroups: [],
-      genericGuidance: '',
-      aspectRatio: '1:1',
-      tileShape: 'square' as const,
-    };
-    const config = gridPresetToConfig(preset);
-    expect(config.templates['2K'].cellW).toBeGreaterThan(0);
-    expect(config.templates['4K'].cellW).toBeGreaterThan(config.templates['2K'].cellW);
+    expect(config).not.toHaveProperty('templates');
   });
 });

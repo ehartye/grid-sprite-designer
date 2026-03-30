@@ -6,7 +6,8 @@
 
 import { useCallback, useEffect, useRef, useMemo, type Dispatch } from 'react';
 import { useAppContext, type AppState, type GridLink, type SpriteType, type Action, type CellGroup } from '../context/AppContext';
-import { generateTemplate } from '../lib/templateGenerator';
+import { generateTemplate, generateBackgroundTemplate } from '../lib/templateGenerator';
+import { computeSquareLayout } from '../lib/computeSquareLayout';
 import { extractSprites } from '../lib/spriteExtractor';
 import { generateGrid } from '../api/geminiClient';
 import type { GridConfig } from '../lib/gridConfig';
@@ -43,7 +44,6 @@ export interface PipelineParams {
   prompt: string;
   model: string;
   imageSize: '2K' | '4K';
-  aspectRatio: string;
   spriteType: SpriteType;
   contentName: string;
   contentDescription: string;
@@ -64,11 +64,24 @@ export async function runGeneratePipeline(
   dispatch: Dispatch<Action>,
   signal: AbortSignal,
 ) {
-  const { gridConfig, prompt, model, imageSize, aspectRatio, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
+  const { gridConfig, prompt, model, imageSize, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
 
   // 1. Generate template grid
-  const templateParams = gridConfig.templates[imageSize];
-  const template = generateTemplate(templateParams, gridConfig, aspectRatio);
+  const isBackground = spriteType === 'background';
+  let template: { canvas: HTMLCanvasElement; base64: string; width: number; height: number };
+  let aspectRatio: string;
+
+  if (isBackground && gridConfig.templates) {
+    // Background: use legacy path with stored aspect ratio
+    const templateParams = gridConfig.templates[imageSize];
+    aspectRatio = gridConfig.aspectRatio || '1:1';
+    template = generateBackgroundTemplate(templateParams, gridConfig, aspectRatio);
+  } else {
+    // All other types: compute square layout, derive aspect ratio
+    const layout = computeSquareLayout(gridConfig.cols, gridConfig.rows, imageSize);
+    aspectRatio = layout.aspectRatio;
+    template = generateTemplate(layout, gridConfig);
+  }
   dispatch({
     type: 'GENERATE_START',
     templateImage: template.base64,
@@ -294,7 +307,6 @@ export function useGenericWorkflow(config: WorkflowConfig) {
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
-      const aspectRatio = gridConfig.aspectRatio || currentState.aspectRatio;
       const prompt = currentConfig.buildPrompt(currentState, gridConfig, gridLink);
 
       await runGeneratePipeline({
@@ -302,7 +314,6 @@ export function useGenericWorkflow(config: WorkflowConfig) {
         prompt,
         model: currentState.model,
         imageSize: currentState.imageSize,
-        aspectRatio,
         spriteType: currentConfig.spriteType,
         contentName: content.name,
         contentDescription: content.description,

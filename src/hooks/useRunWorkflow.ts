@@ -53,7 +53,6 @@ export function useRunWorkflow() {
       if (abort.signal.aborted) return;
 
       const gridConfig = gridPresetToConfig(gridLink, run.spriteType);
-      const aspectRatio = gridConfig.aspectRatio || '1:1';
       const isSubsequent = run.currentGridIndex > 0 && run.referenceSheet !== null;
       const prompt = buildPromptForType(run.spriteType, contentPreset, gridLink, gridConfig, isSubsequent);
 
@@ -66,7 +65,6 @@ export function useRunWorkflow() {
         prompt,
         model: currentState.model,
         imageSize: run.imageSize,
-        aspectRatio,
         spriteType: run.spriteType,
         contentName: contentPreset.name,
         contentDescription: contentPreset.description,

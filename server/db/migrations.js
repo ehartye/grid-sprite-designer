@@ -14,6 +14,20 @@ const MIGRATIONS = [
   { name: '013_add_sprites_unique_index', sql: 'CREATE UNIQUE INDEX IF NOT EXISTS idx_sprites_gen_cell ON sprites(generation_id, cell_index)' },
   { name: '014_add_generations_sprite_type_index', sql: 'CREATE INDEX IF NOT EXISTS idx_generations_sprite_type ON generations(sprite_type)' },
   { name: '015_add_generations_type_created_index', sql: 'CREATE INDEX IF NOT EXISTS idx_generations_type_created ON generations(sprite_type, created_at DESC)' },
+  {
+    name: '016_remove_rpg_full_tall',
+    sql: `
+      UPDATE character_grid_links
+      SET grid_preset_id = (SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character' LIMIT 1)
+      WHERE grid_preset_id = (SELECT id FROM grid_presets WHERE name = 'RPG Full (Tall)' AND sprite_type = 'character' LIMIT 1)
+        AND (SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character' LIMIT 1) IS NOT NULL;
+      DELETE FROM grid_presets WHERE name = 'RPG Full (Tall)' AND sprite_type = 'character';
+    `
+  },
+  {
+    name: '017_clean_isometric_aspect_ratios',
+    sql: "UPDATE grid_presets SET aspect_ratio = '1:1' WHERE sprite_type != 'background' AND aspect_ratio != '1:1'"
+  },
 ];
 
 export function migrateSchema(db) {
@@ -42,7 +56,7 @@ export function migrateSchema(db) {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       // Migration may already be applied on databases that predate version tracking
-      if (msg.includes('duplicate column') || msg.includes('already exists') || msg.includes('no such column')) {
+      if (msg.includes('duplicate column') || msg.includes('already exists') || msg.includes('no such column') || msg.includes('no such table')) {
         record.run(name);
         console.log(`[Migration] Recorded (already applied): ${name}`);
       } else {

@@ -40,8 +40,26 @@ vi.mock('../../api/geminiClient', () => ({
   ),
 }));
 
+vi.mock('../../lib/computeSquareLayout', () => ({
+  computeSquareLayout: () => ({
+    cellSize: 339,
+    headerH: 14,
+    border: 2,
+    fontSize: 9,
+    canvasW: 2048,
+    canvasH: 2048,
+    aspectRatio: '1:1',
+  }),
+}));
+
 vi.mock('../../lib/templateGenerator', () => ({
   generateTemplate: () => ({
+    base64: 'fakeTemplateBase64',
+    canvas: {},
+    width: 100,
+    height: 100,
+  }),
+  generateBackgroundTemplate: () => ({
     base64: 'fakeTemplateBase64',
     canvas: {},
     width: 100,
@@ -63,10 +81,6 @@ const mockGridConfig = {
   totalCells: 36,
   cellLabels: Array.from({ length: 36 }, (_, i) => `Cell ${i}`),
   aspectRatio: '1:1',
-  templates: {
-    '2K': { cellW: 339, cellH: 339, headerH: 14, border: 2, fontSize: 9 },
-    '4K': { cellW: 678, cellH: 678, headerH: 22, border: 4, fontSize: 14 },
-  },
 };
 
 const testWorkflowConfig: WorkflowConfig = {
@@ -129,7 +143,7 @@ describe('useGenericWorkflow abort behavior', () => {
   });
 
   it('aborts generation when explicitly cancelled via cancelActiveGeneration', async () => {
-    const { AppProvider, useGenericWorkflow, cancelActiveGeneration } = await getModules();
+    const { AppProvider, useGenericWorkflow } = await getModules();
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <AppProvider>{children}</AppProvider>

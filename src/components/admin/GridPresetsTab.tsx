@@ -304,18 +304,20 @@ export function GridPresetsTab() {
             )}
 
             <div className="admin-row">
-              <label className="admin-label">
-                Aspect Ratio
-                <select
-                  className="admin-select"
-                  value={editing.aspectRatio}
-                  onChange={e => setEditing({ ...editing, aspectRatio: e.target.value })}
-                >
-                  {['1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'].map(r =>
-                    <option key={r} value={r}>{r}</option>
-                  )}
-                </select>
-              </label>
+              {editing.spriteType === 'background' && (
+                <label className="admin-label">
+                  Aspect Ratio
+                  <select
+                    className="admin-select"
+                    value={editing.aspectRatio}
+                    onChange={e => setEditing({ ...editing, aspectRatio: e.target.value })}
+                  >
+                    {['1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9'].map(r =>
+                      <option key={r} value={r}>{r}</option>
+                    )}
+                  </select>
+                </label>
+              )}
               <label className="admin-label">
                 Tile Shape
                 <select
