@@ -447,35 +447,38 @@ async function normalizeSprites(sprites: ExtractedSprite[]): Promise<ExtractedSp
   const minW = Math.min(...widths);
   const minH = Math.min(...heights);
 
-  // Already uniform — skip work
-  if (minW === maxW && minH === maxH) return sprites;
+  // Enforce 1:1 — use the larger dimension for both axes
+  const size = Math.max(maxW, maxH);
+
+  // Already uniform and square — skip work
+  if (minW === size && minH === size && maxW === size && maxH === size) return sprites;
 
   debugLog(
-    `[Normalize] Resized sprites to ${maxW}×${maxH} (was ${minW}-${maxW} × ${minH}-${maxH})`,
+    `[Normalize] Resized sprites to ${size}×${size} (was ${minW}-${maxW} × ${minH}-${maxH})`,
   );
 
   return Promise.all(sprites.map(async sprite => {
-    if (sprite.width === maxW && sprite.height === maxH) return sprite;
+    if (sprite.width === size && sprite.height === size) return sprite;
 
     const img = await loadImage(sprite.imageData, sprite.mimeType);
 
     const canvas = document.createElement('canvas');
-    canvas.width = maxW;
-    canvas.height = maxH;
+    canvas.width = size;
+    canvas.height = size;
     const ctx = canvas.getContext('2d')!;
-    ctx.clearRect(0, 0, maxW, maxH);
+    ctx.clearRect(0, 0, size, size);
 
     // Draw bottom-aligned, horizontally centered
-    const x = Math.floor((maxW - sprite.width) / 2);
-    const y = maxH - sprite.height;
+    const x = Math.floor((size - sprite.width) / 2);
+    const y = size - sprite.height;
     ctx.drawImage(img, x, y);
 
     const dataUrl = canvas.toDataURL('image/png');
     return {
       ...sprite,
       imageData: dataUrl.split(',')[1],
-      width: maxW,
-      height: maxH,
+      width: size,
+      height: size,
     };
   }));
 }
