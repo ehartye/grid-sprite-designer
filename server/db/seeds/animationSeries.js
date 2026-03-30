@@ -3,7 +3,7 @@ export function seedAnimationSeries(db) {
   const existing = db.prepare(`
     SELECT COUNT(*) as count FROM character_grid_links cgl
     JOIN grid_presets gp ON gp.id = cgl.grid_preset_id
-    WHERE gp.aspect_ratio = '16:9' AND gp.genre = 'Isometric'
+    WHERE gp.genre = 'Isometric'
   `).get();
   if (existing.count > 0) return;
 
