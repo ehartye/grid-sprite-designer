@@ -26,7 +26,7 @@ interface SpriteGridProps {
   aspectRatio?: string;
 }
 
-export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels, aspectRatio }: SpriteGridProps) {
+export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels }: SpriteGridProps) {
   const cols = gridCols ?? 6;
   const labels = cellLabels ?? CELL_LABELS;
 
@@ -39,23 +39,12 @@ export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick,
     return map;
   }, [sprites]);
 
-  // Derive cell aspect ratio from the first sprite's actual dimensions,
-  // falling back to the grid aspect ratio for non-square grids
+  // For non-background types, cells are always 1:1.
+  // For backgrounds, derive from sprite dimensions or fallback to square.
   const firstSprite = sprites[0];
   let cellAspect: string;
   if (firstSprite && firstSprite.height > 0) {
     cellAspect = `${firstSprite.width} / ${firstSprite.height}`;
-  } else if (aspectRatio && aspectRatio !== '1:1' && gridCols) {
-    // Calculate cell aspect from canvas aspect ratio and grid dimensions
-    const [arW, arH] = aspectRatio.split(':').map(Number);
-    if (arW && arH) {
-      const rows = Math.ceil(labels.length / cols);
-      const canvasAR = arW / arH;
-      const cellAR = (canvasAR * rows) / cols;
-      cellAspect = `${cellAR}`;
-    } else {
-      cellAspect = '1';
-    }
   } else {
     cellAspect = '1';
   }
