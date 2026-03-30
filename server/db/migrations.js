@@ -17,10 +17,19 @@ const MIGRATIONS = [
   {
     name: '016_remove_rpg_full_tall',
     sql: `
+      -- Delete Tall links where the character already has a link to RPG Full
+      DELETE FROM character_grid_links
+      WHERE grid_preset_id = (SELECT id FROM grid_presets WHERE name = 'RPG Full (Tall)' AND sprite_type = 'character' LIMIT 1)
+        AND character_preset_id IN (
+          SELECT character_preset_id FROM character_grid_links
+          WHERE grid_preset_id = (SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character' LIMIT 1)
+        );
+      -- Re-link remaining Tall links to RPG Full
       UPDATE character_grid_links
       SET grid_preset_id = (SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character' LIMIT 1)
       WHERE grid_preset_id = (SELECT id FROM grid_presets WHERE name = 'RPG Full (Tall)' AND sprite_type = 'character' LIMIT 1)
         AND (SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character' LIMIT 1) IS NOT NULL;
+      -- Delete the Tall preset
       DELETE FROM grid_presets WHERE name = 'RPG Full (Tall)' AND sprite_type = 'character';
     `
   },
