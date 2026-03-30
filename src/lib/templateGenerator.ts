@@ -2,7 +2,7 @@
  * Generate sprite grid template images on a canvas.
  * Each cell has a magenta (#FF00FF) chroma-key background,
  * a thin black header strip with the pose label in white text,
- * separated by thin black grid lines.
+ * separated by evenly distributed black gaps.
  *
  * For non-background grids, uses SquareLayout (1:1 cells).
  * For background grids, uses legacy cellW/cellH from GridConfig.templates.
@@ -17,23 +17,28 @@ const WHITE = '#FFFFFF';
 
 /**
  * Generate the template grid as a canvas using SquareLayout (1:1 cells).
+ * Gaps are distributed evenly across the canvas — no side padding.
  * Used for all non-background sprite types.
  */
 export function generateTemplate(
   layout: SquareLayout,
   gridConfig: GridConfig,
 ): { canvas: HTMLCanvasElement; base64: string; width: number; height: number } {
-  const { cellSize, headerH, border, fontSize, canvasW, canvasH } = layout;
+  const { cellSize, headerH, hGap, vGap, fontSize, canvasW, canvasH } = layout;
 
   const cols = gridConfig.cols;
   const rows = gridConfig.rows;
   const cellLabels = gridConfig.cellLabels;
 
-  const cellW = cellSize;
-  const cellH = cellSize + headerH; // total cell height including header
+  const cellH = cellSize + headerH;
 
-  const gridW = cols * cellW + (cols + 1) * border;
-  const gridH = rows * cellH + (rows + 1) * border;
+  // Compute actual grid footprint with even gaps
+  const gridW = cols * cellSize + (cols + 1) * hGap;
+  const gridH = rows * cellH + (rows + 1) * vGap;
+
+  // Center any sub-pixel remainder
+  const offsetX = Math.floor((canvasW - gridW) / 2);
+  const offsetY = Math.floor((canvasH - gridH) / 2);
 
   const canvas = document.createElement('canvas');
   canvas.width = canvasW;
@@ -42,9 +47,6 @@ export function generateTemplate(
 
   ctx.fillStyle = BLACK;
   ctx.fillRect(0, 0, canvasW, canvasH);
-
-  const offsetX = Math.floor((canvasW - gridW) / 2);
-  const offsetY = Math.floor((canvasH - gridH) / 2);
 
   ctx.font = `bold ${fontSize}px Arial, sans-serif`;
   ctx.textAlign = 'center';
@@ -56,18 +58,18 @@ export function generateTemplate(
     const row = Math.floor(idx / cols);
     const label = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
 
-    const x0 = offsetX + border + col * (cellW + border);
-    const y0 = offsetY + border + row * (cellH + border);
+    const x0 = offsetX + hGap + col * (cellSize + hGap);
+    const y0 = offsetY + vGap + row * (cellH + vGap);
 
     // Header strip
     ctx.fillStyle = BLACK;
-    ctx.fillRect(x0, y0, cellW, headerH);
+    ctx.fillRect(x0, y0, cellSize, headerH);
     ctx.fillStyle = WHITE;
-    ctx.fillText(label, x0 + cellW / 2, y0 + headerH / 2);
+    ctx.fillText(label, x0 + cellSize / 2, y0 + headerH / 2);
 
     // Content area (1:1 square)
     ctx.fillStyle = CHROMA_PINK;
-    ctx.fillRect(x0, y0 + headerH, cellW, cellSize);
+    ctx.fillRect(x0, y0 + headerH, cellSize, cellSize);
   }
 
   const dataUrl = canvas.toDataURL('image/png');
@@ -153,20 +155,20 @@ export function getCellBounds(
   layout: SquareLayout,
   gridConfig: GridConfig,
 ): { x: number; y: number; w: number; h: number } {
-  const { cellSize, headerH, border, canvasW, canvasH } = layout;
+  const { cellSize, headerH, hGap, vGap, canvasW, canvasH } = layout;
   const cols = gridConfig.cols;
   const rows = gridConfig.rows;
   const cellH = cellSize + headerH;
 
-  const gridW = cols * cellSize + (cols + 1) * border;
-  const gridH = rows * cellH + (rows + 1) * border;
+  const gridW = cols * cellSize + (cols + 1) * hGap;
+  const gridH = rows * cellH + (rows + 1) * vGap;
 
   const offsetX = Math.floor((canvasW - gridW) / 2);
   const offsetY = Math.floor((canvasH - gridH) / 2);
 
   const col = cellIndex % cols;
   const row = Math.floor(cellIndex / cols);
-  const x = offsetX + border + col * (cellSize + border);
-  const y = offsetY + border + row * (cellH + border) + headerH;
+  const x = offsetX + hGap + col * (cellSize + hGap);
+  const y = offsetY + vGap + row * (cellH + vGap) + headerH;
   return { x, y, w: cellSize, h: cellSize };
 }

@@ -2,6 +2,9 @@
  * Compute a square-cell grid layout for a given grid size and resolution.
  * Tries all Gemini-supported aspect ratios and picks the one that maximizes
  * cell size (best use of canvas space). Ties broken by tightest fit.
+ *
+ * Gaps between cells (and at edges) are distributed evenly to fill the
+ * full canvas width and height — no side padding.
  */
 
 export const GEMINI_ASPECT_RATIOS: [number, number][] = [
@@ -11,20 +14,23 @@ export const GEMINI_ASPECT_RATIOS: [number, number][] = [
 
 interface ResolutionParams {
   base: number;
-  border: number;
+  minGap: number;
   headerH: number;
   fontSize: number;
 }
 
 const RESOLUTION_PARAMS: Record<string, ResolutionParams> = {
-  '2K': { base: 2048, border: 2, headerH: 14, fontSize: 9 },
-  '4K': { base: 4096, border: 4, headerH: 22, fontSize: 14 },
+  '2K': { base: 2048, minGap: 2, headerH: 24, fontSize: 18 },
+  '4K': { base: 4096, minGap: 4, headerH: 40, fontSize: 30 },
 };
 
 export interface SquareLayout {
   cellSize: number;
   headerH: number;
-  border: number;
+  /** Horizontal gap between columns (and at left/right edges) */
+  hGap: number;
+  /** Vertical gap between rows (and at top/bottom edges) */
+  vGap: number;
   fontSize: number;
   canvasW: number;
   canvasH: number;
@@ -37,7 +43,7 @@ export function computeSquareLayout(
   resolution: '2K' | '4K',
 ): SquareLayout {
   const params = RESOLUTION_PARAMS[resolution];
-  const { base, border, headerH, fontSize } = params;
+  const { base, minGap, headerH, fontSize } = params;
 
   let bestCellSize = 0;
   let bestCanvasW = base;
@@ -59,8 +65,9 @@ export function computeSquareLayout(
       canvasH = base;
     }
 
-    const maxFromWidth = Math.floor((canvasW - (cols + 1) * border) / cols);
-    const maxFromHeight = Math.floor((canvasH - (rows + 1) * border) / rows) - headerH;
+    // Reserve minimum gap space, then divide remaining among cells
+    const maxFromWidth = Math.floor((canvasW - (cols + 1) * minGap) / cols);
+    const maxFromHeight = Math.floor((canvasH - (rows + 1) * minGap) / rows) - headerH;
     const cellSize = Math.min(maxFromWidth, maxFromHeight);
 
     if (cellSize <= 0) continue;
@@ -76,10 +83,15 @@ export function computeSquareLayout(
     }
   }
 
+  // Distribute remaining space evenly as gaps
+  const hGap = Math.floor((bestCanvasW - cols * bestCellSize) / (cols + 1));
+  const vGap = Math.floor((bestCanvasH - rows * (bestCellSize + headerH)) / (rows + 1));
+
   return {
     cellSize: bestCellSize,
     headerH,
-    border,
+    hGap,
+    vGap,
     fontSize,
     canvasW: bestCanvasW,
     canvasH: bestCanvasH,
