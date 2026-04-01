@@ -484,6 +484,33 @@ async function normalizeSprites(sprites: ExtractedSprite[]): Promise<ExtractedSp
 }
 
 /**
+ * Downscale a sprite to a target pixel art size using nearest-neighbor interpolation.
+ * Returns a new ExtractedSprite with targetSize x targetSize dimensions.
+ * Uses imageSmoothingEnabled = false to preserve hard pixel edges.
+ */
+export async function pixelizeSprite(
+  sprite: ExtractedSprite,
+  targetSize: number,
+): Promise<ExtractedSprite> {
+  const img = await loadImage(sprite.imageData, sprite.mimeType);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = targetSize;
+  canvas.height = targetSize;
+  const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, 0, 0, targetSize, targetSize);
+
+  const dataUrl = canvas.toDataURL('image/png');
+  return {
+    ...sprite,
+    imageData: dataUrl.split(',')[1],
+    width: targetSize,
+    height: targetSize,
+  };
+}
+
+/**
  * Compose extracted sprites back into a clean sprite sheet (no grid lines, no headers).
  * Returns a canvas with all sprites arranged in a grid.
  * When gridCols is provided, uses that for layout; defaults to 6 (character grid).
