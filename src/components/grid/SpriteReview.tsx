@@ -14,7 +14,7 @@ import { useAnimationLoop } from '../../hooks/useAnimationLoop';
 import { useSpriteSelection } from '../../hooks/useSpriteSelection';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
-import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
+import { composeSpriteSheet, ExtractedSprite, pixelizeSprite } from '../../lib/spriteExtractor';
 import { debugLog } from '../../lib/debugLog';
 import { applyChromaKey, defringeRecolor, strikeColors, detectKeyColor } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
@@ -36,9 +36,11 @@ async function processSprite(
   keyR = 255,
   keyG = 0,
   keyB = 255,
+  pixelizeEnabled = false,
+  pixelizeSize = 32,
 ): Promise<ExtractedSprite> {
   const hasErasure = erasedPixels && erasedPixels.size > 0;
-  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses) return sprite;
+  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses && !pixelizeEnabled) return sprite;
 
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -71,6 +73,14 @@ async function processSprite(
   }
 
   ctx.putImageData(imageData, 0, 0);
+
+  // Pixelize pass — runs last because it changes dimensions
+  if (pixelizeEnabled) {
+    const dataUrl = canvas.toDataURL('image/png');
+    const intermediate: ExtractedSprite = { ...sprite, imageData: dataUrl.split(',')[1], mimeType: 'image/png' };
+    return pixelizeSprite(intermediate, pixelizeSize);
+  }
+
   const dataUrl = canvas.toDataURL('image/png');
   const base64 = dataUrl.split(',')[1];
 
@@ -161,6 +171,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [showRareColors, setShowRareColors] = useState(false);
   const [aaInset, setAaInset] = useState(3);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [pixelizeEnabled, setPixelizeEnabled] = useState(false);
+  const [pixelizeSize, setPixelizeSize] = useState(32);
   const struckKey = JSON.stringify(struckColors);
 
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
@@ -198,9 +210,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     return () => { cancelled = true; };
   }, [sprites, post.posterizeOutput, post.posterizeBits]);
 
-  // Process sprites through posterization + chroma key + color strikes + erasures
+  // Process sprites through posterization + chroma key + color strikes + erasures + pixelize
   useEffect(() => {
-    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses) {
+    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses && !pixelizeEnabled) {
       setProcessedSprites(sprites);
       return;
     }
@@ -229,13 +241,13 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       }
 
       const result = await Promise.all(sprites.map((s) =>
-        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB),
+        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize),
       ));
       if (!cancelled) setProcessedSprites(result);
     })();
 
     return () => { cancelled = true; };
-  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
   // Guard: skip the first save effect after load completes to prevent
@@ -590,6 +602,41 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
               >
                 Posterized
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pixelize */}
+        <div className="sidebar-section">
+          <h3>
+            Pixelize
+            <span title="Downscale sprites to a retro pixel art resolution using nearest-neighbor interpolation." style={{ cursor: 'help', marginLeft: 4, fontSize: '0.7rem', color: 'var(--text-muted)' }}>&#9432;</span>
+          </h3>
+          <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <button
+              className={`anim-group-btn ${!pixelizeEnabled ? 'active' : ''}`}
+              onClick={() => setPixelizeEnabled(false)}
+            >
+              Off
+            </button>
+            <button
+              className={`anim-group-btn ${pixelizeEnabled ? 'active' : ''}`}
+              onClick={() => setPixelizeEnabled(true)}
+            >
+              On
+            </button>
+          </div>
+          {pixelizeEnabled && (
+            <div className="pixelize-size-row" style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+              {([16, 32, 48, 64, 128] as const).map(size => (
+                <button
+                  key={size}
+                  className={`pixel-size-btn ${pixelizeSize === size ? 'active' : ''}`}
+                  onClick={() => setPixelizeSize(size)}
+                >
+                  {size}
+                </button>
+              ))}
             </div>
           )}
         </div>
