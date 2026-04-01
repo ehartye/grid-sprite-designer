@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectKeyColor, applyChromaKey, strikeColors } from '../chromaKey';
+import { detectKeyColor, applyChromaKey, strikeColors, outlineSprite } from '../chromaKey';
 
 /** Create a small ImageData-like object for testing. */
 function makeImageData(width: number, height: number, fill: [number, number, number, number]): ImageData {
@@ -167,5 +167,140 @@ describe('strikeColors', () => {
 
     const loose = strikeColors(img, [[110, 50, 25]], 20);
     expect(loose.data[3]).toBe(0); // within tolerance
+  });
+});
+
+describe('outlineSprite', () => {
+  it('solidifies fringe pixels to outline color', () => {
+    // 3x3, center opaque white, one edge pixel at alpha=128 with pink RGB
+    const img = makeImageData(3, 3, [0, 0, 0, 0]);
+    setPixel(img, 1, 1, 255, 255, 255, 255); // center opaque white
+    setPixel(img, 1, 0, 200, 100, 200, 128); // top-center partial alpha pink
+
+    const result = outlineSprite(img, 0, 0, 0, 0, 0);
+
+    const [r, g, b, a] = getPixel(result, 1, 0);
+    expect(a).toBe(255);
+    expect(r).toBe(0);
+    expect(g).toBe(0);
+    expect(b).toBe(0);
+  });
+
+  it('is a no-op when outDepth=0, inDepth=0, and no fringe', () => {
+    // single opaque center pixel, transparent surroundings
+    const img = makeImageData(3, 3, [0, 0, 0, 0]);
+    setPixel(img, 1, 1, 255, 255, 255, 255);
+
+    const result = outlineSprite(img, 0, 0, 0, 0, 0);
+
+    // Center stays opaque white
+    expect(getPixel(result, 1, 1)).toEqual([255, 255, 255, 255]);
+    // All surroundings still transparent
+    expect(getPixel(result, 0, 0)[3]).toBe(0);
+    expect(getPixel(result, 1, 0)[3]).toBe(0);
+    expect(getPixel(result, 2, 0)[3]).toBe(0);
+    expect(getPixel(result, 0, 1)[3]).toBe(0);
+    expect(getPixel(result, 2, 1)[3]).toBe(0);
+    expect(getPixel(result, 0, 2)[3]).toBe(0);
+    expect(getPixel(result, 1, 2)[3]).toBe(0);
+    expect(getPixel(result, 2, 2)[3]).toBe(0);
+  });
+
+  it('expands outline outward by 1 pixel', () => {
+    // single opaque center pixel in 3x3
+    const img = makeImageData(3, 3, [0, 0, 0, 0]);
+    setPixel(img, 1, 1, 255, 255, 255, 255);
+
+    const result = outlineSprite(img, 1, 0, 0, 0, 0);
+
+    // 4 cardinal neighbors become opaque black
+    expect(getPixel(result, 1, 0)).toEqual([0, 0, 0, 255]);
+    expect(getPixel(result, 0, 1)).toEqual([0, 0, 0, 255]);
+    expect(getPixel(result, 2, 1)).toEqual([0, 0, 0, 255]);
+    expect(getPixel(result, 1, 2)).toEqual([0, 0, 0, 255]);
+    // Corners remain transparent
+    expect(getPixel(result, 0, 0)[3]).toBe(0);
+    expect(getPixel(result, 2, 0)[3]).toBe(0);
+    expect(getPixel(result, 0, 2)[3]).toBe(0);
+    expect(getPixel(result, 2, 2)[3]).toBe(0);
+  });
+
+  it('expands outline outward by 2 pixels', () => {
+    // single opaque center pixel in 5x5
+    const img = makeImageData(5, 5, [0, 0, 0, 0]);
+    setPixel(img, 2, 2, 255, 255, 255, 255);
+
+    const result = outlineSprite(img, 2, 0, 0, 0, 0);
+
+    // 2 steps along cardinal axes should be opaque
+    expect(getPixel(result, 2, 0)[3]).toBe(255); // up 2
+    expect(getPixel(result, 2, 4)[3]).toBe(255); // down 2
+    expect(getPixel(result, 0, 2)[3]).toBe(255); // left 2
+    expect(getPixel(result, 4, 2)[3]).toBe(255); // right 2
+    // 1 step along cardinal axes also opaque
+    expect(getPixel(result, 2, 1)[3]).toBe(255);
+    expect(getPixel(result, 2, 3)[3]).toBe(255);
+    expect(getPixel(result, 1, 2)[3]).toBe(255);
+    expect(getPixel(result, 3, 2)[3]).toBe(255);
+    // Diagonal neighbors of first ring should also be filled (they neighbor the cardinal pixels)
+    expect(getPixel(result, 1, 1)[3]).toBe(255);
+    expect(getPixel(result, 3, 1)[3]).toBe(255);
+    expect(getPixel(result, 1, 3)[3]).toBe(255);
+    expect(getPixel(result, 3, 3)[3]).toBe(255);
+  });
+
+  it('recolors inward by 1 pixel', () => {
+    // 5x5 fully opaque white square
+    const img = makeImageData(5, 5, [255, 255, 255, 255]);
+
+    const result = outlineSprite(img, 0, 1, 0, 0, 0);
+
+    // Border pixels should be recolored to black
+    // Top row
+    for (let x = 0; x < 5; x++) {
+      expect(getPixel(result, x, 0).slice(0, 3)).toEqual([0, 0, 0]);
+    }
+    // Bottom row
+    for (let x = 0; x < 5; x++) {
+      expect(getPixel(result, x, 4).slice(0, 3)).toEqual([0, 0, 0]);
+    }
+    // Left and right edges (middle rows)
+    for (let y = 1; y < 4; y++) {
+      expect(getPixel(result, 0, y).slice(0, 3)).toEqual([0, 0, 0]);
+      expect(getPixel(result, 4, y).slice(0, 3)).toEqual([0, 0, 0]);
+    }
+    // Interior pixel (2,2) should still be white
+    expect(getPixel(result, 2, 2).slice(0, 3)).toEqual([255, 255, 255]);
+  });
+
+  it('uses specified RGB color, not hardcoded values', () => {
+    // Test fringe solidification with non-black color
+    const img = makeImageData(3, 3, [0, 0, 0, 0]);
+    setPixel(img, 1, 1, 255, 255, 255, 255);
+    setPixel(img, 1, 0, 200, 100, 200, 128); // partial alpha fringe
+
+    const result = outlineSprite(img, 1, 0, 255, 0, 0); // red outline
+
+    // Fringe pixel should be red
+    const [fr, fg, fb] = getPixel(result, 1, 0);
+    expect(fr).toBe(255);
+    expect(fg).toBe(0);
+    expect(fb).toBe(0);
+
+    // Outward expansion should also be red
+    const [or_, og, ob] = getPixel(result, 0, 1);
+    expect(or_).toBe(255);
+    expect(og).toBe(0);
+    expect(ob).toBe(0);
+  });
+
+  it('does not mutate source ImageData', () => {
+    const img = makeImageData(3, 3, [0, 0, 0, 0]);
+    setPixel(img, 1, 1, 255, 255, 255, 255);
+    const origData = new Uint8ClampedArray(img.data);
+
+    outlineSprite(img, 1, 1, 0, 0, 0);
+
+    expect(img.data).toEqual(origData);
   });
 });

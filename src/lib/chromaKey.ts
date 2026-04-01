@@ -287,6 +287,102 @@ export function defringeRecolor(
 }
 
 /**
+ * Add an outline around opaque regions of a sprite.
+ * Three phases:
+ *  1. Solidify fringe — partial-alpha pixels become fully opaque outline color.
+ *  2. Outward expansion — grow outline into transparent space.
+ *  3. Inward recolor — recolor opaque border pixels toward the interior.
+ */
+export function outlineSprite(
+  source: ImageData,
+  outDepth: number,
+  inDepth: number,
+  r: number,
+  g: number,
+  b: number,
+): ImageData {
+  const { width, height } = source;
+  const out = new ImageData(
+    new Uint8ClampedArray(source.data),
+    width,
+    height,
+  );
+  const data = out.data;
+
+  // Phase 1: Solidify fringe — any pixel with 0 < alpha < 255 becomes outline color
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3];
+    if (a > 0 && a < 255) {
+      data[i] = r;
+      data[i + 1] = g;
+      data[i + 2] = b;
+      data[i + 3] = 255;
+    }
+  }
+
+  // Phase 2: Outward expansion
+  for (let iter = 0; iter < outDepth; iter++) {
+    const alphaSnap = new Uint8Array(width * height);
+    for (let pi = 0; pi < width * height; pi++) {
+      alphaSnap[pi] = data[pi * 4 + 3];
+    }
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const pi = y * width + x;
+        if (alphaSnap[pi] !== 0) continue; // only expand into transparent pixels
+
+        const hasOpaqueNeighbor =
+          (x > 0 && alphaSnap[pi - 1] === 255) ||
+          (x < width - 1 && alphaSnap[pi + 1] === 255) ||
+          (y > 0 && alphaSnap[pi - width] === 255) ||
+          (y < height - 1 && alphaSnap[pi + width] === 255);
+
+        if (hasOpaqueNeighbor) {
+          const i = pi * 4;
+          data[i] = r;
+          data[i + 1] = g;
+          data[i + 2] = b;
+          data[i + 3] = 255;
+        }
+      }
+    }
+  }
+
+  // Phase 3: Inward recolor
+  for (let iter = 0; iter < inDepth; iter++) {
+    const alphaSnap = new Uint8Array(width * height);
+    for (let pi = 0; pi < width * height; pi++) {
+      alphaSnap[pi] = data[pi * 4 + 3];
+    }
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const pi = y * width + x;
+        if (alphaSnap[pi] === 0) continue; // skip transparent pixels
+
+        // Out-of-bounds counts as transparent for inward recolor
+        const hasTransparentNeighbor =
+          (x === 0 || alphaSnap[pi - 1] === 0) ||
+          (x === width - 1 || alphaSnap[pi + 1] === 0) ||
+          (y === 0 || alphaSnap[pi - width] === 0) ||
+          (y === height - 1 || alphaSnap[pi + width] === 0);
+
+        if (hasTransparentNeighbor) {
+          const i = pi * 4;
+          data[i] = r;
+          data[i + 1] = g;
+          data[i + 2] = b;
+          // alpha unchanged
+        }
+      }
+    }
+  }
+
+  return out;
+}
+
+/**
  * Remove specific colors from ImageData.
  * Uses Euclidean distance in RGB space for tight, perceptually-accurate
  * color matching.  The tolerance is the max Euclidean distance (default 38
