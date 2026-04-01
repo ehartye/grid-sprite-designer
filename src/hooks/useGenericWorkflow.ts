@@ -288,7 +288,7 @@ export function useGenericWorkflow(config: WorkflowConfig) {
     isGeneratingRef.current = false;
   }, [dispatch]);
 
-  const generate = useCallback(async (gridLink?: GridLink) => {
+  const generate = useCallback(async (gridLink?: GridLink, promptSuffix?: string) => {
     const currentState = stateRef.current;
     const currentConfig = configRef.current;
     const content = currentConfig.getContent(currentState);
@@ -307,7 +307,8 @@ export function useGenericWorkflow(config: WorkflowConfig) {
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
-      const prompt = currentConfig.buildPrompt(currentState, gridConfig, gridLink);
+      const basePrompt = currentConfig.buildPrompt(currentState, gridConfig, gridLink);
+      const prompt = promptSuffix ? basePrompt + '\n\n' + promptSuffix : basePrompt;
 
       await runGeneratePipeline({
         gridConfig,

@@ -54,7 +54,7 @@ export function useRunWorkflow() {
 
       const gridConfig = gridPresetToConfig(gridLink, run.spriteType);
       const isSubsequent = run.currentGridIndex > 0 && run.referenceSheet !== null;
-      const prompt = buildPromptForType(run.spriteType, contentPreset, gridLink, gridConfig, isSubsequent);
+      const prompt = buildPromptForType(run.spriteType, contentPreset, gridLink, gridConfig, isSubsequent, run.pixelizeSize);
 
       const refImage = isSubsequent && run.referenceSheet
         ? { data: run.referenceSheet, mimeType: 'image/png' }

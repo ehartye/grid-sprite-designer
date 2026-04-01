@@ -511,10 +511,11 @@ export function UnifiedConfigPanel() {
                   spriteType,
                   gridLinks: selectedGridLinks,
                   imageSize: imageSize as '2K' | '4K',
+                  pixelizeSize,
                 },
               });
             } else if (selectedGridLinks.length === 1) {
-              generate(selectedGridLinks[0]);
+              generate(selectedGridLinks[0], getPixelizeGuidance(pixelizeSize) || undefined);
             }
           }}
         >

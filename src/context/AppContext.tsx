@@ -108,6 +108,7 @@ export interface RunState {
   referenceSheet: string | null;
   imageSize: '2K' | '4K';
   groupId: string;
+  pixelizeSize?: number;
 }
 
 export interface AppState {
@@ -311,7 +312,7 @@ type Action =
   | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
   | { type: 'SET_GRID_PRESETS'; presets: GridPreset[] }
   | { type: 'SET_ACTIVE_GRID_CONFIG'; gridConfig: AppState['activeGridConfig'] }
-  | { type: 'START_RUN'; payload: { contentPresetId: string; spriteType: SpriteType; gridLinks: GridLink[]; imageSize: '2K' | '4K'; groupId?: string } }
+  | { type: 'START_RUN'; payload: { contentPresetId: string; spriteType: SpriteType; gridLinks: GridLink[]; imageSize: '2K' | '4K'; groupId?: string; pixelizeSize?: number } }
   | { type: 'COMPLETE_GRID'; payload: { filledGridImage: string } }
   | { type: 'NEXT_GRID' }
   | { type: 'END_RUN' }
@@ -515,6 +516,7 @@ export function reducer(state: AppState, action: Action): AppState {
           currentGridIndex: 0,
           referenceSheet: null,
           imageSize: action.payload.imageSize,
+          pixelizeSize: action.payload.pixelizeSize,
         },
       };
     case 'COMPLETE_GRID': {
