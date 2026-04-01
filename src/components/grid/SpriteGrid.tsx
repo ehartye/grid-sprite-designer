@@ -24,9 +24,11 @@ interface SpriteGridProps {
   cellLabels?: string[];
   /** Grid aspect ratio (e.g. '4:3') — used as fallback when no sprites are available */
   aspectRatio?: string;
+  /** When true, renders sprites with CSS image-rendering: pixelated for crisp upscaling */
+  pixelizeEnabled?: boolean;
 }
 
-export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels }: SpriteGridProps) {
+export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels, pixelizeEnabled }: SpriteGridProps) {
   const cols = gridCols ?? 6;
   const labels = cellLabels ?? CELL_LABELS;
 
@@ -78,7 +80,10 @@ export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick,
                   src={`data:${sprite.mimeType};base64,${sprite.imageData}`}
                   alt={label}
                   draggable={false}
-                  style={isMirrored ? { transform: 'scaleX(-1)' } : undefined}
+                  style={{
+                    ...(isMirrored ? { transform: 'scaleX(-1)' } : {}),
+                    ...(pixelizeEnabled ? { imageRendering: 'pixelated' as const } : {}),
+                  }}
                 />
                 {onMirrorToggle && (
                   <button

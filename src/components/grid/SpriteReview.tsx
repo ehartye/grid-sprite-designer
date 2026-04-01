@@ -467,6 +467,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           gridCols={dynamicCols}
           cellLabels={dynamicCellLabels}
           aspectRatio={dynamicAspectRatio}
+          pixelizeEnabled={pixelizeEnabled}
         />
         {selection.isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
