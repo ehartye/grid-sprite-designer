@@ -206,3 +206,13 @@
   display: flex;
   gap: 8px;
 }
+
+/* Pixelize size selector */
+.pixelize-size-row .segmented-control {
+  width: 100%;
+}
+
+.pixel-size-btn {
+  min-width: 40px;
+  text-align: center;
+}

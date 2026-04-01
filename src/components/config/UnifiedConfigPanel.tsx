@@ -23,6 +23,7 @@ import { buildBuildingPrompt } from '../../lib/buildingPromptBuilder';
 import { buildTerrainPrompt } from '../../lib/terrainPromptBuilder';
 import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } from '../../lib/gridConfig';
+import { getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
 import '../../styles/run-builder.css';
 
@@ -172,6 +173,7 @@ export function UnifiedConfigPanel() {
 
   const [selectedGridLinks, setSelectedGridLinks] = useState<GridLink[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+  const [pixelizeSize, setPixelizeSize] = useState<number | undefined>(undefined);
 
   // Reset local state when sprite type changes
   useEffect(() => {
@@ -249,32 +251,39 @@ export function UnifiedConfigPanel() {
   const canGenerate = !validationMessage;
 
   const promptPreview = useMemo(() => {
+    let prompt: string;
     switch (spriteType) {
       case 'building': {
         const gc = getBuildingGridConfig(
           (content as any).gridSize,
           (content as any).cellLabels,
         );
-        return buildBuildingPrompt(state.building, gc);
+        prompt = buildBuildingPrompt(state.building, gc);
+        break;
       }
       case 'terrain': {
         const gc = getTerrainGridConfig(
           (content as any).gridSize,
           (content as any).cellLabels,
         );
-        return buildTerrainPrompt(state.terrain, gc);
+        prompt = buildTerrainPrompt(state.terrain, gc);
+        break;
       }
       case 'background': {
         const gc = getBackgroundGridConfig(
           (content as any).gridSize,
           (content as any).cellLabels,
         );
-        return buildBackgroundPrompt(state.background, gc);
+        prompt = buildBackgroundPrompt(state.background, gc);
+        break;
       }
       default:
-        return buildGridFillPrompt(state.character);
+        prompt = buildGridFillPrompt(state.character);
     }
-  }, [spriteType, content, state.character, state.building, state.terrain, state.background]);
+    const g = getPixelizeGuidance(pixelizeSize);
+    if (g) prompt += '\n\n' + g;
+    return prompt;
+  }, [spriteType, content, state.character, state.building, state.terrain, state.background, pixelizeSize]);
 
   // Group presets by genre
   const presetsByGenre = useMemo(
@@ -433,6 +442,30 @@ export function UnifiedConfigPanel() {
           >
             4K (4096px)
           </button>
+        </div>
+      </div>
+
+      {/* Pixelize Target */}
+      <div className="config-field pixelize-size-row">
+        <label>Pixelize Target</label>
+        <div className="segmented-control">
+          <button
+            type="button"
+            className={`pixel-size-btn${pixelizeSize === undefined ? ' active' : ''}`}
+            onClick={() => setPixelizeSize(undefined)}
+          >
+            Off
+          </button>
+          {[16, 32, 48, 64, 128].map((size) => (
+            <button
+              key={size}
+              type="button"
+              className={`pixel-size-btn${pixelizeSize === size ? ' active' : ''}`}
+              onClick={() => setPixelizeSize(size)}
+            >
+              {size}
+            </button>
+          ))}
         </div>
       </div>
 
