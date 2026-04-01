@@ -9,7 +9,7 @@ import { buildBuildingPrompt } from './buildingPromptBuilder';
 import { buildTerrainPrompt } from './terrainPromptBuilder';
 import { buildBackgroundPrompt } from './backgroundPromptBuilder';
 import { type GridConfig } from './gridConfig';
-import { REFERENCE_PREFIX } from './promptBuilderBase';
+import { REFERENCE_PREFIX, getPixelizeGuidance } from './promptBuilderBase';
 import type { ContentPreset } from '../types/api';
 
 export { REFERENCE_PREFIX };
@@ -28,6 +28,7 @@ export function buildPromptForType(
   gridLink: GridLink,
   gridConfig: GridConfig,
   isSubsequentGrid: boolean,
+  pixelizeSize?: number,
 ): string {
   let prompt: string;
 
@@ -120,6 +121,9 @@ export function buildPromptForType(
     default:
       throw new Error(`Unknown sprite type: ${spriteType}`);
   }
+
+  const g = getPixelizeGuidance(pixelizeSize);
+  if (g) prompt += '\n\n' + g;
 
   return prompt;
 }
