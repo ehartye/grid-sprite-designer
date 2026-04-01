@@ -309,14 +309,18 @@ export function outlineSprite(
   );
   const data = out.data;
 
-  // Phase 1: Solidify fringe — any pixel with 0 < alpha < 255 becomes outline color
-  for (let i = 0; i < data.length; i += 4) {
-    const a = data[i + 3];
-    if (a > 0 && a < 255) {
-      data[i] = r;
-      data[i + 1] = g;
-      data[i + 2] = b;
-      data[i + 3] = 255;
+  // Phase 1: Solidify fringe — only needed as prep for outward expansion.
+  // Partial-alpha pixels (chroma key ramp) would otherwise block outward expansion
+  // from reaching the correct edge. Skip when outDepth=0 to avoid spurious 1px ring.
+  if (outDepth > 0) {
+    for (let i = 0; i < data.length; i += 4) {
+      const a = data[i + 3];
+      if (a > 0 && a < 255) {
+        data[i] = r;
+        data[i + 1] = g;
+        data[i + 2] = b;
+        data[i + 3] = 255;
+      }
     }
   }
 

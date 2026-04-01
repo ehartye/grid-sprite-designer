@@ -63,7 +63,6 @@ async function processSprite(
   if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
   if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore, keyR, keyG, keyB);
   if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, keyR, keyG, keyB, edgeRecolorPasses, recolorSensitivity);
-  if (outlineEnabled) imageData = outlineSprite(imageData, outlineOutDepth, outlineInDepth, outlineColor[0], outlineColor[1], outlineColor[2]);
   if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
   if (hasErasure) {
     for (const key of erasedPixels) {
@@ -79,17 +78,37 @@ async function processSprite(
 
   ctx.putImageData(imageData, 0, 0);
 
-  // Pixelize pass — runs last because it changes dimensions
+  // Pixelize pass — runs before outline so outline is applied at final resolution
+  let workingSprite: ExtractedSprite;
   if (pixelizeEnabled) {
     const dataUrl = canvas.toDataURL('image/png');
     const intermediate: ExtractedSprite = { ...sprite, imageData: dataUrl.split(',')[1], mimeType: 'image/png' };
-    return pixelizeSprite(intermediate, pixelizeSize);
+    workingSprite = await pixelizeSprite(intermediate, pixelizeSize);
+  } else {
+    const dataUrl = canvas.toDataURL('image/png');
+    workingSprite = { ...sprite, imageData: dataUrl.split(',')[1], mimeType: 'image/png' };
   }
 
-  const dataUrl = canvas.toDataURL('image/png');
-  const base64 = dataUrl.split(',')[1];
+  // Outline pass — runs last, on pixelized dimensions when pixelize is enabled
+  if (outlineEnabled) {
+    const img2 = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img2.onload = () => resolve();
+      img2.onerror = () => reject(new Error('Failed to load sprite for outline'));
+      img2.src = `data:${workingSprite.mimeType};base64,${workingSprite.imageData}`;
+    });
+    const c2 = document.createElement('canvas');
+    c2.width = img2.width;
+    c2.height = img2.height;
+    const ctx2 = c2.getContext('2d')!;
+    ctx2.drawImage(img2, 0, 0);
+    let id2 = ctx2.getImageData(0, 0, img2.width, img2.height);
+    id2 = outlineSprite(id2, outlineOutDepth, outlineInDepth, outlineColor[0], outlineColor[1], outlineColor[2]);
+    ctx2.putImageData(id2, 0, 0);
+    return { ...workingSprite, imageData: c2.toDataURL('image/png').split(',')[1], mimeType: 'image/png' };
+  }
 
-  return { ...sprite, imageData: base64, mimeType: 'image/png' };
+  return workingSprite;
 }
 
 /** Detect distinct colors from sprites using 4-bit quantization. */

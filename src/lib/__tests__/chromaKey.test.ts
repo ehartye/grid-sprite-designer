@@ -177,7 +177,8 @@ describe('outlineSprite', () => {
     setPixel(img, 1, 1, 255, 255, 255, 255); // center opaque white
     setPixel(img, 1, 0, 200, 100, 200, 128); // top-center partial alpha pink
 
-    const result = outlineSprite(img, 0, 0, 0, 0, 0);
+    // outDepth=1 triggers Phase 1 (fringe solidification is prep for outward expansion)
+    const result = outlineSprite(img, 1, 0, 0, 0, 0);
 
     const [r, g, b, a] = getPixel(result, 1, 0);
     expect(a).toBe(255);
