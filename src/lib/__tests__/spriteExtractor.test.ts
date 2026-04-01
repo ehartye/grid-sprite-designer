@@ -56,12 +56,14 @@ function makeSprite(w: number, h: number): ExtractedSprite {
 }
 
 describe('pixelizeSprite', () => {
-  it('returns a sprite with target dimensions', async () => {
+  it('returns a sprite with target dimensions using nearest-neighbor', async () => {
     const { pixelizeSprite } = await import('../spriteExtractor');
     const sprite = makeSprite(256, 256);
     const result = await pixelizeSprite(sprite, 32);
     expect(result.width).toBe(32);
     expect(result.height).toBe(32);
+    expect(mockCtx.imageSmoothingEnabled).toBe(false);
+    expect(mockCtx.drawImage).toHaveBeenCalledWith(expect.anything(), 0, 0, 32, 32);
   });
 
   it('works for all 5 valid sizes', async () => {
