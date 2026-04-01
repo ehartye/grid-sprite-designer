@@ -45,6 +45,19 @@ export function composeGuidance(
 /** The closing instruction shared by all prompt builders. */
 export const CLOSING_INSTRUCTION = 'Return the completed sprite sheet as a single image. Preserve ALL header text exactly.';
 
+const PIXELIZE_GUIDANCE: Record<number, string> = {
+  16:  'TARGET PIXEL SIZE: 16×16 — Design for extreme pixel art resolution. Use 2–4 flat colors, bold silhouettes, no gradients, no fine detail. Every pixel counts; prioritize readable shape over surface detail.',
+  32:  'TARGET PIXEL SIZE: 32×32 — Design for classic pixel art (NES/early SNES era). Limited palette of 4–8 colors, clean shapes, minimal shading. Sprites should read clearly as strong silhouettes.',
+  48:  'TARGET PIXEL SIZE: 48×48 — Design for mid-resolution pixel art. Palette of 8–16 colors, defined shading with dithering, readable detail on key features.',
+  64:  'TARGET PIXEL SIZE: 64×64 — Design for mid-resolution pixel art. Palette of 8–16 colors, defined shading, fine readable detail on faces, equipment, and surfaces.',
+  128: 'TARGET PIXEL SIZE: 128×128 — Design for high-resolution pixel art. Rich palette, detailed shading with smooth dithering, fine features and textures visible. SNES/GBA era fidelity.',
+};
+
+export function getPixelizeGuidance(targetSize: number | undefined): string {
+  if (targetSize === undefined) return '';
+  return PIXELIZE_GUIDANCE[targetSize] ?? '';
+}
+
 /** Prefix for multi-grid reference image prompts, shared by all sprite types. */
 export const REFERENCE_PREFIX = `\
 You are given two images.

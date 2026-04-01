@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildGridFillPrompt, buildGridFillPromptWithReference, type CharacterConfig } from '../promptBuilder';
+import { getPixelizeGuidance } from '../promptBuilderBase';
 
 const baseCharacter: CharacterConfig = {
   name: 'Test Hero',
@@ -76,6 +77,34 @@ describe('buildGridFillPrompt', () => {
     const prompt = buildGridFillPrompt(baseCharacter);
     expect(prompt).toContain('#FF00FF');
     expect(prompt).toContain('magenta');
+  });
+});
+
+describe('getPixelizeGuidance', () => {
+  it('returns guidance for each valid target size', () => {
+    const sizes = [16, 32, 48, 64, 128];
+    const expectedSubstrings: Record<number, string> = {
+      16: 'TARGET PIXEL SIZE: 16×16',
+      32: 'TARGET PIXEL SIZE: 32×32',
+      48: 'TARGET PIXEL SIZE: 48×48',
+      64: 'TARGET PIXEL SIZE: 64×64',
+      128: 'TARGET PIXEL SIZE: 128×128',
+    };
+    for (const size of sizes) {
+      const guidance = getPixelizeGuidance(size);
+      expect(guidance).toContain(expectedSubstrings[size]);
+      expect(guidance.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('returns empty string when size is undefined', () => {
+    expect(getPixelizeGuidance(undefined)).toBe('');
+  });
+
+  it('returns empty string for unknown sizes', () => {
+    expect(getPixelizeGuidance(99)).toBe('');
+    expect(getPixelizeGuidance(0)).toBe('');
+    expect(getPixelizeGuidance(256)).toBe('');
   });
 });
 
