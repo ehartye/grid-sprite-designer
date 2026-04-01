@@ -154,7 +154,7 @@ export function buildGridFillPrompt(
   const rows = cellLabels ? Math.ceil(totalCells / cols) : 6;
 
   const charBlock = [
-    `Fill every pink cell area with an SNES-era 16-bit pixel-art sprite of a`,
+    `Fill every pink cell area with a pixel-art sprite of a`,
     `${character.name.toUpperCase()} character.`,
     ``,
     `Character appearance: ${character.description}`,
@@ -162,7 +162,7 @@ export function buildGridFillPrompt(
     character.colorNotes ? `Color palette: ${character.colorNotes}` : '',
     character.styleNotes ? `Additional style notes: ${character.styleNotes}` : '',
     ``,
-    `  • Style reference: Final Fantasy VI / Chrono Trigger overworld + battle sprites`,
+    `  • Default style reference: Final Fantasy VI / Chrono Trigger overworld + battle sprites (SNES 16-bit)`,
     `  • Consistent proportions and palette across ALL ${totalCells} cells`,
   ].filter(Boolean).join('\n');
 

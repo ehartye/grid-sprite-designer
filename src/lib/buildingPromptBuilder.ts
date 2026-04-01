@@ -27,7 +27,7 @@ export function buildBuildingPrompt(
   guidanceOverride?: string,
 ): string {
   const charBlock = [
-    `Fill every pink cell area with an SNES-era 16-bit pixel-art sprite of a`,
+    `Fill every pink cell area with a pixel-art sprite of a`,
     `${building.name.toUpperCase()} building/structure.`,
     ``,
     `Building appearance: ${building.description}`,
@@ -35,7 +35,7 @@ export function buildBuildingPrompt(
     building.colorNotes ? `Color palette: ${building.colorNotes}` : '',
     building.styleNotes ? `Additional style notes: ${building.styleNotes}` : '',
     ``,
-    `  \u2022 Style reference: Final Fantasy VI / Chrono Trigger overworld buildings and structures`,
+    `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger overworld buildings and structures (SNES 16-bit)`,
     `  \u2022 Consistent proportions, perspective, and palette across ALL ${grid.totalCells} cells`,
     `  \u2022 Each cell shows the SAME building — variations come from the label (e.g. time of day, damage state, animation frame)`,
   ].filter(Boolean).join('\n');

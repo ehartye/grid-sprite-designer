@@ -26,14 +26,14 @@ export function buildTerrainPrompt(
   guidanceOverride?: string,
 ): string {
   const descBlock = [
-    `Fill every pink cell area with an SNES-era 16-bit pixel-art terrain tile for a`,
+    `Fill every pink cell area with a pixel-art terrain tile for a`,
     `${terrain.name.toUpperCase()} tileset.`,
     ``,
     `Terrain description: ${terrain.description}`,
     terrain.colorNotes ? `Color palette: ${terrain.colorNotes}` : '',
     terrain.styleNotes ? `Additional style notes: ${terrain.styleNotes}` : '',
     ``,
-    `  \u2022 Style reference: Final Fantasy VI / Chrono Trigger overworld tilesets`,
+    `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger overworld tilesets (SNES 16-bit)`,
     `  \u2022 Consistent palette, texture density, and perspective across ALL ${grid.totalCells} tiles`,
     `  \u2022 Each cell is one distinct tile variant — base tiles, edges, corners, or transitions as labeled`,
   ].filter(Boolean).join('\n');

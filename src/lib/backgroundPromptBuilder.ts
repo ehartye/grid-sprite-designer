@@ -27,7 +27,7 @@ export function buildBackgroundPrompt(
   guidanceOverride?: string,
 ): string {
   const descBlock = [
-    `Fill every pink cell area with an SNES-era 16-bit pixel-art background`,
+    `Fill every pink cell area with a pixel-art background`,
     bg.bgMode === 'parallax'
       ? `layer for a ${bg.name.toUpperCase()} parallax scrolling background.`
       : `scene variant of ${bg.name.toUpperCase()}.`,
@@ -36,7 +36,7 @@ export function buildBackgroundPrompt(
     bg.colorNotes ? `Color palette: ${bg.colorNotes}` : '',
     bg.styleNotes ? `Additional style notes: ${bg.styleNotes}` : '',
     ``,
-    `  \u2022 Style reference: Final Fantasy VI / Chrono Trigger background art`,
+    `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger background art (SNES 16-bit)`,
     `  \u2022 Consistent palette and art style across ALL ${grid.totalCells} cells`,
   ].filter(Boolean).join('\n');
 
