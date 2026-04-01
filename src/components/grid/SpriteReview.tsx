@@ -16,7 +16,7 @@ import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
 import { composeSpriteSheet, ExtractedSprite, pixelizeSprite } from '../../lib/spriteExtractor';
 import { debugLog } from '../../lib/debugLog';
-import { applyChromaKey, defringeRecolor, strikeColors, detectKeyColor } from '../../lib/chromaKey';
+import { applyChromaKey, defringeRecolor, outlineSprite, strikeColors, detectKeyColor } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 import { AddSheetModal } from './AddSheetModal';
 
@@ -38,9 +38,13 @@ async function processSprite(
   keyB = 255,
   pixelizeEnabled = false,
   pixelizeSize = 32,
+  outlineEnabled = false,
+  outlineOutDepth = 1,
+  outlineInDepth = 0,
+  outlineColor: RGB = [0, 0, 0],
 ): Promise<ExtractedSprite> {
   const hasErasure = erasedPixels && erasedPixels.size > 0;
-  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses && !pixelizeEnabled) return sprite;
+  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled) return sprite;
 
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -59,6 +63,7 @@ async function processSprite(
   if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
   if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore, keyR, keyG, keyB);
   if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, keyR, keyG, keyB, edgeRecolorPasses, recolorSensitivity);
+  if (outlineEnabled) imageData = outlineSprite(imageData, outlineOutDepth, outlineInDepth, outlineColor[0], outlineColor[1], outlineColor[2]);
   if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
   if (hasErasure) {
     for (const key of erasedPixels) {
@@ -173,6 +178,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [pixelizeEnabled, setPixelizeEnabled] = useState(false);
   const [pixelizeSize, setPixelizeSize] = useState(32);
+  const [outlineEnabled, setOutlineEnabled] = useState(false);
+  const [outlineOutDepth, setOutlineOutDepth] = useState(1);
+  const [outlineInDepth, setOutlineInDepth] = useState(0);
+  const [outlineColor, setOutlineColor] = useState<RGB>([0, 0, 0]);
   const struckKey = JSON.stringify(struckColors);
 
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
@@ -212,7 +221,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
   // Process sprites through posterization + chroma key + color strikes + erasures + pixelize
   useEffect(() => {
-    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses && !pixelizeEnabled) {
+    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled) {
       setProcessedSprites(sprites);
       return;
     }
@@ -241,13 +250,13 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       }
 
       const result = await Promise.all(sprites.map((s) =>
-        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize),
+        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor),
       ));
       if (!cancelled) setProcessedSprites(result);
     })();
 
     return () => { cancelled = true; };
-  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
   // Guard: skip the first save effect after load completes to prevent
@@ -298,6 +307,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         });
         setPixelizeEnabled(settings.pixelizeEnabled ?? false);
         setPixelizeSize(settings.pixelizeSize ?? 32);
+        setOutlineEnabled(settings.outlineEnabled ?? false);
+        setOutlineOutDepth(settings.outlineOutDepth ?? 1);
+        setOutlineInDepth(settings.outlineInDepth ?? 0);
+        setOutlineColor(settings.outlineColor ?? [0, 0, 0]);
       }
       if (histData?.thumbnailCellIndex != null) {
         selection.setThumbnailCell(histData.thumbnailCellIndex);
@@ -338,8 +351,12 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       erasedPixels: serializedErased,
       pixelizeEnabled,
       pixelizeSize,
+      outlineEnabled,
+      outlineOutDepth,
+      outlineInDepth,
+      outlineColor,
     });
-  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, saveSettings]);
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -643,6 +660,58 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                 </button>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Outline */}
+        <div className="sidebar-section">
+          <h3>
+            Outline
+            <span title="Paint a pixel outline around sprites. Outward adds pixels into the transparent area; Inward recolors the outermost opaque ring." style={{ cursor: 'help', marginLeft: 4, fontSize: '0.7rem', color: 'var(--text-muted)' }}>&#9432;</span>
+          </h3>
+          <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            <button className={`anim-group-btn ${!outlineEnabled ? 'active' : ''}`} onClick={() => setOutlineEnabled(false)}>Off</button>
+            <button className={`anim-group-btn ${outlineEnabled ? 'active' : ''}`} onClick={() => setOutlineEnabled(true)}>On</button>
+          </div>
+          {outlineEnabled && (
+            <>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Out</label>
+                    <span className="slider-value">{outlineOutDepth}</span>
+                  </div>
+                  <input type="range" min={0} max={8} value={outlineOutDepth} onChange={(e) => setOutlineOutDepth(Number(e.target.value))} style={{ width: '100%' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>In</label>
+                    <span className="slider-value">{outlineInDepth}</span>
+                  </div>
+                  <input type="range" min={0} max={8} value={outlineInDepth} onChange={(e) => setOutlineInDepth(Number(e.target.value))} style={{ width: '100%' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
+                {([[0,0,0],[255,255,255]] as RGB[]).map(([cr, cg, cb], idx) => {
+                  const isSelected = outlineColor[0] === cr && outlineColor[1] === cg && outlineColor[2] === cb;
+                  return (
+                    <button key={idx} onClick={() => setOutlineColor([cr, cg, cb])}
+                      title={idx === 0 ? 'Black' : 'White'}
+                      style={{ width: 24, height: 24, backgroundColor: `rgb(${cr},${cg},${cb})`, border: isSelected ? '2px solid var(--accent)' : '2px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}
+                    />
+                  );
+                })}
+                {palette.slice(0, 10).map(([cr, cg, cb], i) => {
+                  const isSelected = outlineColor[0] === cr && outlineColor[1] === cg && outlineColor[2] === cb;
+                  return (
+                    <button key={i + 2} onClick={() => setOutlineColor([cr, cg, cb])}
+                      title={`rgb(${cr}, ${cg}, ${cb})`}
+                      style={{ width: 24, height: 24, backgroundColor: `rgb(${cr},${cg},${cb})`, border: isSelected ? '2px solid var(--accent)' : '2px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}
+                    />
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
 

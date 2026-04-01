@@ -23,6 +23,10 @@ export interface EditorSettings {
   erasedPixels: Record<string, string[]>;
   pixelizeEnabled: boolean;
   pixelizeSize: number;
+  outlineEnabled: boolean;
+  outlineOutDepth: number;
+  outlineInDepth: number;
+  outlineColor: [number, number, number];
 }
 
 const DEFAULTS: EditorSettings = {
@@ -40,6 +44,10 @@ const DEFAULTS: EditorSettings = {
   erasedPixels: {},
   pixelizeEnabled: false,
   pixelizeSize: 32,
+  outlineEnabled: false,
+  outlineOutDepth: 1,
+  outlineInDepth: 0,
+  outlineColor: [0, 0, 0],
 };
 
 export function useEditorSettings(historyId: number | null) {
