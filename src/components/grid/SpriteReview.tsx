@@ -296,6 +296,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           posterizeBits: settings.posterizeBits,
           posterizeOutput: settings.posterizeOutput,
         });
+        setPixelizeEnabled(settings.pixelizeEnabled ?? false);
+        setPixelizeSize(settings.pixelizeSize ?? 32);
       }
       if (histData?.thumbnailCellIndex != null) {
         selection.setThumbnailCell(histData.thumbnailCellIndex);
@@ -334,8 +336,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       recolorSensitivity: chroma.recolorSensitivity,
       defringeCore: chroma.defringeCore,
       erasedPixels: serializedErased,
+      pixelizeEnabled,
+      pixelizeSize,
     });
-  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, saveSettings]);
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {

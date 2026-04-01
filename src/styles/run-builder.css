@@ -216,3 +216,8 @@
   min-width: 40px;
   text-align: center;
 }
+
+.pixel-size-btn.active {
+  background: var(--bg-card);
+  color: var(--accent);
+}
