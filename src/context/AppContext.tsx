@@ -258,7 +258,7 @@ export const initialState: AppState = {
     gridSize: '1x4' as BackgroundGridSize,
     cellLabels: Array(4).fill(''),
   },
-  model: 'nano-banana-pro-preview',
+  model: 'gemini-3-pro-image-preview',
   imageSize: '2K',
   aspectRatio: '1:1',
   activeContentPresetIds: { character: null, building: null, terrain: null, background: null },

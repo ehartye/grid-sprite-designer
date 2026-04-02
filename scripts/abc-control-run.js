@@ -21,7 +21,7 @@ if (!GEMINI_API_KEY) {
   process.exit(1);
 }
 
-const MODEL = 'nano-banana-pro-preview';
+const MODEL = 'gemini-3-pro-image-preview';
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const IMAGE_SIZE = '2K';
 const MAX_RETRIES = 3;

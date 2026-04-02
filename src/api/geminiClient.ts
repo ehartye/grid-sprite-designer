@@ -34,7 +34,7 @@ export async function generateGrid(
   return response.json();
 }
 
-export async function testConnection(model: string = 'nano-banana-pro-preview'): Promise<{ success: boolean; error?: string }> {
+export async function testConnection(model: string = 'gemini-3-pro-image-preview'): Promise<{ success: boolean; error?: string }> {
   const response = await fetch('/api/test-connection', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -11,10 +11,8 @@ export const ALLOWED_IMAGE_SIZES = ['2K', '4K'];
 export const ALLOWED_ASPECT_RATIOS = ['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'];
 
 export const ALLOWED_MODELS = [
-  'nano-banana-pro-preview',
-  'gemini-2.5-flash-preview-05-20',
-  'gemini-2.5-flash',
-  'gemini-2.5-pro-preview-05-06',
+  'gemini-3-pro-image-preview',
+  'gemini-2.5-flash-image',
   'gemini-2.0-flash',
   'gemini-2.0-flash-lite',
   'gemini-2.0-flash-image-generation',
@@ -193,7 +191,7 @@ export function createGenerateRouter(apiKey) {
 
   router.post('/test-connection', testConnectionLimiter, async (req, res) => {
     try {
-      const { model = 'nano-banana-pro-preview' } = req.body || {};
+      const { model = 'gemini-3-pro-image-preview' } = req.body || {};
 
       if (!ALLOWED_MODELS.includes(model)) {
         return res.status(400).json({ error: `Invalid model. Allowed models: ${ALLOWED_MODELS.join(', ')}` });
