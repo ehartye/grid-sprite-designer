@@ -363,14 +363,15 @@ export function outlineSprite(
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const pi = y * width + x;
-        if (alphaSnap[pi] === 0) continue; // skip transparent pixels
+        if (alphaSnap[pi] < 255) continue; // only recolor fully opaque pixels
 
-        // Out-of-bounds counts as transparent for inward recolor
+        // Treat any non-fully-opaque neighbor (including fringe from chroma key)
+        // as a transparent boundary. Out-of-bounds also counts as transparent.
         const hasTransparentNeighbor =
-          (x === 0 || alphaSnap[pi - 1] === 0) ||
-          (x === width - 1 || alphaSnap[pi + 1] === 0) ||
-          (y === 0 || alphaSnap[pi - width] === 0) ||
-          (y === height - 1 || alphaSnap[pi + width] === 0);
+          (x === 0 || alphaSnap[pi - 1] < 255) ||
+          (x === width - 1 || alphaSnap[pi + 1] < 255) ||
+          (y === 0 || alphaSnap[pi - width] < 255) ||
+          (y === height - 1 || alphaSnap[pi + width] < 255);
 
         if (hasTransparentNeighbor) {
           const i = pi * 4;

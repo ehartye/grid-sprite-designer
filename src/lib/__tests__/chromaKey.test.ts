@@ -295,6 +295,18 @@ describe('outlineSprite', () => {
     expect(ob).toBe(0);
   });
 
+  it('inward recolor works when edge pixels border partial-alpha fringe (chroma key case)', () => {
+    // 3x3: outer ring is partial-alpha fringe (as left by chroma key), center is fully opaque
+    const img = makeImageData(3, 3, [200, 200, 200, 128]); // fringe alpha
+    setPixel(img, 1, 1, 255, 255, 255, 255); // fully opaque center
+
+    const result = outlineSprite(img, 0, 1, 0, 0, 0); // inward only, black
+    // Center (only fully-opaque pixel) has partial-alpha neighbors → should be recolored
+    expect(getPixel(result, 1, 1).slice(0, 3)).toEqual([0, 0, 0]);
+    // Fringe pixels are skipped (alpha < 255) — RGB unchanged
+    expect(getPixel(result, 0, 0)[3]).toBe(128);
+  });
+
   it('does not mutate source ImageData', () => {
     const img = makeImageData(3, 3, [0, 0, 0, 0]);
     setPixel(img, 1, 1, 255, 255, 255, 255);
