@@ -6,7 +6,9 @@ export const PRESET_TABLES = {
     columns: [
       ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
       ['equipment', 'equipment', ''], ['colorNotes', 'color_notes', ''],
-      ['rowGuidance', 'row_guidance', ''],
+      ['overallGuidance', 'overall_guidance', ''],
+      ['groupGuidance', 'group_guidance', '{}', true],
+      ['cellGuidance', 'cell_guidance', '{}', true],
     ],
   },
   building: {
@@ -15,7 +17,9 @@ export const PRESET_TABLES = {
       ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
       ['details', 'details', ''], ['colorNotes', 'color_notes', ''],
       ['gridSize', 'grid_size', '3x3'], ['cellLabels', 'cell_labels', [], true],
-      ['cellGuidance', 'cell_guidance', ''],
+      ['overallGuidance', 'overall_guidance', ''],
+      ['groupGuidance', 'group_guidance', '{}', true],
+      ['cellGuidance', 'cell_guidance', '{}', true],
     ],
   },
   terrain: {
@@ -23,7 +27,10 @@ export const PRESET_TABLES = {
     columns: [
       ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
       ['colorNotes', 'color_notes', ''], ['gridSize', 'grid_size', '4x4'],
-      ['tileLabels', 'tile_labels', [], true], ['tileGuidance', 'tile_guidance', ''],
+      ['tileLabels', 'tile_labels', [], true],
+      ['overallGuidance', 'overall_guidance', ''],
+      ['groupGuidance', 'group_guidance', '{}', true],
+      ['cellGuidance', 'cell_guidance', '{}', true],
     ],
   },
   background: {
@@ -32,7 +39,9 @@ export const PRESET_TABLES = {
       ['name', 'name'], ['genre', 'genre', ''], ['description', 'description', ''],
       ['colorNotes', 'color_notes', ''], ['gridSize', 'grid_size', '1x4'],
       ['bgMode', 'bg_mode', 'parallax'], ['layerLabels', 'layer_labels', [], true],
-      ['layerGuidance', 'layer_guidance', ''],
+      ['overallGuidance', 'overall_guidance', ''],
+      ['groupGuidance', 'group_guidance', '{}', true],
+      ['cellGuidance', 'cell_guidance', '{}', true],
     ],
   },
 };

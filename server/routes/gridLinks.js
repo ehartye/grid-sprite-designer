@@ -9,13 +9,20 @@ export function createGridLinksRouter(db) {
     try {
       const { id } = req.params;
       const config = req.presetConfig;
-      const linkId = parseIntParam(id);
-      if (linkId === null) return res.status(400).json({ error: 'Invalid id' });
-      const { guidanceOverride, sortOrder } = req.body;
-      const { linkTable: table } = config;
-      const result = db.prepare(`UPDATE ${table} SET guidance_override=?, sort_order=? WHERE id=?`)
-        .run(guidanceOverride || '', sortOrder || 0, linkId);
-      if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+      const numericId = parseIntParam(id);
+      if (numericId === null) return res.status(400).json({ error: 'Invalid id' });
+      const { overallGuidance, groupGuidance, cellGuidance, sortOrder } = req.body;
+      db.prepare(`
+        UPDATE ${config.linkTable}
+        SET overall_guidance = ?, group_guidance = ?, cell_guidance = ?, sort_order = ?
+        WHERE id = ?
+      `).run(
+        overallGuidance || '',
+        JSON.stringify(groupGuidance || {}),
+        JSON.stringify(cellGuidance || {}),
+        sortOrder || 0,
+        numericId
+      );
       res.json({ success: true });
     } catch (err) { next(err); }
   });

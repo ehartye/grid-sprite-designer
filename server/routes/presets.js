@@ -107,9 +107,16 @@ export function createPresetsRouter(db) {
       const config = req.presetConfig;
       const { linkTable: table, fk } = config;
       const links = db.prepare(`
-        SELECT l.*, g.name as grid_name, g.grid_size, g.cols, g.rows,
-               g.cell_labels, g.cell_groups, g.generic_guidance, g.bg_mode,
-               g.aspect_ratio, g.tile_shape
+        SELECT l.id, l.grid_preset_id, l.sort_order,
+               l.overall_guidance as link_overall_guidance,
+               l.group_guidance as link_group_guidance,
+               l.cell_guidance as link_cell_guidance,
+               g.name as grid_name, g.grid_size, g.cols, g.rows,
+               g.cell_labels, g.cell_groups,
+               g.overall_guidance as grid_overall_guidance,
+               g.group_guidance as grid_group_guidance,
+               g.cell_guidance as grid_cell_guidance,
+               g.bg_mode, g.aspect_ratio, g.tile_shape
         FROM ${table} l
         JOIN grid_presets g ON g.id = l.grid_preset_id
         WHERE l.${fk} = ?
@@ -118,7 +125,16 @@ export function createPresetsRouter(db) {
       res.json(links.map(l => ({
         id: l.id,
         gridPresetId: l.grid_preset_id,
-        guidanceOverride: l.guidance_override,
+        gridGuidance: {
+          overall: l.grid_overall_guidance || '',
+          groups: JSON.parse(l.grid_group_guidance || '{}'),
+          cells: JSON.parse(l.grid_cell_guidance || '{}'),
+        },
+        linkGuidance: {
+          overall: l.link_overall_guidance || '',
+          groups: JSON.parse(l.link_group_guidance || '{}'),
+          cells: JSON.parse(l.link_cell_guidance || '{}'),
+        },
         sortOrder: l.sort_order,
         gridName: l.grid_name,
         gridSize: l.grid_size,
@@ -126,7 +142,6 @@ export function createPresetsRouter(db) {
         rows: l.rows,
         cellLabels: JSON.parse(l.cell_labels),
         cellGroups: JSON.parse(l.cell_groups),
-        genericGuidance: l.generic_guidance,
         bgMode: l.bg_mode,
         aspectRatio: l.aspect_ratio || '1:1',
         tileShape: l.tile_shape || 'square',
@@ -138,13 +153,18 @@ export function createPresetsRouter(db) {
     try {
       const { id } = req.params;
       const config = req.presetConfig;
-      const { gridPresetId, guidanceOverride, sortOrder } = req.body;
+      const { gridPresetId, overallGuidance, groupGuidance, cellGuidance, sortOrder } = req.body;
       if (!gridPresetId) return res.status(400).json({ error: 'Missing gridPresetId' });
       const { linkTable: table, fk } = config;
       const result = db.prepare(`
-        INSERT INTO ${table} (${fk}, grid_preset_id, guidance_override, sort_order)
-        VALUES (?, ?, ?, ?)
-      `).run(id, gridPresetId, guidanceOverride || '', sortOrder || 0);
+        INSERT INTO ${table} (${fk}, grid_preset_id, overall_guidance, group_guidance, cell_guidance, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(id, gridPresetId,
+        overallGuidance || '',
+        JSON.stringify(groupGuidance || {}),
+        JSON.stringify(cellGuidance || {}),
+        sortOrder || 0
+      );
       res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
   });
