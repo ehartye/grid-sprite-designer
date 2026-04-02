@@ -2093,7 +2093,7 @@ ROW 5 — KO 3, Victory, Status Poses:
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO character_presets (id, name, genre, description, equipment, color_notes, row_guidance, is_preset)
+    `INSERT OR IGNORE INTO character_presets (id, name, genre, description, equipment, color_notes, overall_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -2110,13 +2110,13 @@ ROW 5 — KO 3, Victory, Status Poses:
   const rpgFullGrid = db.prepare("SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character'").get();
   if (rpgFullGrid) {
     const insertLink = db.prepare(`
-      INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, guidance_override, sort_order)
+      INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, overall_guidance, sort_order)
       VALUES (?, ?, ?, 0)
     `);
-    const chars = db.prepare('SELECT id, row_guidance FROM character_presets').all();
+    const chars = db.prepare('SELECT id, overall_guidance FROM character_presets').all();
     const linkAll = db.transaction(() => {
       for (const char of chars) {
-        insertLink.run(char.id, rpgFullGrid.id, char.row_guidance || '');
+        insertLink.run(char.id, rpgFullGrid.id, char.overall_guidance || '');
       }
     });
     linkAll();

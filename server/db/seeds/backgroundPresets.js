@@ -217,7 +217,7 @@ export function seedBackgroundPresets(db) {
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, layer_guidance, is_preset)
+    `INSERT OR IGNORE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, overall_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -232,12 +232,12 @@ export function seedBackgroundPresets(db) {
 
   // Create a grid preset per background content preset with real layer labels, then link
   const insertGrid = db.prepare(`
-    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
   const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'background' AND grid_size = ?");
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, guidance_override, sort_order)
+    INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, overall_guidance, sort_order)
     VALUES (?, ?, ?, 0)
   `);
   const PARALLAX_GUIDANCE = `LAYER ORDER (top to bottom, farthest to nearest): Each cell is one parallax layer. Draw each layer so it tiles horizontally. Layers stack vertically — the top cell is the farthest background, the bottom cell is the nearest foreground. Maintain consistent color palette and art style across all layers. Each layer must fill its ENTIRE cell with no magenta visible.`;

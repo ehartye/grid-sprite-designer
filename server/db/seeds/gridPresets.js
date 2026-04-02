@@ -163,7 +163,7 @@ ROW 5 — KO 3, Victory Sequence, Status Poses:
     edge of collapse but still fighting.`;
 
   const insertGrid = db.prepare(`
-    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
 

@@ -37,6 +37,55 @@ const MIGRATIONS = [
     name: '017_clean_isometric_aspect_ratios',
     sql: "UPDATE grid_presets SET aspect_ratio = '1:1' WHERE sprite_type != 'background' AND aspect_ratio != '1:1'"
   },
+  {
+    name: '018_hierarchical_guidance',
+    sql: `
+    -- grid_presets: rename generic_guidance → overall_guidance, add group/cell
+    ALTER TABLE grid_presets RENAME COLUMN generic_guidance TO overall_guidance;
+    ALTER TABLE grid_presets ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE grid_presets ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- character_grid_links: rename guidance_override → overall_guidance, add group/cell
+    ALTER TABLE character_grid_links RENAME COLUMN guidance_override TO overall_guidance;
+    ALTER TABLE character_grid_links ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE character_grid_links ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- building_grid_links
+    ALTER TABLE building_grid_links RENAME COLUMN guidance_override TO overall_guidance;
+    ALTER TABLE building_grid_links ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE building_grid_links ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- terrain_grid_links
+    ALTER TABLE terrain_grid_links RENAME COLUMN guidance_override TO overall_guidance;
+    ALTER TABLE terrain_grid_links ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE terrain_grid_links ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- background_grid_links
+    ALTER TABLE background_grid_links RENAME COLUMN guidance_override TO overall_guidance;
+    ALTER TABLE background_grid_links ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE background_grid_links ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- character_presets: rename row_guidance → overall_guidance, add group/cell
+    ALTER TABLE character_presets RENAME COLUMN row_guidance TO overall_guidance;
+    ALTER TABLE character_presets ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE character_presets ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- building_presets: rename cell_guidance → overall_guidance (must go before ADD COLUMN)
+    ALTER TABLE building_presets RENAME COLUMN cell_guidance TO overall_guidance;
+    ALTER TABLE building_presets ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE building_presets ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- terrain_presets: rename tile_guidance → overall_guidance
+    ALTER TABLE terrain_presets RENAME COLUMN tile_guidance TO overall_guidance;
+    ALTER TABLE terrain_presets ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE terrain_presets ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+
+    -- background_presets: rename layer_guidance → overall_guidance
+    ALTER TABLE background_presets RENAME COLUMN layer_guidance TO overall_guidance;
+    ALTER TABLE background_presets ADD COLUMN group_guidance TEXT NOT NULL DEFAULT '{}';
+    ALTER TABLE background_presets ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
+  `,
+  },
 ];
 
 export function migrateSchema(db) {

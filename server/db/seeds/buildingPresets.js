@@ -519,7 +519,7 @@ ROW 2 — Extreme States:
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, cell_guidance, is_preset)
+    `INSERT OR IGNORE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, overall_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -534,12 +534,12 @@ ROW 2 — Extreme States:
 
   // Create a grid preset per building content preset with real cell labels, then link
   const insertGrid = db.prepare(`
-    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
   const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'building' AND grid_size = ?");
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, guidance_override, sort_order)
+    INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, overall_guidance, sort_order)
     VALUES (?, ?, ?, 0)
   `);
   const BUILDING_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER that names the variant. Draw the same building in each cell but reflecting the variant described by its header label. Maintain consistent architecture, proportions, and style across all cells. Each row typically represents a thematic group (e.g., activity states, damage states, time of day).`;

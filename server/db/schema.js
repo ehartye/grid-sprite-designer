@@ -60,7 +60,9 @@ export function createSchema(db) {
       description TEXT NOT NULL DEFAULT '',
       equipment TEXT NOT NULL DEFAULT '',
       color_notes TEXT NOT NULL DEFAULT '',
-      row_guidance TEXT NOT NULL DEFAULT '',
+      overall_guidance TEXT NOT NULL DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       is_preset INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -74,7 +76,9 @@ export function createSchema(db) {
       details TEXT NOT NULL DEFAULT '',
       color_notes TEXT NOT NULL DEFAULT '',
       cell_labels TEXT NOT NULL DEFAULT '[]',
-      cell_guidance TEXT NOT NULL DEFAULT '',
+      overall_guidance TEXT NOT NULL DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       is_preset INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -87,7 +91,9 @@ export function createSchema(db) {
       description TEXT NOT NULL DEFAULT '',
       color_notes TEXT NOT NULL DEFAULT '',
       tile_labels TEXT NOT NULL DEFAULT '[]',
-      tile_guidance TEXT NOT NULL DEFAULT '',
+      overall_guidance TEXT NOT NULL DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       is_preset INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -101,7 +107,9 @@ export function createSchema(db) {
       description TEXT NOT NULL DEFAULT '',
       color_notes TEXT NOT NULL DEFAULT '',
       layer_labels TEXT NOT NULL DEFAULT '[]',
-      layer_guidance TEXT NOT NULL DEFAULT '',
+      overall_guidance TEXT NOT NULL DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       is_preset INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -118,7 +126,9 @@ export function createSchema(db) {
       rows INTEGER NOT NULL,
       cell_labels TEXT NOT NULL DEFAULT '[]',
       cell_groups TEXT NOT NULL DEFAULT '[]',
-      generic_guidance TEXT DEFAULT '',
+      overall_guidance TEXT DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       bg_mode TEXT DEFAULT NULL,
       aspect_ratio TEXT DEFAULT '1:1',
       tile_shape TEXT DEFAULT 'square',
@@ -132,7 +142,9 @@ export function createSchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       character_preset_id TEXT NOT NULL REFERENCES character_presets(id) ON DELETE CASCADE,
       grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
-      guidance_override TEXT DEFAULT '',
+      overall_guidance TEXT DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       sort_order INTEGER DEFAULT 0,
       UNIQUE(character_preset_id, grid_preset_id)
     )
@@ -143,7 +155,9 @@ export function createSchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       building_preset_id TEXT NOT NULL REFERENCES building_presets(id) ON DELETE CASCADE,
       grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
-      guidance_override TEXT DEFAULT '',
+      overall_guidance TEXT DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       sort_order INTEGER DEFAULT 0,
       UNIQUE(building_preset_id, grid_preset_id)
     )
@@ -154,7 +168,9 @@ export function createSchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       terrain_preset_id TEXT NOT NULL REFERENCES terrain_presets(id) ON DELETE CASCADE,
       grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
-      guidance_override TEXT DEFAULT '',
+      overall_guidance TEXT DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       sort_order INTEGER DEFAULT 0,
       UNIQUE(terrain_preset_id, grid_preset_id)
     )
@@ -165,7 +181,9 @@ export function createSchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       background_preset_id TEXT NOT NULL REFERENCES background_presets(id) ON DELETE CASCADE,
       grid_preset_id INTEGER NOT NULL REFERENCES grid_presets(id) ON DELETE CASCADE,
-      guidance_override TEXT DEFAULT '',
+      overall_guidance TEXT DEFAULT '',
+      group_guidance TEXT NOT NULL DEFAULT '{}',
+      cell_guidance TEXT NOT NULL DEFAULT '{}',
       sort_order INTEGER DEFAULT 0,
       UNIQUE(background_preset_id, grid_preset_id)
     )

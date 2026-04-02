@@ -9,7 +9,7 @@ export function seedAnimationSeries(db) {
 
   const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ?");
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, guidance_override, sort_order)
+    INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, overall_guidance, sort_order)
     VALUES (?, ?, ?, ?)
   `);
 

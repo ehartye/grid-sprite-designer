@@ -439,7 +439,7 @@ ROW 3 — Rock-to-Pool Edge Transitions:
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, tile_guidance, is_preset)
+    `INSERT OR IGNORE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, overall_guidance, is_preset)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
@@ -454,12 +454,12 @@ ROW 3 — Rock-to-Pool Edge Transitions:
 
   // Create a grid preset per terrain content preset with real tile labels, then link
   const insertGrid = db.prepare(`
-    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, generic_guidance, bg_mode, is_preset)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
   const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'terrain' AND grid_size = ?");
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, guidance_override, sort_order)
+    INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, overall_guidance, sort_order)
     VALUES (?, ?, ?, 0)
   `);
   const TERRAIN_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER naming the tile type. All tiles must share the same art style, color palette, and scale. Edge and corner tiles must seamlessly connect with adjacent base tiles. Each row represents a thematic group.`;
