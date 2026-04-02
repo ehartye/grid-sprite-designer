@@ -161,14 +161,15 @@ export function buildGridFillPrompt(
     character.equipment ? `Equipment: ${character.equipment}` : '',
     character.colorNotes ? `Color palette: ${character.colorNotes}` : '',
     character.styleNotes ? `Additional style notes: ${character.styleNotes}` : '',
-    ``,
-    `  • Default style reference: Final Fantasy VI / Chrono Trigger overworld + battle sprites (SNES 16-bit)`,
-    `  • Consistent proportions and palette across ALL ${totalCells} cells`,
   ].filter(Boolean).join('\n');
 
   // Use grid preset guidance if provided, otherwise fall back to hardcoded constants
   const genericGuidance = gridGenericGuidance?.trim() || GENERIC_ROW_GUIDANCE;
-  const overrideText = (guidanceOverride?.trim() || character.rowGuidance.trim());
+  // character.rowGuidance was written for the RPG 6x6 grid specifically; only use it as a
+  // fallback when the grid has no genericGuidance of its own (legacy/pre-DB-migration mode).
+  // When a grid provides its own genericGuidance, character-specific notes should come from
+  // guidanceOverride (stored on the grid link), not from rowGuidance (RPG-grid-specific).
+  const overrideText = guidanceOverride?.trim() || (gridGenericGuidance?.trim() ? '' : character.rowGuidance.trim());
   const characterGuidance = overrideText
     ? `\nCHARACTER-SPECIFIC POSE NOTES (use these to refine each cell):\n${overrideText}\n`
     : '';
@@ -202,15 +203,16 @@ Back-worn items (capes, backpacks, slung shields, quivers, sheathed weapons)
 must appear consistently on the character's back in every pose where the
 back or side is visible. Do not omit, move, or swap equipment between cells.
 
-FULL BODY VISIBILITY: The character's ENTIRE body — head to toe — must be
-fully visible within every cell. No part of the sprite (head, feet, weapon,
-hat, cape, tail, wings) may be clipped or cut off by the cell boundary.
-Scale the sprite small enough to fit comfortably with a margin of pink
-background on all sides. Shadows, spell effects, energy auras, weapon
-trails, and any ability VFX must also stay fully contained within the cell
-— they must NOT touch, overlap, or push up against the cell edges or bleed
-into adjacent cells. If an effect would be too large to fit, make it
-smaller or omit it rather than letting it crowd the boundaries.
+FULL BODY VISIBILITY: The character's entire body must be visible within every
+cell — nothing clipped or cut off. Scale the sprite to fit comfortably with a
+margin of pink background on all sides. Effects (shadows, auras, VFX) must stay
+fully within the cell and not bleed into adjacent cells.
+
+MOVEMENT CONTINUITY: In animation sequences, body position must alternate
+naturally between frames. If the character's right leg is forward in one frame,
+the next stride forward uses the left leg. Arms and other limbs follow the same
+principle — each frame progresses the motion cycle rather than repeating or
+mirroring the same position.
 
 Below is the exact layout. Each entry begins with the HEADER text printed in
 that cell — use it to identify which cell you are filling. The (row, col)
@@ -231,7 +233,11 @@ export function buildGridFillPromptWithReference(
   guidanceOverride: string,
   cellLabels: string[],
 ): string {
-  const basePrompt = buildGridFillPrompt(character, gridGenericGuidance, guidanceOverride, cellLabels);
+  const basePrompt = buildGridFillPrompt(character, gridGenericGuidance, guidanceOverride, cellLabels)
+    .replace(
+      'You are filling in a sprite sheet template. The attached image is',
+      'You are filling in a sprite sheet template. IMAGE 2 is',
+    );
 
   return REFERENCE_PREFIX + basePrompt;
 }

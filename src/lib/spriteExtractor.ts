@@ -512,9 +512,16 @@ export async function pixelizeSprite(
 
 /**
  * Compose extracted sprites back into a clean sprite sheet (no grid lines, no headers).
- * Returns a canvas with all sprites arranged in a grid.
- * When gridCols is provided, uses that for layout; defaults to 6 (character grid).
+ * Sprites are packed tightly in row-major order — position in the source grid is not
+ * preserved. This keeps the reference image compact regardless of which cells were
+ * selected.
+ *
+ * When gridCols is provided, uses that for the number of columns; defaults to 6.
+ * The resulting image is also scaled down to at most MAX_REF_SIDE pixels on the
+ * longer dimension so it doesn't overwhelm the blank template sent alongside it.
  */
+const MAX_REF_SIDE = 512;
+
 export async function composeSpriteSheet(
   sprites: ExtractedSprite[],
   gridCols?: number,
@@ -523,27 +530,40 @@ export async function composeSpriteSheet(
     throw new Error('No sprites to compose');
   }
 
-  const cols = gridCols ?? COLS;
+  const cols = Math.min(gridCols ?? COLS, sprites.length);
   const rows = Math.ceil(sprites.length / cols);
 
   const { width: cellW, height: cellH } = sprites[0];
   const sheetW = cols * cellW;
   const sheetH = rows * cellH;
 
-  const canvas = document.createElement('canvas');
-  canvas.width = sheetW;
-  canvas.height = sheetH;
-  const ctx = canvas.getContext('2d')!;
+  // Render full-size packed sheet
+  const full = document.createElement('canvas');
+  full.width = sheetW;
+  full.height = sheetH;
+  const fCtx = full.getContext('2d')!;
+  fCtx.clearRect(0, 0, sheetW, sheetH);
 
-  // Transparent background
-  ctx.clearRect(0, 0, sheetW, sheetH);
-
-  for (const sprite of sprites) {
+  for (let i = 0; i < sprites.length; i++) {
+    const sprite = sprites[i];
     const img = await loadImage(sprite.imageData, sprite.mimeType);
-    const col = sprite.cellIndex % cols;
-    const row = Math.floor(sprite.cellIndex / cols);
-    ctx.drawImage(img, col * cellW, row * cellH);
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    fCtx.drawImage(img, col * cellW, row * cellH);
   }
+
+  // Scale down to MAX_REF_SIDE on the longer side
+  const scale = Math.min(1, MAX_REF_SIDE / Math.max(sheetW, sheetH));
+  const outW = Math.round(sheetW * scale);
+  const outH = Math.round(sheetH * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(full, 0, 0, outW, outH);
 
   const dataUrl = canvas.toDataURL('image/png');
   const base64 = dataUrl.split(',')[1];

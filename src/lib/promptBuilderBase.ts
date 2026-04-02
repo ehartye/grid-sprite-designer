@@ -61,10 +61,10 @@ export function getPixelizeGuidance(targetSize: number | undefined): string {
 /** Prefix for multi-grid reference image prompts, shared by all sprite types. */
 export const REFERENCE_PREFIX = `\
 You are given two images.
-IMAGE 1 is a previously completed sprite sheet for this character — use it as
-your visual reference to maintain consistent proportions, color palette, art
-style, and character identity.
-IMAGE 2 is a blank template grid — fill each labeled cell according to the
-guidance below.
+IMAGE 1 is a previously completed sprite sheet — use it ONLY as a visual
+reference to maintain consistent proportions, color palette, art style, and
+character identity. Do NOT replicate IMAGE 1's layout or poses.
+IMAGE 2 is the blank template grid you must fill in. Your output image must
+complete IMAGE 2. All layout instructions below describe IMAGE 2.
 
 `;

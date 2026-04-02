@@ -10,6 +10,7 @@ import { composeSpriteSheet, ExtractedSprite } from '../lib/spriteExtractor';
 import { gridPresetToConfig } from '../lib/gridConfig';
 import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
 import { runGeneratePipeline, WORKFLOW_CONFIGS } from './useGenericWorkflow';
+import { debugLog } from '../lib/debugLog';
 import type { ContentPreset } from '../types/api';
 
 export interface AddSheetOptions {
@@ -23,8 +24,6 @@ export interface AddSheetOptions {
   selectedSprites?: ExtractedSprite[];
   /** Optional follow-up guidance appended to the prompt */
   followUpGuidance?: string;
-  /** Override the grid preset's aspect ratio */
-  aspectRatioOverride?: string;
 }
 
 export function useAddSheet() {
@@ -37,7 +36,13 @@ export function useAddSheet() {
 
   const isGeneratingRef = useRef(false);
 
-  useEffect(() => () => { abortRef.current?.abort(); }, []);
+  useEffect(() => () => {
+    // Don't abort if generation is still in progress — the pipeline outlives
+    // the modal (which unmounts when GENERATE_START changes the step to 'generating').
+    if (!isGeneratingRef.current) {
+      abortRef.current?.abort();
+    }
+  }, []);
 
   const cancel = useCallback(() => {
     if (abortRef.current) {
@@ -91,9 +96,12 @@ export function useAddSheet() {
       let refBase64: string;
       if (referenceMode === 'selected' && selectedSprites && selectedSprites.length > 0) {
         const gridCols = currentState.activeGridConfig?.cols;
-        const { base64 } = await composeSpriteSheet(selectedSprites, gridCols);
+        debugLog('[AddSheet] reference: selected', selectedSprites.length, 'sprites, cellIndices:', selectedSprites.map(s => s.cellIndex));
+        const { canvas, base64 } = await composeSpriteSheet(selectedSprites, gridCols);
+        debugLog('[AddSheet] composed reference:', canvas.width, 'x', canvas.height);
         refBase64 = base64;
       } else {
+        debugLog('[AddSheet] reference: full filled grid image');
         refBase64 = filledGridImage;
       }
 
@@ -111,6 +119,11 @@ export function useAddSheet() {
 
       // Build grid config and prompt
       const gridConfig = gridPresetToConfig(gridLink, spriteType);
+
+      debugLog('[AddSheet] contentPresetId:', contentPresetId);
+      debugLog('[AddSheet] contentPreset:', contentPreset.name);
+      debugLog('[AddSheet] gridLink:', gridLink.gridName, gridLink.gridSize, '| cellLabels[0..3]:', gridLink.cellLabels.slice(0, 4));
+      debugLog('[AddSheet] genericGuidance:', gridLink.genericGuidance ? gridLink.genericGuidance.slice(0, 80) + '…' : '(empty)');
 
       // Build prompt (always as subsequent grid since we have a reference)
       let prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, true);

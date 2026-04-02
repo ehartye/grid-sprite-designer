@@ -76,7 +76,7 @@ export function buildPromptForType(
         gridLink.genericGuidance,
         gridLink.guidanceOverride,
       );
-      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt;
+      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;
     }
     case 'terrain': {
@@ -95,7 +95,7 @@ export function buildPromptForType(
         gridLink.genericGuidance,
         gridLink.guidanceOverride,
       );
-      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt;
+      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;
     }
     case 'background': {
@@ -115,7 +115,7 @@ export function buildPromptForType(
         gridLink.genericGuidance,
         gridLink.guidanceOverride,
       );
-      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt;
+      if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;
     }
     default:

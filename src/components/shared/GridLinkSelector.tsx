@@ -46,27 +46,21 @@ export function GridLinkSelector({ spriteType, presetId, onSelectionChange }: Gr
   }, [spriteType, presetId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleCheck = useCallback((id: number) => {
-    setCheckedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      const selected = gridLinks.filter((l) => next.has(l.id));
-      onSelectionChange(selected);
-      return next;
-    });
-  }, [gridLinks, onSelectionChange]);
+    const next = new Set(checkedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setCheckedIds(next);
+    onSelectionChange(gridLinks.filter((l) => next.has(l.id)));
+  }, [checkedIds, gridLinks, onSelectionChange]);
 
   const moveLink = useCallback((index: number, direction: -1 | 1) => {
-    setGridLinks((prev) => {
-      const next = [...prev];
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= next.length) return prev;
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      const selected = next.filter((l) => checkedIds.has(l.id));
-      onSelectionChange(selected);
-      return next;
-    });
-  }, [checkedIds, onSelectionChange]);
+    const next = [...gridLinks];
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= next.length) return;
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    setGridLinks(next);
+    onSelectionChange(next.filter((l) => checkedIds.has(l.id)));
+  }, [gridLinks, checkedIds, onSelectionChange]);
 
   if (!presetId) return null;
   if (loading) return <p className="run-loading">Loading grid links...</p>;

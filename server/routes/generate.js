@@ -97,6 +97,7 @@ export function createGenerateRouter(apiKey) {
 
       // If reference image provided (subsequent runs in multi-grid), add it first
       if (referenceImage) {
+        parts.push({ text: '[IMAGE 1 — REFERENCE ONLY: use this image solely to match art style, color palette, proportions, and character identity. Do NOT replicate its layout, cell arrangement, or poses.]' });
         parts.push({
           inline_data: {
             mime_type: referenceImage.mimeType || 'image/png',
@@ -106,6 +107,7 @@ export function createGenerateRouter(apiKey) {
       }
 
       // Template image (always present)
+      parts.push({ text: '[IMAGE 2 — TEMPLATE TO FILL: this is the blank sprite sheet grid you must complete. Your output image must be a completed version of this exact template.]' });
       parts.push({
         inline_data: {
           mime_type: templateImage.mimeType,
