@@ -27,7 +27,6 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
   const [referenceMode, setReferenceMode] = useState<'full' | 'selected'>('full');
   const [selectedSpriteIndices, setSelectedSpriteIndices] = useState<Set<number>>(new Set());
   const [followUpGuidance, setFollowUpGuidance] = useState('');
-  const [aspectRatio, setAspectRatio] = useState(state.aspectRatio || '1:1');
   const [loading, setLoading] = useState(false);
 
   const spriteType = state.spriteType as SpriteType;
@@ -61,13 +60,9 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
 
   // Reset sprite selection when switching mode
   useEffect(() => {
-    if (referenceMode === 'full') {
-      setSelectedSpriteIndices(new Set());
-    } else {
-      // Select all by default
-      setSelectedSpriteIndices(new Set(currentSprites.map((_, i) => i)));
-    }
-  }, [referenceMode, currentSprites]);
+    // Always start with nothing selected
+    setSelectedSpriteIndices(new Set());
+  }, [referenceMode]);
 
   const toggleSprite = useCallback((index: number) => {
     setSelectedSpriteIndices(prev => {
@@ -109,12 +104,11 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
       referenceMode,
       selectedSprites,
       followUpGuidance: followUpGuidance.trim() || undefined,
-      aspectRatioOverride: aspectRatio,
     };
 
     await generate(opts);
     onClose();
-  }, [gridLinks, selectedLinkIndex, imageSize, referenceMode, selectedSpriteIndices, currentSprites, state.activeGridConfig, followUpGuidance, aspectRatio, generate, onClose]);
+  }, [gridLinks, selectedLinkIndex, imageSize, referenceMode, selectedSpriteIndices, currentSprites, state.activeGridConfig, followUpGuidance, generate, onClose]);
 
   const handleCancel = useCallback(() => {
     cancel();
@@ -210,22 +204,6 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
           />
         </div>
 
-        {/* Aspect Ratio */}
-        <div className="add-sheet-section">
-          <label>Aspect Ratio</label>
-          <div className="segmented-control">
-            {['1:1', '3:2', '2:3', '16:9', '9:16'].map(ar => (
-              <button
-                key={ar}
-                className={aspectRatio === ar ? 'active' : ''}
-                onClick={() => setAspectRatio(ar)}
-              >
-                {ar}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Image Size */}
         <div className="add-sheet-section">
           <label>Image Size</label>
@@ -253,7 +231,7 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
           <button
             className="btn btn-primary"
             onClick={handleGenerate}
-            disabled={generating || (referenceMode === 'selected' && selectedSpriteIndices.size === 0)}
+            disabled={generating || loading || (referenceMode === 'selected' && selectedSpriteIndices.size === 0)}
           >
             {generating ? 'Generating...' : 'Generate'}
           </button>

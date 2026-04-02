@@ -26,11 +26,16 @@ export function createPresetsRouter(db) {
 
   router.get('/:type/:id', validatePresetType, (req, res, next) => {
     try {
-      const id = parseIntParam(req.params.id);
-      if (id === null) return res.status(400).json({ error: 'Invalid id' });
+      const { id } = req.params;
+      const numericId = parseIntParam(id);
       const config = req.presetConfig;
 
-      const row = db.prepare(`SELECT * FROM ${config.table} WHERE id = ? AND is_preset = 1`).get(id);
+      // Support text-slug IDs (seeded presets) and numeric rowids (user-created presets
+      // inserted without an explicit id value).
+      const row = numericId !== null
+        ? db.prepare(`SELECT * FROM ${config.table} WHERE id = ? OR rowid = ?`).get(id, numericId)
+        : db.prepare(`SELECT * FROM ${config.table} WHERE id = ?`).get(id);
+
       if (!row) return res.status(404).json({ error: 'Not found' });
       res.json(mapPresetRow(row, config.columns));
     } catch (err) { next(err); }
@@ -40,27 +45,36 @@ export function createPresetsRouter(db) {
     try {
       const config = req.presetConfig;
 
-      const dbCols = config.columns.map(c => c[1]);
+      // Generate a unique slug id from the preset name
+      const baseName = (req.body.name || 'preset').toString();
+      const baseSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      let slug = baseSlug;
+      let suffix = 2;
+      while (db.prepare(`SELECT 1 FROM ${config.table} WHERE id = ?`).get(slug)) {
+        slug = `${baseSlug}-${suffix++}`;
+      }
+
+      const dbCols = ['id', ...config.columns.map(c => c[1])];
       const placeholders = dbCols.map(() => '?').join(', ');
       const values = extractPresetValues(req.body, config.columns);
-      const result = db.prepare(
+      db.prepare(
         `INSERT INTO ${config.table} (${dbCols.join(', ')}, is_preset) VALUES (${placeholders}, 1)`
-      ).run(...values);
-      res.status(201).json({ id: Number(result.lastInsertRowid) });
+      ).run(slug, ...values);
+      res.status(201).json({ id: slug });
     } catch (err) { next(err); }
   });
 
   router.put('/:type/:id', validatePresetType, (req, res, next) => {
     try {
-      const id = parseIntParam(req.params.id);
-      if (id === null) return res.status(400).json({ error: 'Invalid id' });
+      const { id } = req.params;
+      const numericId = parseIntParam(id);
       const config = req.presetConfig;
 
       const setClauses = config.columns.map(c => `${c[1]}=?`).join(', ');
       const values = extractPresetValues(req.body, config.columns);
-      const result = db.prepare(
-        `UPDATE ${config.table} SET ${setClauses} WHERE id=?`
-      ).run(...values, id);
+      const result = numericId !== null
+        ? db.prepare(`UPDATE ${config.table} SET ${setClauses} WHERE id=? OR rowid=?`).run(...values, id, numericId)
+        : db.prepare(`UPDATE ${config.table} SET ${setClauses} WHERE id=?`).run(...values, id);
       if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
       res.json({ success: true });
     } catch (err) { next(err); }
@@ -68,14 +82,20 @@ export function createPresetsRouter(db) {
 
   router.delete('/:type/:id', validatePresetType, (req, res, next) => {
     try {
-      const id = parseIntParam(req.params.id);
-      if (id === null) return res.status(400).json({ error: 'Invalid id' });
+      const { id } = req.params;
+      const numericId = parseIntParam(id);
       const config = req.presetConfig;
 
       // Junction links cascade via ON DELETE CASCADE, but delete explicitly just in case
-      db.prepare(`DELETE FROM ${config.linkTable} WHERE ${config.fk} = ?`).run(id);
-      const result = db.prepare(`DELETE FROM ${config.table} WHERE id = ?`).run(id);
-      if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+      if (numericId !== null) {
+        db.prepare(`DELETE FROM ${config.linkTable} WHERE ${config.fk} = (SELECT id FROM ${config.table} WHERE id = ? OR rowid = ?)`).run(id, numericId);
+        const result = db.prepare(`DELETE FROM ${config.table} WHERE id = ? OR rowid = ?`).run(id, numericId);
+        if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+      } else {
+        db.prepare(`DELETE FROM ${config.linkTable} WHERE ${config.fk} = ?`).run(id);
+        const result = db.prepare(`DELETE FROM ${config.table} WHERE id = ?`).run(id);
+        if (result.changes === 0) return res.status(404).json({ error: 'Not found' });
+      }
       res.json({ success: true });
     } catch (err) { next(err); }
   });

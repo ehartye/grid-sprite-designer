@@ -44,6 +44,7 @@ async function processSprite(
   outlineColor: RGB = [0, 0, 0],
   alphaSnapEnabled = false,
   alphaSnapThreshold = 128,
+  strikeTolerance = 10,
 ): Promise<ExtractedSprite> {
   const hasErasure = erasedPixels && erasedPixels.size > 0;
   if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled && !alphaSnapEnabled) return sprite;
@@ -66,22 +67,11 @@ async function processSprite(
   if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore, keyR, keyG, keyB);
   if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, keyR, keyG, keyB, edgeRecolorPasses, recolorSensitivity);
   if (alphaSnapEnabled) imageData = snapAlpha(imageData, alphaSnapThreshold);
-  if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
-  if (hasErasure) {
-    for (const key of erasedPixels) {
-      const sep = key.indexOf(',');
-      const x = parseInt(key.substring(0, sep), 10);
-      const y = parseInt(key.substring(sep + 1), 10);
-      if (x >= 0 && y >= 0 && x < img.width && y < img.height) {
-        const i = (y * img.width + x) * 4;
-        imageData.data[i + 3] = 0;
-      }
-    }
-  }
+  if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors, strikeTolerance);
 
   ctx.putImageData(imageData, 0, 0);
 
-  // Pixelize pass — runs before outline so outline is applied at final resolution
+  // Pixelize pass — runs before erasure and outline so all operate at final resolution
   let workingSprite: ExtractedSprite;
   if (pixelizeEnabled) {
     const dataUrl = canvas.toDataURL('image/png');
@@ -90,6 +80,38 @@ async function processSprite(
   } else {
     const dataUrl = canvas.toDataURL('image/png');
     workingSprite = { ...sprite, imageData: dataUrl.split(',')[1], mimeType: 'image/png' };
+  }
+
+  // Erasure pass — after pixelization so coordinates match the zoom view
+  if (hasErasure) {
+    const imgE = new Image();
+    await new Promise<void>((resolve, reject) => {
+      imgE.onload = () => resolve();
+      imgE.onerror = () => reject(new Error('Failed to load sprite for erasure'));
+      imgE.src = `data:${workingSprite.mimeType};base64,${workingSprite.imageData}`;
+    });
+    const cE = document.createElement('canvas');
+    cE.width = imgE.width;
+    cE.height = imgE.height;
+    const ctxE = cE.getContext('2d')!;
+    ctxE.drawImage(imgE, 0, 0);
+    const idE = ctxE.getImageData(0, 0, imgE.width, imgE.height);
+    // Erase coordinates were captured in the original sprite's pixel space.
+    // Scale them to the current canvas dimensions (which may be smaller after pixelization).
+    const scaleX = imgE.width / sprite.width;
+    const scaleY = imgE.height / sprite.height;
+    for (const key of erasedPixels!) {
+      const sep = key.indexOf(',');
+      const ex = parseInt(key.substring(0, sep), 10);
+      const ey = parseInt(key.substring(sep + 1), 10);
+      const sx = Math.round(ex * scaleX);
+      const sy = Math.round(ey * scaleY);
+      if (sx >= 0 && sy >= 0 && sx < imgE.width && sy < imgE.height) {
+        idE.data[(sy * imgE.width + sx) * 4 + 3] = 0;
+      }
+    }
+    ctxE.putImageData(idE, 0, 0);
+    workingSprite = { ...workingSprite, imageData: cE.toDataURL('image/png').split(',')[1], mimeType: 'image/png' };
   }
 
   // Outline pass — runs last, on pixelized dimensions when pixelize is enabled
@@ -206,6 +228,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [outlineColor, setOutlineColor] = useState<RGB>([0, 0, 0]);
   const [alphaSnapEnabled, setAlphaSnapEnabled] = useState(false);
   const [alphaSnapThreshold, setAlphaSnapThreshold] = useState(128);
+  const [eraserBrushW, setEraserBrushW] = useState(1);
+  const [eraserBrushH, setEraserBrushH] = useState(1);
+  const [strikeTolerance, setStrikeTolerance] = useState(10);
   const struckKey = JSON.stringify(struckColors);
 
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
@@ -274,13 +299,13 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       }
 
       const result = await Promise.all(sprites.map((s) =>
-        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold),
+        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, strikeTolerance),
       ));
       if (!cancelled) setProcessedSprites(result);
     })();
 
     return () => { cancelled = true; };
-  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, strikeTolerance]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
   // Guard: skip the first save effect after load completes to prevent
@@ -337,6 +362,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         setOutlineColor(settings.outlineColor ?? [0, 0, 0]);
         setAlphaSnapEnabled(settings.alphaSnapEnabled ?? false);
         setAlphaSnapThreshold(settings.alphaSnapThreshold ?? 128);
+        setStrikeTolerance(settings.strikeTolerance ?? 10);
       }
       if (histData?.thumbnailCellIndex != null) {
         selection.setThumbnailCell(histData.thumbnailCellIndex);
@@ -383,8 +409,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       outlineColor,
       alphaSnapEnabled,
       alphaSnapThreshold,
+      strikeTolerance,
     });
-  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, saveSettings]);
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, strikeTolerance, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -949,6 +976,20 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                 )}
               </>
             )}
+            <div style={{ marginTop: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Tolerance</label>
+                <span className="slider-value">{strikeTolerance}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={50}
+                value={strikeTolerance}
+                onChange={(e) => setStrikeTolerance(Number(e.target.value))}
+                style={{ width: '100%' }}
+              />
+            </div>
             {struckColors.length > 0 && (
               <button
                 className="btn btn-sm w-full"
@@ -1031,6 +1072,12 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             onUnstrikeColor={handleZoomUnstrikeColor}
             onErasePixel={selection.handleErasePixel}
             onClose={() => selection.setZoomSpriteIndex(null)}
+            brushW={eraserBrushW}
+            brushH={eraserBrushH}
+            onBrushWChange={setEraserBrushW}
+            onBrushHChange={setEraserBrushH}
+            onUndoErase={selection.undoErase}
+            canUndoErase={selection.canUndoErase}
           />
         );
       })()}

@@ -18,7 +18,9 @@ export interface SpriteSelectionState {
   handleCellClick: (cellIndex: number) => void;
   handleMirrorToggle: (cellIndex: number) => void;
   handleZoomClick: (cellIndex: number) => void;
-  handleErasePixel: (x: number, y: number) => void;
+  handleErasePixel: (pixels: { x: number; y: number }[]) => void;
+  undoErase: () => void;
+  canUndoErase: boolean;
   setThumbnailCell: (v: number | null) => void;
   setZoomSpriteIndex: (v: number | null) => void;
   setDisplayOrder: React.Dispatch<React.SetStateAction<number[]>>;
@@ -43,6 +45,7 @@ export function useSpriteSelection({ spriteCount, cellCount }: UseSpriteSelectio
   const [thumbnailCell, setThumbnailCell] = useState<number | null>(null);
   const [zoomSpriteIndex, setZoomSpriteIndex] = useState<number | null>(null);
   const [erasedPixels, setErasedPixels] = useState<Map<number, Set<string>>>(new Map());
+  const [eraseHistory, setEraseHistory] = useState<Array<{ srcIdx: number; keys: string[] }>>([])
 
   const erasedKey = useMemo(() => {
     let total = 0;
@@ -85,18 +88,40 @@ export function useSpriteSelection({ spriteCount, cellCount }: UseSpriteSelectio
     setZoomSpriteIndex(cellIndex);
   }, []);
 
-  const handleErasePixel = useCallback((x: number, y: number) => {
-    if (zoomSpriteIndex === null) return;
+  const handleErasePixel = useCallback((pixels: { x: number; y: number }[]) => {
+    if (zoomSpriteIndex === null || pixels.length === 0) return;
     const srcIdx = displayOrder[zoomSpriteIndex];
+    const keys = pixels.map(({ x, y }) => `${x},${y}`);
     setErasedPixels((prev) => {
-      const next = new Map(prev);
-      const existing = next.get(srcIdx);
+      const existing = prev.get(srcIdx);
       const copy = existing ? new Set(existing) : new Set<string>();
-      copy.add(`${x},${y}`);
+      for (const k of keys) copy.add(k);
+      const next = new Map(prev);
       next.set(srcIdx, copy);
       return next;
     });
+    setEraseHistory((h) => [...h, { srcIdx, keys }]);
   }, [zoomSpriteIndex, displayOrder]);
+
+  const undoErase = useCallback(() => {
+    setEraseHistory((h) => {
+      if (h.length === 0) return h;
+      const last = h[h.length - 1];
+      setErasedPixels((prev) => {
+        const existing = prev.get(last.srcIdx);
+        if (!existing) return prev;
+        const copy = new Set(existing);
+        for (const k of last.keys) copy.delete(k);
+        const next = new Map(prev);
+        if (copy.size === 0) next.delete(last.srcIdx);
+        else next.set(last.srcIdx, copy);
+        return next;
+      });
+      return h.slice(0, -1);
+    });
+  }, []);
+
+  const canUndoErase = eraseHistory.length > 0;
 
   const resetSelection = useCallback(() => {
     setDisplayOrder(Array.from({ length: spriteCount || cellCount }, (_, i) => i));
@@ -147,6 +172,8 @@ export function useSpriteSelection({ spriteCount, cellCount }: UseSpriteSelectio
     handleMirrorToggle,
     handleZoomClick,
     handleErasePixel,
+    undoErase,
+    canUndoErase,
     setThumbnailCell,
     setZoomSpriteIndex,
     setDisplayOrder,

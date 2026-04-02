@@ -11,16 +11,23 @@ type RGB = [number, number, number];
 
 type Tool = 'eyedropper' | 'eraser';
 
+
 interface SpriteZoomModalProps {
   sprite: ExtractedSprite;
   struckColors: RGB[];
   onStrikeColor: (color: RGB) => void;
   onUnstrikeColor: (color: RGB) => void;
-  onErasePixel: (x: number, y: number) => void;
+  onErasePixel: (pixels: { x: number; y: number }[]) => void;
   onClose: () => void;
+  brushW: number;
+  brushH: number;
+  onBrushWChange: (v: number) => void;
+  onBrushHChange: (v: number) => void;
+  onUndoErase: () => void;
+  canUndoErase: boolean;
 }
 
-export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrikeColor, onErasePixel, onClose }: SpriteZoomModalProps) {
+export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, struckColors, onStrikeColor, onUnstrikeColor, onErasePixel, onClose, brushW, brushH, onBrushWChange, onBrushHChange, onUndoErase, canUndoErase }: SpriteZoomModalProps) {
   const [zoom, setZoom] = useState(8);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -30,6 +37,10 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
   const [hoveredPixel, setHoveredPixel] = useState<{ x: number; y: number } | null>(null);
   const [pendingStrike, setPendingStrike] = useState<RGB | null>(null);
   const [tool, setTool] = useState<Tool>('eyedropper');
+  const brushWRef = useRef(brushW);
+  const brushHRef = useRef(brushH);
+  brushWRef.current = brushW;
+  brushHRef.current = brushH;
   const imageDataRef = useRef<ImageData | null>(null);
   const [imageVersion, setImageVersion] = useState(0);
 
@@ -165,15 +176,21 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
       }
     }
 
-    // Hovered pixel highlight
+    // Hovered pixel highlight — shows brush footprint for eraser, single pixel for eyedropper
     if (hoveredPixel) {
       ctx.strokeStyle = '#c8ff00';
       ctx.lineWidth = 2;
+      const halfW = tool === 'eraser' ? Math.floor(brushW / 2) : 0;
+      const halfH = tool === 'eraser' ? Math.floor(brushH / 2) : 0;
+      const bx = hoveredPixel.x - halfW;
+      const by = hoveredPixel.y - halfH;
+      const bw = halfW * 2 + 1;
+      const bh = halfH * 2 + 1;
       ctx.strokeRect(
-        panOffset.x + hoveredPixel.x * zoom + 1,
-        panOffset.y + hoveredPixel.y * zoom + 1,
-        zoom - 2,
-        zoom - 2,
+        panOffset.x + bx * zoom + 1,
+        panOffset.y + by * zoom + 1,
+        bw * zoom - 2,
+        bh * zoom - 2,
       );
     }
 
@@ -196,10 +213,10 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
         }
       }
     }
-  }, [canvasSize, zoom, panOffset, hoveredPixel, pendingStrike, imageVersion]);
+  }, [canvasSize, zoom, panOffset, hoveredPixel, pendingStrike, imageVersion, tool, brushW, brushH]);
 
-  // Pixel from screen coordinates
-  const getPixelAt = useCallback((clientX: number, clientY: number) => {
+  // Image pixel coordinate from screen coordinates (no alpha check)
+  const getImagePixel = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     const imgData = imageDataRef.current;
     if (!canvas || !imgData) return null;
@@ -214,30 +231,59 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
     const py = Math.floor((my - curPan.y) / curZoom);
 
     if (px < 0 || py < 0 || px >= imgData.width || py >= imgData.height) return null;
+    return { x: px, y: py };
+  }, []);
 
-    const i = (py * imgData.width + px) * 4;
+  // Pixel from screen coordinates — returns color, skips transparent (for eyedropper)
+  const getPixelAt = useCallback((clientX: number, clientY: number) => {
+    const imgData = imageDataRef.current;
+    if (!imgData) return null;
+    const p = getImagePixel(clientX, clientY);
+    if (!p) return null;
+
+    const i = (p.y * imgData.width + p.x) * 4;
     const a = imgData.data[i + 3];
     if (a === 0) return null;
 
     return {
-      x: px,
-      y: py,
+      x: p.x,
+      y: p.y,
       color: [imgData.data[i], imgData.data[i + 1], imgData.data[i + 2]] as RGB,
     };
+  }, [getImagePixel]);
+
+  // All pixels within brush half-extents of (cx, cy), clamped to image bounds
+  const getBrushPixels = useCallback((cx: number, cy: number, halfW: number, halfH: number) => {
+    const imgData = imageDataRef.current;
+    if (!imgData) return [];
+    const pixels: { x: number; y: number }[] = [];
+    for (let dy = -halfH; dy <= halfH; dy++) {
+      for (let dx = -halfW; dx <= halfW; dx++) {
+        const x = cx + dx;
+        const y = cy + dy;
+        if (x >= 0 && y >= 0 && x < imgData.width && y < imgData.height) {
+          pixels.push({ x, y });
+        }
+      }
+    }
+    return pixels;
   }, []);
 
   // Mouse move on canvas — hover tracking only (panning handled by global listeners)
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) return;
-    const pixel = getPixelAt(e.clientX, e.clientY);
-    if (pixel) {
-      setHoveredColor(pixel.color);
-      setHoveredPixel({ x: pixel.x, y: pixel.y });
+    const p = getImagePixel(e.clientX, e.clientY);
+    if (p) {
+      const imgData = imageDataRef.current;
+      const i = imgData ? (p.y * imgData.width + p.x) * 4 : -1;
+      const a = imgData && i >= 0 ? imgData.data[i + 3] : 0;
+      setHoveredColor(a > 0 && imgData ? [imgData.data[i], imgData.data[i + 1], imgData.data[i + 2]] : null);
+      setHoveredPixel({ x: p.x, y: p.y });
     } else {
       setHoveredColor(null);
       setHoveredPixel(null);
     }
-  }, [isPanning, getPixelAt]);
+  }, [isPanning, getImagePixel]);
 
   // Mouse down on canvas — start pan tracking
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -266,13 +312,17 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
 
       if (dragDistRef.current < 3) {
         // Click (not drag)
-        const pixel = getPixelAt(e.clientX, e.clientY);
-        if (pixel) {
-          if (toolRef.current === 'eraser') {
-            onErasePixel(pixel.x, pixel.y);
-          } else {
-            setPendingStrike(pixel.color);
+        if (toolRef.current === 'eraser') {
+          const p = getImagePixel(e.clientX, e.clientY);
+          if (p) {
+            const hw = Math.floor(brushWRef.current / 2);
+            const hh = Math.floor(brushHRef.current / 2);
+            const pixels = getBrushPixels(p.x, p.y, hw, hh);
+            if (pixels.length > 0) onErasePixel(pixels);
           }
+        } else {
+          const pixel = getPixelAt(e.clientX, e.clientY);
+          if (pixel) setPendingStrike(pixel.color);
         }
       } else {
         // Was a real drag — block the next backdrop click from closing
@@ -289,7 +339,7 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
       window.removeEventListener('mousemove', handleGlobalMove);
       window.removeEventListener('mouseup', handleGlobalUp);
     };
-  }, [isPanning, getPixelAt, onErasePixel]);
+  }, [isPanning, getImagePixel, getPixelAt, getBrushPixels, onErasePixel]);
 
   // Scroll wheel zoom centered on cursor
   useEffect(() => {
@@ -331,12 +381,15 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
         setZoom((z) => Math.max(1, z - 1));
       } else if (e.key === 'e' || e.key === 'E') {
         setTool((t) => t === 'eraser' ? 'eyedropper' : 'eraser');
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        onUndoErase();
       }
     };
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [onUndoErase]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !justPannedRef.current) onClose();
@@ -373,6 +426,38 @@ export const SpriteZoomModal = React.memo(function SpriteZoomModal({ sprite, str
               &#x232B;
             </button>
           </div>
+          {tool === 'eraser' && (
+            <div className="zoom-brush-size">
+              <button
+                className="zoom-undo-btn"
+                onClick={onUndoErase}
+                disabled={!canUndoErase}
+                title="Undo erase (Ctrl+Z)"
+              >
+                &#x21B6;
+              </button>
+              <label>
+                W <span className="zoom-brush-val">{brushW}</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={200}
+                  value={brushW}
+                  onChange={(e) => onBrushWChange(Number(e.target.value))}
+                />
+              </label>
+              <label>
+                H <span className="zoom-brush-val">{brushH}</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={200}
+                  value={brushH}
+                  onChange={(e) => onBrushHChange(Number(e.target.value))}
+                />
+              </label>
+            </div>
+          )}
           <div className="zoom-controls">
             <button onClick={() => setZoom((z) => Math.max(1, z - 1))} title="Zoom out (-)">-</button>
             <span className="zoom-level">{zoom}x</span>
