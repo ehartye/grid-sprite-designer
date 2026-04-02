@@ -1,3 +1,5 @@
+import { decomposeGuidanceBlob } from './decomposeGuidance.js';
+
 export function seedBackgroundPresets(db) {
   const PRESETS = [
     {
@@ -217,13 +219,14 @@ export function seedBackgroundPresets(db) {
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, overall_guidance, is_preset)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+    `INSERT OR IGNORE INTO background_presets (id, name, genre, grid_size, bg_mode, description, color_notes, layer_labels, overall_guidance, group_guidance, cell_guidance, is_preset)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
-      insert.run(p.id, p.name, p.genre, p.gridSize, p.bgMode, p.description, p.colorNotes, p.layerLabels, p.layerGuidance);
+      const { overall, groups, cells } = decomposeGuidanceBlob(p.layerGuidance || '');
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.bgMode, p.description, p.colorNotes, p.layerLabels, overall, JSON.stringify(groups), JSON.stringify(cells));
     }
   });
 

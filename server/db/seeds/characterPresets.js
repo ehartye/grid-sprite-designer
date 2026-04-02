@@ -1,3 +1,5 @@
+import { decomposeGuidanceBlob } from './decomposeGuidance.js';
+
 export function seedCharacterPresets(db) {
   const PRESETS = [
     {
@@ -2093,13 +2095,14 @@ ROW 5 — KO 3, Victory, Status Poses:
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO character_presets (id, name, genre, description, equipment, color_notes, overall_guidance, is_preset)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
+    `INSERT OR IGNORE INTO character_presets (id, name, genre, description, equipment, color_notes, overall_guidance, group_guidance, cell_guidance, is_preset)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
-      insert.run(p.id, p.name, p.genre, p.description, p.equipment, p.colorNotes, p.rowGuidance);
+      const { overall, groups, cells } = decomposeGuidanceBlob(p.rowGuidance || '');
+      insert.run(p.id, p.name, p.genre, p.description, p.equipment, p.colorNotes, overall, JSON.stringify(groups), JSON.stringify(cells));
     }
   });
 

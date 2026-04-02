@@ -1,3 +1,5 @@
+import { decomposeGuidanceBlob } from './decomposeGuidance.js';
+
 export function seedTerrainPresets(db) {
   const PRESETS = [
     {
@@ -439,13 +441,14 @@ ROW 3 — Rock-to-Pool Edge Transitions:
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, overall_guidance, is_preset)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
+    `INSERT OR IGNORE INTO terrain_presets (id, name, genre, grid_size, description, color_notes, tile_labels, overall_guidance, group_guidance, cell_guidance, is_preset)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
-      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.colorNotes, p.tileLabels, p.tileGuidance);
+      const { overall, groups, cells } = decomposeGuidanceBlob(p.tileGuidance || '');
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.colorNotes, p.tileLabels, overall, JSON.stringify(groups), JSON.stringify(cells));
     }
   });
 

@@ -1,3 +1,5 @@
+import { decomposeGuidanceBlob } from './decomposeGuidance.js';
+
 export function seedBuildingPresets(db) {
   const PRESETS = [
     {
@@ -519,13 +521,14 @@ ROW 2 — Extreme States:
   ];
 
   const insert = db.prepare(
-    `INSERT OR IGNORE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, overall_guidance, is_preset)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+    `INSERT OR IGNORE INTO building_presets (id, name, genre, grid_size, description, details, color_notes, cell_labels, overall_guidance, group_guidance, cell_guidance, is_preset)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
-      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.details, p.colorNotes, p.cellLabels, p.cellGuidance);
+      const { overall, groups, cells } = decomposeGuidanceBlob(p.cellGuidance || '');
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.details, p.colorNotes, p.cellLabels, overall, JSON.stringify(groups), JSON.stringify(cells));
     }
   });
 

@@ -1,3 +1,5 @@
+import { decomposeGuidanceBlob } from './decomposeGuidance.js';
+
 export function seedGridPresets(db) {
   const existing = db.prepare('SELECT COUNT(*) as count FROM grid_presets').get();
   if (existing.count > 0) return;
@@ -163,11 +165,12 @@ ROW 5 — KO 3, Victory Sequence, Status Poses:
     edge of collapse but still fighting.`;
 
   const insertGrid = db.prepare(`
-    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+    INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, group_guidance, cell_guidance, bg_mode, is_preset)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
 
-  insertGrid.run('RPG Full', 'character', 'RPG', '6x6', 6, 6, characterCellLabels, characterCellGroups, rpgFullGuidance, null);
+  const { overall: rpgOverall, groups: rpgGroups, cells: rpgCells } = decomposeGuidanceBlob(rpgFullGuidance);
+  insertGrid.run('RPG Full', 'character', 'RPG', '6x6', 6, 6, characterCellLabels, characterCellGroups, rpgOverall, JSON.stringify(rpgGroups), JSON.stringify(rpgCells), null);
 
   // Building, terrain, and background grid presets are created per content preset
   // in their respective seed functions (seedBuildingPresets, seedTerrainPresets,
