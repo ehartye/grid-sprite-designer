@@ -414,54 +414,85 @@ export function GridPresetsTab() {
               />
             </label>
 
-            {/* Group Guidance — one per cell group */}
-            {editing.cellGroups && editing.cellGroups.length > 0 && (
-              <div className="admin-subsection">
-                <h5 className="admin-subsection-title">Group Guidance</h5>
-                {editing.cellGroups.map((group: CellGroup) => (
-                  <label key={group.name} className="admin-label">
-                    {group.name}
-                    <textarea
-                      className="admin-textarea"
-                      rows={2}
-                      value={editing.groupGuidance[group.name] || ''}
-                      onChange={e => setEditing(prev => prev ? {
-                        ...prev,
-                        groupGuidance: { ...prev.groupGuidance, [group.name]: e.target.value }
-                      } : null)}
-                      placeholder={`Guidance for ${group.name} group...`}
-                    />
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {/* Cell Guidance — one per cell label */}
-            {editing.cellLabels && editing.cellLabels.filter(Boolean).length > 0 && (
-              <div className="admin-subsection">
-                <h5 className="admin-subsection-title">Cell Guidance</h5>
-                {editing.cellLabels.map((label: string, idx: number) => {
-                  if (!label) return null;
-                  const row = Math.floor(idx / (editing.cols || 1));
-                  const col = idx % (editing.cols || 1);
-                  return (
-                    <label key={idx} className="admin-label">
-                      {label} ({row},{col})
-                      <textarea
-                        className="admin-textarea"
-                        rows={2}
-                        value={editing.cellGuidance[label] || ''}
-                        onChange={e => setEditing(prev => prev ? {
-                          ...prev,
-                          cellGuidance: { ...prev.cellGuidance, [label]: e.target.value }
-                        } : null)}
-                        placeholder={`Guidance for "${label}"...`}
-                      />
-                    </label>
-                  );
-                })}
-              </div>
-            )}
+            {/* Per-group accordions: group guidance + its cells nested inside */}
+            {editing.cellGroups && editing.cellGroups.length > 0 && (() => {
+              const groupedIndices = new Set(editing.cellGroups.flatMap((g: CellGroup) => g.cells));
+              const ungrouped = editing.cellLabels
+                .map((label: string, idx: number) => ({ label, idx }))
+                .filter(({ label, idx }: { label: string; idx: number }) => label && !groupedIndices.has(idx));
+              const cols = editing.cols || 1;
+              return (
+                <>
+                  {editing.cellGroups.map((group: CellGroup) => (
+                    <details key={group.name} className="admin-subsection">
+                      <summary className="admin-subsection-title" style={{ cursor: 'pointer' }}>
+                        {group.name}
+                      </summary>
+                      <label className="admin-label" style={{ marginTop: '0.5rem' }}>
+                        Group guidance
+                        <textarea
+                          className="admin-textarea"
+                          rows={2}
+                          value={editing.groupGuidance[group.name] || ''}
+                          onChange={e => setEditing(prev => prev ? {
+                            ...prev,
+                            groupGuidance: { ...prev.groupGuidance, [group.name]: e.target.value }
+                          } : null)}
+                          placeholder={`Guidance for ${group.name} group...`}
+                        />
+                      </label>
+                      {group.cells.map((cellIdx: number) => {
+                        const label = editing.cellLabels[cellIdx];
+                        if (!label) return null;
+                        const row = Math.floor(cellIdx / cols);
+                        const col = cellIdx % cols;
+                        return (
+                          <label key={cellIdx} className="admin-label">
+                            {label} ({row},{col})
+                            <textarea
+                              className="admin-textarea"
+                              rows={2}
+                              value={editing.cellGuidance[label] || ''}
+                              onChange={e => setEditing(prev => prev ? {
+                                ...prev,
+                                cellGuidance: { ...prev.cellGuidance, [label]: e.target.value }
+                              } : null)}
+                              placeholder={`Guidance for "${label}"...`}
+                            />
+                          </label>
+                        );
+                      })}
+                    </details>
+                  ))}
+                  {ungrouped.length > 0 && (
+                    <details className="admin-subsection">
+                      <summary className="admin-subsection-title" style={{ cursor: 'pointer' }}>
+                        Ungrouped cells ({ungrouped.length})
+                      </summary>
+                      {ungrouped.map(({ label, idx }: { label: string; idx: number }) => {
+                        const row = Math.floor(idx / cols);
+                        const col = idx % cols;
+                        return (
+                          <label key={idx} className="admin-label">
+                            {label} ({row},{col})
+                            <textarea
+                              className="admin-textarea"
+                              rows={2}
+                              value={editing.cellGuidance[label] || ''}
+                              onChange={e => setEditing(prev => prev ? {
+                                ...prev,
+                                cellGuidance: { ...prev.cellGuidance, [label]: e.target.value }
+                              } : null)}
+                              placeholder={`Guidance for "${label}"...`}
+                            />
+                          </label>
+                        );
+                      })}
+                    </details>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Actions */}
             <div className="admin-form-actions">
