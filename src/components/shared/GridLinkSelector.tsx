@@ -121,8 +121,8 @@ export function GridLinkSelector({ spriteType, presetId, onSelectionChange }: Gr
               )}
             </div>
 
-            {link.guidanceOverride && (
-              <span className="run-grid-item-override" title={link.guidanceOverride}>
+            {link.linkGuidance?.overall && (
+              <span className="run-grid-item-override" title={link.linkGuidance.overall}>
                 Has override
               </span>
             )}

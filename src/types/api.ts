@@ -55,21 +55,21 @@ export interface ContentPreset {
   /** Character fields */
   equipment?: string;
   colorNotes?: string;
-  rowGuidance?: string;
   /** Building fields */
   details?: string;
-  cellGuidance?: string;
   cellLabels?: string[];
   /** Terrain fields */
-  tileGuidance?: string;
   tileLabels?: string[];
   /** Background fields */
-  layerGuidance?: string;
   layerLabels?: string[];
   bgMode?: 'parallax' | 'scene';
   /** Common */
   gridSize?: string;
   styleNotes?: string;
+  /** Hierarchical guidance fields (replaces rowGuidance/cellGuidance/tileGuidance/layerGuidance) */
+  overallGuidance?: string;
+  groupGuidance?: Record<string, string>;
+  cellGuidance?: Record<string, string>;
 }
 
 /** A single entry in the gallery listing */

@@ -19,8 +19,9 @@ export const terrainConfig: WorkflowConfig = {
     buildTerrainPrompt(
       state.terrain,
       gridConfig,
-      gridLink?.genericGuidance,
-      gridLink?.guidanceOverride,
+      // TODO Task 5-7: replace with gridLink?.gridGuidance / linkGuidance
+      gridLink?.gridGuidance?.overall,
+      gridLink?.linkGuidance?.overall,
     ),
   getReExtractGridConfig: (state) => {
     const gc = getTerrainGridConfig(state.terrain.gridSize, state.terrain.cellLabels);

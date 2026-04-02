@@ -13,6 +13,12 @@ import { TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../lib/gridConfig';
 export type SpriteType = 'character' | 'building' | 'terrain' | 'background';
 export type BuildingGridSize = '3x3' | '2x3' | '2x2';
 
+export interface HierarchicalGuidance {
+  overall: string;
+  groups: Record<string, string>;
+  cells: Record<string, string>;
+}
+
 export interface CellGroup {
   name: string;
   cells: number[];
@@ -28,7 +34,9 @@ export interface GridPreset {
   rows: number;
   cellLabels: string[];
   cellGroups: CellGroup[];
-  genericGuidance: string;
+  overallGuidance: string;
+  groupGuidance: Record<string, string>;
+  cellGuidance: Record<string, string>;
   bgMode?: 'parallax' | 'scene' | null;
   aspectRatio: string;
   tileShape: 'square' | 'diamond';
@@ -37,7 +45,8 @@ export interface GridPreset {
 export interface GridLink {
   id: number;
   gridPresetId: number;
-  guidanceOverride: string;
+  gridGuidance: HierarchicalGuidance;
+  linkGuidance: HierarchicalGuidance;
   sortOrder: number;
   gridName: string;
   gridSize: string;
@@ -45,7 +54,6 @@ export interface GridLink {
   rows: number;
   cellLabels: string[];
   cellGroups: CellGroup[];
-  genericGuidance: string;
   bgMode?: 'parallax' | 'scene' | null;
   aspectRatio: string;
   tileShape: 'square' | 'diamond';

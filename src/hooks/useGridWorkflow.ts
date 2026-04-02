@@ -18,8 +18,9 @@ export const characterConfig: WorkflowConfig = {
   buildPrompt: (state, _gridConfig, gridLink) =>
     buildGridFillPrompt(
       state.character,
-      gridLink?.genericGuidance,
-      gridLink?.guidanceOverride,
+      // TODO Task 5-7: replace with gridLink?.gridGuidance / linkGuidance
+      gridLink?.gridGuidance?.overall,
+      gridLink?.linkGuidance?.overall,
       gridLink?.cellLabels,
     ),
   getReExtractGridConfig: (state) => {

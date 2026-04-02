@@ -58,11 +58,11 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
     onLinksChange?.();
   };
 
-  const updateGuidance = async (linkId: number, guidanceOverride: string, sortOrder: number) => {
+  const updateGuidance = async (linkId: number, overallGuidance: string, sortOrder: number) => {
     await fetch(`/api/grid-links/${spriteType}/${linkId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guidanceOverride, sortOrder }),
+      body: JSON.stringify({ overallGuidance, sortOrder }),
     });
   };
 
@@ -74,8 +74,8 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
     setLinks(updated);
     // Update sort orders for both swapped items
     await Promise.all([
-      updateGuidance(updated[idx].id, updated[idx].guidanceOverride, idx),
-      updateGuidance(updated[targetIdx].id, updated[targetIdx].guidanceOverride, targetIdx),
+      updateGuidance(updated[idx].id, updated[idx].linkGuidance?.overall ?? '', idx),
+      updateGuidance(updated[targetIdx].id, updated[targetIdx].linkGuidance?.overall ?? '', targetIdx),
     ]);
   };
 
@@ -126,19 +126,21 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
             </div>
           </div>
           <label className="admin-label" style={{ marginBottom: '0.25rem' }}>
-            Guidance Override
+            Link Guidance (Overall)
             <textarea
               className="admin-textarea"
               rows={3}
-              value={link.guidanceOverride}
+              value={link.linkGuidance?.overall ?? ''}
               onChange={e => {
                 const updated = links.map(l =>
-                  l.id === link.id ? { ...l, guidanceOverride: e.target.value } : l
+                  l.id === link.id
+                    ? { ...l, linkGuidance: { ...l.linkGuidance, overall: e.target.value } }
+                    : l
                 );
                 setLinks(updated);
               }}
-              onBlur={() => updateGuidance(link.id, link.guidanceOverride, link.sortOrder)}
-              placeholder="Per-link guidance that overrides or supplements generic guidance..."
+              onBlur={() => updateGuidance(link.id, link.linkGuidance?.overall ?? '', link.sortOrder)}
+              placeholder="Per-link guidance that overrides or supplements grid guidance..."
             />
           </label>
         </div>

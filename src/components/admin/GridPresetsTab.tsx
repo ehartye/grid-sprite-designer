@@ -20,7 +20,7 @@ interface EditingPreset {
   rows: number;
   cellLabels: string[];
   cellGroups: CellGroup[];
-  genericGuidance: string;
+  overallGuidance: string;
   bgMode: 'parallax' | 'scene' | null;
   aspectRatio: string;
   tileShape: 'square' | 'diamond';
@@ -36,7 +36,7 @@ function emptyPreset(): EditingPreset {
     rows: 6,
     cellLabels: Array(36).fill(''),
     cellGroups: [],
-    genericGuidance: '',
+    overallGuidance: '',
     bgMode: null,
     aspectRatio: '1:1',
     tileShape: 'square',
@@ -72,7 +72,7 @@ export function GridPresetsTab() {
       rows: preset.rows,
       cellLabels: [...preset.cellLabels],
       cellGroups: preset.cellGroups.map(g => ({ ...g, cells: [...g.cells] })),
-      genericGuidance: preset.genericGuidance,
+      overallGuidance: preset.overallGuidance,
       bgMode: preset.bgMode ?? null,
       aspectRatio: preset.aspectRatio || '1:1',
       tileShape: preset.tileShape || 'square',
@@ -92,7 +92,7 @@ export function GridPresetsTab() {
         rows: editing.rows,
         cellLabels: editing.cellLabels.slice(0, editing.cols * editing.rows),
         cellGroups: editing.cellGroups,
-        genericGuidance: editing.genericGuidance,
+        overallGuidance: editing.overallGuidance,
         bgMode: editing.bgMode,
         aspectRatio: editing.aspectRatio,
         tileShape: editing.tileShape,
@@ -394,14 +394,14 @@ export function GridPresetsTab() {
               })}
             </div>
 
-            {/* Generic Guidance */}
+            {/* Overall Guidance */}
             <label className="admin-label">
-              Generic Guidance
+              Overall Guidance
               <textarea
                 className="admin-textarea"
                 rows={8}
-                value={editing.genericGuidance}
-                onChange={e => setEditing({ ...editing, genericGuidance: e.target.value })}
+                value={editing.overallGuidance}
+                onChange={e => setEditing({ ...editing, overallGuidance: e.target.value })}
                 placeholder="Pose/cell descriptions shared across all content presets using this grid..."
               />
             </label>

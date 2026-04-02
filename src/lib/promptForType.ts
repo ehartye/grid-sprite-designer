@@ -34,77 +34,81 @@ export function buildPromptForType(
 
   switch (spriteType) {
     case 'character': {
+      // TODO Task 5-7: use full hierarchical guidance from gridLink and contentPreset
       const charConfig: CharacterConfig = {
         name: contentPreset.name,
         description: contentPreset.description,
         equipment: contentPreset.equipment || '',
         colorNotes: contentPreset.colorNotes || '',
         styleNotes: '',
-        rowGuidance: contentPreset.rowGuidance || '',
+        rowGuidance: contentPreset.overallGuidance || '',
       };
       if (isSubsequentGrid) {
         prompt = buildGridFillPromptWithReference(
           charConfig,
-          gridLink.genericGuidance || '',
-          gridLink.guidanceOverride || '',
+          gridLink.gridGuidance?.overall || '',
+          gridLink.linkGuidance?.overall || '',
           gridLink.cellLabels,
         );
       } else {
         prompt = buildGridFillPrompt(
           charConfig,
-          gridLink.genericGuidance,
-          gridLink.guidanceOverride,
+          gridLink.gridGuidance?.overall,
+          gridLink.linkGuidance?.overall,
           gridLink.cellLabels,
         );
       }
       break;
     }
     case 'building': {
+      // TODO Task 5-7: use full hierarchical guidance from gridLink and contentPreset
       const buildingConfig = {
         name: contentPreset.name,
         description: contentPreset.description,
         details: contentPreset.details || '',
         colorNotes: contentPreset.colorNotes || '',
         styleNotes: '',
-        cellGuidance: contentPreset.cellGuidance || '',
+        cellGuidance: contentPreset.overallGuidance || '',
         gridSize: gridLink.gridSize,
         cellLabels: gridLink.cellLabels,
       };
       prompt = buildBuildingPrompt(
         buildingConfig,
         gridConfig,
-        gridLink.genericGuidance,
-        gridLink.guidanceOverride,
+        gridLink.gridGuidance?.overall,
+        gridLink.linkGuidance?.overall,
       );
       if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;
     }
     case 'terrain': {
+      // TODO Task 5-7: use full hierarchical guidance from gridLink and contentPreset
       const terrainConfig = {
         name: contentPreset.name,
         description: contentPreset.description,
         colorNotes: contentPreset.colorNotes || '',
         styleNotes: '',
-        tileGuidance: contentPreset.tileGuidance || '',
+        tileGuidance: contentPreset.overallGuidance || '',
         gridSize: gridLink.gridSize,
         cellLabels: gridLink.cellLabels,
       };
       prompt = buildTerrainPrompt(
         terrainConfig,
         gridConfig,
-        gridLink.genericGuidance,
-        gridLink.guidanceOverride,
+        gridLink.gridGuidance?.overall,
+        gridLink.linkGuidance?.overall,
       );
       if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;
     }
     case 'background': {
+      // TODO Task 5-7: use full hierarchical guidance from gridLink and contentPreset
       const bgConfig = {
         name: contentPreset.name,
         description: contentPreset.description,
         colorNotes: contentPreset.colorNotes || '',
         styleNotes: '',
-        layerGuidance: contentPreset.layerGuidance || '',
+        layerGuidance: contentPreset.overallGuidance || '',
         bgMode: contentPreset.bgMode || (gridLink.bgMode as 'parallax' | 'scene') || 'parallax',
         gridSize: gridLink.gridSize,
         cellLabels: gridLink.cellLabels,
@@ -112,8 +116,8 @@ export function buildPromptForType(
       prompt = buildBackgroundPrompt(
         bgConfig,
         gridConfig,
-        gridLink.genericGuidance,
-        gridLink.guidanceOverride,
+        gridLink.gridGuidance?.overall,
+        gridLink.linkGuidance?.overall,
       );
       if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;

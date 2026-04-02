@@ -123,7 +123,8 @@ export function useAddSheet() {
       debugLog('[AddSheet] contentPresetId:', contentPresetId);
       debugLog('[AddSheet] contentPreset:', contentPreset.name);
       debugLog('[AddSheet] gridLink:', gridLink.gridName, gridLink.gridSize, '| cellLabels[0..3]:', gridLink.cellLabels.slice(0, 4));
-      debugLog('[AddSheet] genericGuidance:', gridLink.genericGuidance ? gridLink.genericGuidance.slice(0, 80) + '…' : '(empty)');
+      // TODO Task 5-7: use gridLink.gridGuidance / linkGuidance for hierarchical guidance
+      debugLog('[AddSheet] gridGuidance.overall:', gridLink.gridGuidance?.overall ? gridLink.gridGuidance.overall.slice(0, 80) + '…' : '(empty)');
 
       // Build prompt (always as subsequent grid since we have a reference)
       let prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, true);

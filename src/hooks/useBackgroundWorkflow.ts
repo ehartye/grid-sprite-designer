@@ -19,8 +19,9 @@ export const backgroundConfig: WorkflowConfig = {
     buildBackgroundPrompt(
       state.background,
       gridConfig,
-      gridLink?.genericGuidance,
-      gridLink?.guidanceOverride,
+      // TODO Task 5-7: replace with gridLink?.gridGuidance / linkGuidance
+      gridLink?.gridGuidance?.overall,
+      gridLink?.linkGuidance?.overall,
     ),
   getReExtractGridConfig: (state) => {
     const gc = getBackgroundGridConfig(state.background.gridSize, state.background.cellLabels);

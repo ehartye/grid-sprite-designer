@@ -114,7 +114,9 @@ describe('gridPresetToConfig', () => {
       rows: 3,
       cellLabels: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
       cellGroups: [],
-      genericGuidance: '',
+      overallGuidance: '',
+      groupGuidance: {},
+      cellGuidance: {},
       aspectRatio: '1:1',
       tileShape: 'square' as const,
     };
@@ -132,7 +134,8 @@ describe('gridPresetToConfig', () => {
     const preset: GridLink = {
       id: 1,
       gridPresetId: 1,
-      guidanceOverride: '',
+      gridGuidance: { overall: '', groups: {}, cells: {} },
+      linkGuidance: { overall: '', groups: {}, cells: {} },
       sortOrder: 0,
       gridName: '',
       cols: 2,
@@ -140,7 +143,6 @@ describe('gridPresetToConfig', () => {
       gridSize: '2x2',
       cellLabels: [],
       cellGroups: [],
-      genericGuidance: '',
       aspectRatio: '1:1',
       tileShape: 'square',
     };
@@ -152,7 +154,8 @@ describe('gridPresetToConfig', () => {
     const preset: GridLink = {
       id: 10,
       gridPresetId: 99,
-      guidanceOverride: '',
+      gridGuidance: { overall: '', groups: {}, cells: {} },
+      linkGuidance: { overall: '', groups: {}, cells: {} },
       sortOrder: 0,
       gridName: 'Linked Grid',
       cols: 4,
@@ -160,7 +163,6 @@ describe('gridPresetToConfig', () => {
       gridSize: '4x4',
       cellLabels: [],
       cellGroups: [],
-      genericGuidance: '',
       aspectRatio: '1:1',
       tileShape: 'square',
     };
@@ -180,7 +182,9 @@ describe('gridPresetToConfig', () => {
       rows: 3,
       cellLabels: [],
       cellGroups: [],
-      genericGuidance: '',
+      overallGuidance: '',
+      groupGuidance: {},
+      cellGuidance: {},
       aspectRatio: '1:1',
       tileShape: 'square' as const,
     };

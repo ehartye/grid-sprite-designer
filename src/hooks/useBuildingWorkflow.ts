@@ -19,8 +19,9 @@ export const buildingConfig: WorkflowConfig = {
     buildBuildingPrompt(
       state.building,
       gridConfig,
-      gridLink?.genericGuidance,
-      gridLink?.guidanceOverride,
+      // TODO Task 5-7: replace with gridLink?.gridGuidance / linkGuidance
+      gridLink?.gridGuidance?.overall,
+      gridLink?.linkGuidance?.overall,
     ),
   getReExtractGridConfig: (state) => {
     const gc = getBuildingGridConfig(state.building.gridSize, state.building.cellLabels);
