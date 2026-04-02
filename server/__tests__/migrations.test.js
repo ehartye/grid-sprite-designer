@@ -34,8 +34,8 @@ describe('migration version tracking', () => {
 
     const rows = db.prepare('SELECT name FROM migrations ORDER BY id').all();
     expect(rows.length).toBeGreaterThan(0);
-    // The last migration should be the isometric aspect ratio cleanup
-    expect(rows.at(-1).name).toBe('017_clean_isometric_aspect_ratios');
+    // The last migration should be the hierarchical guidance migration
+    expect(rows.at(-1).name).toBe('018_hierarchical_guidance');
   });
 
   it('does not re-run migrations on second call', () => {
