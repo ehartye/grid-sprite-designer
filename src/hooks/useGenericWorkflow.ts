@@ -10,6 +10,7 @@ import { generateTemplate, generateBackgroundTemplate } from '../lib/templateGen
 import { computeSquareLayout } from '../lib/computeSquareLayout';
 import { extractSprites } from '../lib/spriteExtractor';
 import { generateGrid } from '../api/geminiClient';
+import { debugLog } from '../lib/debugLog';
 import type { GridConfig } from '../lib/gridConfig';
 import type { HistorySaveResponse } from '../types/api';
 
@@ -95,6 +96,7 @@ export async function runGeneratePipeline(
   });
 
   // 2. Call Gemini API
+  debugLog('[Gemini Prompt]\n' + prompt);
   const result = await generateGrid(
     model,
     prompt,
