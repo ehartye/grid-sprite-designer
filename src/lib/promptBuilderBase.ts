@@ -5,11 +5,101 @@
  */
 
 import type { GridConfig } from './gridConfig';
+import type { CellGroup, HierarchicalGuidance } from '../context/AppContext';
+
+/**
+ * Compose the full guidance block for a prompt, iterating groups then cells.
+ * Merges grid defaults, link-level additions, and preset-level additions at each level.
+ * Empty sources are silently omitted.
+ */
+export function buildGuidanceBlock(
+  gridGuidance: HierarchicalGuidance,
+  linkGuidance: HierarchicalGuidance,
+  presetGuidance: HierarchicalGuidance,
+  cellGroups: CellGroup[],
+  cellLabels: string[],
+  cols: number,
+): string {
+  const parts: string[] = [];
+
+  // Overall section
+  const overallParts = [gridGuidance.overall, linkGuidance.overall, presetGuidance.overall]
+    .map(s => s?.trim()).filter(Boolean);
+  if (overallParts.length) {
+    parts.push(`OVERALL GUIDANCE:\n${overallParts.join('\n')}`);
+  }
+
+  // Determine which cell indices belong to groups
+  const groupedIndices = new Set(cellGroups.flatMap(g => g.cells));
+
+  // Group-by-group, cell-by-cell
+  for (const group of cellGroups) {
+    const groupLines: string[] = [];
+
+    // Group-level guidance
+    const groupGuidanceParts = [
+      gridGuidance.groups[group.name],
+      linkGuidance.groups[group.name],
+      presetGuidance.groups[group.name],
+    ].map(s => s?.trim()).filter(Boolean);
+    if (groupGuidanceParts.length) {
+      groupLines.push(groupGuidanceParts.join('\n'));
+    }
+
+    // Cells in this group
+    for (const cellIdx of group.cells) {
+      const label = cellLabels[cellIdx];
+      if (!label) continue;
+      const row = Math.floor(cellIdx / cols);
+      const col = cellIdx % cols;
+
+      const cellGuidanceParts = [
+        gridGuidance.cells[label],
+        linkGuidance.cells[label],
+        presetGuidance.cells[label],
+      ].map(s => s?.trim()).filter(Boolean);
+
+      const header = `  Cell "${label}" (${row},${col})`;
+      if (cellGuidanceParts.length) {
+        groupLines.push(`${header}:\n    ${cellGuidanceParts.join('\n    ')}`);
+      } else {
+        groupLines.push(header);
+      }
+    }
+
+    parts.push(`GROUP: ${group.name}\n${groupLines.join('\n\n')}`);
+  }
+
+  // Ungrouped cells
+  const ungroupedCells = cellLabels
+    .map((label, idx) => ({ label, idx }))
+    .filter(({ idx }) => !groupedIndices.has(idx) && cellLabels[idx]);
+
+  if (ungroupedCells.length) {
+    const ungroupedLines = ungroupedCells.map(({ label, idx }) => {
+      const row = Math.floor(idx / cols);
+      const col = idx % cols;
+      const cellGuidanceParts = [
+        gridGuidance.cells[label],
+        linkGuidance.cells[label],
+        presetGuidance.cells[label],
+      ].map(s => s?.trim()).filter(Boolean);
+      const header = `  Cell "${label}" (${row},${col})`;
+      return cellGuidanceParts.length
+        ? `${header}:\n    ${cellGuidanceParts.join('\n    ')}`
+        : header;
+    });
+    parts.push(`UNGROUPED CELLS\n${ungroupedLines.join('\n\n')}`);
+  }
+
+  return parts.join('\n\n---\n\n');
+}
 
 /**
  * Build the per-cell layout description lines from grid config.
  * Used identically by building, terrain, and background prompt builders.
  * @param fallbackPrefix - prefix for unlabeled cells (e.g. "Cell", "Tile"); defaults to "Cell"
+ * TODO: Remove once building/terrain/background prompt builders are migrated to buildGuidanceBlock.
  */
 export function buildCellDescriptions(
   grid: GridConfig,
@@ -29,6 +119,7 @@ export function buildCellDescriptions(
 /**
  * Compose the type-specific guidance section from generic + override text.
  * Used identically by building, terrain, and background prompt builders.
+ * TODO: Remove once building/terrain/background prompt builders are migrated to buildGuidanceBlock.
  */
 export function composeGuidance(
   genericGuidance: string | undefined,
