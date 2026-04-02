@@ -17,8 +17,10 @@ export function extractPresetValues(body, columns) {
 /** Map a DB row to a response object using column config. */
 export function mapPresetRow(row, columns) {
   const obj = { id: row.id };
-  for (const [bodyField, dbCol, , isJson] of columns) {
-    obj[bodyField] = isJson ? JSON.parse(row[dbCol] || '[]') : row[dbCol];
+  for (const [bodyField, dbCol, defaultVal, isJson] of columns) {
+    obj[bodyField] = isJson
+      ? JSON.parse(row[dbCol] || JSON.stringify(defaultVal ?? []))
+      : (row[dbCol] ?? defaultVal ?? '');
   }
   return obj;
 }
