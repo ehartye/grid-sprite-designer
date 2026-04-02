@@ -27,6 +27,8 @@ export interface EditorSettings {
   outlineOutDepth: number;
   outlineInDepth: number;
   outlineColor: [number, number, number];
+  alphaSnapEnabled: boolean;
+  alphaSnapThreshold: number;
 }
 
 const DEFAULTS: EditorSettings = {
@@ -48,6 +50,8 @@ const DEFAULTS: EditorSettings = {
   outlineOutDepth: 1,
   outlineInDepth: 0,
   outlineColor: [0, 0, 0],
+  alphaSnapEnabled: false,
+  alphaSnapThreshold: 128,
 };
 
 export function useEditorSettings(historyId: number | null) {

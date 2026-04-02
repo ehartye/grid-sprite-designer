@@ -16,7 +16,7 @@ import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
 import { composeSpriteSheet, ExtractedSprite, pixelizeSprite } from '../../lib/spriteExtractor';
 import { debugLog } from '../../lib/debugLog';
-import { applyChromaKey, defringeRecolor, outlineSprite, strikeColors, detectKeyColor } from '../../lib/chromaKey';
+import { applyChromaKey, defringeRecolor, snapAlpha, outlineSprite, strikeColors, detectKeyColor } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 import { AddSheetModal } from './AddSheetModal';
 
@@ -42,9 +42,11 @@ async function processSprite(
   outlineOutDepth = 1,
   outlineInDepth = 0,
   outlineColor: RGB = [0, 0, 0],
+  alphaSnapEnabled = false,
+  alphaSnapThreshold = 128,
 ): Promise<ExtractedSprite> {
   const hasErasure = erasedPixels && erasedPixels.size > 0;
-  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled) return sprite;
+  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled && !alphaSnapEnabled) return sprite;
 
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
@@ -63,6 +65,7 @@ async function processSprite(
   if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
   if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore, keyR, keyG, keyB);
   if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, keyR, keyG, keyB, edgeRecolorPasses, recolorSensitivity);
+  if (alphaSnapEnabled) imageData = snapAlpha(imageData, alphaSnapThreshold);
   if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors);
   if (hasErasure) {
     for (const key of erasedPixels) {
@@ -201,6 +204,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [outlineOutDepth, setOutlineOutDepth] = useState(1);
   const [outlineInDepth, setOutlineInDepth] = useState(0);
   const [outlineColor, setOutlineColor] = useState<RGB>([0, 0, 0]);
+  const [alphaSnapEnabled, setAlphaSnapEnabled] = useState(false);
+  const [alphaSnapThreshold, setAlphaSnapThreshold] = useState(128);
   const struckKey = JSON.stringify(struckColors);
 
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
@@ -240,7 +245,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
   // Process sprites through posterization + chroma key + color strikes + erasures + pixelize
   useEffect(() => {
-    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled) {
+    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled && !alphaSnapEnabled) {
       setProcessedSprites(sprites);
       return;
     }
@@ -269,13 +274,13 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       }
 
       const result = await Promise.all(sprites.map((s) =>
-        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor),
+        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold),
       ));
       if (!cancelled) setProcessedSprites(result);
     })();
 
     return () => { cancelled = true; };
-  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
   // Guard: skip the first save effect after load completes to prevent
@@ -330,6 +335,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         setOutlineOutDepth(settings.outlineOutDepth ?? 1);
         setOutlineInDepth(settings.outlineInDepth ?? 0);
         setOutlineColor(settings.outlineColor ?? [0, 0, 0]);
+        setAlphaSnapEnabled(settings.alphaSnapEnabled ?? false);
+        setAlphaSnapThreshold(settings.alphaSnapThreshold ?? 128);
       }
       if (histData?.thumbnailCellIndex != null) {
         selection.setThumbnailCell(histData.thumbnailCellIndex);
@@ -374,8 +381,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       outlineOutDepth,
       outlineInDepth,
       outlineColor,
+      alphaSnapEnabled,
+      alphaSnapThreshold,
     });
-  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, saveSettings]);
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -826,6 +835,39 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
                   />
                 </div>
               )}
+              <div style={{ marginTop: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    Hard Edges
+                    <span title="Snap partial-alpha fringe pixels to fully opaque or fully transparent. Eliminates semi-transparent edge artifacts from chroma key. Threshold controls the cutoff: pixels above become opaque, below become transparent." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
+                  </label>
+                  <span className="slider-value">{alphaSnapEnabled ? alphaSnapThreshold : 'off'}</span>
+                </div>
+                <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: alphaSnapEnabled ? 4 : 0 }}>
+                  <button
+                    className={`anim-group-btn ${!alphaSnapEnabled ? 'active' : ''}`}
+                    onClick={() => setAlphaSnapEnabled(false)}
+                  >
+                    Off
+                  </button>
+                  <button
+                    className={`anim-group-btn ${alphaSnapEnabled ? 'active' : ''}`}
+                    onClick={() => setAlphaSnapEnabled(true)}
+                  >
+                    On
+                  </button>
+                </div>
+                {alphaSnapEnabled && (
+                  <input
+                    type="range"
+                    min={1}
+                    max={254}
+                    value={alphaSnapThreshold}
+                    onChange={(e) => setAlphaSnapThreshold(Number(e.target.value))}
+                    style={{ width: '100%' }}
+                  />
+                )}
+              </div>
             </>
           )}
         </div>

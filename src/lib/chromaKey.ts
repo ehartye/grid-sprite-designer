@@ -287,6 +287,26 @@ export function defringeRecolor(
 }
 
 /**
+ * Snap all partial-alpha pixels to either fully opaque or fully transparent.
+ * Pixels with alpha >= threshold become alpha=255; below become alpha=0.
+ * Eliminates chroma-key fringe artifacts and ensures clean binary edges.
+ */
+export function snapAlpha(source: ImageData, threshold = 128): ImageData {
+  const out = new ImageData(
+    new Uint8ClampedArray(source.data),
+    source.width,
+    source.height,
+  );
+  const data = out.data;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] > 0 && data[i] < 255) {
+      data[i] = data[i] >= threshold ? 255 : 0;
+    }
+  }
+  return out;
+}
+
+/**
  * Add an outline around opaque regions of a sprite.
  * Three phases:
  *  1. Solidify fringe — partial-alpha pixels become fully opaque outline color.

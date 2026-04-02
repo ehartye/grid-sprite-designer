@@ -1,5 +1,34 @@
 import { describe, it, expect } from 'vitest';
-import { detectKeyColor, applyChromaKey, strikeColors, outlineSprite } from '../chromaKey';
+import { detectKeyColor, applyChromaKey, strikeColors, snapAlpha, outlineSprite } from '../chromaKey';
+
+describe('snapAlpha', () => {
+  it('snaps partial-alpha pixels at or above threshold to 255', () => {
+    const img = makeImageData(1, 1, [255, 0, 0, 128]);
+    const result = snapAlpha(img, 128);
+    expect(getPixel(result, 0, 0)[3]).toBe(255);
+  });
+
+  it('snaps partial-alpha pixels below threshold to 0', () => {
+    const img = makeImageData(1, 1, [255, 0, 0, 127]);
+    const result = snapAlpha(img, 128);
+    expect(getPixel(result, 0, 0)[3]).toBe(0);
+  });
+
+  it('leaves fully opaque and fully transparent pixels unchanged', () => {
+    const img = makeImageData(2, 1, [0, 0, 0, 0]);
+    setPixel(img, 0, 0, 255, 0, 0, 255);
+    setPixel(img, 1, 0, 0, 0, 0, 0);
+    const result = snapAlpha(img, 128);
+    expect(getPixel(result, 0, 0)[3]).toBe(255);
+    expect(getPixel(result, 1, 0)[3]).toBe(0);
+  });
+
+  it('does not mutate source ImageData', () => {
+    const img = makeImageData(1, 1, [255, 0, 0, 100]);
+    snapAlpha(img, 128);
+    expect(img.data[3]).toBe(100);
+  });
+});
 
 /** Create a small ImageData-like object for testing. */
 function makeImageData(width: number, height: number, fill: [number, number, number, number]): ImageData {
