@@ -6,6 +6,9 @@
 import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { getTerrainGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 import { buildTerrainPrompt } from '../lib/terrainPromptBuilder';
+import type { HierarchicalGuidance } from '../context/AppContext';
+
+const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 export const terrainConfig: WorkflowConfig = {
   spriteType: 'terrain',
@@ -15,14 +18,20 @@ export const terrainConfig: WorkflowConfig = {
     if (gridLink) return gridPresetToConfig(gridLink, 'terrain');
     return getTerrainGridConfig(state.terrain.gridSize, state.terrain.cellLabels);
   },
-  buildPrompt: (state, gridConfig, gridLink) =>
-    buildTerrainPrompt(
+  buildPrompt: (state, gridConfig, gridLink) => {
+    const cols = gridLink?.cols ?? gridConfig.cols;
+    const rows = gridLink?.rows ?? gridConfig.rows;
+    return buildTerrainPrompt(
       state.terrain,
-      gridConfig,
-      // TODO Task 5-7: replace with gridLink?.gridGuidance / linkGuidance
-      gridLink?.gridGuidance?.overall,
-      gridLink?.linkGuidance?.overall,
-    ),
+      gridLink?.gridGuidance ?? EMPTY_GUIDANCE,
+      gridLink?.linkGuidance ?? EMPTY_GUIDANCE,
+      EMPTY_GUIDANCE,
+      gridLink?.cellGroups ?? [],
+      gridLink?.cellLabels ?? gridConfig.cellLabels,
+      cols,
+      rows,
+    );
+  },
   getReExtractGridConfig: (state) => {
     const gc = getTerrainGridConfig(state.terrain.gridSize, state.terrain.cellLabels);
     return { cols: gc.cols, rows: gc.rows, totalCells: gc.totalCells, cellLabels: gc.cellLabels };

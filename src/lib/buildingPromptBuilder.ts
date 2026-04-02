@@ -3,8 +3,8 @@
  * Combines template structure instructions with building-specific details.
  */
 
-import type { GridConfig } from './gridConfig';
-import { buildCellDescriptions, composeGuidance, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import { buildGuidanceBlock, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import type { HierarchicalGuidance, CellGroup } from '../context/AppContext';
 
 export interface BuildingConfig {
   name: string;
@@ -12,20 +12,23 @@ export interface BuildingConfig {
   details: string;
   colorNotes: string;
   styleNotes: string;
-  cellGuidance: string;
 }
 
 /**
  * Build the full prompt that tells Gemini how to fill a building grid template.
- * Accepts optional grid-preset-sourced guidance for the layered guidance model.
- * Falls back to building.cellGuidance when grid preset params are not provided.
  */
 export function buildBuildingPrompt(
   building: BuildingConfig,
-  grid: GridConfig,
-  gridGenericGuidance?: string,
-  guidanceOverride?: string,
+  gridGuidance: HierarchicalGuidance,
+  linkGuidance: HierarchicalGuidance,
+  presetGuidance: HierarchicalGuidance,
+  cellGroups: CellGroup[],
+  cellLabels: string[],
+  cols: number,
+  rows: number,
 ): string {
+  const totalCells = cols * rows;
+
   const charBlock = [
     `Fill every pink cell area with a pixel-art sprite of a`,
     `${building.name.toUpperCase()} building/structure.`,
@@ -36,23 +39,15 @@ export function buildBuildingPrompt(
     building.styleNotes ? `Additional style notes: ${building.styleNotes}` : '',
     ``,
     `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger overworld buildings and structures (SNES 16-bit)`,
-    `  \u2022 Consistent proportions, perspective, and palette across ALL ${grid.totalCells} cells`,
+    `  \u2022 Consistent proportions, perspective, and palette across ALL ${totalCells} cells`,
     `  \u2022 Each cell shows the SAME building — variations come from the label (e.g. time of day, damage state, animation frame)`,
   ].filter(Boolean).join('\n');
 
-  // Build cell-by-cell layout description from labels
-  const cellLayout = buildCellDescriptions(grid, 'building sprite').join('\n');
-
-  // Use grid preset guidance if provided, otherwise fall back to building.cellGuidance
-  const customGuidance = composeGuidance(
-    gridGenericGuidance,
-    guidanceOverride?.trim() || building.cellGuidance.trim(),
-    'BUILDING-SPECIFIC CELL NOTES (use these to refine each cell)',
-  );
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols);
 
   return `\
-You are filling in a sprite sheet template. The attached image is a ${grid.cols}\u00d7${grid.rows} grid
-(${grid.totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
+You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid
+(${totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
 a thin black header strip with white text labeling the variant. You MUST preserve
 every header strip and its text exactly as-is \u2014 do not erase, move, or redraw
 them.
@@ -86,9 +81,8 @@ cells. Proportions, perspective angle, and architectural details should be
 identical \u2014 only the aspects indicated by each cell's label should change
 (e.g. lighting, damage level, animation frame).
 
-CELL LAYOUT (${grid.cols}\u00d7${grid.rows} grid, 0-indexed):
+CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):
 
-${cellLayout}
-${customGuidance}
+${guidanceBlock}
 ${CLOSING_INSTRUCTION}`;
 }

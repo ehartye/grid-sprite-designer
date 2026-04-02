@@ -23,6 +23,7 @@ import { buildBuildingPrompt } from '../../lib/buildingPromptBuilder';
 import { buildTerrainPrompt } from '../../lib/terrainPromptBuilder';
 import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } from '../../lib/gridConfig';
+import type { HierarchicalGuidance } from '../../context/AppContext';
 import { getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
 import '../../styles/run-builder.css';
@@ -250,6 +251,8 @@ export function UnifiedConfigPanel() {
 
   const canGenerate = !validationMessage;
 
+  const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
+
   const promptPreview = useMemo(() => {
     let prompt: string;
     switch (spriteType) {
@@ -258,7 +261,11 @@ export function UnifiedConfigPanel() {
           (content as any).gridSize,
           (content as any).cellLabels,
         );
-        prompt = buildBuildingPrompt(state.building, gc);
+        prompt = buildBuildingPrompt(
+          state.building,
+          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
+          [], gc.cellLabels, gc.cols, gc.rows,
+        );
         break;
       }
       case 'terrain': {
@@ -266,7 +273,11 @@ export function UnifiedConfigPanel() {
           (content as any).gridSize,
           (content as any).cellLabels,
         );
-        prompt = buildTerrainPrompt(state.terrain, gc);
+        prompt = buildTerrainPrompt(
+          state.terrain,
+          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
+          [], gc.cellLabels, gc.cols, gc.rows,
+        );
         break;
       }
       case 'background': {
@@ -274,11 +285,21 @@ export function UnifiedConfigPanel() {
           (content as any).gridSize,
           (content as any).cellLabels,
         );
-        prompt = buildBackgroundPrompt(state.background, gc);
+        prompt = buildBackgroundPrompt(
+          state.background,
+          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
+          [], gc.cellLabels, gc.cols, gc.rows,
+        );
         break;
       }
-      default:
-        prompt = buildGridFillPrompt(state.character);
+      default: {
+        const defaultLabels = Array.from({ length: 36 }, (_, i) => `Cell ${i}`);
+        prompt = buildGridFillPrompt(
+          state.character,
+          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
+          [], defaultLabels, 6, 6,
+        );
+      }
     }
     const g = getPixelizeGuidance(pixelizeSize);
     if (g) prompt += '\n\n' + g;

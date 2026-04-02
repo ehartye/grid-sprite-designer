@@ -4,28 +4,33 @@
  * and scene variations (full scenes with lighting/weather changes).
  */
 
-import type { GridConfig, BackgroundMode } from './gridConfig';
-import { buildCellDescriptions, composeGuidance, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import type { BackgroundMode } from './gridConfig';
+import { buildGuidanceBlock, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import type { HierarchicalGuidance, CellGroup } from '../context/AppContext';
 
 export interface BackgroundConfig {
   name: string;
   description: string;
   colorNotes: string;
   styleNotes: string;
-  layerGuidance: string;
   bgMode: BackgroundMode;
 }
 
 /**
- * Accepts optional grid-preset-sourced guidance for the layered guidance model.
- * Falls back to bg.layerGuidance when grid preset params are not provided.
+ * Build the full prompt that tells Gemini how to fill a background grid template.
  */
 export function buildBackgroundPrompt(
   bg: BackgroundConfig,
-  grid: GridConfig,
-  gridGenericGuidance?: string,
-  guidanceOverride?: string,
+  gridGuidance: HierarchicalGuidance,
+  linkGuidance: HierarchicalGuidance,
+  presetGuidance: HierarchicalGuidance,
+  cellGroups: CellGroup[],
+  cellLabels: string[],
+  cols: number,
+  rows: number,
 ): string {
+  const totalCells = cols * rows;
+
   const descBlock = [
     `Fill every pink cell area with a pixel-art background`,
     bg.bgMode === 'parallax'
@@ -37,18 +42,12 @@ export function buildBackgroundPrompt(
     bg.styleNotes ? `Additional style notes: ${bg.styleNotes}` : '',
     ``,
     `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger background art (SNES 16-bit)`,
-    `  \u2022 Consistent palette and art style across ALL ${grid.totalCells} cells`,
+    `  \u2022 Consistent palette and art style across ALL ${totalCells} cells`,
   ].filter(Boolean).join('\n');
 
   const modeLabel = bg.bgMode === 'parallax' ? 'layer' : 'scene';
-  const cellDescriptions = buildCellDescriptions(grid, `background ${modeLabel}`);
 
-  // Use grid preset guidance if provided, otherwise fall back to bg.layerGuidance
-  const customGuidance = composeGuidance(
-    gridGenericGuidance,
-    guidanceOverride?.trim() || bg.layerGuidance.trim(),
-    `BACKGROUND-SPECIFIC NOTES (use these to refine each ${modeLabel})`,
-  );
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols);
 
   const modeGuidance = bg.bgMode === 'parallax'
     ? `PARALLAX LAYER DESIGN: Each cell is one horizontal layer of a parallax
@@ -78,9 +77,9 @@ edge-to-edge (below the header strip). There should be NO magenta background
 visible \u2014 the scene IS the background.`;
 
   return `\
-You are filling in a sprite sheet template. The attached image is a ${grid.cols}\u00d7${grid.rows} grid
-(${grid.totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
-a thin black header strip with white text labeling the ${bg.bgMode === 'parallax' ? 'layer' : 'scene'}. You MUST preserve
+You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid
+(${totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
+a thin black header strip with white text labeling the ${modeLabel}. You MUST preserve
 every header strip and its text exactly as-is \u2014 do not erase, move, or redraw them.
 
 ${descBlock}
@@ -97,9 +96,8 @@ ${modeGuidance}
 CONSISTENCY: All ${bg.bgMode === 'parallax' ? 'layers' : 'scenes'} must share the same art style and color palette.
 They are parts of one unified background ${bg.bgMode === 'parallax' ? 'system' : 'set'}.
 
-CELL LAYOUT (${grid.cols}\u00d7${grid.rows} grid, 0-indexed):
+CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):
 
-${cellDescriptions.join('\n')}
-${customGuidance}
+${guidanceBlock}
 ${CLOSING_INSTRUCTION}`;
 }

@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { buildGridFillPrompt, buildGridFillPromptWithReference, type CharacterConfig } from '../promptBuilder';
 import { getPixelizeGuidance } from '../promptBuilderBase';
+import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
+
+const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 const baseCharacter: CharacterConfig = {
   name: 'Test Hero',
@@ -8,75 +11,88 @@ const baseCharacter: CharacterConfig = {
   equipment: 'Iron Sword, Shield',
   colorNotes: 'Blue armor, red cape',
   styleNotes: 'Heroic stance',
-  rowGuidance: 'Row 0 is walking poses',
 };
+
+const cellLabels6x6 = Array.from({ length: 36 }, (_, i) => `Cell ${i}`);
+const cellGroups: CellGroup[] = [];
 
 describe('buildGridFillPrompt', () => {
   it('includes the character name in uppercase', () => {
-    const prompt = buildGridFillPrompt(baseCharacter);
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).toContain('TEST HERO');
   });
 
   it('includes character description and equipment', () => {
-    const prompt = buildGridFillPrompt(baseCharacter);
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).toContain('A brave warrior with a sword');
     expect(prompt).toContain('Iron Sword, Shield');
   });
 
   it('includes color notes and style notes', () => {
-    const prompt = buildGridFillPrompt(baseCharacter);
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).toContain('Blue armor, red cape');
     expect(prompt).toContain('Heroic stance');
   });
 
-  it('defaults to 6x6 grid (36 cells)', () => {
-    const prompt = buildGridFillPrompt(baseCharacter);
+  it('shows correct cell count for 6x6 grid', () => {
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).toContain('36 cells');
   });
 
-  it('uses custom cell labels to determine grid size', () => {
+  it('uses custom cell labels for smaller grids', () => {
     const labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-    const prompt = buildGridFillPrompt(baseCharacter, undefined, undefined, labels);
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, labels, 3, 3);
     expect(prompt).toContain('9 cells');
   });
 
-  it('uses gridGenericGuidance when provided', () => {
-    const prompt = buildGridFillPrompt(baseCharacter, 'Custom grid guidance here');
+  it('includes overall guidance text when provided', () => {
+    const gridGuidance: HierarchicalGuidance = { overall: 'Custom grid guidance here', groups: {}, cells: {} };
+    const prompt = buildGridFillPrompt(baseCharacter, gridGuidance, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).toContain('Custom grid guidance here');
   });
 
-  it('falls back to built-in guidance when no gridGenericGuidance', () => {
-    const prompt = buildGridFillPrompt(baseCharacter);
-    expect(prompt).toContain('ROW 0');
-    expect(prompt).toContain('Walk Down');
-  });
-
-  it('uses guidanceOverride over character.rowGuidance', () => {
-    const prompt = buildGridFillPrompt(baseCharacter, undefined, 'Override guidance');
-    expect(prompt).toContain('Override guidance');
-  });
-
-  it('falls back to character.rowGuidance when no guidanceOverride', () => {
-    const prompt = buildGridFillPrompt(baseCharacter);
-    expect(prompt).toContain('Row 0 is walking poses');
+  it('includes preset overall guidance when provided', () => {
+    const presetGuidance: HierarchicalGuidance = { overall: 'Preset guidance text', groups: {}, cells: {} };
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels6x6, 6, 6);
+    expect(prompt).toContain('Preset guidance text');
   });
 
   it('omits equipment line when empty', () => {
     const char = { ...baseCharacter, equipment: '' };
-    const prompt = buildGridFillPrompt(char);
+    const prompt = buildGridFillPrompt(char, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).not.toContain('Equipment:');
   });
 
   it('omits color notes line when empty', () => {
     const char = { ...baseCharacter, colorNotes: '' };
-    const prompt = buildGridFillPrompt(char);
+    const prompt = buildGridFillPrompt(char, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).not.toContain('Color palette:');
   });
 
   it('includes magenta chroma key instructions', () => {
-    const prompt = buildGridFillPrompt(baseCharacter);
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
     expect(prompt).toContain('#FF00FF');
     expect(prompt).toContain('magenta');
+  });
+
+  it('includes CENTERING IS CRITICAL section', () => {
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
+    expect(prompt).toContain('CENTERING IS CRITICAL');
+  });
+
+  it('includes EQUIPMENT CONSISTENCY section', () => {
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
+    expect(prompt).toContain('EQUIPMENT CONSISTENCY');
+  });
+
+  it('includes FULL BODY VISIBILITY section', () => {
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
+    expect(prompt).toContain('FULL BODY VISIBILITY');
+  });
+
+  it('includes MOVEMENT CONTINUITY section', () => {
+    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
+    expect(prompt).toContain('MOVEMENT CONTINUITY');
   });
 });
 
@@ -110,17 +126,19 @@ describe('getPixelizeGuidance', () => {
 
 describe('buildGridFillPromptWithReference', () => {
   it('prepends reference image instructions', () => {
+    const labels = ['A', 'B', 'C', 'D'];
     const prompt = buildGridFillPromptWithReference(
-      baseCharacter, 'generic', 'override', ['A', 'B', 'C', 'D'],
+      baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, labels, 2, 2,
     );
     expect(prompt).toContain('IMAGE 1');
     expect(prompt).toContain('IMAGE 2');
-    expect(prompt).toContain('visual reference');
+    expect(prompt).toContain('You are given two images');
   });
 
   it('includes the base prompt content after the prefix', () => {
+    const labels = ['A', 'B', 'C'];
     const prompt = buildGridFillPromptWithReference(
-      baseCharacter, 'generic', 'override', ['A', 'B', 'C'],
+      baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, labels, 3, 1,
     );
     expect(prompt).toContain('TEST HERO');
     expect(prompt).toContain('A brave warrior with a sword');
@@ -128,7 +146,9 @@ describe('buildGridFillPromptWithReference', () => {
 
   it('uses custom cell labels for grid dimensions', () => {
     const labels = ['A', 'B', 'C'];
-    const prompt = buildGridFillPromptWithReference(baseCharacter, '', '', labels);
+    const prompt = buildGridFillPromptWithReference(
+      baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, labels, 3, 1,
+    );
     expect(prompt).toContain('3 cells');
   });
 });

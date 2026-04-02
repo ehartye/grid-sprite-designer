@@ -6,6 +6,9 @@
 import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { CHARACTER_GRID, gridPresetToConfig } from '../lib/gridConfig';
 import { buildGridFillPrompt } from '../lib/promptBuilder';
+import type { HierarchicalGuidance } from '../context/AppContext';
+
+const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 export const characterConfig: WorkflowConfig = {
   spriteType: 'character',
@@ -18,10 +21,13 @@ export const characterConfig: WorkflowConfig = {
   buildPrompt: (state, _gridConfig, gridLink) =>
     buildGridFillPrompt(
       state.character,
-      // TODO Task 5-7: replace with gridLink?.gridGuidance / linkGuidance
-      gridLink?.gridGuidance?.overall,
-      gridLink?.linkGuidance?.overall,
-      gridLink?.cellLabels,
+      gridLink?.gridGuidance ?? EMPTY_GUIDANCE,
+      gridLink?.linkGuidance ?? EMPTY_GUIDANCE,
+      EMPTY_GUIDANCE,
+      gridLink?.cellGroups ?? [],
+      gridLink?.cellLabels ?? CHARACTER_GRID.cellLabels,
+      gridLink?.cols ?? CHARACTER_GRID.cols,
+      gridLink?.rows ?? CHARACTER_GRID.rows,
     ),
   getReExtractGridConfig: (state) => {
     const agc = state.activeGridConfig;

@@ -6,6 +6,9 @@
 import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { getBuildingGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 import { buildBuildingPrompt } from '../lib/buildingPromptBuilder';
+import type { HierarchicalGuidance } from '../context/AppContext';
+
+const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 export const buildingConfig: WorkflowConfig = {
   spriteType: 'building',
@@ -15,14 +18,20 @@ export const buildingConfig: WorkflowConfig = {
     if (gridLink) return gridPresetToConfig(gridLink, 'building');
     return getBuildingGridConfig(state.building.gridSize, state.building.cellLabels);
   },
-  buildPrompt: (state, gridConfig, gridLink) =>
-    buildBuildingPrompt(
+  buildPrompt: (state, gridConfig, gridLink) => {
+    const cols = gridLink?.cols ?? gridConfig.cols;
+    const rows = gridLink?.rows ?? gridConfig.rows;
+    return buildBuildingPrompt(
       state.building,
-      gridConfig,
-      // TODO Task 5-7: replace with gridLink?.gridGuidance / linkGuidance
-      gridLink?.gridGuidance?.overall,
-      gridLink?.linkGuidance?.overall,
-    ),
+      gridLink?.gridGuidance ?? EMPTY_GUIDANCE,
+      gridLink?.linkGuidance ?? EMPTY_GUIDANCE,
+      EMPTY_GUIDANCE,
+      gridLink?.cellGroups ?? [],
+      gridLink?.cellLabels ?? gridConfig.cellLabels,
+      cols,
+      rows,
+    );
+  },
   getReExtractGridConfig: (state) => {
     const gc = getBuildingGridConfig(state.building.gridSize, state.building.cellLabels);
     return { cols: gc.cols, rows: gc.rows, totalCells: gc.totalCells, cellLabels: gc.cellLabels };

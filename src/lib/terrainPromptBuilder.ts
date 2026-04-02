@@ -4,27 +4,31 @@
  * for tileable ground tiles and transition pieces.
  */
 
-import type { GridConfig } from './gridConfig';
-import { buildCellDescriptions, composeGuidance, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import { buildGuidanceBlock, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import type { HierarchicalGuidance, CellGroup } from '../context/AppContext';
 
 export interface TerrainConfig {
   name: string;
   description: string;
   colorNotes: string;
   styleNotes: string;
-  tileGuidance: string;
 }
 
 /**
- * Accepts optional grid-preset-sourced guidance for the layered guidance model.
- * Falls back to terrain.tileGuidance when grid preset params are not provided.
+ * Build the full prompt that tells Gemini how to fill a terrain grid template.
  */
 export function buildTerrainPrompt(
   terrain: TerrainConfig,
-  grid: GridConfig,
-  gridGenericGuidance?: string,
-  guidanceOverride?: string,
+  gridGuidance: HierarchicalGuidance,
+  linkGuidance: HierarchicalGuidance,
+  presetGuidance: HierarchicalGuidance,
+  cellGroups: CellGroup[],
+  cellLabels: string[],
+  cols: number,
+  rows: number,
 ): string {
+  const totalCells = cols * rows;
+
   const descBlock = [
     `Fill every pink cell area with a pixel-art terrain tile for a`,
     `${terrain.name.toUpperCase()} tileset.`,
@@ -34,22 +38,15 @@ export function buildTerrainPrompt(
     terrain.styleNotes ? `Additional style notes: ${terrain.styleNotes}` : '',
     ``,
     `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger overworld tilesets (SNES 16-bit)`,
-    `  \u2022 Consistent palette, texture density, and perspective across ALL ${grid.totalCells} tiles`,
+    `  \u2022 Consistent palette, texture density, and perspective across ALL ${totalCells} tiles`,
     `  \u2022 Each cell is one distinct tile variant — base tiles, edges, corners, or transitions as labeled`,
   ].filter(Boolean).join('\n');
 
-  const cellDescriptions = buildCellDescriptions(grid, 'terrain tile', 'Tile');
-
-  // Use grid preset guidance if provided, otherwise fall back to terrain.tileGuidance
-  const customGuidance = composeGuidance(
-    gridGenericGuidance,
-    guidanceOverride?.trim() || terrain.tileGuidance.trim(),
-    'TERRAIN-SPECIFIC TILE NOTES (use these to refine each tile)',
-  );
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols);
 
   return `\
-You are filling in a sprite sheet template. The attached image is a ${grid.cols}\u00d7${grid.rows} grid
-(${grid.totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
+You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid
+(${totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
 a thin black header strip with white text labeling the tile variant. You MUST preserve
 every header strip and its text exactly as-is \u2014 do not erase, move, or redraw them.
 
@@ -76,9 +73,8 @@ terrain tile cells \u2014 the tile IS the ground.
 CONSISTENCY: All tiles must share the same art style, color palette, texture
 density, and viewing perspective. They are parts of one unified tileset.
 
-CELL LAYOUT (${grid.cols}\u00d7${grid.rows} grid, 0-indexed):
+CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):
 
-${cellDescriptions.join('\n')}
-${customGuidance}
+${guidanceBlock}
 ${CLOSING_INSTRUCTION}`;
 }
