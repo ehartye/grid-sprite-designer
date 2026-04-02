@@ -13,7 +13,7 @@ import type { SpriteType } from '../../context/AppContext';
 interface FieldSchema {
   key: string;
   label: string;
-  type: 'input' | 'textarea' | 'select';
+  type: 'input' | 'textarea' | 'select' | 'guidance-pairs';
   placeholder?: string;
   rows?: number;
   options?: { value: string; label: string }[];
@@ -34,39 +34,45 @@ const PRESET_TAB_CONFIGS: Record<SpriteType, PresetTabConfig> = {
   character: {
     spriteType: 'character',
     label: 'Character',
-    emptyDefaults: { name: '', genre: '', description: '', equipment: '', colorNotes: '', rowGuidance: '' },
+    emptyDefaults: { name: '', genre: '', description: '', equipment: '', colorNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {} },
     fields: [
       { key: 'description', label: 'Description', type: 'textarea', rows: 3, placeholder: 'Character description...' },
       { key: 'equipment', label: 'Equipment', type: 'textarea', rows: 2, placeholder: 'Equipment and accessories...' },
       { key: 'colorNotes', label: 'Color Notes', type: 'textarea', rows: 2, placeholder: 'Color palette guidance...' },
-      { key: 'rowGuidance', label: 'Row Guidance', type: 'textarea', rows: 4, placeholder: 'Per-row pose descriptions...' },
+      { key: 'overallGuidance', label: 'Overall Guidance', type: 'textarea', rows: 4, placeholder: 'Overall guidance for all cells...' },
+      { key: 'groupGuidance', label: 'Group Guidance', type: 'guidance-pairs' as const, placeholder: 'Add group name...' },
+      { key: 'cellGuidance', label: 'Cell Guidance', type: 'guidance-pairs' as const, placeholder: 'Add cell label...' },
     ],
   },
   building: {
     spriteType: 'building',
     label: 'Building',
-    emptyDefaults: { name: '', genre: '', description: '', details: '', colorNotes: '', cellGuidance: '', gridSize: '3x3', cellLabels: [] },
+    emptyDefaults: { name: '', genre: '', description: '', details: '', colorNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {}, gridSize: '3x3', cellLabels: [] },
     fields: [
       { key: 'description', label: 'Description', type: 'textarea', rows: 3, placeholder: 'Building description...' },
       { key: 'details', label: 'Details', type: 'textarea', rows: 2, placeholder: 'Architectural details...' },
       { key: 'colorNotes', label: 'Color Notes', type: 'textarea', rows: 2, placeholder: 'Color palette guidance...' },
-      { key: 'cellGuidance', label: 'Cell Guidance', type: 'textarea', rows: 4, placeholder: 'Per-cell descriptions...' },
+      { key: 'overallGuidance', label: 'Overall Guidance', type: 'textarea', rows: 4, placeholder: 'Overall guidance for all cells...' },
+      { key: 'groupGuidance', label: 'Group Guidance', type: 'guidance-pairs' as const, placeholder: 'Add group name...' },
+      { key: 'cellGuidance', label: 'Cell Guidance', type: 'guidance-pairs' as const, placeholder: 'Add cell label...' },
     ],
   },
   terrain: {
     spriteType: 'terrain',
     label: 'Terrain',
-    emptyDefaults: { name: '', genre: '', description: '', colorNotes: '', tileGuidance: '', gridSize: '4x4', tileLabels: [] },
+    emptyDefaults: { name: '', genre: '', description: '', colorNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {}, gridSize: '4x4', tileLabels: [] },
     fields: [
       { key: 'description', label: 'Description', type: 'textarea', rows: 3, placeholder: 'Terrain description...' },
       { key: 'colorNotes', label: 'Color Notes', type: 'textarea', rows: 2, placeholder: 'Color palette guidance...' },
-      { key: 'tileGuidance', label: 'Tile Guidance', type: 'textarea', rows: 4, placeholder: 'Per-tile descriptions...' },
+      { key: 'overallGuidance', label: 'Overall Guidance', type: 'textarea', rows: 4, placeholder: 'Overall guidance for all cells...' },
+      { key: 'groupGuidance', label: 'Group Guidance', type: 'guidance-pairs' as const, placeholder: 'Add group name...' },
+      { key: 'cellGuidance', label: 'Cell Guidance', type: 'guidance-pairs' as const, placeholder: 'Add cell label...' },
     ],
   },
   background: {
     spriteType: 'background',
     label: 'Background',
-    emptyDefaults: { name: '', genre: '', description: '', colorNotes: '', layerGuidance: '', gridSize: '1x4', bgMode: 'parallax', layerLabels: [] },
+    emptyDefaults: { name: '', genre: '', description: '', colorNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {}, gridSize: '1x4', bgMode: 'parallax', layerLabels: [] },
     metaFields: ['bgMode'],
     fields: [
       { key: 'bgMode', label: 'Background Mode', type: 'select', options: [
@@ -75,7 +81,9 @@ const PRESET_TAB_CONFIGS: Record<SpriteType, PresetTabConfig> = {
       ]},
       { key: 'description', label: 'Description', type: 'textarea', rows: 3, placeholder: 'Background description...' },
       { key: 'colorNotes', label: 'Color Notes', type: 'textarea', rows: 2, placeholder: 'Color palette guidance...' },
-      { key: 'layerGuidance', label: 'Layer Guidance', type: 'textarea', rows: 4, placeholder: 'Per-layer descriptions...' },
+      { key: 'overallGuidance', label: 'Overall Guidance', type: 'textarea', rows: 4, placeholder: 'Overall guidance for all cells...' },
+      { key: 'groupGuidance', label: 'Group Guidance', type: 'guidance-pairs' as const, placeholder: 'Add group name...' },
+      { key: 'cellGuidance', label: 'Cell Guidance', type: 'guidance-pairs' as const, placeholder: 'Add cell label...' },
     ],
   },
 };
@@ -235,27 +243,75 @@ export function GenericPresetsTab({ spriteType }: GenericPresetsTabProps) {
               ))}
             </div>
 
-            {config.fields.filter(f => f.type !== 'select').map(field => (
-              <label key={field.key} className="admin-label">
-                {field.label}
-                {field.type === 'input' ? (
-                  <input
-                    className="admin-input"
-                    value={(editing[field.key] as string) || ''}
-                    onChange={e => updateField(field.key, e.target.value)}
-                    placeholder={field.placeholder}
-                  />
-                ) : (
-                  <textarea
-                    className="admin-textarea"
-                    rows={field.rows ?? 3}
-                    value={(editing[field.key] as string) || ''}
-                    onChange={e => updateField(field.key, e.target.value)}
-                    placeholder={field.placeholder}
-                  />
-                )}
-              </label>
-            ))}
+            {config.fields.filter(f => f.type !== 'select').map(field => {
+              if (field.type === 'guidance-pairs') {
+                const pairs = (editing?.[field.key] as Record<string, string>) || {};
+                return (
+                  <div key={field.key} className="admin-guidance-pairs">
+                    <label className="admin-label">{field.label}</label>
+                    {Object.entries(pairs).map(([key, value]) => (
+                      <div key={key} className="admin-guidance-pair" style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <span className="admin-guidance-pair-key" style={{ minWidth: '8rem', fontSize: '0.75rem', paddingTop: '0.25rem' }}>{key}</span>
+                        <textarea
+                          className="admin-textarea"
+                          rows={2}
+                          style={{ flex: 1 }}
+                          value={value}
+                          onChange={e => updateField(field.key, { ...pairs, [key]: e.target.value })}
+                        />
+                        <button
+                          className="btn btn-sm"
+                          style={{ flexShrink: 0 }}
+                          onClick={() => {
+                            const next = { ...pairs };
+                            delete next[key];
+                            updateField(field.key, next);
+                          }}
+                        >×</button>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input
+                        className="admin-input"
+                        placeholder={field.placeholder || 'Add label...'}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            const newKey = (e.target as HTMLInputElement).value.trim();
+                            if (newKey && !pairs[newKey]) {
+                              updateField(field.key, { ...pairs, [newKey]: '' });
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Press Enter to add</span>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <label key={field.key} className="admin-label">
+                  {field.label}
+                  {field.type === 'input' ? (
+                    <input
+                      className="admin-input"
+                      value={(editing[field.key] as string) || ''}
+                      onChange={e => updateField(field.key, e.target.value)}
+                      placeholder={field.placeholder}
+                    />
+                  ) : (
+                    <textarea
+                      className="admin-textarea"
+                      rows={field.rows ?? 3}
+                      value={(editing[field.key] as string) || ''}
+                      onChange={e => updateField(field.key, e.target.value)}
+                      placeholder={field.placeholder}
+                    />
+                  )}
+                </label>
+              );
+            })}
 
             {editing.id != null && (
               <LinkedGridPresets

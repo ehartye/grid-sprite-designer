@@ -58,11 +58,11 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
     onLinksChange?.();
   };
 
-  const updateGuidance = async (linkId: number, overallGuidance: string, sortOrder: number) => {
+  const updateGuidance = async (linkId: number, overall: string, groups: Record<string, string>, cells: Record<string, string>, sortOrder: number) => {
     await fetch(`/api/grid-links/${spriteType}/${linkId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ overallGuidance, sortOrder }),
+      body: JSON.stringify({ overallGuidance: overall, groupGuidance: groups, cellGuidance: cells, sortOrder }),
     });
   };
 
@@ -74,8 +74,8 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
     setLinks(updated);
     // Update sort orders for both swapped items
     await Promise.all([
-      updateGuidance(updated[idx].id, updated[idx].linkGuidance?.overall ?? '', idx),
-      updateGuidance(updated[targetIdx].id, updated[targetIdx].linkGuidance?.overall ?? '', targetIdx),
+      updateGuidance(updated[idx].id, updated[idx].linkGuidance?.overall ?? '', updated[idx].linkGuidance?.groups ?? {}, updated[idx].linkGuidance?.cells ?? {}, idx),
+      updateGuidance(updated[targetIdx].id, updated[targetIdx].linkGuidance?.overall ?? '', updated[targetIdx].linkGuidance?.groups ?? {}, updated[targetIdx].linkGuidance?.cells ?? {}, targetIdx),
     ]);
   };
 
@@ -125,24 +125,79 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
               </button>
             </div>
           </div>
+          {/* Overall link guidance */}
           <label className="admin-label" style={{ marginBottom: '0.25rem' }}>
-            Link Guidance (Overall)
+            Overall Guidance (content-specific additions)
             <textarea
               className="admin-textarea"
-              rows={3}
-              value={link.linkGuidance?.overall ?? ''}
+              rows={2}
+              value={link.linkGuidance.overall}
               onChange={e => {
-                const updated = links.map(l =>
-                  l.id === link.id
-                    ? { ...l, linkGuidance: { ...l.linkGuidance, overall: e.target.value } }
-                    : l
-                );
-                setLinks(updated);
+                setLinks(links.map(l => l.id === link.id
+                  ? { ...l, linkGuidance: { ...l.linkGuidance, overall: e.target.value } }
+                  : l));
               }}
-              onBlur={() => updateGuidance(link.id, link.linkGuidance?.overall ?? '', link.sortOrder)}
-              placeholder="Per-link guidance that overrides or supplements grid guidance..."
+              onBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
+              placeholder="Overall content-specific additions..."
             />
           </label>
+
+          {/* Group-level link guidance */}
+          {link.cellGroups && link.cellGroups.length > 0 && (
+            <details>
+              <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                Group Guidance ({link.cellGroups.length} groups)
+              </summary>
+              {link.cellGroups.map((group) => (
+                <label key={group.name} className="admin-label" style={{ marginLeft: '1rem' }}>
+                  {group.name}
+                  <textarea
+                    className="admin-textarea"
+                    rows={2}
+                    value={link.linkGuidance.groups[group.name] || ''}
+                    onChange={e => {
+                      setLinks(links.map(l => l.id === link.id
+                        ? { ...l, linkGuidance: { ...l.linkGuidance, groups: { ...l.linkGuidance.groups, [group.name]: e.target.value } } }
+                        : l));
+                    }}
+                    onBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
+                    placeholder={`${group.name} additions...`}
+                  />
+                </label>
+              ))}
+            </details>
+          )}
+
+          {/* Cell-level link guidance */}
+          {link.cellLabels && link.cellLabels.filter(Boolean).length > 0 && (
+            <details>
+              <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                Cell Guidance ({link.cellLabels.filter(Boolean).length} cells)
+              </summary>
+              {link.cellLabels.map((label: string, idx: number) => {
+                if (!label) return null;
+                const row = Math.floor(idx / link.cols);
+                const col = idx % link.cols;
+                return (
+                  <label key={idx} className="admin-label" style={{ marginLeft: '1rem' }}>
+                    {label} ({row},{col})
+                    <textarea
+                      className="admin-textarea"
+                      rows={2}
+                      value={link.linkGuidance.cells[label] || ''}
+                      onChange={e => {
+                        setLinks(links.map(l => l.id === link.id
+                          ? { ...l, linkGuidance: { ...l.linkGuidance, cells: { ...l.linkGuidance.cells, [label]: e.target.value } } }
+                          : l));
+                      }}
+                      onBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
+                      placeholder={`"${label}" additions...`}
+                    />
+                  </label>
+                );
+              })}
+            </details>
+          )}
         </div>
       ))}
 

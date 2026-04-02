@@ -21,6 +21,8 @@ interface EditingPreset {
   cellLabels: string[];
   cellGroups: CellGroup[];
   overallGuidance: string;
+  groupGuidance: Record<string, string>;
+  cellGuidance: Record<string, string>;
   bgMode: 'parallax' | 'scene' | null;
   aspectRatio: string;
   tileShape: 'square' | 'diamond';
@@ -37,6 +39,8 @@ function emptyPreset(): EditingPreset {
     cellLabels: Array(36).fill(''),
     cellGroups: [],
     overallGuidance: '',
+    groupGuidance: {},
+    cellGuidance: {},
     bgMode: null,
     aspectRatio: '1:1',
     tileShape: 'square',
@@ -72,7 +76,9 @@ export function GridPresetsTab() {
       rows: preset.rows,
       cellLabels: [...preset.cellLabels],
       cellGroups: preset.cellGroups.map(g => ({ ...g, cells: [...g.cells] })),
-      overallGuidance: preset.overallGuidance,
+      overallGuidance: preset.overallGuidance || '',
+      groupGuidance: preset.groupGuidance || {},
+      cellGuidance: preset.cellGuidance || {},
       bgMode: preset.bgMode ?? null,
       aspectRatio: preset.aspectRatio || '1:1',
       tileShape: preset.tileShape || 'square',
@@ -93,6 +99,8 @@ export function GridPresetsTab() {
         cellLabels: editing.cellLabels.slice(0, editing.cols * editing.rows),
         cellGroups: editing.cellGroups,
         overallGuidance: editing.overallGuidance,
+        groupGuidance: editing.groupGuidance,
+        cellGuidance: editing.cellGuidance,
         bgMode: editing.bgMode,
         aspectRatio: editing.aspectRatio,
         tileShape: editing.tileShape,
@@ -399,12 +407,61 @@ export function GridPresetsTab() {
               Overall Guidance
               <textarea
                 className="admin-textarea"
-                rows={8}
+                rows={4}
                 value={editing.overallGuidance}
-                onChange={e => setEditing({ ...editing, overallGuidance: e.target.value })}
-                placeholder="Pose/cell descriptions shared across all content presets using this grid..."
+                onChange={e => setEditing(prev => prev ? { ...prev, overallGuidance: e.target.value } : null)}
+                placeholder="Overall guidance that applies to all cells..."
               />
             </label>
+
+            {/* Group Guidance — one per cell group */}
+            {editing.cellGroups && editing.cellGroups.length > 0 && (
+              <div className="admin-subsection">
+                <h5 className="admin-subsection-title">Group Guidance</h5>
+                {editing.cellGroups.map((group: CellGroup) => (
+                  <label key={group.name} className="admin-label">
+                    {group.name}
+                    <textarea
+                      className="admin-textarea"
+                      rows={2}
+                      value={editing.groupGuidance[group.name] || ''}
+                      onChange={e => setEditing(prev => prev ? {
+                        ...prev,
+                        groupGuidance: { ...prev.groupGuidance, [group.name]: e.target.value }
+                      } : null)}
+                      placeholder={`Guidance for ${group.name} group...`}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Cell Guidance — one per cell label */}
+            {editing.cellLabels && editing.cellLabels.filter(Boolean).length > 0 && (
+              <div className="admin-subsection">
+                <h5 className="admin-subsection-title">Cell Guidance</h5>
+                {editing.cellLabels.map((label: string, idx: number) => {
+                  if (!label) return null;
+                  const row = Math.floor(idx / (editing.cols || 1));
+                  const col = idx % (editing.cols || 1);
+                  return (
+                    <label key={idx} className="admin-label">
+                      {label} ({row},{col})
+                      <textarea
+                        className="admin-textarea"
+                        rows={2}
+                        value={editing.cellGuidance[label] || ''}
+                        onChange={e => setEditing(prev => prev ? {
+                          ...prev,
+                          cellGuidance: { ...prev.cellGuidance, [label]: e.target.value }
+                        } : null)}
+                        placeholder={`Guidance for "${label}"...`}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Actions */}
             <div className="admin-form-actions">
