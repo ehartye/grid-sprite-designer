@@ -34,15 +34,16 @@ describe('buildGridFillPrompt', () => {
     expect(prompt).toContain('Heroic stance');
   });
 
-  it('shows correct cell count for 6x6 grid', () => {
+  it('includes the greeting opening', () => {
     const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
-    expect(prompt).toContain('36 cells');
+    expect(prompt).toContain('Greetings, expert sprite designer');
   });
 
-  it('uses custom cell labels for smaller grids', () => {
+  it('includes custom cell labels in the layout', () => {
     const labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
     const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, labels, 3, 3);
-    expect(prompt).toContain('9 cells');
+    expect(prompt).toContain('"A"');
+    expect(prompt).toContain('"C"');
   });
 
   it('includes overall guidance text when provided', () => {
@@ -75,24 +76,17 @@ describe('buildGridFillPrompt', () => {
     expect(prompt).toContain('magenta');
   });
 
-  it('includes CENTERING IS CRITICAL section', () => {
+  it('includes the three tenets', () => {
     const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
-    expect(prompt).toContain('CENTERING IS CRITICAL');
+    expect(prompt).toContain('Visibility of Body');
+    expect(prompt).toContain('Continuity of Devices');
+    expect(prompt).toContain('Continuity of Movement');
   });
 
-  it('includes EQUIPMENT CONSISTENCY section', () => {
+  it('includes ## The Subject and ## The Layout headers', () => {
     const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
-    expect(prompt).toContain('EQUIPMENT CONSISTENCY');
-  });
-
-  it('includes FULL BODY VISIBILITY section', () => {
-    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
-    expect(prompt).toContain('FULL BODY VISIBILITY');
-  });
-
-  it('includes MOVEMENT CONTINUITY section', () => {
-    const prompt = buildGridFillPrompt(baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels6x6, 6, 6);
-    expect(prompt).toContain('MOVEMENT CONTINUITY');
+    expect(prompt).toContain('## The Subject');
+    expect(prompt).toContain('## The Layout');
   });
 });
 
@@ -144,11 +138,12 @@ describe('buildGridFillPromptWithReference', () => {
     expect(prompt).toContain('A brave warrior with a sword');
   });
 
-  it('uses custom cell labels for grid dimensions', () => {
+  it('replaces attachment text with IMAGE 2 reference', () => {
     const labels = ['A', 'B', 'C'];
     const prompt = buildGridFillPromptWithReference(
       baseCharacter, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, labels, 3, 1,
     );
-    expect(prompt).toContain('3 cells');
+    expect(prompt).toContain('IMAGE 2 is your chroma-keyed');
+    expect(prompt).not.toContain('template is attached');
   });
 });
