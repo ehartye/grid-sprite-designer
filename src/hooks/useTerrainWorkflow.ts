@@ -6,9 +6,7 @@
 import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { getTerrainGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 import { buildTerrainPrompt } from '../lib/terrainPromptBuilder';
-import type { HierarchicalGuidance } from '../context/AppContext';
-
-const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
+import { EMPTY_GUIDANCE } from '../lib/promptBuilderBase';
 
 export const terrainConfig: WorkflowConfig = {
   spriteType: 'terrain',

@@ -24,6 +24,7 @@ import { buildTerrainPrompt } from '../../lib/terrainPromptBuilder';
 import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } from '../../lib/gridConfig';
 import type { HierarchicalGuidance } from '../../context/AppContext';
+import { EMPTY_GUIDANCE } from '../../lib/promptBuilderBase';
 import { getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import type { ContentPreset } from '../../types/api';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
@@ -252,7 +253,6 @@ export function UnifiedConfigPanel() {
 
   const canGenerate = !validationMessage;
 
-  const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
   const promptPreview = useMemo(() => {
     let prompt: string;

@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildGridFillPrompt, buildGridFillPromptWithReference, type CharacterConfig } from '../promptBuilder';
-import { getPixelizeGuidance } from '../promptBuilderBase';
+import { getPixelizeGuidance, EMPTY_GUIDANCE } from '../promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
-
-const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 const baseCharacter: CharacterConfig = {
   name: 'Test Hero',

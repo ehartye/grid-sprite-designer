@@ -6,6 +6,9 @@
 
 import type { CellGroup, HierarchicalGuidance } from '../context/AppContext';
 
+/** Empty hierarchical guidance — no content at any level. */
+export const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
+
 /**
  * Compose the full guidance block for a prompt, iterating groups then cells.
  * Merges grid defaults, link-level additions, and preset-level additions at each level.

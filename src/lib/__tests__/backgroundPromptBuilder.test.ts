@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildBackgroundPrompt, type BackgroundConfig } from '../backgroundPromptBuilder';
+import { EMPTY_GUIDANCE } from '../promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
-
-const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 const baseParallax: BackgroundConfig = {
   name: 'Sunset Mountains',

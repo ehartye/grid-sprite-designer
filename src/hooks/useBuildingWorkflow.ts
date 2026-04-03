@@ -6,9 +6,7 @@
 import { useGenericWorkflow, type WorkflowConfig } from './useGenericWorkflow';
 import { getBuildingGridConfig, gridPresetToConfig } from '../lib/gridConfig';
 import { buildBuildingPrompt } from '../lib/buildingPromptBuilder';
-import type { HierarchicalGuidance } from '../context/AppContext';
-
-const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
+import { EMPTY_GUIDANCE } from '../lib/promptBuilderBase';
 
 export const buildingConfig: WorkflowConfig = {
   spriteType: 'building',

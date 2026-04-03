@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildBuildingPrompt, type BuildingConfig } from '../buildingPromptBuilder';
+import { EMPTY_GUIDANCE } from '../promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
-
-const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 const baseBuilding: BuildingConfig = {
   name: 'Medieval Inn',

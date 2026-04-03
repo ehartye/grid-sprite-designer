@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildTerrainPrompt, type TerrainConfig } from '../terrainPromptBuilder';
+import { EMPTY_GUIDANCE } from '../promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
-
-const EMPTY_GUIDANCE: HierarchicalGuidance = { overall: '', groups: {}, cells: {} };
 
 const baseTerrain: TerrainConfig = {
   name: 'Forest Floor',
