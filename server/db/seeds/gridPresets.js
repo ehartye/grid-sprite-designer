@@ -43,10 +43,8 @@ export function seedGridPresets(db) {
 
   const rpgFullGuidance = `\
 Each cell in the grid has a WHITE TEXT HEADER that names the pose. Match each
-cell's sprite to the header label printed above it. The labels and their
-required poses are listed below by row.
+cell's sprite to the header label printed above it.
 
-ROW 0 — Walk Down & Walk Up (top-down RPG overworld perspective):
   Header "Walk Down 1" (0,0): Character faces the camera, mid-stride with the
     left leg forward and right leg back. Arms swing naturally — left arm back,
     right arm forward. Torso faces directly toward the viewer.
@@ -63,7 +61,6 @@ ROW 0 — Walk Down & Walk Up (top-down RPG overworld perspective):
   Header "Walk Up 3" (0,5): Facing away, right leg forward — mirror of Walk
     Up 1. Arms reversed. Same proportions, just the opposite stride.
 
-ROW 1 — Walk Left & Walk Right (side-view overworld perspective):
   Header "Walk Left 1" (1,0): Character in side profile facing left. Left foot
     is forward in a full stride, right foot trails behind. Arms swing opposite
     to legs. Full body is visible in profile.
@@ -79,7 +76,6 @@ ROW 1 — Walk Left & Walk Right (side-view overworld perspective):
   Header "Walk Right 3" (1,5): Facing right, left foot forward. Mirror-stride
     of Walk Right 1. Same height and proportions as all walk frames.
 
-ROW 2 — Idle Stances & Battle Idle (first two frames):
   Header "Idle Down" (2,0): Relaxed standing pose facing the camera. Weight
     evenly distributed, arms resting naturally at sides. Calm, neutral facial
     expression. This is the default overworld resting pose.
@@ -98,7 +94,6 @@ ROW 2 — Idle Stances & Battle Idle (first two frames):
     shoulders rise slightly. Small enough difference to animate a living
     idle when looped.
 
-ROW 3 — Battle Idle 3, Attack Sequence, Special Start:
   Header "Battle Idle 3" (3,0): Third frame of the battle idle sway. Character
     shifts back toward the Battle Idle 1 position. When looped 1→2→3→2, this
     creates a subtle breathing/ready animation.
@@ -120,7 +115,6 @@ ROW 3 — Battle Idle 3, Attack Sequence, Special Start:
     posture leans slightly into the spell. Energy effect stays compact
     and well within the cell boundaries.
 
-ROW 4 — Special 3, Damage Sequence, KO Start:
   Header "Special 3" (4,0): Spell release — arms thrust forward or upward, energy
     erupts outward from the hands. This is the peak of the cast. Any visible
     spell effect (fireball, lightning, rune) must be SMALL and stay fully
@@ -142,7 +136,6 @@ ROW 4 — Special 3, Damage Sequence, KO Start:
     horizontal, one arm may be outstretched breaking the fall. Weapon on the
     ground nearby. Nearly fully down.
 
-ROW 5 — KO 3, Victory Sequence, Weak & Critical Poses:
   Header "KO 3" (5,0): Fully down — the character lies flat on the ground,
     face-down or on their back, eyes closed. Weapon beside them. Completely
     defeated and motionless. Sprite should be horizontal and centered.
