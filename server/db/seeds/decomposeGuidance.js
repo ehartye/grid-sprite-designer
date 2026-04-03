@@ -1,4 +1,48 @@
 /**
+ * Strip camera-relative directional language that is redundant with
+ * grid-level compass guidance (e.g. "faces the camera", "facing away",
+ * "in profile", "side-view", "back-view").
+ */
+function stripRedundantDirections(text) {
+  let r = text;
+  // Order matters: longer/more specific patterns first
+  r = r.replace(/,?\s*facing away from the camera\b/gi, '');
+  r = r.replace(/\bFacing away from the camera,?\s*/gi, '');
+  r = r.replace(/,?\s*faces? away from the camera\b/gi, '');
+  r = r.replace(/,?\s*facing the (camera|viewer)\b/gi, '');
+  r = r.replace(/\bFacing the (camera|viewer),?\s*/gi, '');
+  r = r.replace(/,?\s*faces? the (camera|viewer)\b/gi, '');
+  r = r.replace(/,?\s*toward the (camera|viewer)\b/gi, '');
+  r = r.replace(/,?\s*facing away\b/gi, '');
+  r = r.replace(/\bFacing away,?\s*/gi, '');
+  r = r.replace(/,?\s*faces? away\b/gi, '');
+  r = r.replace(/\bfaces? AWAY,?\s*/gi, '');
+  r = r.replace(/,?\s*facing (left|right|forward)\b/gi, '');
+  r = r.replace(/\bFacing (left|right|forward),?\s*/gi, '');
+  r = r.replace(/,?\s*faces? (left|right|forward)\b/gi, '');
+  r = r.replace(/\bin side[- ]?view\b/gi, '');
+  r = r.replace(/\bside[- ]?view\b/gi, '');
+  r = r.replace(/\bprofile facing (left|right)\b/gi, '');
+  r = r.replace(/\bin profile,?\s*/gi, '');
+  r = r.replace(/\bin profile\b/gi, '');
+  r = r.replace(/\bback[- ]?view\b/gi, '');
+  r = r.replace(/\bfront[- ]?view\b/gi, '');
+  r = r.replace(/\bvisible from behind\b/gi, 'visible');
+  r = r.replace(/\bseen from behind\b/gi, 'seen');
+  r = r.replace(/,?\s*from behind\b(?!\s*—)/gi, '');
+  r = r.replace(/,?\s*showing (their|the|his|her|its) back\b/gi, '');
+  r = r.replace(/\bviewed from the back\b/gi, '');
+  r = r.replace(/,?\s*from the back\b/gi, '');
+  // Clean up artifacts
+  r = r.replace(/\s+\./g, '.');
+  r = r.replace(/\s{2,}/g, ' ');
+  r = r.replace(/,\s*,/g, ',');
+  r = r.replace(/^\s*,\s*/, '');
+  r = r.replace(/,\s*\./g, '.');
+  return r.trim();
+}
+
+/**
  * Parse a guidance blob in the `Header "Label" (r,c): text...` format into
  * { overall, groups, cells } structure.
  *
@@ -24,8 +68,11 @@ export function decomposeGuidanceBlob(blob, renameMap = {}) {
 
   function flushCell() {
     if (currentLabel !== null) {
-      const text = currentLines.join('\n').trim();
-      if (text) cells[renameMap[currentLabel] ?? currentLabel] = text;
+      let text = currentLines.join('\n').trim();
+      if (text) {
+        text = stripRedundantDirections(text);
+        cells[renameMap[currentLabel] ?? currentLabel] = text;
+      }
       currentLabel = null;
       currentLines = [];
     }
