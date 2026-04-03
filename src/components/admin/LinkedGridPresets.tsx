@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { GridLink, GridPreset, SpriteType } from '../../context/AppContext';
+import { GuidanceAccordion } from './GuidanceAccordion';
 
 interface LinkedGridPresetsProps {
   spriteType: SpriteType;
@@ -52,7 +53,7 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
   };
 
   const removeLink = async (linkId: number) => {
-    if (!confirm('Remove this grid link?')) return;
+    if (!window.confirm('Remove this grid link?')) return;
     await fetch(`/api/grid-links/${spriteType}/${linkId}`, { method: 'DELETE' });
     await fetchLinks();
     onLinksChange?.();
@@ -143,93 +144,23 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
           </label>
 
           {/* Per-group accordions: group guidance + its cells nested inside */}
-          {link.cellGroups && link.cellGroups.length > 0 && (() => {
-            const groupedIndices = new Set(link.cellGroups.flatMap(g => g.cells));
-            const ungrouped = link.cellLabels
-              .map((label: string, idx: number) => ({ label, idx }))
-              .filter(({ label, idx }) => label && !groupedIndices.has(idx));
-            return (
-              <>
-                {link.cellGroups.map((group) => (
-                  <details key={group.name}>
-                    <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                      {group.name}
-                    </summary>
-                    <div style={{ marginLeft: '1rem' }}>
-                      <label className="admin-label">
-                        Group guidance
-                        <textarea
-                          className="admin-textarea"
-                          rows={2}
-                          value={link.linkGuidance.groups[group.name] || ''}
-                          onChange={e => {
-                            setLinks(links.map(l => l.id === link.id
-                              ? { ...l, linkGuidance: { ...l.linkGuidance, groups: { ...l.linkGuidance.groups, [group.name]: e.target.value } } }
-                              : l));
-                          }}
-                          onBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
-                          placeholder={`${group.name} additions...`}
-                        />
-                      </label>
-                      {group.cells.map((cellIdx: number) => {
-                        const label = link.cellLabels[cellIdx];
-                        if (!label) return null;
-                        const row = Math.floor(cellIdx / link.cols);
-                        const col = cellIdx % link.cols;
-                        return (
-                          <label key={cellIdx} className="admin-label">
-                            {label} ({row},{col})
-                            <textarea
-                              className="admin-textarea"
-                              rows={2}
-                              value={link.linkGuidance.cells[label] || ''}
-                              onChange={e => {
-                                setLinks(links.map(l => l.id === link.id
-                                  ? { ...l, linkGuidance: { ...l.linkGuidance, cells: { ...l.linkGuidance.cells, [label]: e.target.value } } }
-                                  : l));
-                              }}
-                              onBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
-                              placeholder={`"${label}" additions...`}
-                            />
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </details>
-                ))}
-                {ungrouped.length > 0 && (
-                  <details>
-                    <summary style={{ cursor: 'pointer', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                      Ungrouped cells ({ungrouped.length})
-                    </summary>
-                    <div style={{ marginLeft: '1rem' }}>
-                      {ungrouped.map(({ label, idx }) => {
-                        const row = Math.floor(idx / link.cols);
-                        const col = idx % link.cols;
-                        return (
-                          <label key={idx} className="admin-label">
-                            {label} ({row},{col})
-                            <textarea
-                              className="admin-textarea"
-                              rows={2}
-                              value={link.linkGuidance.cells[label] || ''}
-                              onChange={e => {
-                                setLinks(links.map(l => l.id === link.id
-                                  ? { ...l, linkGuidance: { ...l.linkGuidance, cells: { ...l.linkGuidance.cells, [label]: e.target.value } } }
-                                  : l));
-                              }}
-                              onBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
-                              placeholder={`"${label}" additions...`}
-                            />
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </details>
-                )}
-              </>
-            );
-          })()}
+          {link.cellGroups && link.cellGroups.length > 0 && (
+            <GuidanceAccordion
+              cellGroups={link.cellGroups}
+              cellLabels={link.cellLabels}
+              cols={link.cols}
+              groupGuidance={link.linkGuidance.groups}
+              cellGuidance={link.linkGuidance.cells}
+              onGroupChange={(groupName, value) => {
+                const groups = { ...link.linkGuidance.groups, [groupName]: value };
+                updateGuidance(link.id, link.linkGuidance.overall, groups, link.linkGuidance.cells, link.sortOrder);
+              }}
+              onCellChange={(label, value) => {
+                const cells = { ...link.linkGuidance.cells, [label]: value };
+                updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, cells, link.sortOrder);
+              }}
+            />
+          )}
         </div>
       ))}
 

@@ -160,7 +160,7 @@ export function GenericPresetsTab({ spriteType }: GenericPresetsTabProps) {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm(`Delete this ${config.label.toLowerCase()} preset?`)) return;
+    if (!window.confirm(`Delete this ${config.label.toLowerCase()} preset?`)) return;
     try {
       await fetch(`/api/presets/${spriteType}/${id}`, { method: 'DELETE' });
       if (editing?.id === id) setEditing(null);

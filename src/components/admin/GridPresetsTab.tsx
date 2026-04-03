@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { GridPreset, CellGroup, SpriteType } from '../../context/AppContext';
 import { CellRangeSelector } from './CellRangeSelector';
+import { GuidanceAccordion } from './GuidanceAccordion';
 
 const SPRITE_TYPES: SpriteType[] = ['character', 'building', 'terrain', 'background'];
 
@@ -127,7 +128,7 @@ export function GridPresetsTab() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this grid preset?')) return;
+    if (!window.confirm('Delete this grid preset?')) return;
     await fetch(`/api/grid-presets/${id}`, { method: 'DELETE' });
     if (editing?.id === id) setEditing(null);
     await fetchPresets();
@@ -415,84 +416,27 @@ export function GridPresetsTab() {
             </label>
 
             {/* Per-group accordions: group guidance + its cells nested inside */}
-            {editing.cellGroups && editing.cellGroups.length > 0 && (() => {
-              const groupedIndices = new Set(editing.cellGroups.flatMap((g: CellGroup) => g.cells));
-              const ungrouped = editing.cellLabels
-                .map((label: string, idx: number) => ({ label, idx }))
-                .filter(({ label, idx }: { label: string; idx: number }) => label && !groupedIndices.has(idx));
-              const cols = editing.cols || 1;
-              return (
-                <>
-                  {editing.cellGroups.map((group: CellGroup) => (
-                    <details key={group.name} className="admin-subsection">
-                      <summary className="admin-subsection-title" style={{ cursor: 'pointer' }}>
-                        {group.name}
-                      </summary>
-                      <label className="admin-label" style={{ marginTop: '0.5rem' }}>
-                        Group guidance
-                        <textarea
-                          className="admin-textarea"
-                          rows={2}
-                          value={editing.groupGuidance[group.name] || ''}
-                          onChange={e => setEditing(prev => prev ? {
-                            ...prev,
-                            groupGuidance: { ...prev.groupGuidance, [group.name]: e.target.value }
-                          } : null)}
-                          placeholder={`Guidance for ${group.name} group...`}
-                        />
-                      </label>
-                      {group.cells.map((cellIdx: number) => {
-                        const label = editing.cellLabels[cellIdx];
-                        if (!label) return null;
-                        const row = Math.floor(cellIdx / cols);
-                        const col = cellIdx % cols;
-                        return (
-                          <label key={cellIdx} className="admin-label">
-                            {label} ({row},{col})
-                            <textarea
-                              className="admin-textarea"
-                              rows={2}
-                              value={editing.cellGuidance[label] || ''}
-                              onChange={e => setEditing(prev => prev ? {
-                                ...prev,
-                                cellGuidance: { ...prev.cellGuidance, [label]: e.target.value }
-                              } : null)}
-                              placeholder={`Guidance for "${label}"...`}
-                            />
-                          </label>
-                        );
-                      })}
-                    </details>
-                  ))}
-                  {ungrouped.length > 0 && (
-                    <details className="admin-subsection">
-                      <summary className="admin-subsection-title" style={{ cursor: 'pointer' }}>
-                        Ungrouped cells ({ungrouped.length})
-                      </summary>
-                      {ungrouped.map(({ label, idx }: { label: string; idx: number }) => {
-                        const row = Math.floor(idx / cols);
-                        const col = idx % cols;
-                        return (
-                          <label key={idx} className="admin-label">
-                            {label} ({row},{col})
-                            <textarea
-                              className="admin-textarea"
-                              rows={2}
-                              value={editing.cellGuidance[label] || ''}
-                              onChange={e => setEditing(prev => prev ? {
-                                ...prev,
-                                cellGuidance: { ...prev.cellGuidance, [label]: e.target.value }
-                              } : null)}
-                              placeholder={`Guidance for "${label}"...`}
-                            />
-                          </label>
-                        );
-                      })}
-                    </details>
-                  )}
-                </>
-              );
-            })()}
+            {editing.cellGroups && editing.cellGroups.length > 0 && (
+              <GuidanceAccordion
+                cellGroups={editing.cellGroups}
+                cellLabels={editing.cellLabels}
+                cols={editing.cols || 1}
+                groupGuidance={editing.groupGuidance}
+                cellGuidance={editing.cellGuidance}
+                onGroupChange={(groupName, value) =>
+                  setEditing(prev => prev ? {
+                    ...prev,
+                    groupGuidance: { ...prev.groupGuidance, [groupName]: value },
+                  } : null)
+                }
+                onCellChange={(label, value) =>
+                  setEditing(prev => prev ? {
+                    ...prev,
+                    cellGuidance: { ...prev.cellGuidance, [label]: value },
+                  } : null)
+                }
+              />
+            )}
 
             {/* Actions */}
             <div className="admin-form-actions">
