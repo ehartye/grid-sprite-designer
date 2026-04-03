@@ -9,12 +9,15 @@ export interface GuidanceAccordionProps {
   cellGuidance: Record<string, string>;
   onGroupChange: (groupName: string, value: string) => void;
   onCellChange: (label: string, value: string) => void;
+  onGroupBlur?: (groupName: string, value: string) => void;
+  onCellBlur?: (label: string, value: string) => void;
 }
 
 export function GuidanceAccordion({
   cellGroups, cellLabels, cols,
   groupGuidance, cellGuidance,
   onGroupChange, onCellChange,
+  onGroupBlur, onCellBlur,
 }: GuidanceAccordionProps) {
   const ungrouped = useMemo(() => {
     const groupedIndices = new Set(cellGroups.flatMap(g => g.cells));
@@ -36,6 +39,7 @@ export function GuidanceAccordion({
               className="admin-textarea"
               value={groupGuidance[group.name] || ''}
               onChange={e => onGroupChange(group.name, e.target.value)}
+              onBlur={onGroupBlur ? e => onGroupBlur(group.name, e.target.value) : undefined}
               placeholder={`Guidance for ${group.name} group...`}
             />
           </label>
@@ -51,6 +55,7 @@ export function GuidanceAccordion({
                   className="admin-textarea"
                   value={cellGuidance[label] || ''}
                   onChange={e => onCellChange(label, e.target.value)}
+                  onBlur={onCellBlur ? e => onCellBlur(label, e.target.value) : undefined}
                   placeholder={`Guidance for "${label}"...`}
                 />
               </label>
@@ -73,6 +78,7 @@ export function GuidanceAccordion({
                   className="admin-textarea"
                   value={cellGuidance[label] || ''}
                   onChange={e => onCellChange(label, e.target.value)}
+                  onBlur={onCellBlur ? e => onCellBlur(label, e.target.value) : undefined}
                   placeholder={`Guidance for "${label}"...`}
                 />
               </label>

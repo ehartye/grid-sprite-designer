@@ -152,13 +152,17 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
               groupGuidance={link.linkGuidance.groups}
               cellGuidance={link.linkGuidance.cells}
               onGroupChange={(groupName, value) => {
-                const groups = { ...link.linkGuidance.groups, [groupName]: value };
-                updateGuidance(link.id, link.linkGuidance.overall, groups, link.linkGuidance.cells, link.sortOrder);
+                setLinks(links.map(l => l.id === link.id
+                  ? { ...l, linkGuidance: { ...l.linkGuidance, groups: { ...l.linkGuidance.groups, [groupName]: value } } }
+                  : l));
               }}
               onCellChange={(label, value) => {
-                const cells = { ...link.linkGuidance.cells, [label]: value };
-                updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, cells, link.sortOrder);
+                setLinks(links.map(l => l.id === link.id
+                  ? { ...l, linkGuidance: { ...l.linkGuidance, cells: { ...l.linkGuidance.cells, [label]: value } } }
+                  : l));
               }}
+              onGroupBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
+              onCellBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
             />
           )}
         </div>
