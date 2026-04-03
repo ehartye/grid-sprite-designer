@@ -138,7 +138,7 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
                   ? { ...l, linkGuidance: { ...l.linkGuidance, overall: e.target.value } }
                   : l));
               }}
-              onBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
+              onBlur={e => updateGuidance(link.id, e.target.value, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
               placeholder="Overall content-specific additions..."
             />
           </label>
@@ -161,8 +161,17 @@ export function LinkedGridPresets({ spriteType, presetId, onLinksChange }: Linke
                   ? { ...l, linkGuidance: { ...l.linkGuidance, cells: { ...l.linkGuidance.cells, [label]: value } } }
                   : l));
               }}
-              onGroupBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
-              onCellBlur={() => updateGuidance(link.id, link.linkGuidance.overall, link.linkGuidance.groups, link.linkGuidance.cells, link.sortOrder)}
+              onGroupBlur={(groupName, value) => {
+                updateGuidance(link.id, link.linkGuidance.overall,
+                  { ...link.linkGuidance.groups, [groupName]: value },
+                  link.linkGuidance.cells, link.sortOrder);
+              }}
+              onCellBlur={(label, value) => {
+                updateGuidance(link.id, link.linkGuidance.overall,
+                  link.linkGuidance.groups,
+                  { ...link.linkGuidance.cells, [label]: value },
+                  link.sortOrder);
+              }}
             />
           )}
         </div>
