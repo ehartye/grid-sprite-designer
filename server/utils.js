@@ -7,20 +7,20 @@ export function parseIntParam(val) {
 
 /** Extract body values for a preset type, applying defaults and JSON serialization. */
 export function extractPresetValues(body, columns) {
-  return columns.map(([bodyField, , defaultVal, isJson]) => {
-    const raw = body[bodyField];
-    if (isJson) return JSON.stringify(raw || defaultVal);
-    return raw || defaultVal;
+  return columns.map(({ field, default: defaultVal, json }) => {
+    const raw = body[field];
+    if (json) return JSON.stringify(raw ?? defaultVal);
+    return raw ?? defaultVal;
   });
 }
 
 /** Map a DB row to a response object using column config. */
 export function mapPresetRow(row, columns) {
   const obj = { id: row.id };
-  for (const [bodyField, dbCol, defaultVal, isJson] of columns) {
-    obj[bodyField] = isJson
-      ? JSON.parse(row[dbCol] || JSON.stringify(defaultVal ?? []))
-      : (row[dbCol] ?? defaultVal ?? '');
+  for (const { field, column, default: defaultVal, json } of columns) {
+    obj[field] = json
+      ? JSON.parse(row[column] || JSON.stringify(defaultVal ?? []))
+      : (row[column] ?? defaultVal ?? '');
   }
   return obj;
 }

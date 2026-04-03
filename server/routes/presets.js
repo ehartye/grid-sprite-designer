@@ -54,7 +54,7 @@ export function createPresetsRouter(db) {
         slug = `${baseSlug}-${suffix++}`;
       }
 
-      const dbCols = ['id', ...config.columns.map(c => c[1])];
+      const dbCols = ['id', ...config.columns.map(c => c.column)];
       const placeholders = dbCols.map(() => '?').join(', ');
       const values = extractPresetValues(req.body, config.columns);
       db.prepare(
@@ -70,7 +70,7 @@ export function createPresetsRouter(db) {
       const numericId = parseIntParam(id);
       const config = req.presetConfig;
 
-      const setClauses = config.columns.map(c => `${c[1]}=?`).join(', ');
+      const setClauses = config.columns.map(c => `${c.column}=?`).join(', ');
       const values = extractPresetValues(req.body, config.columns);
       const result = numericId !== null
         ? db.prepare(`UPDATE ${config.table} SET ${setClauses} WHERE id=? OR rowid=?`).run(...values, id, numericId)

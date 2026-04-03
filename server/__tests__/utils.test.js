@@ -52,9 +52,9 @@ describe('parseIntParam', () => {
 
 describe('mapPresetRow', () => {
   const columns = [
-    ['name', 'name'],
-    ['description', 'description', ''],
-    ['cellLabels', 'cell_labels', [], true],
+    { field: 'name', column: 'name' },
+    { field: 'description', column: 'description', default: '' },
+    { field: 'cellLabels', column: 'cell_labels', default: [], json: true },
   ];
 
   it('maps a valid DB row to a response object', () => {
@@ -95,9 +95,9 @@ describe('mapPresetRow', () => {
 
 describe('extractPresetValues', () => {
   const columns = [
-    ['name', 'name'],
-    ['genre', 'genre', ''],
-    ['cellLabels', 'cell_labels', [], true],
+    { field: 'name', column: 'name' },
+    { field: 'genre', column: 'genre', default: '' },
+    { field: 'cellLabels', column: 'cell_labels', default: [], json: true },
   ];
 
   it('extracts values from body using column config', () => {
@@ -121,7 +121,7 @@ describe('extractPresetValues', () => {
   it('uses falsy default for empty string body values', () => {
     const body = { name: 'Test', genre: '', cellLabels: [] };
     const result = extractPresetValues(body, columns);
-    // empty string is falsy, so default '' is used; empty array is falsy, so default [] is used
+    // With ?? operator: empty string and empty array are NOT nullish, so raw values are used directly
     expect(result[1]).toBe('');
     expect(result[2]).toBe('[]');
   });
