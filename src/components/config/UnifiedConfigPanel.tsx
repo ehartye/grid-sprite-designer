@@ -13,26 +13,23 @@ import {
   type SpriteType,
   type GridLink,
   type Action,
-  type CharacterPreset,
+  type AnyPreset,
   type BuildingPreset,
   type TerrainPreset,
   type BackgroundPreset,
+  type HierarchicalGuidance,
 } from '../../context/AppContext';
 import { buildGridFillPrompt, type CharacterConfig } from '../../lib/promptBuilder';
 import { buildBuildingPrompt } from '../../lib/buildingPromptBuilder';
 import { buildTerrainPrompt } from '../../lib/terrainPromptBuilder';
 import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } from '../../lib/gridConfig';
-import type { HierarchicalGuidance } from '../../context/AppContext';
-import { EMPTY_GUIDANCE } from '../../lib/promptBuilderBase';
-import { getPixelizeGuidance } from '../../lib/promptBuilderBase';
+import { EMPTY_GUIDANCE, getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import type { ContentPreset } from '../../types/api';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
 import '../../styles/run-builder.css';
 
 // ── Per-type configuration ──────────────────────────────────────────────────
-
-type AnyPreset = CharacterPreset | BuildingPreset | TerrainPreset | BackgroundPreset;
 
 type SetPresetsAction = 'SET_CHARACTER_PRESETS' | 'SET_BUILDING_PRESETS' | 'SET_TERRAIN_PRESETS' | 'SET_BACKGROUND_PRESETS';
 type LoadPresetAction = 'LOAD_CHARACTER_PRESET' | 'LOAD_BUILDING_PRESET' | 'LOAD_TERRAIN_PRESET' | 'LOAD_BACKGROUND_PRESET';
@@ -78,7 +75,7 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     presetsStateKey: 'characterPresets',
     setContentAction: 'SET_CHARACTER',
     defaultContent: {
-      name: '', description: '', equipment: '', colorNotes: '', styleNotes: '', rowGuidance: '',
+      name: '', description: '', equipment: '', colorNotes: '', styleNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {},
     },
     extraFields: [
       { key: 'equipment', label: 'Equipment', placeholder: 'sword, shield, leather armor', rows: 2 },
@@ -101,7 +98,7 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     presetsStateKey: 'buildingPresets',
     setContentAction: 'SET_BUILDING',
     defaultContent: {
-      name: '', description: '', details: '', colorNotes: '', styleNotes: '', cellGuidance: '',
+      name: '', description: '', details: '', colorNotes: '', styleNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {},
     },
     extraFields: [
       { key: 'details', label: 'Structural Details', placeholder: 'stone foundation, timber-framed walls, iron hinges', rows: 2 },
@@ -124,7 +121,7 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     presetsStateKey: 'terrainPresets',
     setContentAction: 'SET_TERRAIN',
     defaultContent: {
-      name: '', description: '', colorNotes: '', styleNotes: '', tileGuidance: '',
+      name: '', description: '', colorNotes: '', styleNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {},
     },
     extraFields: [],
     formatPresetOption: (p) => `${p.name} (${(p as TerrainPreset).gridSize})`,
@@ -145,7 +142,7 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     presetsStateKey: 'backgroundPresets',
     setContentAction: 'SET_BACKGROUND',
     defaultContent: {
-      name: '', description: '', colorNotes: '', styleNotes: '', layerGuidance: '',
+      name: '', description: '', colorNotes: '', styleNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {},
     },
     extraFields: [],
     formatPresetOption: (p) => {

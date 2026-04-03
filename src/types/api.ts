@@ -21,7 +21,6 @@ export interface HistoryResponse {
     equipment?: string;
     colorNotes?: string;
     styleNotes?: string;
-    rowGuidance?: string;
   };
   sprites?: Array<{
     label: string;

@@ -57,7 +57,9 @@ export async function loadGenerationIntoState(
         details: '',
         colorNotes: '',
         styleNotes: '',
-        cellGuidance: '',
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
         gridSize: data.gridSize as BuildingGridSize,
         cellLabels: spriteLabels,
       };
@@ -71,7 +73,9 @@ export async function loadGenerationIntoState(
         description: data.content?.description || '',
         colorNotes: '',
         styleNotes: '',
-        tileGuidance: '',
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
         gridSize: data.gridSize as TerrainGridSize,
         cellLabels: spriteLabels,
       };
@@ -85,7 +89,9 @@ export async function loadGenerationIntoState(
         description: data.content?.description || '',
         colorNotes: '',
         styleNotes: '',
-        layerGuidance: '',
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
         bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
         gridSize: data.gridSize as BackgroundGridSize,
         cellLabels: spriteLabels,
@@ -98,7 +104,9 @@ export async function loadGenerationIntoState(
       equipment: data.content.equipment || '',
       colorNotes: data.content.colorNotes || '',
       styleNotes: data.content.styleNotes || '',
-      rowGuidance: data.content.rowGuidance || '',
+      overallGuidance: '',
+      groupGuidance: {},
+      cellGuidance: {},
     };
   }
 

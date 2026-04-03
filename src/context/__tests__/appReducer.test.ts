@@ -87,7 +87,7 @@ describe('appReducer', () => {
       const state: AppState = {
         ...initialState,
         character: { ...initialState.character, name: 'Hero' },
-        characterPresets: [{ id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' }],
+        characterPresets: [{ id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', spriteType: 'character' as const, overallGuidance: '', groupGuidance: {}, cellGuidance: {} }],
       };
       const result = reducer(state, { type: 'SET_SPRITE_TYPE', spriteType: 'terrain' });
       expect(result.character.name).toBe('Hero');
@@ -105,7 +105,9 @@ describe('appReducer', () => {
         equipment: 'Sword',
         colorNotes: 'Blue',
         styleNotes: 'Pixel',
-        rowGuidance: 'Walk cycle',
+        overallGuidance: 'Walk cycle',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'SET_CHARACTER', character });
       expect(result.character).toEqual(character);
@@ -120,7 +122,9 @@ describe('appReducer', () => {
         details: 'Tall towers',
         colorNotes: 'Grey',
         styleNotes: 'Medieval',
-        cellGuidance: 'Front view',
+        overallGuidance: 'Front view',
+        groupGuidance: {},
+        cellGuidance: {},
         gridSize: '2x2',
         cellLabels: ['a', 'b', 'c', 'd'],
       };
@@ -136,7 +140,9 @@ describe('appReducer', () => {
         description: 'Dense forest',
         colorNotes: 'Green',
         styleNotes: 'Lush',
-        tileGuidance: 'Top-down',
+        overallGuidance: 'Top-down',
+        groupGuidance: {},
+        cellGuidance: {},
         gridSize: '3x3',
         cellLabels: Array(9).fill('tree'),
       };
@@ -152,7 +158,9 @@ describe('appReducer', () => {
         description: 'Blue sky',
         colorNotes: 'Gradient',
         styleNotes: 'Soft',
-        layerGuidance: 'Parallax layers',
+        overallGuidance: 'Parallax layers',
+        groupGuidance: {},
+        cellGuidance: {},
         bgMode: 'parallax',
         gridSize: '1x4',
         cellLabels: ['sky', 'clouds', 'mountains', 'ground'],
@@ -367,12 +375,15 @@ describe('appReducer', () => {
     it('loads character preset into character config', () => {
       const preset: CharacterPreset = {
         id: 'char-1',
+        spriteType: 'character',
         name: 'Knight',
         genre: 'fantasy',
         description: 'A noble knight',
         equipment: 'Plate armor, sword',
         colorNotes: 'Silver and blue',
-        rowGuidance: 'Walk, attack, idle',
+        overallGuidance: 'Walk, attack, idle',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_CHARACTER_PRESET', preset });
       expect(result.activeContentPresetIds.character).toBe('char-1');
@@ -381,7 +392,7 @@ describe('appReducer', () => {
       expect(result.character.equipment).toBe('Plate armor, sword');
       expect(result.character.colorNotes).toBe('Silver and blue');
       expect(result.character.styleNotes).toBe('');
-      expect(result.character.rowGuidance).toBe('Walk, attack, idle');
+      expect(result.character.overallGuidance).toBe('Walk, attack, idle');
     });
   });
 
@@ -391,6 +402,7 @@ describe('appReducer', () => {
     it('loads building preset with correct cell count for 3x3', () => {
       const preset: BuildingPreset = {
         id: 'bld-1',
+        spriteType: 'building',
         name: 'Tower',
         genre: 'fantasy',
         gridSize: '3x3',
@@ -398,7 +410,9 @@ describe('appReducer', () => {
         details: 'Tall',
         colorNotes: 'Grey',
         cellLabels: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
-        cellGuidance: 'Front',
+        overallGuidance: 'Front',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_BUILDING_PRESET', preset });
       expect(result.activeContentPresetIds.building).toBe('bld-1');
@@ -409,6 +423,7 @@ describe('appReducer', () => {
     it('pads labels when preset has fewer than grid requires', () => {
       const preset: BuildingPreset = {
         id: 'bld-2',
+        spriteType: 'building',
         name: 'Hut',
         genre: 'fantasy',
         gridSize: '2x3',
@@ -416,7 +431,9 @@ describe('appReducer', () => {
         details: 'Tiny',
         colorNotes: 'Brown',
         cellLabels: ['front', 'side'],
-        cellGuidance: 'Top',
+        overallGuidance: 'Top',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_BUILDING_PRESET', preset });
       expect(result.building.cellLabels).toHaveLength(6);
@@ -428,6 +445,7 @@ describe('appReducer', () => {
     it('truncates labels when preset has more than grid requires', () => {
       const preset: BuildingPreset = {
         id: 'bld-3',
+        spriteType: 'building',
         name: 'Wall',
         genre: 'fantasy',
         gridSize: '2x2',
@@ -435,7 +453,9 @@ describe('appReducer', () => {
         details: 'Thick',
         colorNotes: 'Stone',
         cellLabels: ['a', 'b', 'c', 'd', 'e', 'f'],
-        cellGuidance: 'Side',
+        overallGuidance: 'Side',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_BUILDING_PRESET', preset });
       expect(result.building.cellLabels).toHaveLength(4);
@@ -448,13 +468,16 @@ describe('appReducer', () => {
     it('loads terrain preset and pads labels to grid cell count', () => {
       const preset: TerrainPreset = {
         id: 'ter-1',
+        spriteType: 'terrain',
         name: 'Grasslands',
         genre: 'nature',
         gridSize: '4x4',
         description: 'Green fields',
         colorNotes: 'Green shades',
         tileLabels: ['grass'],
-        tileGuidance: 'Top-down view',
+        overallGuidance: 'Top-down view',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_TERRAIN_PRESET', preset });
       expect(result.activeContentPresetIds.terrain).toBe('ter-1');
@@ -469,13 +492,16 @@ describe('appReducer', () => {
     it('truncates terrain labels when too many provided', () => {
       const preset: TerrainPreset = {
         id: 'ter-2',
+        spriteType: 'terrain',
         name: 'Desert',
         genre: 'arid',
         gridSize: '3x3',
         description: 'Sandy terrain',
         colorNotes: 'Tan',
         tileLabels: Array(20).fill('sand'),
-        tileGuidance: 'View',
+        overallGuidance: 'View',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_TERRAIN_PRESET', preset });
       // 3x3 = 9 cells
@@ -489,6 +515,7 @@ describe('appReducer', () => {
     it('loads background preset with bgMode', () => {
       const preset: BackgroundPreset = {
         id: 'bg-1',
+        spriteType: 'background',
         name: 'Sunset',
         genre: 'nature',
         gridSize: '1x4',
@@ -496,7 +523,9 @@ describe('appReducer', () => {
         description: 'Evening sky',
         colorNotes: 'Orange, red',
         layerLabels: ['sky', 'clouds', 'hills', 'ground'],
-        layerGuidance: 'Horizontal strips',
+        overallGuidance: 'Horizontal strips',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_BACKGROUND_PRESET', preset });
       expect(result.activeContentPresetIds.background).toBe('bg-1');
@@ -508,6 +537,7 @@ describe('appReducer', () => {
     it('pads background labels when fewer than required', () => {
       const preset: BackgroundPreset = {
         id: 'bg-2',
+        spriteType: 'background',
         name: 'Night',
         genre: 'dark',
         gridSize: '1x3',
@@ -515,7 +545,9 @@ describe('appReducer', () => {
         description: 'Night sky',
         colorNotes: 'Dark',
         layerLabels: ['stars'],
-        layerGuidance: 'Layers',
+        overallGuidance: 'Layers',
+        groupGuidance: {},
+        cellGuidance: {},
       };
       const result = reducer(initialState, { type: 'LOAD_BACKGROUND_PRESET', preset });
       expect(result.background.cellLabels).toHaveLength(3);
@@ -529,7 +561,7 @@ describe('appReducer', () => {
   describe('SET_CHARACTER_PRESETS', () => {
     it('sets character presets', () => {
       const presets: CharacterPreset[] = [
-        { id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' },
+        { id: '1', spriteType: 'character', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {} },
       ];
       const result = reducer(initialState, { type: 'SET_CHARACTER_PRESETS', presets });
       expect(result.characterPresets).toEqual(presets);
@@ -742,7 +774,9 @@ describe('appReducer', () => {
             details: '',
             colorNotes: '',
             styleNotes: '',
-            cellGuidance: '',
+            overallGuidance: '',
+            groupGuidance: {},
+            cellGuidance: {},
             gridSize: '3x3' as const,
             cellLabels: ['a', 'b', 'c'],
           },
@@ -774,7 +808,7 @@ describe('appReducer', () => {
 
     it('preserves presets from existing state', () => {
       const charPresets: CharacterPreset[] = [
-        { id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' },
+        { id: '1', spriteType: 'character', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {} },
       ];
       const state: AppState = { ...initialState, characterPresets: charPresets };
       const result = reducer(state, {
@@ -823,7 +857,7 @@ describe('appReducer', () => {
   describe('RESET', () => {
     it('resets to initial state but preserves presets', () => {
       const charPresets: CharacterPreset[] = [
-        { id: '1', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', rowGuidance: '' },
+        { id: '1', spriteType: 'character', name: 'A', genre: 'g', description: '', equipment: '', colorNotes: '', overallGuidance: '', groupGuidance: {}, cellGuidance: {} },
       ];
       const buildPresets: BuildingPreset[] = [];
       const terrPresets: TerrainPreset[] = [];

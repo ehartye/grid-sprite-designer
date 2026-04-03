@@ -59,50 +59,44 @@ export interface GridLink {
   tileShape: 'square' | 'diamond';
 }
 
-export interface CharacterPreset {
+/** Shared fields across all content preset types */
+interface PresetBase {
   id: string;
   name: string;
   genre: string;
   description: string;
+  colorNotes: string;
+  overallGuidance: string;
+  groupGuidance: Record<string, string>;
+  cellGuidance: Record<string, string>;
+}
+
+export interface CharacterPreset extends PresetBase {
+  spriteType: 'character';
   equipment: string;
-  colorNotes: string;
-  rowGuidance: string;
 }
 
-export interface BuildingPreset {
-  id: string;
-  name: string;
-  genre: string;
-  gridSize: BuildingGridSize;
-  description: string;
+export interface BuildingPreset extends PresetBase {
+  spriteType: 'building';
   details: string;
-  colorNotes: string;
+  gridSize: BuildingGridSize;
   cellLabels: string[];
-  cellGuidance: string;
 }
 
-export interface TerrainPreset {
-  id: string;
-  name: string;
-  genre: string;
+export interface TerrainPreset extends PresetBase {
+  spriteType: 'terrain';
   gridSize: TerrainGridSize;
-  description: string;
-  colorNotes: string;
   tileLabels: string[];
-  tileGuidance: string;
 }
 
-export interface BackgroundPreset {
-  id: string;
-  name: string;
-  genre: string;
-  gridSize: BackgroundGridSize;
+export interface BackgroundPreset extends PresetBase {
+  spriteType: 'background';
   bgMode: BackgroundMode;
-  description: string;
-  colorNotes: string;
+  gridSize: BackgroundGridSize;
   layerLabels: string[];
-  layerGuidance: string;
 }
+
+export type AnyPreset = CharacterPreset | BuildingPreset | TerrainPreset | BackgroundPreset;
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -131,7 +125,9 @@ export interface AppState {
     equipment: string;
     colorNotes: string;
     styleNotes: string;
-    rowGuidance: string;
+    overallGuidance: string;
+    groupGuidance: Record<string, string>;
+    cellGuidance: Record<string, string>;
   };
 
   building: {
@@ -140,7 +136,9 @@ export interface AppState {
     details: string;
     colorNotes: string;
     styleNotes: string;
-    cellGuidance: string;
+    overallGuidance: string;
+    groupGuidance: Record<string, string>;
+    cellGuidance: Record<string, string>;
     gridSize: BuildingGridSize;
     cellLabels: string[];
   };
@@ -150,7 +148,9 @@ export interface AppState {
     description: string;
     colorNotes: string;
     styleNotes: string;
-    tileGuidance: string;
+    overallGuidance: string;
+    groupGuidance: Record<string, string>;
+    cellGuidance: Record<string, string>;
     gridSize: TerrainGridSize;
     cellLabels: string[];
   };
@@ -160,7 +160,9 @@ export interface AppState {
     description: string;
     colorNotes: string;
     styleNotes: string;
-    layerGuidance: string;
+    overallGuidance: string;
+    groupGuidance: Record<string, string>;
+    cellGuidance: Record<string, string>;
     bgMode: BackgroundMode;
     gridSize: BackgroundGridSize;
     cellLabels: string[];
@@ -235,7 +237,9 @@ export const initialState: AppState = {
     equipment: '',
     colorNotes: '',
     styleNotes: '',
-    rowGuidance: '',
+    overallGuidance: '',
+    groupGuidance: {},
+    cellGuidance: {},
   },
   building: {
     name: '',
@@ -243,7 +247,9 @@ export const initialState: AppState = {
     details: '',
     colorNotes: '',
     styleNotes: '',
-    cellGuidance: '',
+    overallGuidance: '',
+    groupGuidance: {},
+    cellGuidance: {},
     gridSize: '3x3',
     cellLabels: Array(9).fill(''),
   },
@@ -252,7 +258,9 @@ export const initialState: AppState = {
     description: '',
     colorNotes: '',
     styleNotes: '',
-    tileGuidance: '',
+    overallGuidance: '',
+    groupGuidance: {},
+    cellGuidance: {},
     gridSize: '4x4' as TerrainGridSize,
     cellLabels: Array(16).fill(''),
   },
@@ -261,7 +269,9 @@ export const initialState: AppState = {
     description: '',
     colorNotes: '',
     styleNotes: '',
-    layerGuidance: '',
+    overallGuidance: '',
+    groupGuidance: {},
+    cellGuidance: {},
     bgMode: 'parallax' as BackgroundMode,
     gridSize: '1x4' as BackgroundGridSize,
     cellLabels: Array(4).fill(''),
@@ -438,7 +448,9 @@ export function reducer(state: AppState, action: Action): AppState {
           equipment: action.preset.equipment,
           colorNotes: action.preset.colorNotes,
           styleNotes: '',
-          rowGuidance: action.preset.rowGuidance,
+          overallGuidance: action.preset.overallGuidance,
+          groupGuidance: action.preset.groupGuidance,
+          cellGuidance: action.preset.cellGuidance,
         },
       };
     case 'SET_BUILDING_PRESETS':
@@ -456,6 +468,8 @@ export function reducer(state: AppState, action: Action): AppState {
           details: action.preset.details,
           colorNotes: action.preset.colorNotes,
           styleNotes: '',
+          overallGuidance: action.preset.overallGuidance,
+          groupGuidance: action.preset.groupGuidance,
           cellGuidance: action.preset.cellGuidance,
           gridSize: action.preset.gridSize,
           cellLabels: labels,
@@ -480,7 +494,9 @@ export function reducer(state: AppState, action: Action): AppState {
           description: action.preset.description,
           colorNotes: action.preset.colorNotes,
           styleNotes: '',
-          tileGuidance: action.preset.tileGuidance,
+          overallGuidance: action.preset.overallGuidance,
+          groupGuidance: action.preset.groupGuidance,
+          cellGuidance: action.preset.cellGuidance,
           gridSize: action.preset.gridSize,
           cellLabels: tLabels,
         },
@@ -500,7 +516,9 @@ export function reducer(state: AppState, action: Action): AppState {
           description: action.preset.description,
           colorNotes: action.preset.colorNotes,
           styleNotes: '',
-          layerGuidance: action.preset.layerGuidance,
+          overallGuidance: action.preset.overallGuidance,
+          groupGuidance: action.preset.groupGuidance,
+          cellGuidance: action.preset.cellGuidance,
           bgMode: action.preset.bgMode,
           gridSize: action.preset.gridSize,
           cellLabels: bLabels,
