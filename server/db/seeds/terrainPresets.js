@@ -445,10 +445,12 @@ ROW 3 — Rock-to-Pool Edge Transitions:
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
+  const decomposed = new Map();
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
       const { overall, groups, cells } = decomposeGuidanceBlob(p.tileGuidance || '');
-      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.colorNotes, p.tileLabels, overall, JSON.stringify(groups), JSON.stringify(cells));
+      decomposed.set(p.id, cells);
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.colorNotes, p.tileLabels, overall, JSON.stringify(groups), '{}');
     }
   });
 
@@ -460,17 +462,16 @@ ROW 3 — Rock-to-Pool Edge Transitions:
     INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
-  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'terrain' AND grid_size = ?");
+  const findGrid = db.prepare("SELECT id, cell_labels FROM grid_presets WHERE name = ? AND sprite_type = 'terrain' AND grid_size = ?");
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, overall_guidance, sort_order)
-    VALUES (?, ?, ?, 0)
+    INSERT OR IGNORE INTO terrain_grid_links (terrain_preset_id, grid_preset_id, overall_guidance, group_guidance, cell_guidance, sort_order)
+    VALUES (?, ?, '', '{}', ?, 0)
   `);
   const TERRAIN_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER naming the tile type. All tiles must share the same art style, color palette, and scale. Edge and corner tiles must seamlessly connect with adjacent base tiles. Each row represents a thematic group.`;
   const terrainSizeToDims = { '4x4': [4,4], '3x3': [3,3], '5x5': [5,5] };
   const linkAll = db.transaction(() => {
     for (const p of PRESETS) {
       const [cols, rows] = terrainSizeToDims[p.gridSize] || [4, 4];
-      const _labels = JSON.parse(p.tileLabels);
       const cellGroups = [];
       for (let r = 0; r < rows; r++) {
         const cells = [];
@@ -480,7 +481,12 @@ ROW 3 — Rock-to-Pool Edge Transitions:
       insertGrid.run(p.name, 'terrain', p.genre, p.gridSize, cols, rows,
         p.tileLabels, JSON.stringify(cellGroups), TERRAIN_GUIDANCE, null);
       const gridRow = findGrid.get(p.name, p.gridSize);
-      if (gridRow) insertLink.run(p.id, gridRow.id, p.tileGuidance || '');
+      if (gridRow) {
+        const gridLabels = new Set(JSON.parse(gridRow.cell_labels || '[]'));
+        const allCells = decomposed.get(p.id) || {};
+        const linkCells = Object.fromEntries(Object.entries(allCells).filter(([k]) => gridLabels.has(k)));
+        insertLink.run(p.id, gridRow.id, JSON.stringify(linkCells));
+      }
     }
   });
   linkAll();

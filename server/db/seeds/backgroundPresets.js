@@ -223,10 +223,12 @@ export function seedBackgroundPresets(db) {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
+  const decomposed = new Map();
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
       const { overall, groups, cells } = decomposeGuidanceBlob(p.layerGuidance || '');
-      insert.run(p.id, p.name, p.genre, p.gridSize, p.bgMode, p.description, p.colorNotes, p.layerLabels, overall, JSON.stringify(groups), JSON.stringify(cells));
+      decomposed.set(p.id, cells);
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.bgMode, p.description, p.colorNotes, p.layerLabels, overall, JSON.stringify(groups), '{}');
     }
   });
 
@@ -238,10 +240,10 @@ export function seedBackgroundPresets(db) {
     INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
-  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'background' AND grid_size = ?");
+  const findGrid = db.prepare("SELECT id, cell_labels FROM grid_presets WHERE name = ? AND sprite_type = 'background' AND grid_size = ?");
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, overall_guidance, sort_order)
-    VALUES (?, ?, ?, 0)
+    INSERT OR IGNORE INTO background_grid_links (background_preset_id, grid_preset_id, overall_guidance, group_guidance, cell_guidance, sort_order)
+    VALUES (?, ?, '', '{}', ?, 0)
   `);
   const PARALLAX_GUIDANCE = `LAYER ORDER (top to bottom, farthest to nearest): Each cell is one parallax layer. Draw each layer so it tiles horizontally. Layers stack vertically — the top cell is the farthest background, the bottom cell is the nearest foreground. Maintain consistent color palette and art style across all layers. Each layer must fill its ENTIRE cell with no magenta visible.`;
   const SCENE_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER naming the scene variant. Draw the same scene/environment in each cell but reflecting the condition described by its header label. Maintain consistent composition, landmark placement, and art style across all cells. Each cell must fill its ENTIRE area with no magenta visible.`;
@@ -265,7 +267,12 @@ export function seedBackgroundPresets(db) {
       insertGrid.run(p.name, 'background', p.genre, p.gridSize, cols, rows,
         p.layerLabels, JSON.stringify(cellGroups), guidance, p.bgMode);
       const gridRow = findGrid.get(p.name, p.gridSize);
-      if (gridRow) insertLink.run(p.id, gridRow.id, p.layerGuidance || '');
+      if (gridRow) {
+        const gridLabels = new Set(JSON.parse(gridRow.cell_labels || '[]'));
+        const allCells = decomposed.get(p.id) || {};
+        const linkCells = Object.fromEntries(Object.entries(allCells).filter(([k]) => gridLabels.has(k)));
+        insertLink.run(p.id, gridRow.id, JSON.stringify(linkCells));
+      }
     }
   });
   linkAll();

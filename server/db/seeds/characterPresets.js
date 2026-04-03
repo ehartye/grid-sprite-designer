@@ -2099,27 +2099,34 @@ ROW 5 — KO 3, Victory, Status Poses:
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
+  // Decompose guidance blobs: preamble text → preset overall_guidance, per-cell text → link cell_guidance
+  const decomposed = new Map();
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
       const { overall, groups, cells } = decomposeGuidanceBlob(p.rowGuidance || '');
-      insert.run(p.id, p.name, p.genre, p.description, p.equipment, p.colorNotes, overall, JSON.stringify(groups), JSON.stringify(cells));
+      decomposed.set(p.id, cells);
+      insert.run(p.id, p.name, p.genre, p.description, p.equipment, p.colorNotes, overall, JSON.stringify(groups), '{}');
     }
   });
 
   insertAll();
   console.log(`[DB] Seeded ${PRESETS.length} character presets.`);
 
-  // Link character presets to RPG Full 6x6 grid preset
-  const rpgFullGrid = db.prepare("SELECT id FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character'").get();
+  // Link character presets to RPG Full 6x6 grid preset — cell guidance lives on the link
+  const rpgFullGrid = db.prepare("SELECT id, cell_labels FROM grid_presets WHERE name = 'RPG Full' AND sprite_type = 'character'").get();
   if (rpgFullGrid) {
+    const gridLabels = new Set(JSON.parse(rpgFullGrid.cell_labels || '[]'));
     const insertLink = db.prepare(`
-      INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, overall_guidance, sort_order)
-      VALUES (?, ?, ?, 0)
+      INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, overall_guidance, group_guidance, cell_guidance, sort_order)
+      VALUES (?, ?, '', '{}', ?, 0)
     `);
-    const chars = db.prepare('SELECT id, overall_guidance FROM character_presets').all();
+    const chars = db.prepare('SELECT id FROM character_presets').all();
     const linkAll = db.transaction(() => {
       for (const char of chars) {
-        insertLink.run(char.id, rpgFullGrid.id, char.overall_guidance || '');
+        const cells = decomposed.get(char.id) || {};
+        // Only include cell entries that match this grid's labels
+        const linkCells = Object.fromEntries(Object.entries(cells).filter(([k]) => gridLabels.has(k)));
+        insertLink.run(char.id, rpgFullGrid.id, JSON.stringify(linkCells));
       }
     });
     linkAll();

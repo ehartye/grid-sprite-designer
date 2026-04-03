@@ -525,10 +525,13 @@ ROW 2 — Extreme States:
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   );
 
+  // Decompose: preamble → preset overall_guidance, per-cell text → link cell_guidance
+  const decomposed = new Map();
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
       const { overall, groups, cells } = decomposeGuidanceBlob(p.cellGuidance || '');
-      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.details, p.colorNotes, p.cellLabels, overall, JSON.stringify(groups), JSON.stringify(cells));
+      decomposed.set(p.id, cells);
+      insert.run(p.id, p.name, p.genre, p.gridSize, p.description, p.details, p.colorNotes, p.cellLabels, overall, JSON.stringify(groups), '{}');
     }
   });
 
@@ -540,17 +543,16 @@ ROW 2 — Extreme States:
     INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
-  const findGrid = db.prepare("SELECT id FROM grid_presets WHERE name = ? AND sprite_type = 'building' AND grid_size = ?");
+  const findGrid = db.prepare("SELECT id, cell_labels FROM grid_presets WHERE name = ? AND sprite_type = 'building' AND grid_size = ?");
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, overall_guidance, sort_order)
-    VALUES (?, ?, ?, 0)
+    INSERT OR IGNORE INTO building_grid_links (building_preset_id, grid_preset_id, overall_guidance, group_guidance, cell_guidance, sort_order)
+    VALUES (?, ?, '', '{}', ?, 0)
   `);
   const BUILDING_GUIDANCE = `Each cell in the grid has a WHITE TEXT HEADER that names the variant. Draw the same building in each cell but reflecting the variant described by its header label. Maintain consistent architecture, proportions, and style across all cells. Each row typically represents a thematic group (e.g., activity states, damage states, time of day).`;
   const gridSizeToDims = { '3x3': [3,3], '2x2': [2,2], '2x3': [2,3] };
   const linkAll = db.transaction(() => {
     for (const p of PRESETS) {
       const [cols, rows] = gridSizeToDims[p.gridSize] || [3, 3];
-      const _labels = JSON.parse(p.cellLabels);
       const cellGroups = [];
       for (let r = 0; r < rows; r++) {
         const cells = [];
@@ -560,7 +562,12 @@ ROW 2 — Extreme States:
       insertGrid.run(p.name, 'building', p.genre, p.gridSize, cols, rows,
         p.cellLabels, JSON.stringify(cellGroups), BUILDING_GUIDANCE, null);
       const gridRow = findGrid.get(p.name, p.gridSize);
-      if (gridRow) insertLink.run(p.id, gridRow.id, p.cellGuidance || '');
+      if (gridRow) {
+        const gridLabels = new Set(JSON.parse(gridRow.cell_labels || '[]'));
+        const allCells = decomposed.get(p.id) || {};
+        const linkCells = Object.fromEntries(Object.entries(allCells).filter(([k]) => gridLabels.has(k)));
+        insertLink.run(p.id, gridRow.id, JSON.stringify(linkCells));
+      }
     }
   });
   linkAll();
