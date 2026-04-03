@@ -1,5 +1,3 @@
-import { decomposeGuidanceBlob } from './decomposeGuidance.js';
-
 export function seedGridPresets(db) {
   const existing = db.prepare('SELECT COUNT(*) as count FROM grid_presets').get();
   if (existing.count > 0) return;
@@ -23,147 +21,95 @@ export function seedGridPresets(db) {
   ]);
 
   const characterCellGroups = JSON.stringify([
-    { name: 'Walk Down', cells: [0,1,2] },
-    { name: 'Walk Up', cells: [3,4,5] },
-    { name: 'Walk Left', cells: [6,7,8] },
-    { name: 'Walk Right', cells: [9,10,11] },
-    { name: 'Idle Down', cells: [12] },
-    { name: 'Idle Up', cells: [13] },
-    { name: 'Idle Left', cells: [14] },
-    { name: 'Idle Right', cells: [15] },
-    { name: 'Battle Idle', cells: [16,17,18] },
-    { name: 'Attack', cells: [19,20,21] },
-    { name: 'Special', cells: [22,23,24] },
-    { name: 'Damage', cells: [25,26,27] },
-    { name: 'KO', cells: [28,29,30] },
-    { name: 'Victory', cells: [31,32,33] },
-    { name: 'Weak', cells: [34] },
-    { name: 'Critical', cells: [35] }
+    { name: 'Walk South Animation Frames', cells: [0,1,2] },
+    { name: 'Walk North Animation Frames', cells: [3,4,5] },
+    { name: 'Walk West Animation Frames', cells: [6,7,8] },
+    { name: 'Walk East Animation Frames', cells: [9,10,11] },
+    { name: 'Standard Idle Poses', cells: [12,13,14,15] },
+    { name: 'Ready for Battle Idle Animation Frames', cells: [16,17,18] },
+    { name: 'Standard Attack Animation Frames', cells: [19,20,21] },
+    { name: 'Special Ability Animation Frames', cells: [22,23,24] },
+    { name: 'Taking Damage Animation Frames', cells: [25,26,27] },
+    { name: 'Knockout Animation Frames', cells: [28,29,30] },
+    { name: 'Victory Celebration Animation Frames', cells: [31,32,33] },
+    { name: 'Critical and Weak Condition Poses', cells: [34,35] },
   ]);
 
-  const rpgFullGuidance = `\
-Each cell in the grid has a WHITE TEXT HEADER that names the pose. Match each
-cell's sprite to the header label printed above it.
+  const rpgFullOverall = `\
+This is an RPG animation sprite sheet.
+Throughout the frame descriptions, we'll be using the following terms to indicate which direction the character is facing.
+- "South": Down. Downstage. Toward the camera. When a character is "facing south", their full face and torso front are visible.
+- "North": Up. Upstage. Away from the camera. When a character is "facing north", the back of their head and back are visible.
+- "West": Camera Left. Stage Right. The character's right. When a character is "facing west", their left profile is visible.
+- "East": Camera Right. Stage Left. The character's left. When a character is "facing east", their right profile is visible.`;
 
-  Header "Walk Down 1" (0,0): Character faces the camera, mid-stride with the
-    left leg forward and right leg back. Arms swing naturally — left arm back,
-    right arm forward. Torso faces directly toward the viewer.
-  Header "Walk Down 2" (0,1): Contact pose — feet are together or nearly
-    together as they pass each other. Weight is centered, arms at sides. This
-    is the neutral mid-cycle frame between the two stride extremes.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1. Right leg forward, left
-    leg back, arms reversed. Identical proportions and posture, just mirrored.
-  Header "Walk Up 1" (0,3): Character faces AWAY from the camera showing their
-    back. Left leg forward in stride, arms swinging naturally. Hair, cape, or
-    backpack details visible from behind.
-  Header "Walk Up 2" (0,4): Facing away, contact pose — feet together, arms at
-    sides. Same neutral mid-cycle as Walk Down 2, but from the back.
-  Header "Walk Up 3" (0,5): Facing away, right leg forward — mirror of Walk
-    Up 1. Arms reversed. Same proportions, just the opposite stride.
+  const rpgFullGroupGuidance = {
+    'Walk South Animation Frames': 'Three frames of the southward (toward camera) walk cycle. Played 1-2-3-2, they produce a natural forward-facing gait.',
+    'Walk North Animation Frames': 'Three frames of the northward (away from camera) walk cycle. Played 1-2-3-2, they produce a natural back-facing gait.',
+    'Walk West Animation Frames': 'Three frames of the westward (camera-left) walk cycle in profile. Played 1-2-3-2, they produce a natural left-facing gait.',
+    'Walk East Animation Frames': 'Three frames of the eastward (camera-right) walk cycle in profile. Played 1-2-3-2, they produce a natural right-facing gait.',
+    'Standard Idle Poses': 'Four static idle poses, one for each cardinal direction: south (toward camera), north (away), west (left profile), east (right profile).',
+    'Critical and Weak Condition Poses': 'Two status condition poses showing the character in a weakened or near-death state. Both face south.',
+    'Standard Attack Animation Frames': 'Three frames of a melee attack sequence facing south: wind-up, mid-swing, follow-through.',
+    'Special Ability Animation Frames': 'Three frames of a special/magic ability facing south: casting begins, builds, releases.',
+    'Taking Damage Animation Frames': 'Three frames of taking a hit facing south: recoil, stagger, recovery.',
+    'Knockout Animation Frames': 'Three frames of being knocked out: collapse, falling, fully down.',
+    'Ready for Battle Idle Animation Frames': 'Three frames of a combat-ready idle sway facing south. Looped 1\u21922\u21923\u21922 for a breathing animation.',
+    'Victory Celebration Animation Frames': 'Three frames of a victory celebration facing south: leap, arms raised, confident final pose.',
+  };
 
-  Header "Walk Left 1" (1,0): Character in side profile facing left. Left foot
-    is forward in a full stride, right foot trails behind. Arms swing opposite
-    to legs. Full body is visible in profile.
-  Header "Walk Left 2" (1,1): Facing left, contact pose — feet passing each
-    other, nearly together. Arms at sides. Neutral mid-cycle frame.
-  Header "Walk Left 3" (1,2): Facing left, right foot forward. Mirror-stride
-    of Walk Left 1. Arms reversed. Same height and proportions.
-  Header "Walk Right 1" (1,3): Character in side profile facing right. Right
-    foot forward in full stride, left foot trails. Arms swing naturally.
-    This is the horizontal mirror of Walk Left 1.
-  Header "Walk Right 2" (1,4): Facing right, contact pose — feet together,
-    arms at sides. Neutral mid-cycle. Mirror of Walk Left 2.
-  Header "Walk Right 3" (1,5): Facing right, left foot forward. Mirror-stride
-    of Walk Right 1. Same height and proportions as all walk frames.
-
-  Header "Idle Down" (2,0): Relaxed standing pose facing the camera. Weight
-    evenly distributed, arms resting naturally at sides. Calm, neutral facial
-    expression. This is the default overworld resting pose.
-  Header "Idle Up" (2,1): Relaxed standing pose facing away from the camera.
-    Same relaxed posture as Idle Down, viewed from behind. Back, hair, and
-    equipment details visible.
-  Header "Idle Left" (2,2): Relaxed standing pose in left-facing profile.
-    Weight centered, arms relaxed. Character looks to the left.
-  Header "Idle Right" (2,3): Relaxed standing pose in right-facing profile.
-    Horizontal mirror of Idle Left. Same posture, same proportions.
-  Header "Battle Idle 1" (2,4): Combat-ready stance in side view. Slight
-    crouch with knees bent, weapon raised or at the ready, off-hand guarding.
-    Weight on the balls of the feet. Alert, tense expression.
-  Header "Battle Idle 2" (2,5): Subtle breathing/sway frame — the character
-    shifts weight slightly from Battle Idle 1. Weapon may tilt a degree,
-    shoulders rise slightly. Small enough difference to animate a living
-    idle when looped.
-
-  Header "Battle Idle 3" (3,0): Third frame of the battle idle sway. Character
-    shifts back toward the Battle Idle 1 position. When looped 1→2→3→2, this
-    creates a subtle breathing/ready animation.
-  Header "Attack 1" (3,1): Wind-up — the character pulls their weapon or fist
-    back behind them, body coiling with weight shifting to the rear foot.
-    Torso twists to load the swing. Tense, focused expression.
-  Header "Attack 2" (3,2): Mid-swing — weapon or fist sweeps forward in a
-    powerful arc. Body uncoils, weight transfers to the front foot. Motion
-    blur or streak effect is optional but must stay within the cell.
-  Header "Attack 3" (3,3): Follow-through — weapon or fist is fully extended
-    past the target point. Body is stretched forward, front foot planted.
-    The apex of the strike.
-  Header "Special 1" (3,4): Casting begins — arms rise to chest or shoulder
-    height, palms open. A small spark or glow starts forming between the
-    hands. Feet are planted, body upright. Energy effect is small and
-    contained close to the hands.
-  Header "Special 2" (3,5): Casting builds — arms spread wider, energy grows
-    brighter between or around the hands. Eyes may glow. The character's
-    posture leans slightly into the spell. Energy effect stays compact
-    and well within the cell boundaries.
-
-  Header "Special 3" (4,0): Spell release — arms thrust forward or upward, energy
-    erupts outward from the hands. This is the peak of the cast. Any visible
-    spell effect (fireball, lightning, rune) must be SMALL and stay fully
-    contained within the cell — do not let it fill the cell or crowd edges.
-  Header "Damage 1" (4,1): Hit recoil — the character flinches backward as if
-    struck. Head snaps back, arms jerk inward. One foot lifts slightly off
-    the ground. Pained expression, eyes squinting.
-  Header "Damage 2" (4,2): Stagger — the character leans further back from
-    the hit, nearly off-balance. Knees bend, arms flail. More intense pain
-    on the face. Weight on the back foot.
-  Header "Damage 3" (4,3): Recovery — the character catches themselves and
-    stumbles forward, regaining balance. Arms come back to a guard position.
-    Expression shifts from pain to determination. Transitioning back toward
-    a ready stance.
-  Header "KO 1" (4,4): Collapse begins — knees buckle, weapon drops or
-    dangles. The character's upper body pitches forward and downward. Eyes
-    closing, expression going slack. Clearly losing consciousness.
-  Header "KO 2" (4,5): Falling — body hits the ground. Character is mostly
-    horizontal, one arm may be outstretched breaking the fall. Weapon on the
-    ground nearby. Nearly fully down.
-
-  Header "KO 3" (5,0): Fully down — the character lies flat on the ground,
-    face-down or on their back, eyes closed. Weapon beside them. Completely
-    defeated and motionless. Sprite should be horizontal and centered.
-  Header "Victory 1" (5,1): Celebration starts — the character leaps upward
-    with a fist pump or weapon thrust. Joyful expression, mouth open.
-    Feet may leave the ground slightly. Energetic and triumphant.
-  Header "Victory 2" (5,2): Mid-celebration — arms raised overhead in a
-    victory gesture (V-sign, weapon held high, or both arms up). Big smile.
-    Peak of the celebration motion. Feet back on the ground.
-  Header "Victory 3" (5,3): Celebration ends — the character strikes a
-    confident final pose. Hand on hip, weapon shouldered, or a cool
-    stance. Satisfied grin. This is the held pose after the animation.
-  Header "Weak" (5,4): Low HP — the character hunches over with one knee
-    on the ground, panting. One hand braces on the knee or the ground.
-    Weapon drags. Expression is exhausted and strained. Sweat drops optional
-    but must be small and stay in the cell.
-  Header "Critical" (5,5): Near death — the character barely stands,
-    trembling. Leaning heavily on their weapon like a crutch, or doubled
-    over. One eye may be shut. Expression is desperate and pained. On the
-    edge of collapse but still fighting.`;
+  const rpgFullCellGuidance = {
+    'Walk Down 1': 'Character faces south, mid-stride, left leg forward and right leg back, right arm forward, left arm back.',
+    'Walk Down 2': 'Character faces south, legs even and neutral, arms even and neutral.',
+    'Walk Down 3': 'Character faces south, mid-stride, right leg forward, left leg back, left arm forward, right arm back.',
+    'Walk Up 1': 'Character faces north, mid-stride, left leg forward and right leg back, arms swinging naturally. Back of head, cape, and back-worn equipment visible.',
+    'Walk Up 2': 'Character faces north, legs even and neutral, arms at sides. Full back view visible.',
+    'Walk Up 3': 'Character faces north, mid-stride, right leg forward, left leg back, arms reversed from Walk Up 1.',
+    'Walk Left 1': 'Character faces west in profile, left leg stepping forward, right arm swinging forward.',
+    'Walk Left 2': 'Character faces west in profile, legs even and neutral, arms at sides.',
+    'Walk Left 3': 'Character faces west in profile, right leg stepping forward, left arm swinging forward.',
+    'Walk Right 1': 'Character faces east in profile, right leg stepping forward, left arm swinging forward.',
+    'Walk Right 2': 'Character faces east in profile, legs even and neutral, arms at sides.',
+    'Walk Right 3': 'Character faces east in profile, left leg stepping forward, right arm swinging forward.',
+    'Idle Down': 'Character faces south, standing relaxed, feet slightly apart, arms resting at sides. Default overworld idle pose.',
+    'Idle Up': 'Character faces north, standing relaxed, same posture as Idle Down. Back and back-worn equipment visible.',
+    'Idle Left': 'Character faces west in profile, standing relaxed, arms at sides.',
+    'Idle Right': 'Character faces east in profile, standing relaxed, arms at sides.',
+    'Battle Idle 1': 'Character faces south in a combat-ready crouch, knees bent, weapon raised in guard position. Frame 1 of idle sway.',
+    'Battle Idle 2': 'Character faces south, slight shift from Battle Idle 1 \u2014 shoulders rise slightly, weapon shifts a fraction. Frame 2 of idle sway.',
+    'Battle Idle 3': 'Character faces south, shifts back toward Battle Idle 1 position. Frame 3; looped 1\u21922\u21923\u21922 creates a breathing animation.',
+    'Attack 1': 'Character faces south, wind-up \u2014 weapon or fist pulled back, body coiled, weight on rear foot, torso twisted.',
+    'Attack 2': 'Character faces south, mid-swing \u2014 weapon sweeps forward in an arc, body uncoils, weight transfers to front foot.',
+    'Attack 3': 'Character faces south, follow-through \u2014 weapon fully extended past target point, body stretched forward, front foot planted.',
+    'Special 1': 'Character faces south, casting begins \u2014 arms rise to chest height, palms open, small energy spark forming between hands.',
+    'Special 2': 'Character faces south, casting builds \u2014 arms spread wider, energy grows brighter, posture leans into the spell.',
+    'Special 3': 'Character faces south, spell release \u2014 arms thrust forward, energy erupts outward. Effect must be small and contained within cell.',
+    'Damage 1': 'Character faces south, hit recoil \u2014 flinches backward, head snaps back, arms jerk inward, one foot lifts off ground.',
+    'Damage 2': 'Character faces south, stagger \u2014 leans further back, nearly off-balance, knees bent, arms flailing.',
+    'Damage 3': 'Character faces south, recovery \u2014 catches balance, stumbles forward, arms return to guard position.',
+    'KO 1': 'Character faces south, collapse begins \u2014 knees buckle, weapon drops, upper body pitches forward, eyes closing.',
+    'KO 2': 'Character mostly horizontal, falling \u2014 body hits the ground, one arm outstretched, weapon nearby.',
+    'KO 3': 'Character fully down \u2014 lies flat on the ground, eyes closed, weapon beside them, motionless.',
+    'Victory 1': 'Character faces south, celebration starts \u2014 leaps upward with fist pump or weapon thrust, joyful expression.',
+    'Victory 2': 'Character faces south, mid-celebration \u2014 arms raised overhead in victory gesture, big smile, feet on ground.',
+    'Victory 3': 'Character faces south, celebration ends \u2014 strikes a confident final pose, satisfied expression.',
+    'Weak': 'Character faces south, low HP \u2014 hunched over, one knee on ground, panting, weapon dragging. Exhausted expression.',
+    'Critical': 'Character faces south, near death \u2014 barely standing, leaning on weapon as crutch, trembling. Desperate expression.',
+  };
 
   const insertGrid = db.prepare(`
     INSERT OR IGNORE INTO grid_presets (name, sprite_type, genre, grid_size, cols, rows, cell_labels, cell_groups, overall_guidance, group_guidance, cell_guidance, bg_mode, is_preset)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
 
-  const { overall: rpgOverall, groups: rpgGroups, cells: rpgCells } = decomposeGuidanceBlob(rpgFullGuidance);
-  insertGrid.run('RPG Full', 'character', 'RPG', '6x6', 6, 6, characterCellLabels, characterCellGroups, rpgOverall, JSON.stringify(rpgGroups), JSON.stringify(rpgCells), null);
+  insertGrid.run(
+    'RPG Full', 'character', 'RPG', '6x6', 6, 6,
+    characterCellLabels, characterCellGroups,
+    rpgFullOverall,
+    JSON.stringify(rpgFullGroupGuidance),
+    JSON.stringify(rpgFullCellGuidance),
+    null,
+  );
 
   // Building, terrain, and background grid presets are created per content preset
   // in their respective seed functions (seedBuildingPresets, seedTerrainPresets,
