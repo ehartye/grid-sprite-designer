@@ -18,13 +18,14 @@ import {
   type TerrainPreset,
   type BackgroundPreset,
 } from '../../context/AppContext';
-import { buildGridFillPrompt } from '../../lib/promptBuilder';
+import { buildGridFillPrompt, type CharacterConfig } from '../../lib/promptBuilder';
 import { buildBuildingPrompt } from '../../lib/buildingPromptBuilder';
 import { buildTerrainPrompt } from '../../lib/terrainPromptBuilder';
 import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
 import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } from '../../lib/gridConfig';
 import type { HierarchicalGuidance } from '../../context/AppContext';
 import { getPixelizeGuidance } from '../../lib/promptBuilderBase';
+import type { ContentPreset } from '../../types/api';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
 import '../../styles/run-builder.css';
 
@@ -293,18 +294,40 @@ export function UnifiedConfigPanel() {
         break;
       }
       default: {
-        const defaultLabels = Array.from({ length: 36 }, (_, i) => `Cell ${i}`);
-        prompt = buildGridFillPrompt(
-          state.character,
-          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
-          [], defaultLabels, 6, 6,
-        );
+        const selectedPreset = presetList.find(p => p.id === selectedPresetId) as ContentPreset | undefined;
+        const gridLink = selectedGridLinks[0];
+        if (selectedPreset && gridLink) {
+          const presetGuidance: HierarchicalGuidance = {
+            overall: selectedPreset.overallGuidance || '',
+            groups: selectedPreset.groupGuidance || {},
+            cells: selectedPreset.cellGuidance || {},
+          };
+          const charConfig: CharacterConfig = {
+            name: selectedPreset.name,
+            description: selectedPreset.description,
+            equipment: selectedPreset.equipment || '',
+            colorNotes: selectedPreset.colorNotes || '',
+            styleNotes: '',
+          };
+          prompt = buildGridFillPrompt(
+            charConfig,
+            gridLink.gridGuidance, gridLink.linkGuidance, presetGuidance,
+            gridLink.cellGroups, gridLink.cellLabels, gridLink.cols, gridLink.rows,
+          );
+        } else {
+          const defaultLabels = Array.from({ length: 36 }, (_, i) => `Cell ${i}`);
+          prompt = buildGridFillPrompt(
+            state.character,
+            EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
+            [], defaultLabels, 6, 6,
+          );
+        }
       }
     }
     const g = getPixelizeGuidance(pixelizeSize);
     if (g) prompt += '\n\n' + g;
     return prompt;
-  }, [spriteType, content, state.character, state.building, state.terrain, state.background, pixelizeSize]);
+  }, [spriteType, content, state.character, state.building, state.terrain, state.background, pixelizeSize, selectedPresetId, selectedGridLinks, presetList]);
 
   // Group presets by genre
   const presetsByGenre = useMemo(
