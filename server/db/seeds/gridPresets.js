@@ -13,13 +13,13 @@ export function seedGridPresets(db) {
     'Battle Idle 1','Battle Idle 2',
     'Battle Idle 3',
     'Attack 1','Attack 2','Attack 3',
-    'Cast 1','Cast 2',
-    'Cast 3',
+    'Special 1','Special 2',
+    'Special 3',
     'Damage 1','Damage 2','Damage 3',
     'KO 1','KO 2',
     'KO 3',
     'Victory 1','Victory 2','Victory 3',
-    'Weak Pose','Critical Pose'
+    'Weak','Critical'
   ]);
 
   const characterCellGroups = JSON.stringify([
@@ -33,7 +33,7 @@ export function seedGridPresets(db) {
     { name: 'Idle Right', cells: [15] },
     { name: 'Battle Idle', cells: [16,17,18] },
     { name: 'Attack', cells: [19,20,21] },
-    { name: 'Cast', cells: [22,23,24] },
+    { name: 'Special', cells: [22,23,24] },
     { name: 'Damage', cells: [25,26,27] },
     { name: 'KO', cells: [28,29,30] },
     { name: 'Victory', cells: [31,32,33] },
@@ -98,7 +98,7 @@ ROW 2 — Idle Stances & Battle Idle (first two frames):
     shoulders rise slightly. Small enough difference to animate a living
     idle when looped.
 
-ROW 3 — Battle Idle 3, Attack Sequence, Cast Start:
+ROW 3 — Battle Idle 3, Attack Sequence, Special Start:
   Header "Battle Idle 3" (3,0): Third frame of the battle idle sway. Character
     shifts back toward the Battle Idle 1 position. When looped 1→2→3→2, this
     creates a subtle breathing/ready animation.
@@ -111,17 +111,17 @@ ROW 3 — Battle Idle 3, Attack Sequence, Cast Start:
   Header "Attack 3" (3,3): Follow-through — weapon or fist is fully extended
     past the target point. Body is stretched forward, front foot planted.
     The apex of the strike.
-  Header "Cast 1" (3,4): Casting begins — arms rise to chest or shoulder
+  Header "Special 1" (3,4): Casting begins — arms rise to chest or shoulder
     height, palms open. A small spark or glow starts forming between the
     hands. Feet are planted, body upright. Energy effect is small and
     contained close to the hands.
-  Header "Cast 2" (3,5): Casting builds — arms spread wider, energy grows
+  Header "Special 2" (3,5): Casting builds — arms spread wider, energy grows
     brighter between or around the hands. Eyes may glow. The character's
     posture leans slightly into the spell. Energy effect stays compact
     and well within the cell boundaries.
 
-ROW 4 — Cast 3, Damage Sequence, KO Start:
-  Header "Cast 3" (4,0): Spell release — arms thrust forward or upward, energy
+ROW 4 — Special 3, Damage Sequence, KO Start:
+  Header "Special 3" (4,0): Spell release — arms thrust forward or upward, energy
     erupts outward from the hands. This is the peak of the cast. Any visible
     spell effect (fireball, lightning, rune) must be SMALL and stay fully
     contained within the cell — do not let it fill the cell or crowd edges.
@@ -142,7 +142,7 @@ ROW 4 — Cast 3, Damage Sequence, KO Start:
     horizontal, one arm may be outstretched breaking the fall. Weapon on the
     ground nearby. Nearly fully down.
 
-ROW 5 — KO 3, Victory Sequence, Status Poses:
+ROW 5 — KO 3, Victory Sequence, Weak & Critical Poses:
   Header "KO 3" (5,0): Fully down — the character lies flat on the ground,
     face-down or on their back, eyes closed. Weapon beside them. Completely
     defeated and motionless. Sprite should be horizontal and centered.
@@ -155,11 +155,11 @@ ROW 5 — KO 3, Victory Sequence, Status Poses:
   Header "Victory 3" (5,3): Celebration ends — the character strikes a
     confident final pose. Hand on hip, weapon shouldered, or a cool
     stance. Satisfied grin. This is the held pose after the animation.
-  Header "Weak Pose" (5,4): Low HP — the character hunches over with one knee
+  Header "Weak" (5,4): Low HP — the character hunches over with one knee
     on the ground, panting. One hand braces on the knee or the ground.
     Weapon drags. Expression is exhausted and strained. Sweat drops optional
     but must be small and stay in the cell.
-  Header "Critical Pose" (5,5): Near death — the character barely stands,
+  Header "Critical" (5,5): Near death — the character barely stands,
     trembling. Leaning heavily on their weapon like a crutch, or doubled
     over. One eye may be shut. Expression is desperate and pained. On the
     edge of collapse but still fighting.`;

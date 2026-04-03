@@ -6,7 +6,11 @@
  * - Continuation lines (4+ space indent) belong to the previous cell
  * - All other lines → overall (preamble text, ROW headers, etc.)
  */
-export function decomposeGuidanceBlob(blob) {
+/**
+ * @param {string} blob
+ * @param {Record<string,string>} [renameMap] - old label → new label aliases
+ */
+export function decomposeGuidanceBlob(blob, renameMap = {}) {
   if (!blob?.trim()) return { overall: '', groups: {}, cells: {} };
 
   const lines = blob.split('\n');
@@ -21,7 +25,7 @@ export function decomposeGuidanceBlob(blob) {
   function flushCell() {
     if (currentLabel !== null) {
       const text = currentLines.join('\n').trim();
-      if (text) cells[currentLabel] = text;
+      if (text) cells[renameMap[currentLabel] ?? currentLabel] = text;
       currentLabel = null;
       currentLines = [];
     }
@@ -50,3 +54,12 @@ export function decomposeGuidanceBlob(blob) {
     cells,
   };
 }
+
+/** Label rename map for RPG Full character grid (old seed names → current grid labels) */
+export const RPG_FULL_RENAME = {
+  'Cast 1': 'Special 1',
+  'Cast 2': 'Special 2',
+  'Cast 3': 'Special 3',
+  'Weak Pose': 'Weak',
+  'Critical Pose': 'Critical',
+};

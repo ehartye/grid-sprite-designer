@@ -1,4 +1,4 @@
-import { decomposeGuidanceBlob } from './decomposeGuidance.js';
+import { decomposeGuidanceBlob, RPG_FULL_RENAME } from './decomposeGuidance.js';
 
 export function seedCharacterPresets(db) {
   const PRESETS = [
@@ -2103,7 +2103,7 @@ ROW 5 — KO 3, Victory, Status Poses:
   const decomposed = new Map();
   const insertAll = db.transaction(() => {
     for (const p of PRESETS) {
-      const { overall, groups, cells } = decomposeGuidanceBlob(p.rowGuidance || '');
+      const { overall, groups, cells } = decomposeGuidanceBlob(p.rowGuidance || '', RPG_FULL_RENAME);
       decomposed.set(p.id, cells);
       insert.run(p.id, p.name, p.genre, p.description, p.equipment, p.colorNotes, overall, JSON.stringify(groups), '{}');
     }
