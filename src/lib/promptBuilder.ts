@@ -28,7 +28,7 @@ export function buildGridFillPrompt(
   _rows: number,
 ): string {
   const charBlock = [
-    `Fill every pink cell area with a pixel-art sprite of **${character.name.toUpperCase()}**.`,
+    `The subject of your divine creation: **${character.name.toUpperCase()}**.`,
     ``,
     character.description,
     character.equipment ? `**Equipment:** ${character.equipment}` : '',
@@ -43,9 +43,11 @@ Greetings, expert sprite designer! As usual, your chroma-keyed, cell-labeled tem
 
 I know you will uphold your legendary tradition of keeping all character anatomy, behavior and effects beautifully rendered and naturally contained within the boundaries of each template cell to ensure clean and blemish free animation is possible. I know you have pledged the very core of your being to uphold the key tenets:
 
+- **"The Magenta Mandate"** - The color magenta (#FF00FF) is sacred and must be preserved in its pure form as the background of each cell. It is the canvas upon which your artistry will shine, and any deviation from this hue may disrupt the delicate balance of the chroma keying process.
 - **"Visibility of Body"** — A character cannot be animated if he cannot be seen. If a character drifts from the frame of his very existence, he may not be immortalized in the sequencing of the sprites.
 - **"Continuity of Devices"** — A character's treasured belongings may not disappear in one frame simply to reappear in the next without specific guidance from the holy instructions.
 - **"Continuity of Movement"** — A character may not move forward simply by thrusting out his right foot. Nay, his left foot must also join the fray to achieve the harmony of locomotion.
+- **"The Template Grid guides, but does not obstruct"** - Has the character been blessed with wings or a tail? Display them in all their splendor, but they must not be obscured by the grid or exceed its bounds. A warrior character may hoist his weapon overhead, but their armament may not be obscured by, or extend beyond, the grid lines. The character may conjure fire from a wand or doves from their pocket, but neither effect should push up against the rigid boundaries of the grid cell.
 
 Without further ado, I bestow upon thee the Holy Instructions, that thou may work thy magical deeds, as thou were always meant:
 
