@@ -11,6 +11,7 @@ export const ALLOWED_IMAGE_SIZES = ['2K', '4K'];
 export const ALLOWED_ASPECT_RATIOS = ['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'];
 
 export const ALLOWED_MODELS = [
+  'gemini-3.1-flash-image-preview',
   'gemini-3-pro-image-preview',
   'gemini-2.5-flash-image',
   'gemini-2.0-flash',

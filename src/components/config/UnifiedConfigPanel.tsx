@@ -27,6 +27,7 @@ import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } 
 import { EMPTY_GUIDANCE, getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import type { ContentPreset } from '../../types/api';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
+import { IMAGE_MODELS, getModel, formatCost, type ImageSize } from '../../lib/models';
 import '../../styles/run-builder.css';
 
 // ── Per-type configuration ──────────────────────────────────────────────────
@@ -465,6 +466,23 @@ export function UnifiedConfigPanel() {
         onSelectionChange={handleGridSelectionChange}
       />
 
+      {/* Model */}
+      <div className="config-field">
+        <label htmlFor={`${idPrefix}-model`}>Model</label>
+        <select
+          id={`${idPrefix}-model`}
+          className="admin-select"
+          value={state.model}
+          onChange={(e) => dispatch({ type: 'SET_MODEL', model: e.target.value })}
+        >
+          {IMAGE_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label} — {m.tagline}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Image Size (2K / 4K) */}
       <div className="config-field">
         <label>Image Size</label>
@@ -484,6 +502,21 @@ export function UnifiedConfigPanel() {
             4K (4096px)
           </button>
         </div>
+        {(() => {
+          const cost = getModel(state.model)?.cost[imageSize as ImageSize];
+          if (cost === undefined) return null;
+          return (
+            <p
+              style={{
+                margin: '6px 0 0',
+                fontSize: '0.75rem',
+                color: 'var(--text-muted, #888)',
+              }}
+            >
+              Estimated cost: ~{formatCost(cost)} per image
+            </p>
+          );
+        })()}
       </div>
 
       {/* Pixelize Target */}
