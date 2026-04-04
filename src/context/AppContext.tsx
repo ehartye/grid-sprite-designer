@@ -169,6 +169,7 @@ export interface AppState {
   };
 
   model: string;
+  thinkingLevel: 'default' | 'minimal' | 'low' | 'medium' | 'high';
   imageSize: '2K' | '4K';
   aspectRatio: string;
 
@@ -277,6 +278,7 @@ export const initialState: AppState = {
     cellLabels: Array(4).fill(''),
   },
   model: 'gemini-3-pro-image-preview',
+  thinkingLevel: 'default',
   imageSize: '2K',
   aspectRatio: '1:1',
   activeContentPresetIds: { character: null, building: null, terrain: null, background: null },
@@ -307,6 +309,7 @@ type Action =
   | { type: 'SET_CHARACTER'; character: AppState['character'] }
   | { type: 'SET_BUILDING'; building: AppState['building'] }
   | { type: 'SET_MODEL'; model: string }
+  | { type: 'SET_THINKING_LEVEL'; thinkingLevel: 'default' | 'minimal' | 'low' | 'medium' | 'high' }
   | { type: 'SET_IMAGE_SIZE'; imageSize: '2K' | '4K' }
   | { type: 'SET_ASPECT_RATIO'; payload: string }
   | { type: 'GENERATE_START'; templateImage: string; gridConfig?: { cols: number; rows: number; cellLabels: string[]; cellGroups?: CellGroup[]; aspectRatio?: string } }
@@ -383,6 +386,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, building: action.building };
     case 'SET_MODEL':
       return { ...state, model: action.model };
+    case 'SET_THINKING_LEVEL':
+      return { ...state, thinkingLevel: action.thinkingLevel };
     case 'SET_IMAGE_SIZE':
       return { ...state, imageSize: action.imageSize };
     case 'SET_ASPECT_RATIO':

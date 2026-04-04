@@ -9,6 +9,7 @@ const BASE_DELAY_MS = 2000;
 export const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 export const ALLOWED_IMAGE_SIZES = ['2K', '4K'];
 export const ALLOWED_ASPECT_RATIOS = ['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'];
+export const ALLOWED_THINKING_LEVELS = ['minimal', 'low', 'medium', 'high'];
 
 export const ALLOWED_MODELS = [
   'gemini-3.1-flash-image-preview',
@@ -68,7 +69,7 @@ export function createGenerateRouter(apiKey) {
    */
   router.post('/generate-grid', generateLimiter, async (req, res) => {
     try {
-      const { model, prompt, templateImage, imageSize = '2K', referenceImage, aspectRatio = '1:1' } = req.body;
+      const { model, prompt, templateImage, imageSize = '2K', referenceImage, aspectRatio = '1:1', thinkingLevel } = req.body;
 
       if (!model || !prompt || !templateImage) {
         return res.status(400).json({ error: 'model, prompt, and templateImage are required' });
@@ -92,6 +93,10 @@ export function createGenerateRouter(apiKey) {
 
       if (referenceImage?.mimeType && !ALLOWED_MIME_TYPES.includes(referenceImage.mimeType)) {
         return res.status(400).json({ error: `Invalid referenceImage mimeType. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}` });
+      }
+
+      if (thinkingLevel !== undefined && !ALLOWED_THINKING_LEVELS.includes(thinkingLevel)) {
+        return res.status(400).json({ error: `Invalid thinkingLevel. Allowed values: ${ALLOWED_THINKING_LEVELS.join(', ')}` });
       }
 
       const parts = [];
@@ -127,6 +132,10 @@ export function createGenerateRouter(apiKey) {
           imageSize,
         },
       };
+
+      if (thinkingLevel) {
+        generationConfig.thinkingConfig = { thinkingLevel };
+      }
 
       const body = {
         contents: [{ parts }],

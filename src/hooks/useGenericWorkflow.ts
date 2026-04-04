@@ -44,6 +44,7 @@ export interface PipelineParams {
   gridConfig: GridConfig;
   prompt: string;
   model: string;
+  thinkingLevel?: 'default' | 'minimal' | 'low' | 'medium' | 'high';
   imageSize: '2K' | '4K';
   spriteType: SpriteType;
   contentName: string;
@@ -65,7 +66,7 @@ export async function runGeneratePipeline(
   dispatch: Dispatch<Action>,
   signal: AbortSignal,
 ) {
-  const { gridConfig, prompt, model, imageSize, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
+  const { gridConfig, prompt, model, thinkingLevel, imageSize, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
 
   // 1. Generate template grid
   const isBackground = spriteType === 'background';
@@ -105,6 +106,7 @@ export async function runGeneratePipeline(
     signal,
     referenceImage,
     aspectRatio,
+    thinkingLevel,
   );
 
   if (signal.aborted) return null;
@@ -316,6 +318,7 @@ export function useGenericWorkflow(config: WorkflowConfig) {
         gridConfig,
         prompt,
         model: currentState.model,
+        thinkingLevel: currentState.thinkingLevel,
         imageSize: currentState.imageSize,
         spriteType: currentConfig.spriteType,
         contentName: content.name,

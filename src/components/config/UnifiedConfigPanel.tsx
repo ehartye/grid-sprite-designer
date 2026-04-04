@@ -27,7 +27,7 @@ import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } 
 import { EMPTY_GUIDANCE, getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import type { ContentPreset } from '../../types/api';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
-import { IMAGE_MODELS, getModel, formatCost, type ImageSize } from '../../lib/models';
+import { IMAGE_MODELS, getModel, formatCost, type ImageSize, type ThinkingLevel } from '../../lib/models';
 import '../../styles/run-builder.css';
 
 // ── Per-type configuration ──────────────────────────────────────────────────
@@ -482,6 +482,39 @@ export function UnifiedConfigPanel() {
           ))}
         </select>
       </div>
+
+      {/* Thinking Level — only for models that expose it */}
+      {getModel(state.model)?.supportsThinking && (
+        <div className="config-field">
+          <label htmlFor={`${idPrefix}-thinking`}>Thinking Level</label>
+          <select
+            id={`${idPrefix}-thinking`}
+            className="admin-select"
+            value={state.thinkingLevel}
+            onChange={(e) =>
+              dispatch({
+                type: 'SET_THINKING_LEVEL',
+                thinkingLevel: e.target.value as ThinkingLevel,
+              })
+            }
+          >
+            <option value="default">Default (model decides)</option>
+            <option value="minimal">Minimal — fastest, no reasoning</option>
+            <option value="low">Low — light reasoning</option>
+            <option value="medium">Medium — balanced</option>
+            <option value="high">High — deepest reasoning</option>
+          </select>
+          <p
+            style={{
+              margin: '4px 0 0',
+              fontSize: '0.7rem',
+              color: 'var(--text-muted, #888)',
+            }}
+          >
+            Higher levels improve complex layouts at the cost of latency.
+          </p>
+        </div>
+      )}
 
       {/* Image Size (2K / 4K) */}
       <div className="config-field">

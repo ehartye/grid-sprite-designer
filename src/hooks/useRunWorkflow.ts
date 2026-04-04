@@ -64,6 +64,7 @@ export function useRunWorkflow() {
         gridConfig,
         prompt,
         model: currentState.model,
+        thinkingLevel: currentState.thinkingLevel,
         imageSize: run.imageSize,
         spriteType: run.spriteType,
         contentName: contentPreset.name,

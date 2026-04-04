@@ -138,6 +138,7 @@ export function useAddSheet() {
         gridConfig,
         prompt,
         model: currentState.model,
+        thinkingLevel: currentState.thinkingLevel,
         imageSize,
         spriteType,
         contentName: contentPreset.name,

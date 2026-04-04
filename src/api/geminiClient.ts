@@ -15,9 +15,11 @@ export async function generateGrid(
   signal?: AbortSignal,
   referenceImage?: { data: string; mimeType: string },
   aspectRatio: string = '1:1',
+  thinkingLevel?: 'default' | 'minimal' | 'low' | 'medium' | 'high',
 ): Promise<GridGenerateResult> {
   const body: Record<string, unknown> = { model, prompt, templateImage, imageSize, aspectRatio };
   if (referenceImage) body.referenceImage = referenceImage;
+  if (thinkingLevel && thinkingLevel !== 'default') body.thinkingLevel = thinkingLevel;
 
   const response = await fetch('/api/generate-grid', {
     method: 'POST',
