@@ -9,21 +9,7 @@ export function seedCharacterPresets(db) {
       description: "A noble paladin with shoulder-length silver-white hair, strong jawline, and piercing blue eyes. Medium athletic build. Stands with confident, upright posture.",
       equipment: "Ornate white-and-gold plate armor with a blue cape, wielding a holy longsword with a glowing blade. Shield with a sun emblem on his back.",
       colorNotes: "Silver-white hair, blue eyes. White and gold armor with blue accents. Cape is royal blue with gold trim.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Cecil strides forward with his left foot leading, holy longsword held at his right side and blue cape swaying to the right. His silver-white hair shifts slightly with the step.
-  Header "Walk Down 2" (0,1): Cecil stands in a neutral mid-step contact pose with feet together, cape hanging straight and sword arm relaxed at his side. His blue eyes look directly ahead.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads forward, cape swaying to the left, sword at his left side. Silver-white hair shifts in the opposite direction.
-  Header "Walk Up 1" (0,3): Cecil faces away from the viewer with his left foot forward, the royal blue cape and sun-emblem shield dominating the back view. Gold trim on the cape catches the light.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, feet together, cape draping straight down over the shield. The gold-and-white armor plating is visible on his shoulders.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, cape swaying to the opposite side. The shield and fold of the cape flow with his stride.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Cecil faces left with his left foot forward, longsword in his leading hand pointing slightly ahead. The shield on his back is visible and the cape trails behind him.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, feet aligned, sword arm relaxed at his side. The blue cape hangs naturally and his silver-white hair frames his profile.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, sword position reversed. Cape swings forward slightly with the stride.
-  Header "Walk Right 1" (1,3): Cecil faces right with his right foot forward, longsword extended ahead in his leading hand. The blue cape trails behind and the gold armor trim glints.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, feet together, cape draping naturally. His strong jawline and determined expression are visible in profile.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, cape swinging forward slightly. Sword arm trails behind.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Cecil stands relaxed facing the viewer, longsword held loosely at his right side with the blade pointing down. Cape drapes naturally and his expression is calm and noble.
@@ -56,6 +42,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Cecil plants the longsword into the ground before him and crosses his arms, standing confidently. The cape drapes regally and the blade still faintly glows.
   Header "Weak Pose" (5,4): Cecil kneels on one knee using the longsword as a crutch, panting with visible exhaustion. His armor is scuffed and the cape is torn at the edges.
   Header "Critical Pose" (5,5): Desperate last stand — Cecil barely stands with cracked armor plates, the holy aura around his sword flickering weakly. His blue eyes burn with defiant resolve.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Cecil strides South with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back.",
+        "Walk North Animation Frames": "Cecil strides North with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back.",
+        "Walk West Animation Frames": "Cecil strides West with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back.",
+        "Walk East Animation Frames": "Cecil strides East with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back."
+      },
     },
     {
       id: 'vivienne-scholar',
@@ -64,21 +56,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A studious mage with chin-length dark auburn hair, round spectacles, and warm brown eyes. Petite frame with a thoughtful expression and slightly hunched scholarly posture.",
       equipment: "Flowing purple robes with gold embroidered runes, carrying a thick leather-bound tome in one hand and a crystal-topped staff in the other. A satchel of scrolls at her hip.",
       colorNotes: "Dark auburn hair, brown eyes. Deep purple robes with gold trim and rune patterns. Staff crystal is pale violet. Book is brown leather with gold clasps.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Vivienne steps forward with her left foot, the leather-bound tome tucked securely under her left arm and the crystal staff in her right hand. Her purple robes swish to the right.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, spectacles catching a glint of light. The staff rests upright at her side and the tome is held against her chest.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot forward, robes swishing to the left. The satchel of scrolls at her hip bounces gently with the step.
-  Header "Walk Up 1" (0,3): Vivienne faces away, the scroll satchel visible at her hip and the gold rune embroidery on the back of her robes on full display. Left foot leads forward.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, feet together. The gold-embroidered rune patterns on her purple robes are clearly visible across her back.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, satchel swinging slightly. The pale violet crystal atop her staff glows softly.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Vivienne faces left with her left foot forward, tome held close to her chest and crystal staff extended slightly ahead. The scroll satchel bounces at her far hip.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, feet aligned. Her chin-length auburn hair sways gently and the staff rests upright beside her.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, robes swaying forward. The staff crystal pulses with a faint violet light.
-  Header "Walk Right 1" (1,3): Vivienne faces right with her right foot forward, crystal staff leading the way with a soft glow. The tome is tucked under her trailing arm.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, spectacles visible in profile. Her petite frame and slightly hunched scholarly posture are evident.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, robes trailing. The satchel of scrolls sways with her stride.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Vivienne stands facing the viewer reading her tome absently, staff resting on her right shoulder. Her spectacles sit low on her nose and her expression is absorbed in thought.
@@ -111,6 +89,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Vivienne tucks the tome under her arm and pushes her spectacles up confidently, staff planted at her side. A few arcane glyphs orbit her like fireflies.
   Header "Weak Pose" (5,4): Vivienne leans heavily on her staff for support, the crystal barely glowing. The tome is clutched tightly to her chest and she pants through parted lips.
   Header "Critical Pose" (5,5): Barely standing, Vivienne holds the open tome before her as its pages swirl protectively in a defensive barrier. Her spectacles are cracked and the staff crystal sputters.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "While walking, Vivienne the Scholar holds her spell book under her left arm and her crystal staff in her right hand, held upright. Her satchel of scrolls bounces gently on her left hip.",
+        "Walk North Animation Frames": "While walking, Vivienne the Scholar holds her spell book under her left arm and her crystal staff in her right hand, held upright. Her satchel of scrolls bounces gently on her left hip.",
+        "Walk West Animation Frames": "While walking, Vivienne the Scholar holds her spell book under her left arm and her crystal staff in her right hand, held upright. Her satchel of scrolls bounces gently on her left hip.",
+        "Walk East Animation Frames": "While walking, Vivienne the Scholar holds her spell book under her left arm and her crystal staff in her right hand, held upright. Her satchel of scrolls bounces gently on her left hip."
+      },
     },
     {
       id: 'kael-thornwood',
@@ -119,21 +103,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A lithe elven ranger with long braided golden hair, pointed ears, and sharp green eyes. Lean athletic build with graceful, balanced stance.",
       equipment: "Supple forest-green leather armor with a brown hooded cloak, carrying an elegant longbow across his back and a quiver of silver-tipped arrows. A hunting knife at his belt.",
       colorNotes: "Golden blonde hair, bright green eyes. Forest-green leather with brown cloak and belt. Bow is pale wood with silver inlay. Arrow fletching is emerald green.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Kael steps forward on his left foot with a light elven stride, the brown cloak swaying gently to the right. The longbow across his back and quiver of silver-tipped arrows are visible over his shoulder.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose, feet together, cloak draping naturally. His sharp green eyes look ahead and his braided golden hair hangs over one shoulder.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, cloak swaying left. The emerald-green arrow fletching peeks from the quiver and the hunting knife glints at his belt.
-  Header "Walk Up 1" (0,3): Kael faces away with left foot forward, the brown cloak and quiver dominating the back view. His braided golden hair runs down the center of his back.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, feet together. The pale wood longbow with silver inlay is clearly visible strapped across his back over the cloak.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, cloak swishing. The quiver of emerald-fletched arrows sways with his movement.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Kael faces left with his left foot forward in a silent, graceful step. The longbow is visible on his back, hunting knife at his belt, and his pointed ears peek through golden hair.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, weight balanced. His lean silhouette shows the forest-green leather armor and the cloak trailing behind.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, cloak swaying forward. His braided hair trails behind his pointed ear.
-  Header "Walk Right 1" (1,3): Kael faces right with his right foot forward, braided golden hair trailing behind him. The brown cloak flows back and the quiver is visible on his far side.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, his lean athletic profile visible. The silver inlay on the longbow catches light against the cloak.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, cloak trailing. His sharp green eyes scan ahead and his pointed ear is prominent.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Kael stands in a calm watchful stance facing the viewer, right hand resting near the hunting knife at his belt. His pointed ears are alert and his green eyes scan the surroundings.
@@ -166,6 +136,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Kael slings the bow over his shoulder and crosses his arms, smirking with elven grace. A few emerald-fletched arrows remain in his quiver.
   Header "Weak Pose" (5,4): Kael uses the longbow as a crutch to stay upright, panting heavily. His cloak is tattered, the quiver nearly empty, and his green eyes are weary.
   Header "Critical Pose" (5,5): Barely standing, Kael draws his last silver-tipped arrow with trembling hands. His aim wavers but his jaw is set with elven determination.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Kael walks South with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt.",
+        "Walk North Animation Frames": "Kael walks North with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt.",
+        "Walk West Animation Frames": "Kael walks West with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt.",
+        "Walk East Animation Frames": "Kael walks East with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt."
+      },
     },
     {
       id: 'chrono-blade',
@@ -174,21 +150,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A time-traveling swordsman with spiky dark blue hair, a determined gaze, and a glowing temporal sigil on his forehead. Athletic build with a dynamic, forward-leaning combat stance.",
       equipment: "Sleek silver-gray light armor with crimson accents, a flowing red scarf that trails behind him, and a gleaming katana with a clock-gear guard. A small chrono-device on his left wrist.",
       colorNotes: "Dark blue spiky hair, amber eyes. Silver-gray armor with red accents and scarf. Katana blade has a faint blue temporal glow. Wrist device pulses cyan.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Chrono Blade steps forward on his left foot, the red scarf trailing dynamically to the right. His katana is sheathed at his left hip and the chrono-device on his wrist pulses with faint cyan light.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose, feet together. His spiky dark blue hair frames the glowing temporal sigil on his forehead. The red scarf settles momentarily.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot forward, scarf trailing to the left. The clock-gear guard on the sheathed katana is visible at his hip.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the long red scarf streams behind him prominently. The silver-gray armor with crimson accents covers his back and the katana hilt protrudes at his hip.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, scarf hanging straight. The crimson accents on his silver-gray armor form angular lines across his back.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, scarf streaming to the opposite side. The chrono-device is barely visible on his trailing wrist.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Chrono Blade faces left with his left foot forward in a brisk stride. The katana hilt juts forward at his hip and the red scarf trails behind his athletic frame.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his profile showing the temporal sigil glowing on his forehead. The chrono-device on his near wrist pulses cyan.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, scarf swinging forward. His spiky dark blue hair sweeps back with the motion.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, katana hilt trailing behind his hip. The red scarf flows dynamically behind him and amber eyes look ahead with determination.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, feet together. The silver-gray armor crimson accent lines are visible along his side. The temporal sigil glows softly.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, scarf whipping behind. The chrono-device on his far wrist flashes briefly.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Chrono Blade stands facing the viewer with his right hand resting on the sheathed katana hilt, scarf drifting lazily. His amber eyes are watchful and the temporal sigil glows faintly.
@@ -221,6 +183,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Standing tall with arms crossed, the sheathed katana at his side and scarf drifting in slow motion. The chrono-device projects small celebratory cyan sparks.
   Header "Weak Pose" (5,4): Chrono Blade hunches forward, one hand on his knee and the other gripping the katana loosely. The chrono-device malfunctions, flickering between states, and his afterimage stutters.
   Header "Critical Pose" (5,5): Barely standing, he grips the katana with both hands as the chrono-device crackles erratically. His body flickers with translucent temporal duplicates and his scarf is tattered.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Chrono Blade strides South with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light.",
+        "Walk North Animation Frames": "Chrono Blade strides North with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light.",
+        "Walk West Animation Frames": "Chrono Blade strides West with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light.",
+        "Walk East Animation Frames": "Chrono Blade strides East with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light."
+      },
     },
     {
       id: 'shadow-weaver',
@@ -229,21 +197,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A stealthy assassin with short-cropped black hair, pale skin, and narrow violet eyes that gleam in darkness. Slim, agile build with a low crouching ready stance.",
       equipment: "Form-fitting dark leather armor with deep purple trim, a half-face mask covering the lower face, twin curved daggers with serrated edges, and a belt of throwing knives. A dark hooded cloak with a tattered hem.",
       colorNotes: "Black hair, violet eyes, pale skin. Very dark charcoal leather armor with deep purple accents. Daggers are dark steel with purple gem pommels. Cloak is near-black with purple lining.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Shadow Weaver skulks forward on her left foot in a low predatory stride. The dark hooded cloak obscures most of her body and the twin daggers are hidden beneath it. Her violet eyes gleam above the half-face mask.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, crouched slightly. The tattered cloak hem brushes the ground and her narrow violet eyes scan watchfully ahead.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, cloak swaying in the opposite direction. The deep purple lining of the cloak flashes briefly as it shifts.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the dark hooded cloak dominates the view with its tattered hem trailing. The belt of throwing knives is barely visible beneath the cloak edge.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the near-black cloak hanging still. The deep purple trim on her leather armor peeks at the collar where the hood meets the shoulders.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, cloak shifting. The purple lining catches dim light as the tattered hem sways.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Shadow Weaver faces left in a low skulking crouch, left foot forward. The cloak wraps tightly around her slim frame, concealing the daggers. Only her violet eyes and the mask are visible in profile.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, her slim silhouette barely visible within the dark cloak. The tattered hem drags slightly and her pale skin contrasts against charcoal leather.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, cloak rippling forward. A glint of dark steel shows where a dagger hilt sits beneath the cloak.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward in a stealthy crouch. The cloak trails behind revealing the form-fitting dark leather armor and purple trim along her side.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, crouched low. Her short-cropped black hair is visible beneath the hood and the half-face mask covers her sharp features.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, cloak swirling behind. The belt of throwing knives briefly flashes at her waist.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Shadow Weaver crouches facing the viewer, hood up and violet eyes scanning. Her right hand rests on a concealed dagger hilt beneath the cloak. Small wisps of shadow drift at her feet.
@@ -276,6 +230,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Shadow Weaver melts briefly into shadow and reappears standing confidently with daggers sheathed, arms crossed. The cloak settles around her with dramatic flair.
   Header "Weak Pose" (5,4): Crouching low with one dagger as support, her shadow form is unstable — edges of her body flicker between solid and vapor. The mask is cracked and her breathing is ragged.
   Header "Critical Pose" (5,5): Barely holding form, her body phases in and out of shadow uncontrollably. One dagger is gone, the other gripped desperately. Her violet eyes flicker like dying embers.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Shadow Weaver skulks South in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground.",
+        "Walk North Animation Frames": "Shadow Weaver skulks North in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground.",
+        "Walk West Animation Frames": "Shadow Weaver skulks West in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground.",
+        "Walk East Animation Frames": "Shadow Weaver skulks East in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground."
+      },
     },
     {
       id: 'ignis-pyromancer',
@@ -284,21 +244,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A fierce fire sorceress with long, wild flame-red hair that seems to flicker at the tips, bright orange eyes, and warm bronze skin. Medium build with an assertive, wide-footed stance.",
       equipment: "Layered crimson and burnt-orange robes with ember-like particles drifting from the hems, ornate gold bracers on both wrists, and a staff topped with a caged fireball. A fire-opal pendant at her throat.",
       colorNotes: "Flame-red hair with orange-yellow tips, orange eyes, bronze skin. Crimson and burnt-orange robes. Gold bracers and pendant. Staff fire is bright orange-yellow. Ember particles are orange-red.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Ignis strides forward on her left foot, flame-red hair swaying with orange-yellow tips flickering. Small embers drift from her crimson robe hems and the caged fireball on her staff pulses warmly.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose, feet together. Her bright orange eyes look ahead, the fire-opal pendant glows at her throat, and a few embers float lazily around her robes.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot forward, hair swaying opposite. The gold bracers on her wrists catch firelight and ember particles trail from the other side of her robes.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the layered crimson and burnt-orange robes fill the view with small embers drifting upward. Her wild flame-red hair cascades down her back.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, robes hanging still. The caged fireball atop her staff glows steadily above her right shoulder. Ember particles drift lazily upward.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, robes swishing. The flame-red hair tips flicker orange-yellow against the crimson fabric.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Ignis faces left with her left foot forward, staff held upright with the caged fireball leading. Her wild hair streams behind her and embers trail from her robe hems.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, her bronze-skinned profile visible. The gold bracers glint and the fire-opal pendant catches light at her throat.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, hair swinging forward. Ember particles scatter in her wake from the disturbed robes.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, flame-red hair trailing dramatically behind. The staff fireball illuminates her assertive stride and embers drift from the robe edges.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the layered robes draping naturally. Her bright orange eyes are visible in profile and the pendant glows warm.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, hair flowing back. The gold bracers flash as her arms swing and embers scatter behind her.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Ignis stands in a wide-footed stance facing the viewer, staff resting beside her. Embers drift lazily from her robe hems and her flame-red hair tips glow softly.
@@ -331,6 +277,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Ignis plants the staff and stands with her free hand on her hip, flames dancing along her hair. The fire-opal pendant pulses victoriously and embers float in celebration.
   Header "Weak Pose" (5,4): Ignis leans on the staff with both hands, flames barely flickering at her hair tips. The caged fireball is dim, the pendant cracked, and her breathing comes in heavy gasps.
   Header "Critical Pose" (5,5): Barely standing in a wide desperate stance, her flames are reduced to faint flickers. The gold bracers are fractured, the staff fireball gutters, and only her blazing orange eyes remain defiant.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Ignis strides South with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly.",
+        "Walk North Animation Frames": "Ignis strides North with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly.",
+        "Walk West Animation Frames": "Ignis strides West with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly.",
+        "Walk East Animation Frames": "Ignis strides East with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly."
+      },
     },
     {
       id: 'mx-zero',
@@ -339,21 +291,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A heroic robot with a rounded blue helmet featuring a red gem on the forehead, expressive green eyes, and a compact humanoid frame. Solid, balanced stance with one arm transformed into a cannon.",
       equipment: "Sleek blue and cyan armor plating over a dark bodysuit, with white joints and accents. Right arm is a modular arm cannon with a glowing cyan barrel. Armored boots with jet boosters.",
       colorNotes: "Primary blue armor with cyan highlights. White joint segments and trim. Dark navy bodysuit underneath. Helmet gem is red. Arm cannon glows cyan. Boot jets are orange when active.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): MX-Zero steps forward on his left foot with a precise mechanical stride, arm cannon held at ready position by his right side. The red helmet gem pulses faintly and the cyan barrel glows.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose, feet together. His expressive green eyes look directly ahead and the blue armor plating gleams. The white joint segments flex cleanly.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot forward, arm cannon now on the left side. The boot jet boosters show faint orange vents at the heels.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the blue and cyan armor plating covers his back. The arm cannon is visible at his right side and the jet booster ports on his boots glow faintly orange.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the dark navy bodysuit visible at the joints between blue armor plates. The red helmet gem is visible from behind as a slight glow.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, arm cannon on the opposite side. White joint accents catch the light as his limbs move.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): MX-Zero faces left with left foot forward, arm cannon pointing ahead. His compact humanoid frame shows clean blue plating and the cyan barrel glows. The helmet profile reveals the red gem.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his balanced mechanical stance evident. The white joint segments are visible at the knees and elbows. Green eyes scan forward.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The arm cannon swings slightly with the stride and the boot jets show faint heat shimmer.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, arm cannon trailing behind. The blue helmet with red gem is visible in profile and cyan highlights trace the armor edges.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, compact frame in balanced stance. The dark bodysuit shows between the blue armor plates at the waist joint.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, arm cannon swinging forward. The boot jet ports flicker with faint orange.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): MX-Zero stands in a relaxed scanning mode facing the viewer, arm cannon lowered and barrel dim. His green eyes blink in a friendly manner and the helmet gem pulses softly red.
@@ -386,6 +324,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): MX-Zero gives a thumbs-up with his left hand, the arm cannon resting on his hip. His green eyes form a friendly expression and the boot jets puff a tiny orange burst.
   Header "Weak Pose" (5,4): MX-Zero stands unsteadily, one knee slightly buckled. His systems are failing — static flickers in his green eyes, the arm cannon is powered down, and the helmet gem sputters.
   Header "Critical Pose" (5,5): Barely operational, MX-Zero leans forward with the arm cannon flickering between charged and dead. Exposed wiring sparks, armor panels hang loose, and his green eyes strobe with static.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "MX-Zero steps South with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
+        "Walk North Animation Frames": "MX-Zero steps North with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
+        "Walk West Animation Frames": "MX-Zero steps West with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
+        "Walk East Animation Frames": "MX-Zero steps East with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat."
+      },
     },
     {
       id: 'hayate-ninja',
@@ -394,21 +338,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A swift ninja with a dark blue head wrap leaving only sharp grey eyes visible, lean and agile build, always appearing mid-motion even when standing still.",
       equipment: "Dark blue-black fitted shinobi armor with silver arm guards and shin guards, a long trailing silver-white scarf, a ninjato sword strapped to his back, and shuriken holstered at his waist.",
       colorNotes: "Dark blue-black armor and head wrap. Grey eyes. Silver-white scarf and metallic silver guards. Ninjato handle is wrapped in dark blue cord. Shuriken are polished steel.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Hayate dashes forward on his left foot in a swift ninja stride, barely touching the ground. The long silver-white scarf trails dynamically to the right and his dark blue head wrap frames sharp grey eyes.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose, feet together in a light crouch. The scarf hangs briefly still and the ninjato hilt is visible over his right shoulder. Silver arm guards glint.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, scarf trailing to the left. The shuriken holstered at his waist catch a flash of polished steel as he moves.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the ninjato strapped to his back dominates the view with its dark blue cord-wrapped handle. The silver-white scarf streams behind him.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the dark blue-black shinobi armor visible across his back. The silver shin guards catch light below the ninjato sheath.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, scarf flowing to the opposite side. The lean silhouette shows his agile build in motion.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Hayate faces left in a rapid dash, left foot forward and body low. The silver-white scarf trails long behind him and the ninjato handle protrudes above his far shoulder.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, crouched and ready. His sharp grey eyes peer from the head wrap and the silver arm guards protect his leading forearms.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, scarf whipping forward. His lean body barely seems to touch the ground as he moves.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward in a swift dash. The silver-white scarf streams behind and the shuriken at his waist are visible in profile. Grey eyes focus ahead.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the dark blue-black armor sleek against his agile frame. The silver shin guards shine and the head wrap tails flutter.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, scarf trailing. The ninjato handle is visible above his shoulder as he sprints.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Hayate stands with arms crossed facing the viewer, the silver-white scarf drifting in an unseen wind. Despite standing still, his crouch suggests coiled potential. Grey eyes are calm but alert.
@@ -441,6 +371,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Hayate stands with the ninjato resting on his shoulder, head tilted with casual confidence. A single shuriken spins on his fingertip and the silver-white scarf drifts in the breeze.
   Header "Weak Pose" (5,4): Hayate leans heavily on the ninjato planted in the ground, panting. His scarf is tattered and dragging, the silver arm guards are dented, and his grey eyes are weary but defiant.
   Header "Critical Pose" (5,5): Barely standing, Hayate grips the ninjato with both trembling hands. His head wrap is half-unwound, the scarf is shredded, and his breathing is visible and labored.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Hayate dashes South in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light.",
+        "Walk North Animation Frames": "Hayate dashes North in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light.",
+        "Walk West Animation Frames": "Hayate dashes West in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light.",
+        "Walk East Animation Frames": "Hayate dashes East in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light."
+      },
     },
     {
       id: 'sgt-nova',
@@ -449,21 +385,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A hardened space marine with a full visor helmet showing a green HUD glow, bulky power-armored frame, and a commanding military bearing.",
       equipment: "Heavy olive-green and gunmetal power armor with reinforced shoulder plates, a large plasma rifle held at the ready, ammo pouches on the belt, and a jet pack module on the back.",
       colorNotes: "Olive-green primary armor with gunmetal-gray secondary plates. Visor glows green. Plasma rifle has a blue energy cell. Jet pack has orange thruster ports. Belt pouches are dark brown.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Sgt. Nova marches forward on his left foot with heavy, deliberate steps, the plasma rifle held at ready across his chest. The green visor HUD glows and the olive-green armor clanks with each stride.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose, feet together, rifle shouldered. The reinforced shoulder plates frame his helmeted head and the jet pack vents glow faintly orange on his back.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, rifle swaying to the opposite side. The ammo pouches on his belt bounce and the gunmetal secondary plates catch the light.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the jet pack module dominates the back view with its orange thruster ports. The heavy power armor and plasma rifle barrel are visible over his shoulder.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the olive-green and gunmetal armor covering his broad back. The reinforced shoulder plates jut prominently and the belt pouches hang at his sides.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, jet pack shifting with his stride. The plasma rifle blue energy cell glows through the weapon housing.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Sgt. Nova faces left with left foot forward in a disciplined march, plasma rifle leading. His bulky power-armored silhouette shows the reinforced shoulder plate and the green visor in profile.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, rifle at port arms. The jet pack is visible on his far side and the dark brown ammo pouches line his belt.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, heavy footfall evident. The gunmetal secondary plates protect his near flank.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the plasma rifle held at the ready. The jet pack module is on his far side and the green visor HUD scans ahead.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, commanding military bearing evident. The reinforced shoulder plate and olive-green armor create a formidable profile.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, armor clanking. The blue energy cell on the plasma rifle glows in its housing.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Sgt. Nova stands at parade rest facing the viewer, plasma rifle shouldered with barrel up. The green visor glows steadily and his commanding posture fills the frame with power armor bulk.
@@ -496,6 +418,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Sgt. Nova rests the rifle on his shoulder with casual confidence, helmet tilted slightly. The green visor reflects the aftermath and the jet pack vents steam in satisfaction.
   Header "Weak Pose" (5,4): Sgt. Nova leans heavily on the plasma rifle as a crutch, visor cracked with a flickering green glow. Coolant leaks from a damaged armor joint and his jet pack is offline.
   Header "Critical Pose" (5,5): Barely standing in failing armor, Sgt. Nova holds the plasma rifle one-handed, the energy cell nearly depleted. The visor is cracked and sputtering, one shoulder plate is gone, and servos whine.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Sgt. Nova marches South with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
+        "Walk North Animation Frames": "Sgt. Nova marches North with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
+        "Walk West Animation Frames": "Sgt. Nova marches West with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
+        "Walk East Animation Frames": "Sgt. Nova marches East with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride."
+      },
     },
     {
       id: 'gel-slime',
@@ -504,21 +432,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A small, round, translucent blue slime creature with a jiggly gelatinous body. Two large, expressive dark eyes with white highlights sit near the top of its body. A perpetual happy expression with a tiny curved mouth.",
       equipment: "",
       colorNotes: "Translucent sky-blue body with lighter blue highlights on top and darker blue shadow at the base. Eyes are large and dark with bright white shine spots. A faint inner glow gives it a jewel-like quality.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Gel Slime squishes down and bounces forward to the left, its translucent sky-blue body compressing flat before springing up. The large dark eyes with white highlights squish down with the body, maintaining a happy expression.
-  Header "Walk Down 2" (0,1): At the peak of a bounce, Gel Slime is stretched tall and narrow in mid-air with the faint inner glow brightening. Its eyes are wide and round at the top of its elongated body.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — bouncing to the right, body compressed flat on landing. The darker blue shadow at the base spreads wider and the lighter highlights on top squish sideways.
-  Header "Walk Up 1" (0,3): Gel Slime bounces forward facing away, showing the rounded back of its translucent body. The inner glow is visible through the gelatinous form and the base shadow compresses on landing.
-  Header "Walk Up 2" (0,4): Peak of bounce facing away, stretched tall. The jewel-like inner glow is most visible from behind when the body is elongated and thinner.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — bouncing the other direction facing away, body squished flat. The translucent quality shows the darker blue shadow spreading beneath.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Gel Slime squishes and bounces to the left, body tilting in the direction of movement. Its large eyes and tiny curved mouth are visible in profile and the translucent body wobbles with jelly physics.
-  Header "Walk Left 2" (1,1): Mid-bounce facing left, stretched tall and leaning forward. The lighter blue highlight catches light on the top surface and the body ripples with gelatinous movement.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — landing from the bounce, body compressed wide. The dark base shadow spreads and the eyes squish down humorously with the rest of its form.
-  Header "Walk Right 1" (1,3): Gel Slime bounces to the right, body tilting rightward. The translucent sky-blue form shows the inner glow shifting with momentum and the tiny happy mouth curves upward.
-  Header "Walk Right 2" (1,4): Mid-bounce facing right, elongated and stretchy. The white eye highlights shine brightly at the top of the tall form and the faint inner glow pulses.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — landing squish, body flattened wide. The jelly wobble ripples outward from the impact point and the eyes bounce within the gelatinous body.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Gel Slime sits in a gentle idle wobble facing the viewer, body jiggling slightly. Its large dark eyes blink contentedly with bright white highlights and the tiny curved mouth smiles. The inner glow pulses softly.
@@ -551,6 +465,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Landing from the bounce, Gel Slime jiggles contentedly with a satisfied expression. Its large eyes shine with delight and the inner glow pulses warmly. A few last sparkles fade around it.
   Header "Weak Pose" (5,4): Gel Slime sags and droops, body semi-transparent and barely holding its round shape. The eyes are half-closed and tired, the inner glow is very faint, and the edges of its body waver.
   Header "Critical Pose" (5,5): Nearly dissolved, Gel Slime is a wobbly semi-flat blob barely maintaining form. Its eyes are dim and unfocused, the body is almost fully transparent, and it trembles with the effort of staying together.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Gel Slime squishes and bounces South with jelly-physics wobble, its translucent sky-blue body compressing on landing and stretching tall mid-bounce. The faint inner glow brightens with each rebound and the happy expression stays locked no matter how the body deforms.",
+        "Walk North Animation Frames": "Gel Slime squishes and bounces North with jelly-physics wobble, its translucent sky-blue body compressing on landing and stretching tall mid-bounce. The faint inner glow brightens with each rebound and the happy expression stays locked no matter how the body deforms.",
+        "Walk West Animation Frames": "Gel Slime squishes and bounces West with jelly-physics wobble, its translucent sky-blue body compressing on landing and stretching tall mid-bounce. The faint inner glow brightens with each rebound and the happy expression stays locked no matter how the body deforms.",
+        "Walk East Animation Frames": "Gel Slime squishes and bounces East with jelly-physics wobble, its translucent sky-blue body compressing on landing and stretching tall mid-bounce. The faint inner glow brightens with each rebound and the happy expression stays locked no matter how the body deforms."
+      },
     },
     {
       id: 'magma-wyrm',
@@ -559,21 +479,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A small but fearsome fire-breathing dragon with molten orange-red scales, two curved horns, a ridged back, and a spiked tail. Bat-like wings folded at its sides. Fierce yellow eyes with slit pupils and an open mouth revealing glowing fangs.",
       equipment: "",
       colorNotes: "Molten orange-red scales with darker crimson underbelly. Bright yellow-orange cracks between scales suggesting inner magma. Horns and claws are dark charcoal. Wing membranes are deep red. Eyes are fierce yellow. Mouth interior glows orange.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Magma Wyrm lumbers forward on its left fore-claw, the molten orange-red scales shifting as muscles move beneath. Its bat-like wings are folded tight, spiked tail swishing to the right, and small lava drops drip from its open jaws.
-  Header "Walk Down 2" (0,1): Neutral mid-step with all four claws planted, the ridged back arching slightly. Its fierce yellow slit-pupil eyes face the viewer and the bright yellow-orange cracks between scales glow steadily.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right fore-claw leads, spiked tail swishing left. The curved dark charcoal horns frame its glowing-fanged mouth and lava drops trail from the opposite side.
-  Header "Walk Up 1" (0,3): Facing away with left fore-claw forward, the ridged back and folded wing membranes fill the view. The spiked tail sways and the deep red wing membranes peek from the folded position.
-  Header "Walk Up 2" (0,4): Neutral stance facing away, the dark charcoal horns curving from the back of its head. The bright magma cracks between the dorsal scales glow warmly and the tail rests.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right fore-claw forward facing away, tail swishing opposite. The crimson underbelly is barely visible beneath the folded wings.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Magma Wyrm faces left with its left claws forward in a lumbering reptilian gait. The folded wings press against its flank, spiked tail trailing behind, and smoke wisps from its nostrils.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, all claws planted. The profile shows the curved horns, ridged back, and the orange glow of its open mouth. Wing membranes fold neatly.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right claws lead while facing left. The spiked tail swings forward and the magma cracks between scales pulse with each step.
-  Header "Walk Right 1" (1,3): Facing right with right claws forward, the wyrm strides heavily. Lava drips from its jaws, the spiked tail trails behind, and the fierce yellow eyes scan ahead.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the crimson underbelly visible below. The dark charcoal claws grip the ground and the folded bat-like wings are tucked against the body.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left claws lead while facing right, tail swinging. The molten orange-red scales shimmer with heat and magma cracks glow brighter with movement.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Magma Wyrm sits on its haunches facing the viewer, wings twitching at its sides. Thin smoke curls from its nostrils and the fierce yellow eyes watch lazily. The magma cracks pulse with slow heat.
@@ -606,6 +512,11 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Magma Wyrm settles into a proud sitting pose, wings folded neatly and spiked tail curled around its body. Small flames flicker contentedly from its nostrils and the magma cracks pulse warmly.
   Header "Weak Pose" (5,4): The wyrm hunches low, wings drooping and barely folded. Most magma cracks have cooled to dim orange, the eyes are half-lidded, and only faint smoke rises from its closed mouth.
   Header "Critical Pose" (5,5): Barely standing on trembling claws, the wyrm is mostly cooled grey stone with only a few faint orange cracks remaining. Its eyes are barely yellow slits and the wings drag on the ground.`,
+      groupGuidance: {
+        "Walk North Animation Frames": "While walking, the Magma Wyrm's tail swishes from side-to-side, lava dripping from its mouth.",
+        "Walk West Animation Frames": "While walking, the Magma Wyrm's tail swishes from side-to-side, lava dripping from its mouth.",
+        "Walk East Animation Frames": "While walking, the Magma Wyrm's tail swishes from side-to-side, lava dripping from its mouth."
+      },
     },
     {
       id: 'mosskin-spirit',
@@ -614,21 +525,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A gentle forest spirit NPC whose body is formed from intertwined bark, leaves, and moss. A rounded head with two large glowing green eyes and a small peaceful smile. Short stubby limbs with leaf-like hands. Small flowers and mushrooms sprout from its shoulders.",
       equipment: "",
       colorNotes: "Body is mottled brown bark with patches of vibrant green moss. Leaves are various greens from bright lime to deep forest green. Eyes glow soft emerald. Flowers are tiny white and pale yellow. Mushrooms are red with white spots. A faint green aura surrounds it.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Mosskin Spirit waddles forward on its left stubby leg, the bark-and-moss body tilting gently. The small flowers on its shoulders bob and the red-spotted mushrooms sway. Tiny green spores drift from its mossy patches.
-  Header "Walk Down 2" (0,1): Neutral mid-step with both stubby legs together, the rounded head facing the viewer. Its large glowing emerald eyes blink peacefully and the small mouth curves in its gentle smile.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right stubby leg leads, body tilting the other way. The leaf-like hands wave for balance and the shoulder flowers bob in the opposite direction.
-  Header "Walk Up 1" (0,3): Facing away with left leg forward, the mottled brown bark back is visible with patches of vibrant green moss. The shoulder mushrooms and flowers are seen from behind with the faint green aura.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the intertwined bark texture covering its rounded back. Small leaves of various greens protrude from its form and tiny spores drift upward.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right leg forward facing away, body tilting. The red-and-white spotted mushrooms sway and the pale yellow flowers nod with the waddling motion.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Mosskin Spirit waddles left on its left stubby leg, leaf-like hands reaching forward. Its profile shows the rounded bark head, glowing emerald eye, and the shoulder mushrooms and flowers.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, stubby legs together. The mottled bark body with moss patches is visible in profile and the faint green aura outlines its gentle form.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right leg leads while facing left. The flowers bob forward and spores trail behind the waddling spirit in a small green cloud.
-  Header "Walk Right 1" (1,3): Facing right with right stubby leg forward, the leaf-like hands wave gently. The shoulder flowers lean forward with momentum and the peaceful smile is visible in profile.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, body upright. The various green leaves protruding from its bark body catch the light and the emerald eye glows softly.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left leg leads while facing right, mushrooms swaying. The gentle waddling motion sends tiny spores drifting from its mossy patches.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Mosskin Spirit sways gently like a tree in a breeze, facing the viewer. The shoulder mushrooms pulse with faint bioluminescence and the large emerald eyes blink slowly and contentedly.
@@ -661,6 +558,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Mosskin Spirit settles into a content pose, flowers in full bloom and mushrooms glowing softly. Its peaceful smile widens and it hugs itself with its stubby leaf-hands.
   Header "Weak Pose" (5,4): The spirit droops visibly, leaves wilting and turning brown at the edges. The mushrooms are shriveled and the flowers have closed. Its emerald eyes are dim and it sways unsteadily.
   Header "Critical Pose" (5,5): Barely standing, the bark body is cracked throughout and most leaves have browned and fallen. The emerald eyes are faint flickers, the aura is nearly invisible, and it trembles like a dying plant.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Mosskin Spirit waddles South on stubby legs with a gentle side-to-side tilt, the small flowers and red-spotted mushrooms on its shoulders bobbing with each step. Tiny green spores drift from its mossy patches and a faint green aura outlines its bark-woven body.",
+        "Walk North Animation Frames": "Mosskin Spirit waddles North on stubby legs with a gentle side-to-side tilt, the small flowers and red-spotted mushrooms on its shoulders bobbing with each step. Tiny green spores drift from its mossy patches and a faint green aura outlines its bark-woven body.",
+        "Walk West Animation Frames": "Mosskin Spirit waddles West on stubby legs with a gentle side-to-side tilt, the small flowers and red-spotted mushrooms on its shoulders bobbing with each step. Tiny green spores drift from its mossy patches and a faint green aura outlines its bark-woven body.",
+        "Walk East Animation Frames": "Mosskin Spirit waddles East on stubby legs with a gentle side-to-side tilt, the small flowers and red-spotted mushrooms on its shoulders bobbing with each step. Tiny green spores drift from its mossy patches and a faint green aura outlines its bark-woven body."
+      },
     },
     {
       id: 'voidmaw-parasite',
@@ -669,21 +572,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A writhing alien parasite with a segmented, chitinous body that ends in a lamprey-like circular mouth lined with concentric rings of needle-thin teeth. Four hooked appendages on each side used for latching onto hosts. A pulsing translucent sac on its back reveals dark fluid inside. Two vestigial eye-stalks protrude from the head segment.",
       equipment: "",
       colorNotes: "Oily black chitin with iridescent purple-green sheen. Mouth interior is raw pinkish-red. Back sac is translucent milky grey with dark violet fluid. Eye-stalks tip with dull yellow bioluminescent orbs. Hooked legs are dark gunmetal with rust-red tips.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Voidmaw Parasite undulates forward with its left-side hooks pulling it ahead, the segmented chitinous body rippling with oily black-and-purple sheen. The translucent back sac pulses rhythmically and the dull yellow eye-stalks point toward the viewer.
-  Header "Walk Down 2" (0,1): Mid-slither with the body contracted, hooks repositioning for the next pull. The lamprey mouth faces forward with its concentric rings of needle teeth visible. The back sac compresses with the contraction.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right-side hooks pull forward, body undulating in the opposite wave. The iridescent purple-green sheen shifts across the chitin and the dark violet fluid sloshes in the sac.
-  Header "Walk Up 1" (0,3): Facing away with left hooks leading, the translucent back sac with dark violet fluid is prominently displayed. The segmented chitinous body shows the iridescent sheen from behind and the hooked legs scrape forward.
-  Header "Walk Up 2" (0,4): Mid-slither facing away, body contracted. The rust-red tips of the hooks are visible gripping the ground and the segmented chitin plates overlap in their compressed state.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right hooks lead facing away, sac fluid sloshing with the undulation. The vestigial eye-stalks trail behind the head segment.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Voidmaw slithers left with its left hooks pulling, body in profile showing the segmented chitin. The back sac bulges visibly and the eye-stalks wave in the direction of travel. The lamprey mouth opens slightly.
-  Header "Walk Left 2" (1,1): Mid-slither facing left, body contracted and hooks repositioning. The oily black chitin shows its iridescent purple-green sheen in profile and the rust-red hook tips grip the surface.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right hooks pull while facing left, body extending. The pulsing sac stretches with the movement and the dark gunmetal hooks flash their rust-red tips.
-  Header "Walk Right 1" (1,3): Slithering right with right hooks leading, the full segmented profile is visible. The eye-stalks point rightward with dull yellow bioluminescence and the sac fluid shifts with momentum.
-  Header "Walk Right 2" (1,4): Mid-slither facing right, contracted and compact. The lamprey mouth shows its pinkish-red interior and needle teeth in profile. The chitin plates overlap tightly.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left hooks pull while facing right. The back sac pulses and the iridescent sheen ripples across the extending segments.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Voidmaw Parasite is coiled in a loose spiral facing the viewer, eye-stalks scanning slowly. The back sac pulses with a slow heartbeat rhythm and the hooks are tucked beneath its body. The lamprey mouth is closed to a slit.
@@ -716,6 +605,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Voidmaw settles into a coiled throne pose, hooks tucked neatly, sac glowing contentedly. The eye-stalks blink slowly with satisfaction and the lamprey mouth closes to a smug slit.
   Header "Weak Pose" (5,4): The parasite sags loosely, hooks limp and barely gripping. The back sac is deflated and the eye-stalks droop. The chitin is dull and the segments barely undulate with weakened movement.
   Header "Critical Pose" (5,5): Nearly motionless, Voidmaw lies in a loose uncoiled line. The hooks twitch feebly, the sac is flat, and only one eye-stalk manages a faint yellow flicker. The chitin is cracked and lightless.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Voidmaw Parasite slithers South with its hooked appendages pulling along the segmented chitinous body, the iridescent purple-green sheen rippling across its oily black plates. The translucent back sac pulses with dark violet fluid and the dull yellow eye-stalks wave in the direction of travel.",
+        "Walk North Animation Frames": "Voidmaw Parasite slithers North with its hooked appendages pulling along the segmented chitinous body, the iridescent purple-green sheen rippling across its oily black plates. The translucent back sac pulses with dark violet fluid and the dull yellow eye-stalks wave in the direction of travel.",
+        "Walk West Animation Frames": "Voidmaw Parasite slithers West with its hooked appendages pulling along the segmented chitinous body, the iridescent purple-green sheen rippling across its oily black plates. The translucent back sac pulses with dark violet fluid and the dull yellow eye-stalks wave in the direction of travel.",
+        "Walk East Animation Frames": "Voidmaw Parasite slithers East with its hooked appendages pulling along the segmented chitinous body, the iridescent purple-green sheen rippling across its oily black plates. The translucent back sac pulses with dark violet fluid and the dull yellow eye-stalks wave in the direction of travel."
+      },
     },
     {
       id: 'fluxbot-drone',
@@ -724,21 +619,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A small hovering maintenance drone with a spherical chrome body, a single large blue optical lens, and three articulated tool-arms folding neatly underneath. Two anti-gravity fins rotate slowly on either side. A ring of status LEDs encircles its equator. Friendly and curious demeanor despite being fully mechanical.",
       equipment: "",
       colorNotes: "Polished chrome body with brushed steel panels. Main lens is bright cyan-blue with a white focal point. Anti-grav fins are matte dark grey with cyan edge lighting. LED ring cycles through soft blue and green. Tool-arms are gunmetal with orange safety markings at the joints.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Fluxbot Drone hovers forward with a slight leftward tilt, the spherical chrome body gleaming. The anti-gravity fins rotate steadily on either side with cyan edge lighting, and the LED ring pulses soft blue.
-  Header "Walk Down 2" (0,1): Level hover in a neutral position, the large cyan-blue optical lens facing the viewer with its white focal point. The LED ring cycles to soft green and the tool-arms fold neatly underneath.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — slight rightward tilt while hovering forward. The polished chrome body reflects the environment and the anti-grav fins adjust their rotation angle.
-  Header "Walk Up 1" (0,3): Hovering away with a slight leftward tilt, the brushed steel back panels and anti-grav fin mechanisms are visible. The LED ring glows soft blue from behind and the tool-arms tuck underneath.
-  Header "Walk Up 2" (0,4): Level hover facing away, the chrome body reflecting from behind. The two anti-grav fins spin steadily with cyan edge lighting creating small light trails.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — slight rightward tilt facing away. The LED ring cycles through colors and the gunmetal tool-arm joints peek from beneath the spherical body.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Fluxbot tilts left toward the direction of travel, the chrome sphere gleaming in profile. The near anti-grav fin speeds up while the far one slows, and the cyan-blue lens looks ahead.
-  Header "Walk Left 2" (1,1): Level hover facing left, the LED ring visible as a band of cycling blue-green light around the equator. The optical lens focuses forward and the tool-arms hang underneath in profile.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — tilted left with adjusted fin speeds. The polished chrome catches a reflection and the orange safety markings on the tool-arm joints are visible from this angle.
-  Header "Walk Right 1" (1,3): Fluxbot tilts right, the chrome body reflecting as it moves. The near fin adjusts speed and the cyan-blue lens scans the path ahead. The LED ring pulses green.
-  Header "Walk Right 2" (1,4): Level hover facing right, the spherical body in perfect profile. The anti-grav fins spin symmetrically and the white focal point of the lens is visible as a bright dot.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — tilted right with the far fin compensating. The brushed steel panels are visible in the chrome reflections and the LED ring shifts to blue.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Fluxbot Drone hovers at rest facing the viewer, bobbing gently up and down. The large cyan-blue lens tilts curiously and the LED ring cycles through calm blue-green patterns. The chrome body gleams.
@@ -771,6 +652,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Fluxbot hovers proudly, giving a thumbs-up with one tool-arm gripper. The LED ring displays a scrolling smiley pattern and the chrome body is polished to a perfect shine.
   Header "Weak Pose" (5,4): Fluxbot hovers low and unsteadily, the anti-grav fins sputtering. The lens flickers between dim cyan and dark, the LED ring is mostly unlit, and one tool-arm hangs limp.
   Header "Critical Pose" (5,5): Barely hovering inches off the ground, the chrome body is dented and sparking. The lens strobes weakly, both fins stutter, and the LED ring shows only a single blinking red segment.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Fluxbot Drone hovers South with a slight directional tilt, the spherical chrome body reflecting its surroundings and the two anti-gravity fins spinning with cyan edge lighting. The LED ring around its equator cycles through soft blue and green.",
+        "Walk North Animation Frames": "Fluxbot Drone hovers North with a slight directional tilt, the spherical chrome body reflecting its surroundings and the two anti-gravity fins spinning with cyan edge lighting. The LED ring around its equator cycles through soft blue and green.",
+        "Walk West Animation Frames": "Fluxbot Drone hovers West with a slight directional tilt, the spherical chrome body reflecting its surroundings and the two anti-gravity fins spinning with cyan edge lighting. The LED ring around its equator cycles through soft blue and green.",
+        "Walk East Animation Frames": "Fluxbot Drone hovers East with a slight directional tilt, the spherical chrome body reflecting its surroundings and the two anti-gravity fins spinning with cyan edge lighting. The LED ring around its equator cycles through soft blue and green."
+      },
     },
     {
       id: 'spore-lurker',
@@ -779,21 +666,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A fungal alien organism that resembles a crouching mass of fleshy tendrils topped with a cluster of bulbous spore pods. No visible eyes — instead it senses via vibration through fine cilia covering its surface. When threatened, the pods swell and release clouds of toxic green spores. Moves with an unsettling undulating crawl.",
       equipment: "",
       colorNotes: "Fleshy pale mauve and grey tendrils with sickly yellow-green veining. Spore pods are swollen dark purple with bright toxic-green tips that glow faintly. Cilia are near-white and shimmer slightly. Underside is wet-looking dark reddish-brown.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Spore Lurker crawls forward with its left-side tendrils pulling, the fleshy pale mauve mass undulating. The cluster of dark purple spore pods sways atop the body and the near-white cilia ripple in a wave toward the viewer.
-  Header "Walk Down 2" (0,1): Mid-crawl with tendrils repositioning, the body contracted. The sickly yellow-green veining pulses through the tendrils and the toxic-green tips of the spore pods glow faintly.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right-side tendrils pull forward, body undulating the opposite direction. The dark reddish-brown underside peeks through as the mass shifts and the cilia shimmer.
-  Header "Walk Up 1" (0,3): Crawling away with left tendrils leading, the cluster of spore pods visible from behind atop the fleshy mass. The wet-looking underside is partially visible and the cilia ripple away from the viewer.
-  Header "Walk Up 2" (0,4): Mid-crawl facing away, contracted. The pale mauve and grey tendrils overlap in their compressed state and the yellow-green veining is prominent across the back surface.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right tendrils lead facing away. The spore pods sway and the toxic-green tips glow against the dark purple bulbs. Cilia shimmer across the body surface.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Spore Lurker crawls left with tendrils pulling in that direction, the profile showing the fleshy mass topped with spore pods. The cilia ripple along the surface and the underside shows dark reddish-brown.
-  Header "Walk Left 2" (1,1): Mid-crawl facing left, contracted. The yellow-green veining pulses in the tendrils and the spore pods cluster tightly atop the compressed body. Cilia shimmer in the ambient light.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — opposite tendrils pull while facing left. The dark purple spore pods bob and the toxic-green tips leave faint trails of luminescence.
-  Header "Walk Right 1" (1,3): Crawling right with tendrils extending, the pale mauve mass stretches. The spore pods lean in the direction of travel and the near-white cilia create a shimmering wave pattern across its skin.
-  Header "Walk Right 2" (1,4): Mid-crawl facing right, body compressed. The sickly yellow-green veining is bright against the grey tendril flesh and the reddish-brown underside grips the surface.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — opposite tendrils pull while facing right. The fleshy mass undulates and the spore pod cluster sways with the unsettling crawling motion.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Spore Lurker sits in a compact mass facing the viewer, pulsing slowly. The spore pods are dormant with faintly glowing green tips and the cilia wave gently, sensing vibrations.
@@ -826,6 +699,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Spore Lurker settles into a satisfied mound, new growth visible as tiny tendrils and buds push from its surface. The pods glow contentedly and the cilia wave in gentle, peaceful patterns.
   Header "Weak Pose" (5,4): The Lurker is dried and shrunken, tendrils thin and brittle. Most spore pods are empty and the remaining ones glow a sickly dim green. The cilia are wilted and barely moving.
   Header "Critical Pose" (5,5): Nearly desiccated, the Lurker is a fraction of its normal size. The tendrils are cracked and brown, pods shriveled, and only a faint green flicker remains at the tip of the largest surviving pod.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Spore Lurker crawls South with undulating tendrils pulling it along, the fleshy pale mauve mass contracting and extending in waves. The cluster of dark purple spore pods sways atop its body and the near-white cilia ripple across its skin while yellow-green veining pulses through the tendrils.",
+        "Walk North Animation Frames": "Spore Lurker crawls North with undulating tendrils pulling it along, the fleshy pale mauve mass contracting and extending in waves. The cluster of dark purple spore pods sways atop its body and the near-white cilia ripple across its skin while yellow-green veining pulses through the tendrils.",
+        "Walk West Animation Frames": "Spore Lurker crawls West with undulating tendrils pulling it along, the fleshy pale mauve mass contracting and extending in waves. The cluster of dark purple spore pods sways atop its body and the near-white cilia ripple across its skin while yellow-green veining pulses through the tendrils.",
+        "Walk East Animation Frames": "Spore Lurker crawls East with undulating tendrils pulling it along, the fleshy pale mauve mass contracting and extending in waves. The cluster of dark purple spore pods sways atop its body and the near-white cilia ripple across its skin while yellow-green veining pulses through the tendrils."
+      },
     },
     {
       id: 'arc-jelly',
@@ -834,21 +713,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A bioluminescent deep-space jellyfish creature with a translucent dome-shaped bell and long trailing tentacles that crackle with electrical arcs. Inside the bell, a dense cluster of neural filaments pulses with light. Drifts gracefully through zero-gravity environments. Peaceful unless provoked, at which point its tentacles discharge powerful electric shocks.",
       equipment: "",
       colorNotes: "Bell is translucent pale blue-white with a soft inner glow. Neural filaments pulse between electric blue and bright white. Tentacles are near-transparent with vivid cyan-to-violet electrical arcs running along their length. Outer bell rim has a faint pink-magenta bioluminescent edge.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Arc Jelly drifts forward with a gentle bell contraction, the translucent dome compressing and pushing it ahead-left. The neural filaments pulse electric blue and the trailing tentacles sway with small cyan arcs crackling.
-  Header "Walk Down 2" (0,1): At the peak of bell expansion, the dome is fully open showing the dense cluster of neural filaments glowing bright white inside. The tentacles trail straight below and the pink-magenta rim pulses softly.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — bell contracting and pushing ahead-right, tentacles swaying the opposite direction. The electrical arcs along the tentacles shift from cyan to violet as they move.
-  Header "Walk Up 1" (0,3): Drifting away, the translucent bell shows the neural filaments from behind — a soft glow visible through the pale blue-white dome. The tentacles trail toward the viewer with arcs crackling.
-  Header "Walk Up 2" (0,4): Bell expanded facing away, the translucent dome catching light. The pink-magenta rim is visible as a glowing edge and the tentacles hang with lazy electrical activity.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — bell contracting away in the opposite direction. The near-transparent tentacles shift and the cyan arcs trace new paths along their length.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Arc Jelly pulses leftward, the translucent bell contracting in profile. The neural filaments shift with the motion and the tentacles trail rightward with violet-cyan arcs. The pink-magenta rim glows on the leading edge.
-  Header "Walk Left 2" (1,1): Bell expanded in profile facing left, the dome at full size. The neural filament cluster is visible through the translucent wall as a glowing core. Tentacles hang with gentle arc activity.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — bell contracting leftward with tentacles swaying. The electrical arcs intensify briefly during the propulsion phase and the bell rim flares pink.
-  Header "Walk Right 1" (1,3): Pulsing rightward, the translucent bell contracts and pushes. The tentacles trail leftward with crackling arcs and the neural filaments flash electric blue inside the moving dome.
-  Header "Walk Right 2" (1,4): Bell expanded facing right, serene and open. The soft inner glow of the filaments illuminates the translucent dome and the tentacles drift with passive cyan arcs.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — contracting rightward, tentacles trailing. The pink-magenta rim flares on the leading edge and the near-transparent tentacles flash with electrical discharge.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Arc Jelly floats peacefully facing the viewer, the bell gently pulsing. The neural filaments glow with a calm, slow pulse between blue and white. Tentacles sway below with lazy, gentle arcs.
@@ -881,6 +746,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Arc Jelly settles into a serene float, the bell glowing warmly with a satisfied inner light. The tentacles drift gracefully with soft, gentle arcs and the neural filaments pulse in a calm, happy pattern.
   Header "Weak Pose" (5,4): The bell sags and barely holds its shape, the inner glow reduced to a faint flicker. Most tentacles hang limp and dark, with only one or two managing dim, sputtering arcs.
   Header "Critical Pose" (5,5): Nearly collapsed, the bell is translucent and shapeless. The neural filaments show only the faintest ghost of light and the tentacles are limp tangles with no electrical activity. Only the fading pink rim shows life.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Arc Jelly pulses South with rhythmic bell contractions, the trailing tentacles crackling with cyan-violet arcs. The neural filaments inside the translucent dome glow electric blue with each propulsion and the pink-magenta rim pulses softly.",
+        "Walk North Animation Frames": "Arc Jelly pulses North with rhythmic bell contractions, the trailing tentacles crackling with cyan-violet arcs. The neural filaments inside the translucent dome glow electric blue with each propulsion and the pink-magenta rim pulses softly.",
+        "Walk West Animation Frames": "Arc Jelly pulses West with rhythmic bell contractions, the trailing tentacles crackling with cyan-violet arcs. The neural filaments inside the translucent dome glow electric blue with each propulsion and the pink-magenta rim pulses softly.",
+        "Walk East Animation Frames": "Arc Jelly pulses East with rhythmic bell contractions, the trailing tentacles crackling with cyan-violet arcs. The neural filaments inside the translucent dome glow electric blue with each propulsion and the pink-magenta rim pulses softly."
+      },
     },
     {
       id: 'rustback-scavenger',
@@ -889,21 +760,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A six-legged insectoid scavenger built from salvaged mechanical parts fused with organic tissue. Its body is a corroded metal thorax with exposed wiring and a biological abdomen. A pair of mismatched optical sensors serve as eyes — one is a cracked red camera lens, the other a repurposed green scanner. Mandibles fashioned from sharpened scrap metal click constantly.",
       equipment: "",
       colorNotes: "Corroded burnt-orange and rust-brown metal plating over sickly grey-green organic tissue. Wiring is faded yellow and red. Camera-eye glows dim red, scanner-eye glows green. Mandibles are dull gunmetal. Legs alternate between rusted mechanical joints and pale fleshy segments. Abdomen has a faint sickly yellow bioluminescence.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Rustback Scavenger skitters forward with its left three legs stepping in sequence, the corroded metal thorax shifting over sickly grey-green organic tissue. The mismatched eyes — cracked red camera and green scanner — face the viewer and the scrap-metal mandibles click.
-  Header "Walk Down 2" (0,1): Mid-step with all six legs repositioning, the faded yellow and red wiring bounces from the exposed sections. The biological abdomen with its sickly yellow bioluminescence trails behind the mechanical thorax.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right three legs step forward, the burnt-orange plating shifting opposite. The mandibles click on the other side and the exposed wiring sways.
-  Header "Walk Up 1" (0,3): Skittering away with left legs leading, the biological abdomen with its yellow bioluminescence is prominent from behind. The rusted mechanical leg joints alternate with pale fleshy segments.
-  Header "Walk Up 2" (0,4): Mid-step facing away, the corroded metal thorax showing exposed wiring from behind. The six legs reposition and the rust-brown plating is weathered and dented.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right legs lead facing away, the abdomen swaying. The alternating mechanical and organic leg segments create an unsettling gait pattern.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Rustback faces left, skittering with three near-side legs cycling forward. The profile shows the corroded thorax, exposed wiring, and the green scanner-eye facing ahead. The mandibles are open.
-  Header "Walk Left 2" (1,1): Mid-step facing left, legs repositioning. The rusted mechanical joints creak and the pale fleshy leg segments contract. The abdomen bioluminescence pulses with movement.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — far-side legs cycle while facing left. The cracked red camera-eye is visible on the far side and the wiring bounces with the skittering motion.
-  Header "Walk Right 1" (1,3): Facing right with near-side legs leading, the cracked red camera-eye faces ahead. The scrap-metal mandibles click rapidly and the burnt-orange plating reflects dull light.
-  Header "Walk Right 2" (1,4): Mid-step facing right, the six-legged gait in transition. The corroded thorax rocks slightly and the biological abdomen sways behind, yellow glow pulsing.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — far-side legs cycle while facing right. The green scanner-eye is visible on the far side and the exposed wiring trails from the thorax.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Rustback Scavenger stands on all six legs facing the viewer, mandibles twitching with constant clicking. Both mismatched eyes scan — the red camera flickering and the green scanner sweeping. Wiring dangles from the thorax.
@@ -936,6 +793,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Rustback settles into a proud stance, all six legs planted wide and thorax raised high. Both eyes glow steadily and a piece of salvaged scrap dangles from one mandible as a trophy.
   Header "Weak Pose" (5,4): Three of the six legs are failing, causing the Rustback to drag its body. One eye is dark and the other flickers weakly. The mandibles click slowly and the abdomen glow is nearly extinguished.
   Header "Critical Pose" (5,5): Only two legs function, barely dragging the corroded body forward. The cracked red camera-eye is dead, the green scanner emits only a faint flicker. The mandibles hang open and the abdomen is dark.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "For walking animations, Rustback Scavenger skitters on its back legs, front legs held up like arms. The corroded metal thorax shifting over sickly grey-green organic tissue. The mismatched eyes — cracked red camera and green scanner — and the scrap-metal mandibles click. Exposed wiring sways. Bioluminescent abdomen pulses.",
+        "Walk North Animation Frames": "For walking animations, Rustback Scavenger skitters on its back legs, front legs held up like arms. The corroded metal thorax shifting over sickly grey-green organic tissue. The mismatched eyes — cracked red camera and green scanner — and the scrap-metal mandibles click. Exposed wiring sways. Bioluminescent abdomen pulses.",
+        "Walk West Animation Frames": "For walking animations, Rustback Scavenger skitters on its back legs, front legs held up like arms. The corroded metal thorax shifting over sickly grey-green organic tissue. The mismatched eyes — cracked red camera and green scanner — and the scrap-metal mandibles click. Exposed wiring sways. Bioluminescent abdomen pulses.",
+        "Walk East Animation Frames": "For walking animations, Rustback Scavenger skitters on its back legs, front legs held up like arms. The corroded metal thorax shifting over sickly grey-green organic tissue. The mismatched eyes — cracked red camera and green scanner — and the scrap-metal mandibles click. Exposed wiring sways. Bioluminescent abdomen pulses."
+      },
     },
     {
       id: 'baron-brioche',
@@ -944,21 +807,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A pompous bread nobleman with a golden-brown brioche bun for a head, a flaky croissant mustache, and tiny raisin eyes set deep in his doughy face. Plump, round body made of layered pastry. Struts with aristocratic arrogance.",
       equipment: "A baguette rapier with a butter-pat crossguard, a cape made of flattened puff pastry sheets, and a monocle made from a hardened sugar disc. A breadbasket shield on his back.",
       colorNotes: "Golden-brown brioche head, warm amber pastry body. Cape is pale golden puff pastry. Baguette rapier is tan with a yellow butter crossguard. Monocle is translucent amber sugar. Raisin eyes are dark brown.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Baron Brioche steps forward on his left foot with an aristocratic waddle, his puff-pastry cape fluttering to the right. The baguette rapier swings at his side and his sugar monocle glints. His brioche head bobs with each step.
-  Header "Walk Down 2" (0,1): Neutral mid-step, feet together, cape draped behind him. His croissant mustache curls upward proudly and his raisin eyes stare imperiously ahead. The breadbasket shield sits snugly on his round back.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, puff-pastry cape swishing left. Crumbs trail faintly from his flaky body with each step.
-  Header "Walk Up 1" (0,3): Baron Brioche faces away, the puff-pastry cape and breadbasket shield filling the view. His golden-brown brioche head sits atop his round pastry body like a crown.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, cape draping straight. The layered pastry texture of his body is visible, with each flaky layer catching light differently.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, cape billowing. The baguette rapier handle protrudes at his hip.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Facing left with his left foot forward, the Baron's rotund pastry profile is on full display. The baguette rapier extends slightly ahead and the croissant mustache curls elegantly in profile.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his plump layered body balanced. The sugar monocle catches light and his raisin eyes look down his doughy nose.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, puff-pastry cape swaying forward. A small dusting of flour trails behind him.
-  Header "Walk Right 1" (1,3): Facing right with his right foot forward, baguette rapier extended confidently. The breadbasket shield peeks from behind his round body and the cape trails.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the Baron's aristocratic profile visible — brioche head held high, croissant mustache bristling, sugar monocle gleaming.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, cape flowing behind. His pastry body bounces gently with each waddle.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Baron Brioche stands facing the viewer with one hand on his hip and the other resting on the baguette rapier pommel. His croissant mustache twitches with disdain and his sugar monocle gleams.
@@ -991,6 +840,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Baron plants the baguette rapier into the ground, crosses his arms over his puffed pastry chest, and tilts his brioche head back with a hearty, arrogant laugh.
   Header "Weak Pose" (5,4): Baron Brioche leans heavily on the baguette rapier, his pastry body sagging and crumbling at the edges. His monocle is cracked and the croissant mustache hangs limply.
   Header "Critical Pose" (5,5): Barely holding together, the Baron's body is a mess of separated flaky layers. His brioche head is dented, one raisin eye has fallen out, and the baguette rapier is bent — but he still sneers defiantly through his ruined mustache.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Baron Brioche struts South with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body.",
+        "Walk North Animation Frames": "Baron Brioche struts North with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body.",
+        "Walk West Animation Frames": "Baron Brioche struts West with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body.",
+        "Walk East Animation Frames": "Baron Brioche struts East with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body."
+      },
     },
     {
       id: 'sergeant-sriracha',
@@ -999,21 +854,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A fiery hot-sauce warrior with a body shaped like a bright red sriracha bottle, a green cap helmet, and intense orange-flame eyes. Muscular arms sprout from the bottle shoulders. Legs are sturdy and planted wide in a military stance.",
       equipment: "Dual chili-pepper grenades on a bandolier across his chest, armored gauntlets with capsaicin-dripping knuckle spikes, and a nozzle cannon mounted on his right forearm that shoots pressurized hot sauce. A jalape\u00f1o-shaped combat knife at his belt.",
       colorNotes: "Bright red body with white sriracha rooster label on chest. Green cap helmet. Orange-flame eyes. Gauntlets are dark red with orange spikes. Chili grenades are green and red. Nozzle cannon is chrome with red tubing.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Sergeant Sriracha marches forward on his left foot with military precision, the chili-pepper bandolier bouncing across his bright red bottle body. His green cap helmet sits firmly and the nozzle cannon on his right forearm gleams.
-  Header "Walk Down 2" (0,1): Neutral mid-step, feet together in attention. The white rooster label on his chest is clearly visible. His orange-flame eyes burn forward and the jalape\u00f1o knife is strapped at his belt.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, bandolier swaying. Small wisps of steam rise from the capsaicin knuckle spikes on his gauntlets.
-  Header "Walk Up 1" (0,3): Facing away, the bright red bottle body narrows toward the green cap. The bandolier crosses his back and the nozzle cannon's chrome barrel is visible on his right arm.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, military posture rigid. The green and red chili grenades hang in neat rows across his back.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. Steam wisps trail from the nozzle cannon's barrel.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Facing left with his left foot forward in a disciplined march. His bottle-shaped profile shows the nozzle cannon extending from his forearm and the bandolier slung diagonally.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left. His cylindrical red body and green cap helmet create a distinctive silhouette. The jalape\u00f1o knife is visible at his belt.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, the chili grenades clinking together softly. His orange-flame eyes glare ahead.
-  Header "Walk Right 1" (1,3): Facing right with his right foot forward, nozzle cannon arm leading. The capsaicin knuckle spikes drip with a faint orange glow. The bandolier trails across his body.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the white rooster label partially visible on his side. The green cap sits at a slight military angle.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. A small heat shimmer radiates from his bright red body.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Sergeant Sriracha stands at ease facing the viewer, hands behind his back, chest out to display the rooster label proudly. His flame eyes scan forward and the green cap helmet shadows his face.
@@ -1046,6 +887,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Sriracha plants his feet wide, crosses his arms, and lets steam pour from his green cap in a dramatic release of pressure. The chili grenades on his bandolier glow victoriously.
   Header "Weak Pose" (5,4): Sriracha's body is covered in hairline cracks, sauce slowly seeping out. The nozzle cannon droops, barely functional. His flame eyes are dim embers and he breathes in labored puffs of steam.
   Header "Critical Pose" (5,5): Barely standing, Sriracha is a shattered mess — body held together by sheer will, sauce pooling at his feet. One flame eye is out, the other gutters weakly. He aims the sputtering nozzle cannon with his last ounce of heat.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Sergeant Sriracha marches South with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body.",
+        "Walk North Animation Frames": "Sergeant Sriracha marches North with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body.",
+        "Walk West Animation Frames": "Sergeant Sriracha marches West with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body.",
+        "Walk East Animation Frames": "Sergeant Sriracha marches East with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body."
+      },
     },
     {
       id: 'duchess-gelato',
@@ -1054,21 +901,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "An elegant ice cream sorceress with a swirled tri-color gelato head (strawberry pink, pistachio green, vanilla cream), a waffle-cone corset bodice, and a flowing skirt made of frozen cream ribbons. Graceful and poised with a cold, regal demeanor.",
       equipment: "A wafer-stick wand tipped with a crystallized sugar star, a parasol made from a giant sugar cookie with royal icing filigree, and delicate spun-sugar jewelry at her wrists and neck. A small sundae-glass familiar floats beside her.",
       colorNotes: "Tri-color gelato head: strawberry pink, pistachio green, vanilla cream. Waffle-cone bodice is warm tan with grid pattern. Skirt is pale white-blue frozen cream. Wand is tan wafer with a sparkling sugar star. Parasol is cream with white icing swirls.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Duchess Gelato glides forward on her left foot, frozen cream skirt swirling gracefully. The wafer-stick wand is held delicately in her right hand and the sugar cookie parasol rests on her left shoulder. Her tri-color gelato head swirls gently.
-  Header "Walk Down 2" (0,1): Neutral mid-step, feet together. The spun-sugar necklace sparkles at her throat and the sundae-glass familiar bobs beside her. The waffle-cone corset's grid pattern is clearly visible.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, frozen cream skirt flowing to the opposite side. A faint trail of frost crystals follows her steps.
-  Header "Walk Up 1" (0,3): Facing away, the frozen cream skirt cascades down in elegant ribbons. The sugar cookie parasol rests against her shoulder and the gelato swirl of her head catches ambient light.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, skirt draping straight. The waffle-cone corset lacing is visible up her back and the spun-sugar bracelets glint.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the sundae-glass familiar trailing behind her. Frost crystallizes in her wake.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Facing left with her left foot forward in an elegant glide. Her tri-color gelato head is visible in profile — pink, green, cream layers stacked. The parasol trails behind.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the frozen cream skirt draping around her. The wafer-stick wand rests at her side with the sugar star dimly twinkling.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, skirt swirling forward. The sundae-glass familiar floats ahead of her, scouting.
-  Header "Walk Right 1" (1,3): Facing right with her right foot forward, parasol leading. The waffle-cone corset's warm tan contrasts with the icy blue-white of her frozen skirt.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, her elegant profile showing the gelato swirl and the spun-sugar earring catching light.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The sundae-glass familiar follows faithfully behind her.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Duchess Gelato stands poised facing the viewer, parasol resting on her shoulder and wand held loosely. Her gelato head swirls slowly with hypnotic color and the sundae familiar orbits her lazily.
@@ -1101,6 +934,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Duchess Gelato snaps the parasol open and poses beneath it, wand planted at her side. Tiny ice cream cones orbit her like a frozen solar system.
   Header "Weak Pose" (5,4): The Duchess leans on her parasol as a cane, her gelato head drooping and slowly melting. Her frozen skirt is slushy and the wafer wand droops. The sundae familiar flickers in and out of existence.
   Header "Critical Pose" (5,5): Barely a silhouette of her former self — mostly melted, the Duchess holds together by sheer frozen willpower. Her gelato head is a single dripping blob, the corset is cracked, but she still aims the dissolving wand with trembling grace.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Duchess Gelato glides South with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her.",
+        "Walk North Animation Frames": "Duchess Gelato glides North with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her.",
+        "Walk West Animation Frames": "Duchess Gelato glides West with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her.",
+        "Walk East Animation Frames": "Duchess Gelato glides East with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her."
+      },
     },
     {
       id: 'general-gumbo',
@@ -1109,21 +948,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A hulking stew golem villain with a cast-iron cauldron for a torso, thick okra-stalk arms, and legs made of bundled andouille sausage links. His head is a bubbling pot lid with two glowing ember eyes peering through the steam. A dark roux oozes from his joints.",
       equipment: "A massive ladle war-hammer with a heavy iron bowl, a lid shield that doubles as his head cover, and chains made of linked onion rings draped across his body. A belt of bay leaves and a pouch of file powder at his hip.",
       colorNotes: "Dark iron-gray cauldron torso with brown roux dripping from seams. Okra arms are dark green. Sausage legs are reddish-brown. Ember eyes are orange-red. Ladle is dark iron. Onion ring chains are golden-brown. Steam is white-gray.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): General Gumbo lumbers forward on his left sausage-link leg, the cauldron torso sloshing audibly. The ladle war-hammer drags at his right side and onion-ring chains rattle across his chest. Steam billows from his pot-lid head.
-  Header "Walk Down 2" (0,1): Neutral mid-step, sausage legs planted wide for balance. His ember eyes glow through the steam and dark roux oozes from the joints between his cauldron body and okra arms. The bay-leaf belt hangs at his waist.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right sausage leg leads, chains swinging. The ladle's heavy iron bowl scrapes along the ground and roux drips trail behind him.
-  Header "Walk Up 1" (0,3): Facing away, the massive cast-iron cauldron torso dominates the view with handles protruding at the sides. The onion-ring chains cross his back and the pot-lid head vents steam upward.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, sausage legs steady. The dark green okra arms hang at his sides and the ladle war-hammer is slung across his back.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right leg forward, steam trailing. The bundled sausage links of his legs flex with each heavy step.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Facing left with his left sausage leg forward, the General's massive profile shows the cauldron torso, okra arm, and pot-lid head venting steam. The ladle drags behind.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his bulk filling the frame. The onion-ring chains catch light and the ember eyes peer sideways through billowing steam.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right leg leads, dark roux splattering with each heavy footfall. The iron cauldron creaks with the motion.
-  Header "Walk Right 1" (1,3): Facing right with his right sausage leg forward, ladle war-hammer swinging ahead. The file-powder pouch bounces at his hip and steam pours from the pot-lid.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the cauldron's curved profile visible. His okra arm hangs ready and the bay leaves flutter at his belt.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left leg leads while facing right, onion-ring chains clinking. Each step shakes the ground beneath him.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): General Gumbo stands menacingly, both okra hands resting on the ladle war-hammer planted before him. His pot-lid head vents a steady column of steam and his ember eyes smolder through it. Roux drips slowly from his torso seams.
@@ -1156,6 +981,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Gumbo plants the ladle and removes his pot-lid, revealing the bubbling stew within. He holds the lid aloft like a crown, ember eyes glowing with malevolent pride.
   Header "Weak Pose" (5,4): The cauldron is covered in cracks, leaking stew from a dozen wounds. His okra arms are wilted and browning, the sausage legs are sagging, and one ember eye has gone dark. Steam barely trickles from the pot-lid.
   Header "Critical Pose" (5,5): Barely a shell of iron and stew, Gumbo holds together through sheer stubborn villainy. The cauldron is more hole than metal, the roux has dried to a crust, and his remaining ember eye burns with desperate, simmering fury.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "General Gumbo lumbers South with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint.",
+        "Walk North Animation Frames": "General Gumbo lumbers North with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint.",
+        "Walk West Animation Frames": "General Gumbo lumbers West with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint.",
+        "Walk East Animation Frames": "General Gumbo lumbers East with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint."
+      },
     },
     {
       id: 'pepperoni-pete',
@@ -1164,21 +995,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A roguish pizza-slice thief with a triangular pizza body, a golden-brown crust spine running down his back, and a face made of melted mozzarella with pepperoni-disc cheeks. Lanky and flexible with a sneaky, hunched posture. Strings of cheese trail from his movements.",
       equipment: "Twin pizza-cutter chakrams that he throws and recalls, suction-cup boots made of mozzarella for wall-climbing, and a bandana made from a folded napkin. A utility belt of condiment packets (hot pepper flakes, parmesan, garlic butter).",
       colorNotes: "Triangular body is pizza-orange with melted yellow cheese and red pepperoni spots. Crust spine is golden-brown. Mozzarella face is pale yellow-white. Napkin bandana is white with red checkered pattern. Pizza-cutter chakrams are silver with red handles.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Pepperoni Pete slinks forward on his left foot in a sneaky crouch, strings of mozzarella trailing from his movements. The twin pizza-cutter chakrams hang at his hips and the checkered napkin bandana covers his lower face.
-  Header "Walk Down 2" (0,1): Neutral mid-step, feet together in a ready stance. His triangular pizza body leans forward and his pepperoni-disc cheeks poke above the bandana. Cheese strings dangle from his elbows.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, cheese trailing. The condiment-packet utility belt rattles softly and his mozzarella suction-cup boots stick briefly to the ground.
-  Header "Walk Up 1" (0,3): Facing away, the golden-brown crust spine runs prominently down his triangular back. The pizza-cutter chakrams cross on his lower back and cheese strings trail behind him.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, his pizza-slice silhouette narrow from behind. The checkered bandana ties flutter at the back of his head.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the crust spine catching light. Mozzarella strings stretch and snap with each step.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Facing left with his left foot forward in a sneaky sidestep. His flat triangular profile is visible — the pointed pizza tip at top, widening to the crust at his back. A chakram glints at his hip.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, hunched and ready. His mozzarella face peeks over the bandana and the condiment belt pouches hang from his waist.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, cheese dripping from his trailing hand. His mozzarella boots squelch softly.
-  Header "Walk Right 1" (1,3): Facing right with his right foot forward, one hand reaching for a chakram. The pizza-orange body and pepperoni spots are vivid in profile. The bandana trails behind.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the crust spine visible along his back. His cheesy face is scrunched with mischievous focus.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. A string of cheese stretches back to his previous position before snapping.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Pete stands in a casual thieves' slouch, one hand spinning a pizza-cutter chakram lazily. His pepperoni cheeks bulge in a smirk above the bandana and cheese strings hang from his fingertips.
@@ -1211,6 +1028,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Pete takes a bite out of his own arm (it grows back immediately in a stretch of cheese), chewing smugly. He twirls a chakram on one finger and winks with a mozzarella eyelid.
   Header "Weak Pose" (5,4): Pete is missing large chunks of his pizza body, barely held together by overstretched cheese strings. The crust spine is cracked, the bandana is torn, and he holds one chakram weakly while the other drags on the ground.
   Header "Critical Pose" (5,5): Just a sad, tiny triangle of pizza with a face — most of his body is gone. He clutches one battered chakram with a single stretched cheese-string arm, his last pepperoni cheek barely hanging on. But his mozzarella grin refuses to die.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Pepperoni Pete slinks South in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
+        "Walk North Animation Frames": "Pepperoni Pete slinks North in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
+        "Walk West Animation Frames": "Pepperoni Pete slinks West in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
+        "Walk East Animation Frames": "Pepperoni Pete slinks East in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step."
+      },
     },
     {
       id: 'queen-umami',
@@ -1219,21 +1042,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A sinister mushroom empress villain with a massive shiitake cap crown, a body woven from enoki and oyster mushroom fibers, and glowing bioluminescent spore eyes. Tall and willowy with an unsettling, swaying gait. Dark truffle-colored skin with veins of mycelium running beneath the surface.",
       equipment: "A gnarled morel scepter that drips with dark spore ink, a cloak of layered portobello gills that rustles like whispers, and a choker of dried porcini discs. Clouds of psychedelic spores drift around her constantly.",
       colorNotes: "Shiitake cap crown is dark brown with tan cracks. Body is pale cream enoki fibers with gray oyster mushroom patches. Bioluminescent eyes are eerie blue-green. Truffle skin is near-black. Morel scepter is dark honeycomb brown. Portobello gill cloak is dark brown-purple. Spore clouds are sickly yellow-green.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Queen Umami drifts forward on her left foot with an unsettling sway, her portobello-gill cloak rustling in layers. The morel scepter is held in her right hand, dripping dark spore ink. A cloud of yellow-green spores trails in her wake.
-  Header "Walk Down 2" (0,1): Neutral mid-step, feet together. Her massive shiitake cap crown shadows her face, only the bioluminescent blue-green eyes visible beneath. Mycelium veins pulse faintly beneath her dark truffle skin.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, gill cloak whispering. The porcini choker gleams at her throat and spores swirl around her enoki-fiber body.
-  Header "Walk Up 1" (0,3): Facing away, the portobello-gill cloak cascades down in dark, layered ruffles. The shiitake cap crown is enormous from behind, with tan cracks radiating outward.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the cloak draped like a fungal waterfall. Mycelium threads connect her feet to the ground, spreading outward.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, spore clouds billowing behind her. The morel scepter drips a trail of dark ink.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Facing left with her left foot forward in a swaying glide. Her willowy profile shows the shiitake crown, pale enoki body, and the gill cloak trailing. Spores drift from her every movement.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, her bioluminescent eyes casting an eerie glow on her cheek. The morel scepter's honeycomb texture is visible in profile.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, portobello cloak swirling forward. Mycelium threads spread from her footprints.
-  Header "Walk Right 1" (1,3): Facing right with her right foot forward, scepter extended ahead dripping ink. Her tall willowy frame sways like a fungus in wind, the shiitake crown tilting slightly.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right. The oyster mushroom patches on her body catch light with a gray pearlescence. The porcini choker gleams darkly.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, spore cloud thickening around her. The gill cloak whispers as it moves.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Queen Umami stands still facing the viewer, an aura of slowly rotating spores surrounding her. The morel scepter rests upright at her side, leaking ink. Her bioluminescent eyes are half-lidded and menacing beneath the shiitake crown.
@@ -1266,6 +1075,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Queen sits upon a throne of interwoven mushrooms that grew from the battlefield. She rests the scepter across her lap, shiitake crown gleaming, bioluminescent eyes half-lidded in cold satisfaction.
   Header "Weak Pose" (5,4): Umami's body is riddled with rot — enoki fibers browning and wilting, the shiitake crown sagging and cracked. Her bioluminescent eyes are dim and her spore cloud is thin. She clutches the morel scepter for support.
   Header "Critical Pose" (5,5): A crumbling ruin of fungus, Queen Umami barely maintains her form. Her crown is shattered, her cloak is decomposing, and only one bioluminescent eye still glows — but the mycelium beneath the ground still pulses, and her grip on the cracked scepter remains iron.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Queen Umami drifts South with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint.",
+        "Walk North Animation Frames": "Queen Umami drifts North with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint.",
+        "Walk West Animation Frames": "Queen Umami drifts West with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint.",
+        "Walk East Animation Frames": "Queen Umami drifts East with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint."
+      },
     },
     {
       id: 'wasabi-ronin',
@@ -1274,21 +1089,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A stoic wandering sushi warrior with a body made of tightly-packed rice wrapped in a nori seaweed cloak, a head of vibrant green wasabi paste shaped into a stern samurai topknot, and eyes made of pickled ginger slices. Compact, disciplined physique with precise, economical movements.",
       equipment: "A razor-sharp sashimi blade (a single long slice of gleaming tuna used as a katana), bamboo-mat armor worn over the nori cloak, and chopstick throwing daggers tucked into a soy-sauce-bottle holster at his hip. A small dish of soy sauce serves as a meditation focus.",
       colorNotes: "White rice body with dark green nori cloak. Bright green wasabi head and topknot. Pink pickled-ginger eyes. Sashimi blade is deep red tuna with a silver edge. Bamboo-mat armor is tan with green ties. Chopsticks are pale wood. Soy sauce bottle is dark brown-black.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Wasabi Ronin steps forward on his left foot with measured discipline, his nori cloak swaying slightly. The sashimi blade is sheathed at his left hip in a bamboo scabbard and his wasabi topknot is sharp and rigid. His ginger eyes stare ahead unblinking.
-  Header "Walk Down 2" (0,1): Neutral mid-step, feet together. His compact rice body is wrapped tightly in the nori seaweed, bamboo-mat armor visible over his chest. The soy-sauce holster sits at his right hip with chopstick daggers.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, nori cloak shifting. A few grains of rice trail from the hem of his cloak as he moves.
-  Header "Walk Up 1" (0,3): Facing away, the dark green nori cloak covers most of his rice body. The bamboo-mat armor crosses his back and the sashimi blade handle protrudes from his left hip. The wasabi topknot juts upward sharply.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, cloak hanging straight. The tan bamboo-mat armor ties are knotted neatly and the chopstick daggers are visible in the holster.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. The nori cloak's edge reveals the white rice body beneath.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Facing left with his left foot forward in a precise, silent step. His compact profile shows the wasabi head, bamboo-mat armor, and the sashimi blade scabbard at his hip. The nori cloak drapes.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his disciplined posture rigid. The pickled-ginger eyes are visible in profile, pink and alert. One hand rests near the sashimi blade hilt.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads, nori cloak swaying forward. His wasabi topknot is sharp as a blade in silhouette.
-  Header "Walk Right 1" (1,3): Facing right with his right foot forward, hand hovering over the sashimi blade. The bamboo-mat armor plates shift with his movement and the soy-sauce holster is visible.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, stoic and still. The deep red of the sheathed sashimi blade peeks from the bamboo scabbard.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. Rice grains scatter faintly from his precise footwork.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Wasabi Ronin stands perfectly still, hands at his sides, facing the viewer. His ginger eyes are calm, his wasabi topknot motionless. The sashimi blade rests sheathed and the nori cloak is undisturbed. Total stillness.
@@ -1321,6 +1122,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Ronin sits cross-legged on the ground, sashimi blade across his lap, chopstick daggers arranged neatly beside him. He sips from the soy sauce dish in serene contemplation, wasabi topknot perfect.
   Header "Weak Pose" (5,4): His rice body is thin and loosely packed, grains falling steadily. The nori cloak is more hole than seaweed, the wasabi topknot is drooping, and he uses the sashimi blade as a walking stick. His ginger eyes are faded.
   Header "Critical Pose" (5,5): Barely a fistful of rice held together by a single strip of nori, the Ronin somehow still stands. The sashimi blade trembles in his grip, the wasabi has nearly dissolved, and only one faint ginger eye remains — but his stance is still perfect.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Wasabi Ronin walks South with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face.",
+        "Walk North Animation Frames": "Wasabi Ronin walks North with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face.",
+        "Walk West Animation Frames": "Wasabi Ronin walks West with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face.",
+        "Walk East Animation Frames": "Wasabi Ronin walks East with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face."
+      },
     },
     {
       id: 'wasteland-wanderer',
@@ -1329,21 +1136,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A lone survivor with sun-weathered skin, a full-face gas mask with round tinted lenses, and a tattered leather duster over layered scavenged clothing. Medium wiry build with a cautious, hunched posture.",
       equipment: "A long leather duster over mismatched layered clothing, a rubber-strapped gas mask, a crude makeshift spear fashioned from a stop sign and pipe, and a bulging salvaged backpack covered in dangling trinkets.",
       colorNotes: "Dusty brown leather duster, faded olive under-layers, rust orange accents on salvaged gear. Gas mask is dark rubber with amber-tinted lenses. Spear shaft is dull grey pipe with a faded red stop-sign blade. Backpack is patched tan canvas.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Wanderer steps forward on his left foot, leather duster swaying to the right. The makeshift spear is held upright in his right hand and the salvaged backpack bounces with dangling trinkets. His gas mask's amber lenses catch the light.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, duster hanging straight. The round amber lenses of the gas mask stare directly ahead and the stop-sign spear rests at his side.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, duster swaying left. The trinkets on the backpack jingle and the faded olive under-layers peek through the open duster front.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the bulging salvaged backpack dominates the view with its patched tan canvas and hanging trinkets. The leather duster drapes around the pack and the spear extends above his shoulder.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the backpack and duster filling the frame. The dull grey pipe shaft of the spear rises over his right shoulder and the faded red stop-sign blade peeks at the top.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, backpack shifting with the stride. Trinkets swing and the leather duster tail flaps behind his legs.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Wanderer faces left with his left foot forward in a cautious stride. The spear extends ahead in his leading hand and the duster trails behind, revealing the layered olive clothing beneath. The gas mask profile shows the protruding filter canister.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, feet aligned. The hunched posture is evident in profile and the backpack's bulk rises behind his shoulders. Amber lenses gleam from the mask.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, duster swinging forward. The stop-sign spear blade catches a dull red glint.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the spear leading his advance. The duster flows behind and the backpack trinkets sway. His gas mask filter canister protrudes from the far side.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the wiry build visible beneath the heavy duster. The rust orange accents on the salvaged buckles and straps catch dim light.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, duster trailing. The backpack bounces and the amber mask lenses reflect the wasteland ahead.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Wanderer stands in a slightly hunched stance facing the viewer, spear resting on his shoulder and one hand on a hip strap. The gas mask's amber lenses stare out beneath the duster's raised collar. Trinkets hang still from the backpack.
@@ -1376,6 +1169,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Wanderer slings the spear across his shoulders behind his neck, arms draped over it casually. The gas mask hangs loosely at his collar and he surveys the aftermath with amber-tinted goggles pushed up.
   Header "Weak Pose" (5,4): The Wanderer leans heavily on the spear as a crutch, one hand clutching his side. The duster is torn and caked with dust, the mask filter is clogged with soot, and the backpack hangs by a single strap.
   Header "Critical Pose" (5,5): Barely standing, the Wanderer grips the spear with trembling hands. The gas mask is cracked and wheezing, the duster is shredded, and his desperate amber lenses scan for any escape route.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Wasteland Wanderer trudges South with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him.",
+        "Walk North Animation Frames": "The Wasteland Wanderer trudges North with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him.",
+        "Walk West Animation Frames": "The Wasteland Wanderer trudges West with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him.",
+        "Walk East Animation Frames": "The Wasteland Wanderer trudges East with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him."
+      },
     },
     {
       id: 'vault-dweller',
@@ -1384,21 +1183,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A young, clean-cut survivor freshly emerged from an underground vault. Short brown hair, wide blue eyes, and an expression of cautious wonder. Lean build in a fitted jumpsuit with an upright, slightly nervous posture.",
       equipment: "A bright blue jumpsuit with a yellow number '42' on the back, a chunky Pip-Boy wrist computer on the left arm with a green screen, a compact laser pistol holstered at the hip, and a small utility belt with pouches.",
       colorNotes: "Bright blue jumpsuit with yellow trim and number. Pip-Boy is dark grey-green with a glowing green screen. Laser pistol is chrome with a red energy cell. Utility belt is brown leather with brass buckles.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Vault Dweller steps forward on his left foot, the bright blue jumpsuit crisp and visible with yellow trim along the seams. The chunky Pip-Boy on his left wrist glows green and the laser pistol sits snug in the hip holster.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together. His wide blue eyes look ahead with cautious wonder and the yellow '42' is partially visible on his chest pocket. The Pip-Boy screen flickers with data.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads. The utility belt pouches bounce and the chrome laser pistol handle catches light at his hip. His short brown hair is neat and clean.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the large yellow '42' on the back of the blue jumpsuit is prominently displayed. The Pip-Boy is visible on his trailing left wrist and the utility belt wraps his waist.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the blue jumpsuit and yellow number filling the view. The brown leather utility belt pouches are visible at his sides and his short hair shows his clean-cut profile.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the jumpsuit shifting with the stride. The laser pistol holster is visible at his right hip from behind.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Vault Dweller faces left with his left foot forward in a careful step, Pip-Boy arm leading and its green screen visible. The blue jumpsuit is neat and the laser pistol rides at his far hip.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his lean profile showing the yellow jumpsuit trim running down his side. The Pip-Boy is prominent on his near wrist and his nervous expression is visible.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The utility belt pouches sway and the chrome pistol handle glints behind his hip.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the laser pistol holster visible at his near hip. The Pip-Boy trails on his far arm and his wide blue eyes scan the unfamiliar world ahead.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, jumpsuit creasing at the joints. The brown leather belt and brass buckles are visible and the Pip-Boy glows green on his far wrist.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. His slightly nervous posture shows in the way his shoulders hunch forward, Pip-Boy swinging.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Vault Dweller stands facing the viewer in a slightly stiff, uncertain stance. His left arm is raised to check the Pip-Boy screen, which glows green with readouts. The blue jumpsuit is pristine and the laser pistol is holstered.
@@ -1431,6 +1216,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Vault Dweller gives a thumbs-up with his Pip-Boy hand, the green screen showing a thumbs-up icon in return. He stands tall with an awkward but genuine confidence, blue jumpsuit gleaming.
   Header "Weak Pose" (5,4): The Vault Dweller hunches over with hands on knees, panting. The jumpsuit is torn and stained, the Pip-Boy screen flickers with warning readouts, and the laser pistol dangles loosely from one hand.
   Header "Critical Pose" (5,5): Barely standing, the Vault Dweller clutches the laser pistol with both hands. The Pip-Boy screen flashes red emergency warnings, the jumpsuit is in tatters, and his blue eyes are wide with terrified determination.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Vault Dweller steps South with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride.",
+        "Walk North Animation Frames": "The Vault Dweller steps North with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride.",
+        "Walk West Animation Frames": "The Vault Dweller steps West with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride.",
+        "Walk East Animation Frames": "The Vault Dweller steps East with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride."
+      },
     },
     {
       id: 'raider-warlord',
@@ -1439,21 +1230,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A brutal scavenger leader with a shaved head sporting a tall crimson mohawk, heavy war paint across the eyes, and a scarred, muscular build. Aggressive forward-leaning stance radiating menace.",
       equipment: "Spiked shoulder armor welded from scrap metal and car parts, a heavy chain weapon ending in a spiked ball, bone-and-tooth trophies on a necklace, and crude war paint in red and black streaks.",
       colorNotes: "Bare scarred skin with red and black war paint. Crimson mohawk. Armor is rust red and gunmetal scrap metal with bone white trophy accents. Chain is dark iron and the spiked ball is pitted steel. Pants are torn black leather.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Raider Warlord stomps forward on his left foot, the heavy chain weapon swinging at his right side with the spiked ball dragging. The spiked scrap-metal shoulder armor juts aggressively and his crimson mohawk stands tall above red and black war paint.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet planted wide. His scarred muscular torso is visible between scrap armor plates and the bone-and-tooth necklace rattles against his chest. War-painted eyes glare forward.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, chain swinging to the left. The spiked ball scrapes the ground and the rust red armor plates clank with each heavy step.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the massive spiked shoulder armor dominates the back view. The chain weapon trails behind and the crimson mohawk rises like a fin above the gunmetal scrap plates.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the scarred back visible between armor gaps. Bone trophies dangle from armor hooks and the chain weapon hangs at his side. The mohawk is a sharp crimson ridge.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the spiked ball dragging behind. The torn black leather pants and heavy boots complete the brutal silhouette.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Warlord faces left with his left foot forward in an aggressive advance. The spiked shoulder armor leads and the chain weapon trails behind, spiked ball bouncing. His mohawk profile is sharp and the war paint streaks are vivid.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his scarred muscular profile visible. The bone-tooth necklace hangs across his chest and the scrap armor plates overlap with crude welds. Eyes narrow with menace.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, chain swinging forward. The rust red armor catches harsh light and the spiked ball arcs ahead.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, chain weapon leading and spiked ball swinging outward. The crimson mohawk trails like a war banner and the scrap shoulder armor bristles with welded spikes.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the aggressive forward lean evident. The war paint streaks frame his scarred face in profile and the bone trophies click against the armor.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, the chain weapon trailing. The torn black leather pants and heavy stomping boots are prominent.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Warlord stands with legs apart facing the viewer, the chain weapon coiled in one fist. The spiked armor gleams dull rust red and his war-painted face glares with open hostility. The bone necklace hangs over his scarred chest.
@@ -1486,6 +1263,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Warlord coils the chain weapon around his arm and crosses his armored arms, glaring forward with contemptuous superiority. The bone necklace clicks and the crimson mohawk stands perfectly erect.
   Header "Weak Pose" (5,4): The Warlord hunches forward, chain weapon dragging on the ground. Half his scrap armor is gone, the war paint is faded with dried blood, and the mohawk wilts. He snarls through gritted teeth, refusing to fall.
   Header "Critical Pose" (5,5): Barely standing, the Warlord swings the chain weapon in weak, desperate arcs. His armor is destroyed, the bone necklace is gone, and his body is covered in wounds — but his war-painted eyes still burn with unbroken fury.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Raider Warlord stomps South with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
+        "Walk North Animation Frames": "The Raider Warlord stomps North with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
+        "Walk West Animation Frames": "The Raider Warlord stomps West with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
+        "Walk East Animation Frames": "The Raider Warlord stomps East with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame."
+      },
     },
     {
       id: 'mutant-enforcer',
@@ -1494,21 +1277,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "An oversized irradiated brute standing a head taller than a normal human. Sickly green-tinged skin with purple bruising and visible radiation scars. Hunched, top-heavy build with massive arms and a small, angry head.",
       equipment: "A crude super sledge — an oversized sledgehammer with a car engine block as the head, torn remnants of pre-war clothing barely covering the torso, and heavy chains wrapped around the forearms as makeshift bracers.",
       colorNotes: "Sickly green skin with mottled purple bruising and grey radiation scars. Torn clothing is faded grey-blue. Super sledge head is dark steel with rust. Chain bracers are dark iron. Eyes are a dim, angry yellow.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Mutant Enforcer lumbers forward on his left foot, the ground seeming to shake with his weight. The massive super sledge drags at his right side, its car-engine head scraping the ground. His sickly green skin is mottled with purple bruises and his dim yellow eyes glare ahead.
-  Header "Walk Down 2" (0,1): Neutral mid-step with feet planted wide to support his top-heavy frame. The torn grey-blue clothing barely covers his barrel chest and the chain bracers on his massive forearms clink. His small angry head sits atop bulging shoulders.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the super sledge dragging on the other side. Grey radiation scars are visible across his green arms and the purple bruising shifts with muscle movement.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the Enforcer's massive hunched back fills the view. The torn clothing hangs in strips and radiation scars crisscross his green skin. The super sledge shaft extends upward past his shoulder.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the top-heavy build evident. Chain-wrapped forearms hang at his sides and the car-engine sledge head protrudes above his right shoulder. The purple bruising is visible on his back.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the massive frame lumbering. The torn clothing flaps and the dark iron chains on his wrists catch dull light.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Enforcer faces left with his left foot forward in a heavy, ground-shaking stride. The super sledge is held low in his massive right hand, engine-block head trailing. His hunched profile shows the disproportion between his huge body and small head.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, his enormous silhouette looming. The chain bracers hang heavily on forearms thicker than a normal man's thighs. Sickly green skin glistens with an unhealthy sheen.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, sledge swinging forward. The torn grey-blue clothing rips further with the motion and radiation scars catch the light.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the super sledge leading in his massive grip. The chain bracers jingle and his dim yellow eyes squint ahead. Purple bruising marks his near arm and shoulder.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the top-heavy hunched frame evident. The car-engine sledge head rests on the ground and his small angry head peers forward from between massive shoulders.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The ground cracks under his weight and the torn clothing flutters with each thunderous step.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Enforcer stands hunched facing the viewer, the super sledge resting on his shoulder with the engine-block head behind his back. His massive chain-wrapped arms hang forward and his small head peers out with dim yellow eyes. Green skin pulses faintly with radiation.
@@ -1541,6 +1310,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Enforcer sits on the super sledge engine-block head as a throne, massive arms resting on his knees. His dim yellow eyes show a rare, dull satisfaction and the purple bruises have faded slightly.
   Header "Weak Pose" (5,4): The Enforcer leans heavily on the upright super sledge, his massive frame sagging. The green skin is pale and the radiation scars are dim. Chain bracers drag on the ground and his yellow eyes are half-closed, flickering.
   Header "Critical Pose" (5,5): Barely standing, the Enforcer clutches the super sledge handle with both trembling hands. His green skin is almost grey, the radiation scars are completely dark, and his massive body shakes. Only a faint angry glow in his yellow eyes remains.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Mutant Enforcer lumbers South with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
+        "Walk North Animation Frames": "The Mutant Enforcer lumbers North with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
+        "Walk West Animation Frames": "The Mutant Enforcer lumbers West with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
+        "Walk East Animation Frames": "The Mutant Enforcer lumbers East with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame."
+      },
     },
     {
       id: 'caravan-trader',
@@ -1549,21 +1324,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A pragmatic traveling merchant with a weathered face, a wide-brimmed cowboy hat, and shrewd hazel eyes. Medium build wrapped in practical layers and a pack harness distributing heavy trade goods across the body.",
       equipment: "A wide-brimmed leather cowboy hat, a heavy pack harness with goods strapped across chest and back, barter items dangling from hooks (bottles, ammo boxes, canned food), a worn revolver in a thigh holster, and a walking staff made from a twisted rebar rod.",
       colorNotes: "Tan wide-brimmed hat and outer layers. Brown leather harness and holster. Brass-colored buckles, bullet casings, and barter goods. Gunmetal revolver. Dark brown boots. Rebar staff is rust-grey.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Caravan Trader steps forward on his left foot, barter goods jingling on the pack harness. The wide-brimmed hat shades his weathered face and the rebar walking staff plants ahead. Bottles and ammo boxes sway from harness hooks.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together. His shrewd hazel eyes peer from beneath the hat brim and the pack harness distributes heavy goods across his chest. The revolver sits snug in the thigh holster.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, barter goods swinging to the opposite side. Canned food and brass bullet casings dangle and clatter. The rebar staff catches rust-grey light.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the heavy pack harness and trade goods dominate the back view. Strapped bundles, bottles, and ammo boxes create a merchant's profile. The hat brim is visible from above.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full weight of the pack visible. Brown leather straps crisscross the tan outer layers and the rebar staff rises past his right shoulder. Brass buckles catch dim light.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, goods shifting with the stride. The thigh holster and revolver handle peek from beneath the layered pack.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Trader faces left with his left foot forward, leaning on the rebar staff. The pack harness goods — bottles, cans, ammo boxes — jingle and sway. His weathered profile beneath the hat brim shows shrewd concentration.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the pack harness creating a bulky side profile. The revolver holster is visible at his near thigh and the hat brim casts a shadow across his face.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, the rebar staff swinging. Barter goods bounce and the brass buckles on the harness glint.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the rebar staff leading. The pack harness goods trail behind and the wide-brimmed hat tilts forward. The worn revolver holster is on his far thigh.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the practical layers and harness creating a distinctive merchant silhouette. Hazel eyes scan the path ahead and trade goods clink softly.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, goods swaying. The dark brown boots are worn smooth and the rebar staff taps the ground with each step.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Trader stands with the rebar staff planted beside him, one hand resting on a dangling ammo box. His wide-brimmed hat tilts back showing his weathered face and hazel eyes. The pack harness hangs heavily but comfortably. The revolver is holstered.
@@ -1596,6 +1357,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Trader pulls a bottle from the harness and uncorks it, raising it in a toast to himself. The revolver is holstered, the hat tilted back, and the remaining barter goods dangle with the satisfaction of a deal well done.
   Header "Weak Pose" (5,4): The Trader leans on the rebar staff, the pack harness half-empty and hanging by one strap. The hat droops and the revolver dangles loosely from one hand. Most of his barter goods are lost and his hazel eyes are weary.
   Header "Critical Pose" (5,5): Barely standing amid his scattered goods, the Trader clutches the revolver with his last round. The hat is torn, the harness is destroyed, and he stands guard over what remains of his trade goods with desperate, calculating eyes.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Caravan Trader trudges South with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face.",
+        "Walk North Animation Frames": "The Caravan Trader trudges North with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face.",
+        "Walk West Animation Frames": "The Caravan Trader trudges West with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face.",
+        "Walk East Animation Frames": "The Caravan Trader trudges East with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face."
+      },
     },
     {
       id: 'power-armor-knight',
@@ -1604,21 +1371,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A towering figure encased head-to-toe in pre-war powered combat armor. The suit is bulky and angular with a T-shaped visor slit glowing amber on a bucket-shaped helmet. Broad-shouldered, heavy, and imposing with hydraulic joints at the elbows and knees. Moves with deliberate, ground-shaking weight.",
       equipment: "Full suit of olive-drab T-51b power armor with scratched steel plating and faded military stencils, a shoulder-mounted lamp on the left pauldron, a heavy gatling laser with six rotating barrels held in both hands, and a fusion core glowing blue-white in the back-mounted power pack.",
       colorNotes: "Olive-drab steel armor plating with scratched gunmetal edges and faded white military stencils. Amber-glowing T-shaped visor. Fusion core is blue-white. Gatling laser barrels are dark chrome with red heat vents. Hydraulic pistons are brass-colored. Shoulder lamp is yellow when active.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Power Armor Knight stomps forward on the left foot, the ground cracking under the immense weight. The gatling laser is held across the chest in both armored hands, six barrels angled down. The T-shaped amber visor glows beneath the bucket helmet and hydraulic knee pistons hiss with the step. Olive-drab plating shows scratched battle damage.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with heavy boots planted side by side. The gatling laser rests at waist level and the shoulder lamp casts a faint yellow glow. Faded white military stencils are visible on the chest plate. The fusion core pulses blue-white through the back vents.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the armored frame shifting with mechanical precision. Hydraulic elbow pistons extend and the gatling laser sways to the opposite side. Scratched gunmetal edges catch harsh light.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the back-mounted fusion core dominates the view — a glowing blue-white cylinder in a steel housing. Exhaust vents trail faint heat shimmer. The olive-drab plating is scarred across the back and the gatling laser barrel tips extend past the right shoulder.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the fusion core and power pack filling the frame. Hydraulic spine actuators are visible between the back plates and faded stencils read partial unit numbers. The bucket helmet's rear vents are visible.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the heavy frame lumbering. The shoulder lamp housing is visible on the left pauldron and the gatling laser shifts to the other side.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Knight faces left with the left foot forward in a thunderous stride. The gatling laser leads in both hands, six dark chrome barrels pointing ahead. The bucket helmet's T-shaped visor glows amber in profile and the hydraulic knee piston compresses visibly. The shoulder lamp sits atop the near pauldron.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full armored silhouette looming. The gatling laser hangs at the ready and the fusion core's blue-white glow is visible behind the torso. Brass-colored hydraulic pistons gleam at the elbow joint.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, gatling laser barrels swinging forward. The red heat vents along the barrel housing glow faintly and olive-drab plating clanks with the step.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the gatling laser pointing ahead. The fusion core's glow trails behind and the shoulder lamp is on the far pauldron. The T-shaped visor scans the path ahead, amber light cutting through dust.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the angular bulk of the power armor creating a fortress-like profile. Faded stencils on the near pauldron and thigh plate are partially legible. Hydraulic joints are visible at the knee and elbow.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right, the heavy frame shaking the ground. The gatling laser sways with controlled momentum and the back-mounted power pack vents heat.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Knight stands facing the viewer in a wide, planted stance, gatling laser held vertically with the barrels pointing up and the stock resting on the ground. The amber visor glows steadily and the shoulder lamp is off. Hydraulic joints hiss softly at rest. The fusion core pulses a calm blue-white.
@@ -1651,6 +1404,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Knight crosses armored arms over the chest plate, gatling laser mag-locked to the back. The amber visor dims to a calm glow and the shoulder lamp clicks off. The imposing silhouette stands at ease — a steel monument on the battlefield.
   Header "Weak Pose" (5,4): The Knight stands with one leg's hydraulics failing, leaning heavily to one side. The gatling laser drags on the ground in a weakening grip. Armor plates are cracked and hanging loose, the fusion core flickers between blue-white and dark, and the amber visor pulses in time with failing power reserves.
   Header "Critical Pose" (5,5): Barely standing, every hydraulic joint sparking and grinding. The gatling laser is braced against the ground as a crutch, barrels bent from impact. The fusion core is exposed and critical — flashing red through the cracked housing. The amber visor is a dying ember behind a shattered helmet plate, but the Knight still faces the enemy.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Power Armor Knight stomps South with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
+        "Walk North Animation Frames": "The Power Armor Knight stomps North with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
+        "Walk West Animation Frames": "The Power Armor Knight stomps West with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
+        "Walk East Animation Frames": "The Power Armor Knight stomps East with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet."
+      },
     },
     {
       id: 'xenomorph-drone',
@@ -1659,21 +1418,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A sleek, biomechanical predator with an elongated smooth skull, no visible eyes, and a lipless mouth hiding a deadly inner jaw. Tall, gaunt frame with a segmented exoskeleton, digitigrade legs, and a long segmented tail ending in a blade tip.",
       equipment: "Natural weapons only — razor-sharp claws, a bladed tail tip, dorsal tubes running along the back, and a telescoping inner mouth with silver teeth. No artificial equipment.",
       colorNotes: "Obsidian black exoskeleton with dark blue reflective highlights on curved surfaces. Silver metallic teeth on both outer and inner jaws. Dorsal tubes are dark steel grey. Saliva is translucent silver. Tail blade is polished dark steel.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Xenomorph Drone stalks forward on its left digitigrade foot, the elongated smooth skull tilted slightly downward. Its obsidian black exoskeleton catches dark blue highlights and the segmented tail curves behind with the blade tip raised. Clawed hands are held at its sides in a predatory stance.
-  Header "Walk Down 2" (0,1): Neutral mid-step with both feet planted, the gaunt frame crouched low. The lipless mouth is slightly parted revealing silver teeth and the dorsal tubes along its back are visible above the shoulders. Translucent saliva drips from the jaw.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the tail blade swaying to the opposite side. The dark blue highlights ripple across the segmented exoskeleton and the clawed hands flex with silent menace.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the elongated skull rises above the hunched shoulders. The dorsal tubes run prominently down the spine and the segmented tail extends outward with its blade tip. The obsidian exoskeleton is smooth and insectoid.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full length of the dorsal tubes visible from skull crest to lower back. The dark steel grey tubes contrast against the obsidian body. The tail hangs in a low curve.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, tail swaying. The digitigrade legs flex with alien musculature and the dark blue highlights trace the joints.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Drone faces left with its left foot forward in a silent, low stalk. The elongated skull extends far forward and the tail stretches out behind for balance. The profile shows the gaunt biomechanical ribbing of the torso.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the entire silhouette visible — elongated head, hunched shoulders, dorsal tubes, thin waist, and the long bladed tail. Silver teeth glint in the partially open mouth.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left, the tail curving forward slightly. Clawed hands reach ahead and the obsidian exoskeleton catches dark blue light along the limbs.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the elongated skull leading the advance. The dorsal tubes create a ridged silhouette and the tail extends far behind with its blade tip raised. Translucent saliva trails from the jaw.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, digitigrade legs visible in profile. The biomechanical ribbing of the torso and the smooth cranium create an unmistakable alien silhouette.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The tail whips behind and the razor claws catch dim reflections. The dark blue highlights trace the segmented spine.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Drone crouches facing the viewer, the elongated skull tilted as if sensing the air. The lipless mouth is closed with silver teeth barely visible. The tail coils loosely behind and the clawed hands rest on the ground in a spider-like stance. Dorsal tubes rise above the shoulders.
@@ -1706,6 +1451,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Drone drops to a low, satisfied crouch, the tail coiling around its body. The elongated skull tilts and the lipless mouth closes over the silver teeth. It is still and watchful — the perfect predator at rest.
   Header "Weak Pose" (5,4): The Drone crouches low, exoskeleton cracked and leaking acid blood. The tail drags limply and the claws barely grip the ground. The elongated skull hangs and the inner jaw extends weakly, silver teeth barely visible.
   Header "Critical Pose" (5,5): Barely alive, the Drone lies on its side with cracked, dull exoskeleton and acid blood pooling. The tail blade twitches and the inner jaw extends one last time in a feeble threat. Even dying, the creature remains terrifying.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Xenomorph Drone stalks South in a silent low predatory stride, its digitigrade legs flexing and the elongated smooth skull tilted forward. The segmented bladed tail curves behind for balance and the obsidian exoskeleton catches dark blue highlights as translucent saliva drips from its jaw.",
+        "Walk North Animation Frames": "The Xenomorph Drone stalks North in a silent low predatory stride, its digitigrade legs flexing and the elongated smooth skull tilted forward. The segmented bladed tail curves behind for balance and the obsidian exoskeleton catches dark blue highlights as translucent saliva drips from its jaw.",
+        "Walk West Animation Frames": "The Xenomorph Drone stalks West in a silent low predatory stride, its digitigrade legs flexing and the elongated smooth skull tilted forward. The segmented bladed tail curves behind for balance and the obsidian exoskeleton catches dark blue highlights as translucent saliva drips from its jaw.",
+        "Walk East Animation Frames": "The Xenomorph Drone stalks East in a silent low predatory stride, its digitigrade legs flexing and the elongated smooth skull tilted forward. The segmented bladed tail curves behind for balance and the obsidian exoskeleton catches dark blue highlights as translucent saliva drips from its jaw."
+      },
     },
     {
       id: 'xenomorph-warrior',
@@ -1714,21 +1465,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A larger, more heavily armored variant with a distinctive ridged head crest rising from the skull. Broader, more muscular build with thicker chitinous armor plates across the chest and limbs. More aggressive, upright stance than the drone.",
       equipment: "Natural weapons — larger, heavier claws, a thicker armored tail with a wider blade tip, reinforced chitinous chest plates, and a more powerful inner jaw. No artificial equipment.",
       colorNotes: "Primary black exoskeleton with dark brown undertones in the chitin plates. Head crest is glossy black with brown ridges. Acid-green blood visible at joints. Teeth are bone-white. Chest plates have a dark brown, almost woody texture.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Xenomorph Warrior advances on its left foot with a heavier, more deliberate stride than a drone. The ridged head crest rises prominently above the broader shoulders. Thick chitinous chest plates overlap like dark brown armor and the armored tail swings behind with its wide blade.
-  Header "Walk Down 2" (0,1): Neutral mid-step with feet planted wide, the muscular frame upright and imposing. The glossy black head crest with brown ridges catches the light. Bone-white teeth are visible in the slightly open mouth and acid-green blood traces the joint seams.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the heavier tail swaying opposite. The chitinous chest plates shift with the stride and the larger claws flex. Dark brown undertones show in the thicker chitin.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the ridged head crest and massive shoulders fill the upper view. The thick armored tail extends prominently and the dark brown chitinous back plates overlap in a segmented pattern.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full breadth of the Warrior's back visible — wider and more muscular than a drone. The head crest ridges run in parallel lines and the tail hangs heavily.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away, the armored tail swaying. Acid-green blood is faintly visible at the leg joints and the dark brown chitin plates clank softly.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Warrior faces left with its left foot forward in a powerful stride. The ridged head crest extends the skull profile dramatically and the thick chitinous chest plates are visible. The heavy armored tail counterbalances the massive build.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full silhouette showing the broader, more upright posture. The dark brown chitin plates layer across the torso like segmented armor and the head crest ridges are sharp in profile.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The larger claws reach forward and the tail blade arcs behind. Acid-green blood traces are visible at the wrist joints.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the head crest leading the advance like a battering ram. The chitinous chest plates are in full profile and the armored tail trails heavily behind. Bone-white teeth are bared.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the muscular, upright frame filling the cell. The dark brown undertones in the chitin are visible and the head crest ridges cast small shadows.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The tail swings forward and the heavier claws are prominent. The glossy black exoskeleton contrasts with the brown chitin texture.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Warrior stands nearly upright facing the viewer, the ridged head crest towering above. The chitinous chest plates are displayed prominently and the larger claws hang at its sides. The armored tail coils on the ground and bone-white teeth gleam in a closed-mouth expression.
@@ -1761,6 +1498,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Warrior stands tall and crosses its massive clawed arms over the chitinous chest plates. The head crest tilts with an almost regal bearing and the tail coils around its feet. Even in stillness, it radiates lethal power.
   Header "Weak Pose" (5,4): The Warrior hunches forward, broken chitin plates hanging loose. Acid blood drips steadily and the head crest droops. The massive claws grip the ground for support and the tail drags limply. The inner jaw hangs partially extended.
   Header "Critical Pose" (5,5): Barely standing, the Warrior sways with most of its chitin armor destroyed. Acid-green blood pools around its feet. The head crest is cracked but still raised and the bone-white teeth are bared in a final, defiant snarl.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Xenomorph Warrior advances South with a heavier, more deliberate stride than a Drone, the ridged head crest rising above broader shoulders. Thick dark-brown chitinous chest plates overlap with each step and the wider armored tail swings behind while acid-green blood traces the joint seams.",
+        "Walk North Animation Frames": "The Xenomorph Warrior advances North with a heavier, more deliberate stride than a Drone, the ridged head crest rising above broader shoulders. Thick dark-brown chitinous chest plates overlap with each step and the wider armored tail swings behind while acid-green blood traces the joint seams.",
+        "Walk West Animation Frames": "The Xenomorph Warrior advances West with a heavier, more deliberate stride than a Drone, the ridged head crest rising above broader shoulders. Thick dark-brown chitinous chest plates overlap with each step and the wider armored tail swings behind while acid-green blood traces the joint seams.",
+        "Walk East Animation Frames": "The Xenomorph Warrior advances East with a heavier, more deliberate stride than a Drone, the ridged head crest rising above broader shoulders. Thick dark-brown chitinous chest plates overlap with each step and the wider armored tail swings behind while acid-green blood traces the joint seams."
+      },
     },
     {
       id: 'facehugger-swarm',
@@ -1769,21 +1512,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A group of 3-4 spider-like parasitic creatures moving as a unit. Each has a pale, fleshy body with long gripping finger-legs, a muscular whip-like tail, and a ventral proboscis. They scuttle and leap in unsettling coordinated motion.",
       equipment: "Natural weapons only — gripping finger-legs for latching, a muscular tail for constriction, and a ventral proboscis for implantation. No artificial equipment.",
       colorNotes: "Pale flesh bodies with pink-grey undersides. Finger-legs are slightly darker flesh tone with visible tendons. Tails are pink-grey and muscular. Ventral side has translucent membranes revealing pulsing internals. Overall wet, organic appearance.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Three facehuggers scuttle forward as a swarm, the lead creature on the left with finger-legs splayed and the others following in a staggered formation. Their pale flesh bodies are low to the ground and the muscular tails trail behind. The wet, organic sheen catches the light.
-  Header "Walk Down 2" (0,1): The swarm pauses in a tight cluster, finger-legs interleaving. The lead facehugger raises its front legs sensing the air while the others press close beneath. Pink-grey undersides are partially visible and the translucent membranes pulse.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — the swarm shifts right, the lead creature now on the right side. Finger-legs scrabble across the ground in unsettling coordinated motion. Tails whip and coil.
-  Header "Walk Up 1" (0,3): The swarm scuttles away, showing the top of their pale fleshy bodies. The finger-legs push from behind and the muscular tails lead the way. Three distinct bodies move in formation with visible tendons flexing on the legs.
-  Header "Walk Up 2" (0,4): Facing away in a cluster, the swarm's pale dorsal surfaces are visible — smooth flesh domes with the bases of the finger-legs radiating outward. Tails coil together briefly before separating.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — the swarm shifts direction, scuttling away with the formation reversed. The finger-legs move in a disturbing wave pattern and the translucent undersides flash occasionally.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The swarm scuttles left, three facehuggers in a line with finger-legs reaching. The lead creature's profile shows the gripping legs, whip tail, and the fleshy body in full side view. The others follow in rapid, spider-like pursuit.
-  Header "Walk Left 2" (1,1): Clustered facing left, the swarm huddles with finger-legs interleaved. The side view shows the translucent ventral membranes and the muscular tails curling upward. The pale flesh glistens with moisture.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — the swarm moves left with altered formation, some creatures climbing over others. Finger-legs tangle and separate in disturbing coordination. Pink-grey undersides flash.
-  Header "Walk Right 1" (1,3): The swarm scuttles right, finger-legs reaching ahead. The lead facehugger leaps slightly while the others rush below. Muscular tails whip for balance and the pale bodies ripple with effort.
-  Header "Walk Right 2" (1,4): Clustered facing right, the swarm presses together. The fleshy bodies stack slightly and the finger-legs grip each other as well as the ground. The wet organic appearance is at its most unsettling.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — altered formation scuttling right. One facehugger rides atop another briefly, finger-legs spread wide. The translucent membranes on the ventral side pulse with internal movement.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The swarm rests in a loose cluster facing the viewer, finger-legs slowly flexing in place. The lead facehugger raises its front legs periodically as if sensing. Pink-grey undersides are visible and the muscular tails lie in lazy coils. The pale flesh rises and falls with breathing.
@@ -1816,6 +1545,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The swarm settles into a satisfied cluster, finger-legs intertwined. They breathe in synchronized pulses, the pale flesh rising and falling together. Tails coil lazily and the translucent membranes glow with contented internal warmth.
   Header "Weak Pose" (5,4): The swarm huddles in a weakened cluster — one creature is barely moving, finger-legs limp. The others press close protectively, their own finger-legs sluggish. The pale flesh is mottled grey and the tails hang without energy.
   Header "Critical Pose" (5,5): Only one facehugger remains functional, dragging itself forward with weakening finger-legs. The other two lie motionless behind it. Its translucent membrane barely pulses and the tail trails limply, but it still reaches toward the threat with desperate, instinctual gripping.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Facehugger Swarm scuttles South in unsettling coordinated formation, pale fleshy bodies low to the ground with finger-legs reaching and muscular tails whipping for balance. The wet organic sheen of their skin catches the light and translucent ventral membranes pulse.",
+        "Walk North Animation Frames": "The Facehugger Swarm scuttles North in unsettling coordinated formation, pale fleshy bodies low to the ground with finger-legs reaching and muscular tails whipping for balance. The wet organic sheen of their skin catches the light and translucent ventral membranes pulse.",
+        "Walk West Animation Frames": "The Facehugger Swarm scuttles West in unsettling coordinated formation, pale fleshy bodies low to the ground with finger-legs reaching and muscular tails whipping for balance. The wet organic sheen of their skin catches the light and translucent ventral membranes pulse.",
+        "Walk East Animation Frames": "The Facehugger Swarm scuttles East in unsettling coordinated formation, pale fleshy bodies low to the ground with finger-legs reaching and muscular tails whipping for balance. The wet organic sheen of their skin catches the light and translucent ventral membranes pulse."
+      },
     },
     {
       id: 'biomechanical-entity',
@@ -1824,21 +1559,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "An HR Giger-inspired fusion of organic tissue and mechanical structure. A humanoid frame where flesh merges seamlessly with chrome pipes, ribbed tubing, and exposed vertebral columns. Smooth, elongated skull-like head with no visible eyes, connected by cables and tubes to the torso.",
       equipment: "Integrated body-weapons — retractable chrome blade-arms that extend from forearm housings, ribbed pipes that vent steam, exposed vertebrae that flex and strike, and chrome-plated chest panels over raw flesh. No separate equipment.",
       colorNotes: "Chrome silver mechanical components contrasting with exposed flesh pink organic tissue. Dark steel ribbed pipes and tubes. Bone-white exposed vertebrae. The skull-head is smooth dark steel with chrome accents. Fluids are dark reddish-black.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Entity steps forward on its left foot — the leg is a fusion of chrome pistons and exposed flesh-pink muscle. The smooth dark steel skull-head tilts slightly and ribbed tubes connect the neck to the chrome-plated chest panels. A thin hiss of steam vents from a shoulder pipe.
-  Header "Walk Down 2" (0,1): Neutral mid-step with both feet planted, the full biomechanical horror visible. Chrome-plated chest panels reveal raw flesh beneath at the seams. Cables and tubes run from the skull-head to the torso and the exposed vertebrae are visible through a gap in the back.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the other leg's fusion of chrome and flesh visible. The ribbed pipes along the shoulders vent steam from the opposite side. Dark reddish-black fluid traces the chrome joints.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the exposed vertebral column runs prominently down the center of the back, each bone visible and connected by cables. Dark steel ribbed pipes flank the spine and chrome panels cover the lower back over flesh.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full spinal horror visible — bone-white vertebrae flexing with each step, cables and tubes pulsing with dark fluid. The smooth skull-head rises above on its tube-connected neck.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. Steam vents from the dorsal ribbed pipes and the chrome pistons in the legs extend and contract with mechanical precision over exposed flesh.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Entity faces left with its left foot forward, the full profile showing the nightmare fusion. The skull-head extends on its tube-laden neck, the chrome chest panels transition to exposed flesh at the waist, and the ribbed pipes run along the arm and shoulder.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the side view revealing the depth of the biomechanical integration. Chrome blade-arm housings are visible on the forearms and the exposed vertebrae peek through the back. Dark fluid drips from cable connections.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. Steam hisses from the near shoulder pipe and the chrome pistons in the leading leg extend. The flesh-pink tissue pulses visibly between chrome plates.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, the skull-head leading the advance. The chrome-plated chest panels catch light and the ribbed tubes running to the arm housings are visible. The leg pistons drive the stride with mechanical precision.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the bone-white vertebrae visible through the back gap. Chrome and flesh merge in unsettling harmony along the profile and dark reddish-black fluid traces the joint seams.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The far arm's blade housing catches light and the ribbed pipes along the spine release a small steam vent.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Entity stands facing the viewer in an unsettling stillness, the smooth skull-head tilted slightly. Chrome chest panels gleam over exposed flesh and the ribbed tubes pulse with dark fluid. The forearm blade housings are retracted and steam drifts from shoulder pipes.
@@ -1871,6 +1592,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Entity returns to unsettling stillness — blade-arms retracted, ribbed pipes gently steaming, vertebrae settled. The skull-head tilts at an almost curious angle and the chrome panels gleam. It waits for the next directive with terrifying patience.
   Header "Weak Pose" (5,4): The Entity hunches with failing systems — chrome panels loose and hanging, blade-arms partially extended and sparking. Several tubes are disconnected and leaking dark fluid. The skull-head droops and the vertebral column sags. Only the faintest steam escapes the pipes.
   Header "Critical Pose" (5,5): Barely operational, the Entity stands on locked pistons. Most chrome plates are gone, exposing vulnerable flesh that pulses weakly. The blade-arms twitch and the skull-head hangs by a few cables. A single ribbed pipe still vents thin steam in a last mechanical breath.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Biomechanical Entity strides South with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
+        "Walk North Animation Frames": "The Biomechanical Entity strides North with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
+        "Walk West Animation Frames": "The Biomechanical Entity strides West with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
+        "Walk East Animation Frames": "The Biomechanical Entity strides East with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue."
+      },
     },
     {
       id: 'space-marine',
@@ -1879,21 +1606,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A hardened colonial marine in heavy tactical armor with a full-face helmet featuring an amber visor HUD. Athletic, combat-ready build with military bearing. Battle-scarred armor tells the story of encounters with alien threats.",
       equipment: "Olive drab tactical armor with gunmetal-grey reinforced plates, a pulse rifle with an underslung grenade launcher, a motion tracker mounted on the left forearm, a chest-mounted tactical lamp, and a tactical helmet with an amber-tinted visor.",
       colorNotes: "Olive drab primary armor with gunmetal-grey reinforced plates. Amber-tinted visor with HUD glow. Pulse rifle is dark gunmetal with olive grips. Motion tracker screen is green. Chest lamp casts white light. Boot soles are worn dark rubber.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The Space Marine advances on his left foot with a disciplined, combat-ready stride. The pulse rifle is held at the ready across his chest and the amber visor glows with HUD data. The olive drab armor and gunmetal plates catch harsh light and the chest lamp casts a white beam forward.
-  Header "Walk Down 2" (0,1): Neutral mid-step contact pose with feet together, the pulse rifle shouldered. The tactical helmet's amber visor reflects the environment and the motion tracker on the left forearm shows a green screen with a sweeping line. Gunmetal plates protect the shoulders and chest.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right foot leads, the pulse rifle shifting sides. The underslung grenade launcher is visible beneath the barrel and the olive drab armor clanks softly with the disciplined stride.
-  Header "Walk Up 1" (0,3): Facing away with left foot forward, the reinforced gunmetal back plates and tactical equipment are visible. The pulse rifle barrel extends over the right shoulder and the helmet's rear ventilation ports are prominent. The olive drab armor is scuffed with battle damage.
-  Header "Walk Up 2" (0,4): Neutral mid-step facing away, the full back armor visible — olive drab with gunmetal reinforcement plates. The motion tracker arm hangs at the left side and the chest lamp's mounting bracket is visible from behind.
-  Header "Walk Up 3" (0,5): Mirror of Walk Up 1 — right foot forward facing away. The pulse rifle shifts and the amber visor glow is faintly visible around the helmet edges. Battle scars mark the back armor plates.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): The Marine faces left with his left foot forward, pulse rifle aimed ahead with steady hands. The motion tracker on the near forearm sweeps with a green display. The amber visor shows targeting data and the chest lamp illuminates the path. Olive drab armor is tight and functional.
-  Header "Walk Left 2" (1,1): Neutral contact pose facing left, the full tactical profile visible — helmet with amber visor, reinforced shoulder plates, pulse rifle at port arms, and the motion tracker screen facing the viewer. The gunmetal plates overlap the olive armor.
-  Header "Walk Left 3" (1,2): Mirror of Walk Left 1 — right foot leads while facing left. The underslung grenade launcher is visible in profile and the chest lamp beam cuts forward. Battle scars mark the near shoulder plate.
-  Header "Walk Right 1" (1,3): Facing right with right foot forward, pulse rifle leading the advance. The amber visor scans ahead and the chest lamp beam extends forward. The motion tracker is on the far arm and the olive drab armor shows combat wear.
-  Header "Walk Right 2" (1,4): Neutral contact pose facing right, the gunmetal reinforced plates visible on the near side. The helmet profile shows the amber visor and ventilation ports. The pulse rifle rests at a ready angle.
-  Header "Walk Right 3" (1,5): Mirror of Walk Right 1 — left foot leads while facing right. The motion tracker screen is visible on the far forearm and the pulse rifle barrel catches dull light.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Marine stands at combat rest facing the viewer, pulse rifle shouldered with the barrel up. The amber visor glows steadily with a green HUD readout. The chest lamp is on low and the motion tracker shows a clear green screen. Military bearing is evident in every line.
@@ -1926,6 +1639,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The Marine plants the pulse rifle butt on the ground and leans on it, pushing the amber visor up on the helmet. His face is revealed — exhausted but alive, with a grim, satisfied expression. The motion tracker beeps a steady all-clear and the chest lamp casts a warm glow.
   Header "Weak Pose" (5,4): The Marine leans on the pulse rifle as a crutch, the amber visor cracked and flickering. The chest lamp is dead, the motion tracker sparks intermittently, and acid scars cover the olive drab armor. He breathes heavily behind the damaged helmet.
   Header "Critical Pose" (5,5): Barely standing, the Marine grips the pulse rifle one-handed, the other arm limp. The amber visor shows critical damage warnings, most armor plates are gone or cracked, and the chest lamp is shattered. His last magazine is loaded and his finger is on the trigger — he will not go quietly.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Space Marine advances South with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display.",
+        "Walk North Animation Frames": "The Space Marine advances North with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display.",
+        "Walk West Animation Frames": "The Space Marine advances West with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display.",
+        "Walk East Animation Frames": "The Space Marine advances East with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display."
+      },
     },
     {
       id: 'pickle-rick-rat-suit',
@@ -1934,21 +1653,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "Pickle Rick from Rick and Morty — a pickle with a rat skeleton exosuit/armor. His green pickle face is fully exposed with small beady eyes and a confident smirk. The rat skeleton armor consists of a ribcage chest plate and bone limbs. He is tall and narrow — an elongated pickle body with improvised bone armor strapped to it.",
       equipment: "Rat skeleton exosuit armor (ribcage torso plate, bone arm and leg appendages), makeshift weapons fashioned from rat bones and sewer debris.",
       colorNotes: "Bright green pickle skin with darker green bumps/texture. Off-white/cream rat bones with occasional blood/grime. Beady black eyes. The pickle body has a slight translucent quality at the edges.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): Pickle Rick strides toward the viewer with his left bone-leg forward. His green pickle face grins confidently, beady eyes forward. The rat ribcage chest plate bounces slightly. Bone arms swing naturally.
-  Header "Walk Down 2" (0,1): Neutral mid-step — bone legs together, arms at sides. The elongated pickle body stands upright, ribcage armor centered. His smirk is constant.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right bone-leg forward, arms reversed. Same confident pickle grin.
-  Header "Walk Up 1" (0,3): Facing away — the rat ribcage is visible from the back, spine running down the center of the green pickle body. Left bone-leg forward in stride.
-  Header "Walk Up 2" (0,4): Facing away, neutral stance — bone legs together. The rat skeleton armor's back detail is visible. Pickle bumps texture the green skin.
-  Header "Walk Up 3" (0,5): Facing away, right bone-leg forward. Mirror of Walk Up 1.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Side profile facing left — the elongated pickle shape is most visible here. Bone-leg strides forward, bone-arm swings. The ribcage armor wraps around the pickle body in profile.
-  Header "Walk Left 2" (1,1): Facing left, neutral stance. The tall narrow pickle silhouette with bone armor is distinctive. Beady eye visible in profile.
-  Header "Walk Left 3" (1,2): Facing left, opposite leg forward. Mirror-stride of Walk Left 1.
-  Header "Walk Right 1" (1,3): Side profile facing right. Same elongated pickle with bone armor, mirrored. Confident stride with bone limbs.
-  Header "Walk Right 2" (1,4): Facing right, neutral stance. Pickle Rick's profile shows the green skin between bone armor segments.
-  Header "Walk Right 3" (1,5): Facing right, opposite leg forward.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Pickle Rick stands facing the viewer, bone arms at his sides, smirking. The rat ribcage sits naturally on his pickle torso. Relaxed but cocky posture.
@@ -1981,6 +1686,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): Cool confident pose — bone-shiv resting on his shoulder, one bone-hand on his hip. The smirk that says he was never worried.
   Header "Weak Pose" (5,4): Pickle Rick kneels on one bone-leg, using the bone-shiv as support. Several ribs on the chest plate are cracked. His pickle skin is dull. Breathing hard but still smirking.
   Header "Critical Pose" (5,5): Barely standing — most bone armor destroyed, pickle body dented and bruised. One bone arm hangs limp. But his beady eyes burn with defiance. He's been through worse.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "Pickle Rick strides South with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead.",
+        "Walk North Animation Frames": "Pickle Rick strides North with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead.",
+        "Walk West Animation Frames": "Pickle Rick strides West with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead.",
+        "Walk East Animation Frames": "Pickle Rick strides East with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead."
+      },
     },
     {
       id: 'sewer-rat',
@@ -1989,21 +1700,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A hostile sewer rat enemy — scrappy, aggressive, mangy fur, bared teeth, hunched posture. Standard enemy-sized rat, not giant. Stands upright on hind legs in a semi-bipedal combat stance for sprite animation purposes.",
       equipment: "None — natural claws and teeth are its weapons.",
       colorNotes: "Dirty brown/gray matted fur, pink hairless tail and inner ears, yellowish teeth, beady red-orange eyes. Pale pink skin visible through thin patches of fur on belly.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The rat scurries toward the viewer on hind legs, left paw forward. Hunched posture, beady red eyes glaring. Mangy brown-gray fur bristles. Tail drags behind.
-  Header "Walk Down 2" (0,1): Neutral mid-scurry — paws together, the rat pauses alertly. Whiskers twitch, ears up. Pink tail curls on the ground.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right paw forward, claws visible. Same aggressive hunch.
-  Header "Walk Up 1" (0,3): Facing away — matted fur visible on the back, pink tail prominent. Left hind paw forward in stride. Ears flatten back.
-  Header "Walk Up 2" (0,4): Facing away, neutral stance. The rat's hunched back and thin tail are visible. Patchy fur on the hindquarters.
-  Header "Walk Up 3" (0,5): Facing away, right hind paw forward. Mirror of Walk Up 1.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Side profile facing left — the rat's hunched silhouette, long snout, and trailing pink tail. Left paw forward in a scurrying stride.
-  Header "Walk Left 2" (1,1): Facing left, neutral. Whiskers extend forward, one beady eye visible. Claws rest at sides.
-  Header "Walk Left 3" (1,2): Facing left, right paw forward. Mirror-stride.
-  Header "Walk Right 1" (1,3): Side profile facing right. Same scurrying rat silhouette mirrored. Pink tail trails behind.
-  Header "Walk Right 2" (1,4): Facing right, neutral. Beady eye and twitching whiskers in profile.
-  Header "Walk Right 3" (1,5): Facing right, left paw forward.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The rat stands hunched on hind legs facing the viewer. Paws hang at its sides, claws visible. Beady red eyes stare. Whiskers twitch. Aggressive but still.
@@ -2036,6 +1733,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The rat grooms itself smugly, licking one paw. A satisfied rodent. Winner.
   Header "Weak Pose" (5,4): The rat crouches low, panting. Fur matted with sweat, one eye half-closed. Claws scrape the ground weakly. Still snarling.
   Header "Critical Pose" (5,5): Barely standing — the rat sways on shaky hind legs, mouth open, teeth bared in a final desperate hiss. One paw clutches a wound. Will bite to the last.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "The Sewer Rat scurries South in a hunched semi-bipedal stance, mangy brown-gray fur bristling and beady red eyes glaring. Its pink tail drags behind and the whiskers twitch with constant wary attention.",
+        "Walk North Animation Frames": "The Sewer Rat scurries North in a hunched semi-bipedal stance, mangy brown-gray fur bristling and beady red eyes glaring. Its pink tail drags behind and the whiskers twitch with constant wary attention.",
+        "Walk West Animation Frames": "The Sewer Rat scurries West in a hunched semi-bipedal stance, mangy brown-gray fur bristling and beady red eyes glaring. Its pink tail drags behind and the whiskers twitch with constant wary attention.",
+        "Walk East Animation Frames": "The Sewer Rat scurries East in a hunched semi-bipedal stance, mangy brown-gray fur bristling and beady red eyes glaring. Its pink tail drags behind and the whiskers twitch with constant wary attention."
+      },
     },
     {
       id: 'sewer-cockroach',
@@ -2044,21 +1747,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       description: "A large aggressive sewer cockroach enemy — glossy dark carapace, twitchy antennae, six skittering legs. Viewed from a slight top-down angle to show the shell. Stands semi-upright on its back legs for sprite animation, front legs used as arms. About the size of a rat.",
       equipment: "None — natural mandibles, sharp front leg spines, and hard carapace shell.",
       colorNotes: "Dark reddish-brown glossy carapace/shell, lighter brown-tan underbelly and leg segments, dark brown-black legs, translucent amber wings folded under the shell. Beady black compound eyes.",
-      rowGuidance: `ROW 0 — Walk Down & Walk Up:
-  Header "Walk Down 1" (0,0): The cockroach skitters toward the viewer on its back legs, front legs held up like arms. Left legs forward. Glossy reddish-brown shell gleams. Antennae twitch forward. Compound eyes catch the light.
-  Header "Walk Down 2" (0,1): Neutral mid-scuttle — legs together. The cockroach stands alert, antennae waving. The wide carapace is visible from above.
-  Header "Walk Down 3" (0,2): Mirror of Walk Down 1 — right legs forward. Same glossy carapace, same skittering motion.
-  Header "Walk Up 1" (0,3): Facing away — the full reddish-brown shell is visible from above/behind. Folded translucent wings peek from under the carapace edge. Back legs stride forward.
-  Header "Walk Up 2" (0,4): Facing away, neutral. The shell's glossy surface dominates the view. Antennae point backward.
-  Header "Walk Up 3" (0,5): Facing away, opposite legs forward.
-
-ROW 1 — Walk Left & Walk Right:
-  Header "Walk Left 1" (1,0): Side profile facing left — the cockroach's flat body and long antennae are prominent. Front leg-arms reach forward. Multiple legs visible in stride. Shell edge catches light.
-  Header "Walk Left 2" (1,1): Facing left, neutral. The cockroach's profile shows the layered shell and leg segments. One antenna sweeps forward.
-  Header "Walk Left 3" (1,2): Facing left, opposite legs forward. Six-legged scuttle cycle.
-  Header "Walk Right 1" (1,3): Side profile facing right. Mirrored skittering cockroach. Glossy shell and twitchy antennae.
-  Header "Walk Right 2" (1,4): Facing right, neutral. Compound eye visible in profile.
-  Header "Walk Right 3" (1,5): Facing right, opposite legs forward.
+      rowGuidance: `
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The cockroach stands on hind legs facing the viewer. Front leg-arms rest at its sides. Antennae wave lazily. Compound eyes reflect light. Mandibles click.
@@ -2091,6 +1780,12 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Victory 3" (5,3): The cockroach folds its wings smugly and begins grooming an antenna with one front leg. It has survived. It always survives.
   Header "Weak Pose" (5,4): The cockroach lists to one side, legs shaky. Shell cracked in multiple places, one antenna broken. Mandibles open and close weakly. Breathing hard through damaged spiracles.
   Header "Critical Pose" (5,5): Barely upright — multiple shell plates missing, legs trembling. But the compound eyes still gleam. It hisses with what little strength remains. Cockroaches don't give up. They never do.`,
+      groupGuidance: {
+        "Walk South Animation Frames": "For walking animations, Sewer Cockroach skitters on its back legs, front legs held up like arms. Glossy reddish-brown shell gleams. Antennae twitch forward. Compound eyes catch the light.",
+        "Walk North Animation Frames": "For walking animations, Sewer Cockroach skitters on its back legs, front legs held up like arms. Glossy reddish-brown shell gleams. Antennae twitch forward. Compound eyes catch the light.",
+        "Walk West Animation Frames": "For walking animations, Sewer Cockroach skitters on its back legs, front legs held up like arms. Glossy reddish-brown shell gleams. Antennae twitch forward. Compound eyes catch the light.",
+        "Walk East Animation Frames": "For walking animations, Sewer Cockroach skitters on its back legs, front legs held up like arms. Glossy reddish-brown shell gleams. Antennae twitch forward. Compound eyes catch the light."
+      },
     },
   ];
 
@@ -2118,15 +1813,18 @@ ROW 5 — KO 3, Victory, Status Poses:
     const gridLabels = new Set(JSON.parse(rpgFullGrid.cell_labels || '[]'));
     const insertLink = db.prepare(`
       INSERT OR IGNORE INTO character_grid_links (character_preset_id, grid_preset_id, overall_guidance, group_guidance, cell_guidance, sort_order)
-      VALUES (?, ?, '', '{}', ?, 0)
+      VALUES (?, ?, '', ?, ?, 0)
     `);
+    const presetById = new Map(PRESETS.map(p => [p.id, p]));
     const chars = db.prepare('SELECT id FROM character_presets').all();
     const linkAll = db.transaction(() => {
       for (const char of chars) {
         const cells = decomposed.get(char.id) || {};
         // Only include cell entries that match this grid's labels
         const linkCells = Object.fromEntries(Object.entries(cells).filter(([k]) => gridLabels.has(k)));
-        insertLink.run(char.id, rpgFullGrid.id, JSON.stringify(linkCells));
+        const preset = presetById.get(char.id);
+        const groupGuidance = preset?.groupGuidance || {};
+        insertLink.run(char.id, rpgFullGrid.id, JSON.stringify(groupGuidance), JSON.stringify(linkCells));
       }
     });
     linkAll();
