@@ -39,6 +39,9 @@ export function createHistoryRouter(db) {
         id: gen.id,
         spriteType: gen.sprite_type || 'character',
         gridSize: gen.grid_size || null,
+        model: gen.model || null,
+        imageSize: gen.image_size || null,
+        thinkingLevel: gen.thinking_level || null,
         content: {
           name: gen.content_name || '',
           description: gen.content_description || '',
@@ -64,7 +67,7 @@ export function createHistoryRouter(db) {
       if (!req.body || typeof req.body !== 'object') {
         return res.status(400).json({ error: 'Request body is required' });
       }
-      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId } = req.body;
+      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId, imageSize, thinkingLevel } = req.body;
       if (typeof contentName !== 'string' || contentName.trim() === '') {
         return res.status(400).json({ error: 'contentName is required and must be a non-empty string' });
       }
@@ -77,9 +80,9 @@ export function createHistoryRouter(db) {
       }
 
       const result = db.prepare(
-        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null);
+        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null);
 
       res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }

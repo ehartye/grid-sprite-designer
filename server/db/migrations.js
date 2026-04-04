@@ -86,6 +86,8 @@ const MIGRATIONS = [
     ALTER TABLE background_presets ADD COLUMN cell_guidance TEXT NOT NULL DEFAULT '{}';
   `,
   },
+  { name: '019_add_generation_image_size', sql: 'ALTER TABLE generations ADD COLUMN image_size TEXT DEFAULT NULL' },
+  { name: '020_add_generation_thinking_level', sql: 'ALTER TABLE generations ADD COLUMN thinking_level TEXT DEFAULT NULL' },
 ];
 
 export function migrateSchema(db) {

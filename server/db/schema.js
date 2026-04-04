@@ -7,6 +7,8 @@ export function createSchema(db) {
       character_preset_id TEXT,
       custom_instructions TEXT DEFAULT '',
       model TEXT NOT NULL DEFAULT 'gemini-3-pro-image-preview',
+      image_size TEXT DEFAULT NULL,
+      thinking_level TEXT DEFAULT NULL,
       prompt TEXT NOT NULL DEFAULT '',
       template_image TEXT NOT NULL DEFAULT '',
       filled_grid_image TEXT NOT NULL DEFAULT '',

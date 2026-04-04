@@ -34,8 +34,8 @@ describe('migration version tracking', () => {
 
     const rows = db.prepare('SELECT name FROM migrations ORDER BY id').all();
     expect(rows.length).toBeGreaterThan(0);
-    // The last migration should be the hierarchical guidance migration
-    expect(rows.at(-1).name).toBe('018_hierarchical_guidance');
+    // The last migration should be the most recently appended one
+    expect(rows.at(-1).name).toBe('020_add_generation_thinking_level');
   });
 
   it('does not re-run migrations on second call', () => {

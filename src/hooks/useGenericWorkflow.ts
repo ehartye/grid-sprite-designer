@@ -169,6 +169,8 @@ export async function runGeneratePipeline(
         contentName,
         contentDescription,
         model,
+        imageSize,
+        thinkingLevel: thinkingLevel && thinkingLevel !== 'default' ? thinkingLevel : null,
         prompt,
         filledGridImage: result.image.data,
         spriteType,
