@@ -10,7 +10,14 @@
       "Bash(npx playwright test tests/extraction.spec.ts)",
       "Bash(npm ls serve-handler)",
       "Bash(npm install --save-dev serve-handler)",
-      "Bash(npx playwright install chromium)"
+      "Bash(npx playwright install chromium)",
+      "Bash(git push:*)",
+      "Bash(gh pr:*)",
+      "Bash(git pull:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx tsx:*)"
     ]
   },
   "enabledPlugins": {}
