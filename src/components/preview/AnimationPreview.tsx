@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAppState, useAppDispatch, type CellGroup } from '../../context/AppContext';
-import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../../lib/poses';
+import { ANIMATIONS, expandAnimations, findDirectionalAnim, AnimationDef } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
 
 interface AnimationPreviewProps {
@@ -29,17 +29,23 @@ export function AnimationPreview({ cellGroups }: AnimationPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastKeyRef = useRef<string>('ArrowDown');
 
-  // Derive cellGroups from props, run state, or fall back to default ANIMATIONS
+  // Derive cellGroups and cellLabels from (in order): explicit prop → active run's
+  // current grid link → the grid config captured at generation time. Without
+  // any of these we fall through to the canonical ANIMATIONS constant.
   const currentGridLink = state.run
     ? state.run.selectedGridLinks[state.run.currentGridIndex] ?? null
     : null;
-  const effectiveCellGroups = cellGroups ?? currentGridLink?.cellGroups;
+  const effectiveCellGroups =
+    cellGroups ?? currentGridLink?.cellGroups ?? state.activeGridConfig?.cellGroups;
+  const effectiveCellLabels =
+    currentGridLink?.cellLabels ?? state.activeGridConfig?.cellLabels;
 
   const animations: AnimationDef[] = useMemo(
-    () => effectiveCellGroups?.length
-      ? effectiveCellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
-      : ANIMATIONS,
-    [effectiveCellGroups],
+    () => {
+      const expanded = expandAnimations(effectiveCellGroups, effectiveCellLabels);
+      return expanded.length > 0 ? expanded : ANIMATIONS;
+    },
+    [effectiveCellGroups, effectiveCellLabels],
   );
 
   const currentAnim = animations[selectedAnim];
@@ -135,23 +141,18 @@ export function AnimationPreview({ cellGroups }: AnimationPreviewProps) {
         setStep('review');
         return;
       }
-      if (DIR_WALK[e.key]) {
+      const walkIdx = findDirectionalAnim(animations, e.key, 'walk');
+      if (walkIdx !== -1) {
         e.preventDefault();
-        const walkName = DIR_WALK[e.key];
-        const idx = animations.findIndex((a) => a.name === walkName);
-        if (idx !== -1) {
-          setSelectedAnim(idx);
-          lastKeyRef.current = e.key;
-        }
+        setSelectedAnim(walkIdx);
+        lastKeyRef.current = e.key;
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (DIR_IDLE[e.key] && e.key === lastKeyRef.current) {
-        const idleName = DIR_IDLE[e.key];
-        const idx = animations.findIndex((a) => a.name === idleName);
-        if (idx !== -1) setSelectedAnim(idx);
-      }
+      if (e.key !== lastKeyRef.current) return;
+      const idleIdx = findDirectionalAnim(animations, e.key, 'idle');
+      if (idleIdx !== -1) setSelectedAnim(idleIdx);
     };
 
     window.addEventListener('keydown', handleKeyDown);

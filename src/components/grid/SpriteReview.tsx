@@ -244,6 +244,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     cellCount,
     hasAnimGroups,
     effectiveCellGroups,
+    effectiveCellLabels: dynamicCellLabels,
     displaySprites,
     mirroredCells: selection.mirroredCells,
   });

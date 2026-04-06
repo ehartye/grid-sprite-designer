@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, RefObject } from 'react';
-import { ANIMATIONS, DIR_WALK, DIR_IDLE, AnimationDef } from '../lib/poses';
+import { ANIMATIONS, expandAnimations, findDirectionalAnim, AnimationDef } from '../lib/poses';
 import type { CellGroup } from '../context/AppContext';
 import type { ExtractedSprite } from '../lib/spriteExtractor';
 
@@ -7,6 +7,7 @@ interface UseAnimationLoopOptions {
   cellCount: number;
   hasAnimGroups: boolean;
   effectiveCellGroups: CellGroup[] | undefined;
+  effectiveCellLabels?: string[];
   displaySprites: ExtractedSprite[];
   mirroredCells: Set<number>;
 }
@@ -28,6 +29,7 @@ export function useAnimationLoop({
   cellCount,
   hasAnimGroups,
   effectiveCellGroups,
+  effectiveCellLabels,
   displaySprites,
   mirroredCells,
 }: UseAnimationLoopOptions): AnimationLoopState {
@@ -40,10 +42,11 @@ export function useAnimationLoop({
   const lastKeyRef = useRef<string>('ArrowDown');
 
   const animations: AnimationDef[] = useMemo(
-    () => effectiveCellGroups?.length
-      ? effectiveCellGroups.map(g => ({ name: g.name, frames: g.cells, loop: true }))
-      : ANIMATIONS,
-    [effectiveCellGroups],
+    () => {
+      const expanded = expandAnimations(effectiveCellGroups, effectiveCellLabels);
+      return expanded.length > 0 ? expanded : ANIMATIONS;
+    },
+    [effectiveCellGroups, effectiveCellLabels],
   );
 
   const allCellFrames = useMemo(
@@ -147,23 +150,18 @@ export function useAnimationLoop({
     if (!hasAnimGroups) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (DIR_WALK[e.key]) {
+      const walkIdx = findDirectionalAnim(animations, e.key, 'walk');
+      if (walkIdx !== -1) {
         e.preventDefault();
-        const walkName = DIR_WALK[e.key];
-        const idx = animations.findIndex((a) => a.name === walkName);
-        if (idx !== -1) {
-          setSelectedAnim(idx);
-          lastKeyRef.current = e.key;
-        }
+        setSelectedAnim(walkIdx);
+        lastKeyRef.current = e.key;
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (DIR_IDLE[e.key] && e.key === lastKeyRef.current) {
-        const idleName = DIR_IDLE[e.key];
-        const idx = animations.findIndex((a) => a.name === idleName);
-        if (idx !== -1) setSelectedAnim(idx);
-      }
+      if (e.key !== lastKeyRef.current) return;
+      const idleIdx = findDirectionalAnim(animations, e.key, 'idle');
+      if (idleIdx !== -1) setSelectedAnim(idleIdx);
     };
 
     window.addEventListener('keydown', handleKeyDown);
