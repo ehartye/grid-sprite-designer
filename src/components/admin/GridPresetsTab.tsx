@@ -53,6 +53,8 @@ export function GridPresetsTab() {
   const [filterType, setFilterType] = useState<SpriteType | 'all'>('all');
   const [editing, setEditing] = useState<EditingPreset | null>(null);
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [listCollapsed, setListCollapsed] = useState(false);
 
   const fetchPresets = useCallback(async () => {
     const url = filterType === 'all'
@@ -182,52 +184,92 @@ export function GridPresetsTab() {
     updateCellGroup(groupIdx, group);
   }, [editing, updateCellGroup]);
 
-  const filtered = filterType === 'all'
-    ? presets
-    : presets.filter(p => p.spriteType === filterType);
+  const filtered = (() => {
+    let list = filterType === 'all'
+      ? presets
+      : presets.filter(p => p.spriteType === filterType);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p => p.name.toLowerCase().includes(q));
+    }
+    return list;
+  })();
+
+  const handleEditWithCollapse = (preset: GridPreset) => {
+    handleEdit(preset);
+    if (window.innerWidth < 768) setListCollapsed(true);
+  };
 
   return (
     <div className="grid-presets-tab">
       {/* Sub-filter + New button */}
       <div className="admin-toolbar">
-        <div className="admin-filter-group">
-          <button
-            className={`admin-filter-btn ${filterType === 'all' ? 'active' : ''}`}
-            onClick={() => setFilterType('all')}
-          >
-            All
-          </button>
-          {SPRITE_TYPES.map(t => (
+        <div className="admin-toolbar-left">
+          <div className="admin-summary">
+            <span className="admin-summary-count">{filtered.length}</span>
+            <span className="admin-summary-label">
+              {filtered.length === presets.length
+                ? `grid${presets.length !== 1 ? 's' : ''}`
+                : `of ${presets.length}`}
+            </span>
+          </div>
+          <div className="admin-filter-group">
             <button
-              key={t}
-              className={`admin-filter-btn ${filterType === t ? 'active' : ''}`}
-              onClick={() => setFilterType(t)}
+              className={`admin-filter-btn ${filterType === 'all' ? 'active' : ''}`}
+              onClick={() => setFilterType('all')}
             >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
+              All
             </button>
-          ))}
+            {SPRITE_TYPES.map(t => (
+              <button
+                key={t}
+                className={`admin-filter-btn ${filterType === t ? 'active' : ''}`}
+                onClick={() => setFilterType(t)}
+              >
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
         <button className="btn btn-sm" onClick={handleNew}>New Grid Preset</button>
       </div>
 
       <div className="admin-split">
         {/* List */}
-        <div className="admin-list">
-          {filtered.length === 0 && (
-            <div className="admin-empty">No grid presets found</div>
-          )}
-          {filtered.map(p => (
-            <div
-              key={p.id}
-              className={`admin-list-item ${editing?.id === p.id ? 'active' : ''}`}
-              onClick={() => handleEdit(p)}
+        <div className={`admin-list-panel ${listCollapsed ? 'collapsed' : ''}`}>
+          {editing && (
+            <button
+              className="admin-list-toggle"
+              onClick={() => setListCollapsed(!listCollapsed)}
             >
-              <div className="admin-list-item-name">{p.name}</div>
-              <div className="admin-list-item-meta">
-                {p.spriteType} | {p.gridSize} | {p.cellLabels.length} cells
-              </div>
+              {listCollapsed ? `Show List (${filtered.length})` : 'Hide List'}
+            </button>
+          )}
+          <div className="admin-list">
+            <div className="admin-list-search">
+              <input
+                className="admin-input"
+                placeholder="Search grids..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
             </div>
+            {filtered.length === 0 && (
+              <div className="admin-empty">No grid presets found</div>
+            )}
+            {filtered.map(p => (
+              <div
+                key={p.id}
+                className={`admin-list-item ${editing?.id === p.id ? 'active' : ''}`}
+                onClick={() => handleEditWithCollapse(p)}
+              >
+                <div className="admin-list-item-name">{p.name}</div>
+                <div className="admin-list-item-meta">
+                  {p.spriteType} | {p.gridSize} | {p.cellLabels.length} cells
+                </div>
+              </div>
           ))}
+          </div>
         </div>
 
         {/* Edit form */}

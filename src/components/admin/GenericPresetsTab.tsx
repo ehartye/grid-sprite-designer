@@ -3,7 +3,7 @@
  * Config-driven CRUD for all sprite type presets (character, building, terrain, background).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppDispatch } from '../../context/AppContext';
 import { LinkedGridPresets } from './LinkedGridPresets';
 import type { SpriteType } from '../../context/AppContext';
@@ -101,6 +101,9 @@ export function GenericPresetsTab({ spriteType }: GenericPresetsTabProps) {
   const [presets, setPresets] = useState<Record<string, unknown>[]>([]);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [filterGenre, setFilterGenre] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [listCollapsed, setListCollapsed] = useState(false);
 
   const fetchPresets = useCallback(async () => {
     const res = await fetch(`/api/presets?type=${spriteType}`);
@@ -179,6 +182,38 @@ export function GenericPresetsTab({ spriteType }: GenericPresetsTabProps) {
     setEditing({ ...editing, [key]: value });
   };
 
+  // Unique genres for filter
+  const genres = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of presets) {
+      const g = (p.genre as string)?.trim();
+      if (g) set.add(g);
+    }
+    return Array.from(set).sort();
+  }, [presets]);
+
+  // Filtered presets
+  const filtered = useMemo(() => {
+    let list = presets;
+    if (filterGenre !== 'all') {
+      list = list.filter(p => (p.genre as string) === filterGenre);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p => (p.name as string || '').toLowerCase().includes(q));
+    }
+    return list;
+  }, [presets, filterGenre, searchQuery]);
+
+  // Reset filter when sprite type changes
+  useEffect(() => { setFilterGenre('all'); setSearchQuery(''); }, [spriteType]);
+
+  // Auto-collapse list on mobile when editing
+  const handleEditWithCollapse = (p: Record<string, unknown>) => {
+    handleEdit(p);
+    if (window.innerWidth < 768) setListCollapsed(true);
+  };
+
   // Build meta text for list items
   const metaText = (p: Record<string, unknown>) => {
     const parts: string[] = [
@@ -197,23 +232,65 @@ export function GenericPresetsTab({ spriteType }: GenericPresetsTabProps) {
   return (
     <div>
       <div className="admin-toolbar">
-        <div />
+        <div className="admin-toolbar-left">
+          <div className="admin-summary">
+            <span className="admin-summary-count">{filtered.length}</span>
+            <span className="admin-summary-label">
+              {filtered.length === presets.length
+                ? `${config.label.toLowerCase()}${presets.length !== 1 ? 's' : ''}`
+                : `of ${presets.length}`}
+            </span>
+          </div>
+          {genres.length > 1 && (
+            <div className="admin-filter-group">
+              <button
+                className={`admin-filter-btn ${filterGenre === 'all' ? 'active' : ''}`}
+                onClick={() => setFilterGenre('all')}
+              >All</button>
+              {genres.map(g => (
+                <button
+                  key={g}
+                  className={`admin-filter-btn ${filterGenre === g ? 'active' : ''}`}
+                  onClick={() => setFilterGenre(g)}
+                >{g}</button>
+              ))}
+            </div>
+          )}
+        </div>
         <button className="btn btn-sm" onClick={handleNew}>New {config.label} Preset</button>
       </div>
 
       <div className="admin-split">
-        <div className="admin-list">
-          {presets.length === 0 && <div className="admin-empty">No {config.label.toLowerCase()} presets</div>}
-          {presets.map(p => (
-            <div
-              key={p.id as number}
-              className={`admin-list-item ${editing?.id === p.id ? 'active' : ''}`}
-              onClick={() => handleEdit(p)}
+        <div className={`admin-list-panel ${listCollapsed ? 'collapsed' : ''}`}>
+          {editing && (
+            <button
+              className="admin-list-toggle"
+              onClick={() => setListCollapsed(!listCollapsed)}
             >
-              <div className="admin-list-item-name">{p.name as string}</div>
-              <div className="admin-list-item-meta">{metaText(p)}</div>
+              {listCollapsed ? `Show List (${filtered.length})` : 'Hide List'}
+            </button>
+          )}
+          <div className="admin-list">
+            <div className="admin-list-search">
+              <input
+                className="admin-input"
+                placeholder={`Search ${config.label.toLowerCase()}s...`}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
             </div>
-          ))}
+            {filtered.length === 0 && <div className="admin-empty">No {config.label.toLowerCase()} presets</div>}
+            {filtered.map(p => (
+              <div
+                key={p.id as number}
+                className={`admin-list-item ${editing?.id === p.id ? 'active' : ''}`}
+                onClick={() => handleEditWithCollapse(p)}
+              >
+                <div className="admin-list-item-name">{p.name as string}</div>
+                <div className="admin-list-item-meta">{metaText(p)}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {editing && (
