@@ -59,7 +59,7 @@ export function generateTemplate(
     const col = idx % cols;
     const row = Math.floor(idx / cols);
     const name = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
-    const label = `${name} (${row},${col})`;
+    const label = `(${row},${col}) ${name}`;
 
     const x0 = offsetX + hGap + col * (cellSize + hGap);
     const y0 = offsetY + vGap + row * (cellH + vGap);
@@ -133,7 +133,7 @@ export function generateBackgroundTemplate(
     const col = idx % cols;
     const row = Math.floor(idx / cols);
     const name = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
-    const label = `${name} (${row},${col})`;
+    const label = `(${row},${col}) ${name}`;
 
     const x0 = offsetX + border + col * (cellW + border);
     const y0 = offsetY + border + row * (cellH + border);
