@@ -43,10 +43,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Cecil kneels on one knee using the longsword as a crutch, panting with visible exhaustion. His armor is scuffed and the cape is torn at the edges.
   Header "Critical Pose" (5,5): Desperate last stand — Cecil barely stands with cracked armor plates, the holy aura around his sword flickering weakly. His blue eyes burn with defiant resolve.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Cecil strides South with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back.",
-        "Walk North Animation Frames": "Cecil strides North with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back.",
-        "Walk West Animation Frames": "Cecil strides West with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back.",
-        "Walk East Animation Frames": "Cecil strides East with noble confidence, his blue cape swaying gently and the gold trim of his white plate armor catching the light. The holy longsword rests at his side and the sun-emblem shield rides his back."
+        "Walk South Animation Frames": "Cecil strides South with noble confidence, the holy longsword held loosely in his right hand with the blade angled back and the sun-emblem shield strapped across his back. His blue cape sways gently and the gold trim of his white plate armor catches the light.",
+        "Walk North Animation Frames": "Cecil strides North with noble confidence, the holy longsword held loosely in his right hand with the blade angled back and the sun-emblem shield strapped across his back. His blue cape sways gently and the gold trim of his white plate armor catches the light.",
+        "Walk West Animation Frames": "Cecil strides West with noble confidence, the holy longsword held loosely in his right hand with the blade angled back and the sun-emblem shield strapped across his back. His blue cape sways gently and the gold trim of his white plate armor catches the light.",
+        "Walk East Animation Frames": "Cecil strides East with noble confidence, the holy longsword held loosely in his right hand with the blade angled back and the sun-emblem shield strapped across his back. His blue cape sways gently and the gold trim of his white plate armor catches the light."
       },
     },
     {
@@ -137,10 +137,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Kael uses the longbow as a crutch to stay upright, panting heavily. His cloak is tattered, the quiver nearly empty, and his green eyes are weary.
   Header "Critical Pose" (5,5): Barely standing, Kael draws his last silver-tipped arrow with trembling hands. His aim wavers but his jaw is set with elven determination.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Kael walks South with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt.",
-        "Walk North Animation Frames": "Kael walks North with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt.",
-        "Walk West Animation Frames": "Kael walks West with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt.",
-        "Walk East Animation Frames": "Kael walks East with a light, silent elven stride, his brown cloak swaying gently and the longbow and silver-tipped arrow quiver riding across his back. His braided golden hair catches the light and the hunting knife glints at his belt."
+        "Walk South Animation Frames": "Kael walks South with a light, silent elven stride, the longbow slung over his right shoulder with the quiver of silver-tipped arrows on his left hip. His brown cloak sways gently, his braided golden hair catches the light, and the hunting knife glints at his right hip.",
+        "Walk North Animation Frames": "Kael walks North with a light, silent elven stride, the longbow slung over his right shoulder with the quiver of silver-tipped arrows on his left hip. His brown cloak sways gently, his braided golden hair catches the light, and the hunting knife glints at his right hip.",
+        "Walk West Animation Frames": "Kael walks West with a light, silent elven stride, the longbow slung over his right shoulder with the quiver of silver-tipped arrows on his left hip. His brown cloak sways gently, his braided golden hair catches the light, and the hunting knife glints at his right hip.",
+        "Walk East Animation Frames": "Kael walks East with a light, silent elven stride, the longbow slung over his right shoulder with the quiver of silver-tipped arrows on his left hip. His brown cloak sways gently, his braided golden hair catches the light, and the hunting knife glints at his right hip."
       },
     },
     {
@@ -184,10 +184,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Chrono Blade hunches forward, one hand on his knee and the other gripping the katana loosely. The chrono-device malfunctions, flickering between states, and his afterimage stutters.
   Header "Critical Pose" (5,5): Barely standing, he grips the katana with both hands as the chrono-device crackles erratically. His body flickers with translucent temporal duplicates and his scarf is tattered.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Chrono Blade strides South with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light.",
-        "Walk North Animation Frames": "Chrono Blade strides North with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light.",
-        "Walk West Animation Frames": "Chrono Blade strides West with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light.",
-        "Walk East Animation Frames": "Chrono Blade strides East with athletic purpose, the long red scarf trailing dynamically behind him and the katana riding at his hip. The temporal sigil on his forehead and the chrono-device on his wrist pulse with faint cyan light."
+        "Walk South Animation Frames": "Chrono Blade strides South with athletic purpose, his right hand resting on the sheathed katana at his left hip and the long red scarf trailing dynamically behind him. The temporal sigil on his forehead and the chrono-device on his left wrist pulse with faint cyan light.",
+        "Walk North Animation Frames": "Chrono Blade strides North with athletic purpose, his right hand resting on the sheathed katana at his left hip and the long red scarf trailing dynamically behind him. The temporal sigil on his forehead and the chrono-device on his left wrist pulse with faint cyan light.",
+        "Walk West Animation Frames": "Chrono Blade strides West with athletic purpose, his right hand resting on the sheathed katana at his left hip and the long red scarf trailing dynamically behind him. The temporal sigil on his forehead and the chrono-device on his left wrist pulse with faint cyan light.",
+        "Walk East Animation Frames": "Chrono Blade strides East with athletic purpose, his right hand resting on the sheathed katana at his left hip and the long red scarf trailing dynamically behind him. The temporal sigil on his forehead and the chrono-device on his left wrist pulse with faint cyan light."
       },
     },
     {
@@ -231,10 +231,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Crouching low with one dagger as support, her shadow form is unstable — edges of her body flicker between solid and vapor. The mask is cracked and her breathing is ragged.
   Header "Critical Pose" (5,5): Barely holding form, her body phases in and out of shadow uncontrollably. One dagger is gone, the other gripped desperately. Her violet eyes flicker like dying embers.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Shadow Weaver skulks South in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground.",
-        "Walk North Animation Frames": "Shadow Weaver skulks North in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground.",
-        "Walk West Animation Frames": "Shadow Weaver skulks West in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground.",
-        "Walk East Animation Frames": "Shadow Weaver skulks East in a low predatory crouch, the dark hooded cloak wrapping tightly around her slim frame and concealing the twin daggers beneath. Her violet eyes gleam above the half-face mask and the tattered cloak hem brushes the ground."
+        "Walk South Animation Frames": "Shadow Weaver skulks South in a low predatory crouch, her right hand gripping one curved dagger beneath the cloak and her left hand hovering near the belt of throwing knives at her hip. The dark hooded cloak wraps tightly around her slim frame, her violet eyes gleam above the half-face mask, and the tattered hem brushes the ground.",
+        "Walk North Animation Frames": "Shadow Weaver skulks North in a low predatory crouch, her right hand gripping one curved dagger beneath the cloak and her left hand hovering near the belt of throwing knives at her hip. The dark hooded cloak wraps tightly around her slim frame, her violet eyes gleam above the half-face mask, and the tattered hem brushes the ground.",
+        "Walk West Animation Frames": "Shadow Weaver skulks West in a low predatory crouch, her right hand gripping one curved dagger beneath the cloak and her left hand hovering near the belt of throwing knives at her hip. The dark hooded cloak wraps tightly around her slim frame, her violet eyes gleam above the half-face mask, and the tattered hem brushes the ground.",
+        "Walk East Animation Frames": "Shadow Weaver skulks East in a low predatory crouch, her right hand gripping one curved dagger beneath the cloak and her left hand hovering near the belt of throwing knives at her hip. The dark hooded cloak wraps tightly around her slim frame, her violet eyes gleam above the half-face mask, and the tattered hem brushes the ground."
       },
     },
     {
@@ -278,10 +278,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Ignis leans on the staff with both hands, flames barely flickering at her hair tips. The caged fireball is dim, the pendant cracked, and her breathing comes in heavy gasps.
   Header "Critical Pose" (5,5): Barely standing in a wide desperate stance, her flames are reduced to faint flickers. The gold bracers are fractured, the staff fireball gutters, and only her blazing orange eyes remain defiant.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Ignis strides South with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly.",
-        "Walk North Animation Frames": "Ignis strides North with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly.",
-        "Walk West Animation Frames": "Ignis strides West with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly.",
-        "Walk East Animation Frames": "Ignis strides East with assertive confidence, her wild flame-red hair swaying with flickering orange-yellow tips. Small ember particles drift from the hems of her crimson robes and the caged fireball atop her staff pulses warmly."
+        "Walk South Animation Frames": "Ignis strides South with assertive confidence, her caged-fireball staff held upright in her right hand and her left hand swinging freely with the gold bracer glinting. Her wild flame-red hair sways with flickering orange-yellow tips and small ember particles drift from the hems of her crimson robes.",
+        "Walk North Animation Frames": "Ignis strides North with assertive confidence, her caged-fireball staff held upright in her right hand and her left hand swinging freely with the gold bracer glinting. Her wild flame-red hair sways with flickering orange-yellow tips and small ember particles drift from the hems of her crimson robes.",
+        "Walk West Animation Frames": "Ignis strides West with assertive confidence, her caged-fireball staff held upright in her right hand and her left hand swinging freely with the gold bracer glinting. Her wild flame-red hair sways with flickering orange-yellow tips and small ember particles drift from the hems of her crimson robes.",
+        "Walk East Animation Frames": "Ignis strides East with assertive confidence, her caged-fireball staff held upright in her right hand and her left hand swinging freely with the gold bracer glinting. Her wild flame-red hair sways with flickering orange-yellow tips and small ember particles drift from the hems of her crimson robes."
       },
     },
     {
@@ -325,10 +325,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): MX-Zero stands unsteadily, one knee slightly buckled. His systems are failing — static flickers in his green eyes, the arm cannon is powered down, and the helmet gem sputters.
   Header "Critical Pose" (5,5): Barely operational, MX-Zero leans forward with the arm cannon flickering between charged and dead. Exposed wiring sparks, armor panels hang loose, and his green eyes strobe with static.`,
       groupGuidance: {
-        "Walk South Animation Frames": "MX-Zero steps South with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
-        "Walk North Animation Frames": "MX-Zero steps North with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
-        "Walk West Animation Frames": "MX-Zero steps West with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
-        "Walk East Animation Frames": "MX-Zero steps East with precise mechanical strides, the arm cannon held at the ready with its cyan barrel glowing faintly. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat."
+        "Walk South Animation Frames": "MX-Zero steps South with precise mechanical strides, his right arm-cannon held at the ready with its cyan barrel glowing faintly and his left hand swinging in a natural cadence. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
+        "Walk North Animation Frames": "MX-Zero steps North with precise mechanical strides, his right arm-cannon held at the ready with its cyan barrel glowing faintly and his left hand swinging in a natural cadence. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
+        "Walk West Animation Frames": "MX-Zero steps West with precise mechanical strides, his right arm-cannon held at the ready with its cyan barrel glowing faintly and his left hand swinging in a natural cadence. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat.",
+        "Walk East Animation Frames": "MX-Zero steps East with precise mechanical strides, his right arm-cannon held at the ready with its cyan barrel glowing faintly and his left hand swinging in a natural cadence. The red gem on his blue helmet pulses softly and the jet-booster vents at his heels show faint orange heat."
       },
     },
     {
@@ -372,10 +372,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Hayate leans heavily on the ninjato planted in the ground, panting. His scarf is tattered and dragging, the silver arm guards are dented, and his grey eyes are weary but defiant.
   Header "Critical Pose" (5,5): Barely standing, Hayate grips the ninjato with both trembling hands. His head wrap is half-unwound, the scarf is shredded, and his breathing is visible and labored.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Hayate dashes South in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light.",
-        "Walk North Animation Frames": "Hayate dashes North in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light.",
-        "Walk West Animation Frames": "Hayate dashes West in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light.",
-        "Walk East Animation Frames": "Hayate dashes East in a swift ninja stride that barely touches the ground, the long silver-white scarf trailing dynamically behind him. The ninjato handle juts over his shoulder and the silver arm and shin guards catch brief flashes of light."
+        "Walk South Animation Frames": "Hayate dashes South in a swift ninja stride that barely touches the ground, his left hand gripping the ninjato sheath across his back and his right hand open at his side near the shuriken holster at his waist. The long silver-white scarf trails dynamically behind him and the silver arm and shin guards catch brief flashes of light.",
+        "Walk North Animation Frames": "Hayate dashes North in a swift ninja stride that barely touches the ground, his left hand gripping the ninjato sheath across his back and his right hand open at his side near the shuriken holster at his waist. The long silver-white scarf trails dynamically behind him and the silver arm and shin guards catch brief flashes of light.",
+        "Walk West Animation Frames": "Hayate dashes West in a swift ninja stride that barely touches the ground, his left hand gripping the ninjato sheath across his back and his right hand open at his side near the shuriken holster at his waist. The long silver-white scarf trails dynamically behind him and the silver arm and shin guards catch brief flashes of light.",
+        "Walk East Animation Frames": "Hayate dashes East in a swift ninja stride that barely touches the ground, his left hand gripping the ninjato sheath across his back and his right hand open at his side near the shuriken holster at his waist. The long silver-white scarf trails dynamically behind him and the silver arm and shin guards catch brief flashes of light."
       },
     },
     {
@@ -419,10 +419,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Sgt. Nova leans heavily on the plasma rifle as a crutch, visor cracked with a flickering green glow. Coolant leaks from a damaged armor joint and his jet pack is offline.
   Header "Critical Pose" (5,5): Barely standing in failing armor, Sgt. Nova holds the plasma rifle one-handed, the energy cell nearly depleted. The visor is cracked and sputtering, one shoulder plate is gone, and servos whine.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Sgt. Nova marches South with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
-        "Walk North Animation Frames": "Sgt. Nova marches North with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
-        "Walk West Animation Frames": "Sgt. Nova marches West with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
-        "Walk East Animation Frames": "Sgt. Nova marches East with heavy deliberate steps, the plasma rifle held at the ready across his chest. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride."
+        "Walk South Animation Frames": "Sgt. Nova marches South with heavy deliberate steps, the plasma rifle held at the ready across his chest in both armored hands with the barrel angled upward. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
+        "Walk North Animation Frames": "Sgt. Nova marches North with heavy deliberate steps, the plasma rifle held at the ready across his chest in both armored hands with the barrel angled upward. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
+        "Walk West Animation Frames": "Sgt. Nova marches West with heavy deliberate steps, the plasma rifle held at the ready across his chest in both armored hands with the barrel angled upward. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride.",
+        "Walk East Animation Frames": "Sgt. Nova marches East with heavy deliberate steps, the plasma rifle held at the ready across his chest in both armored hands with the barrel angled upward. The green visor HUD glows on his helmet, the jet-pack vents show faint orange heat on his back, and the ammo pouches at his belt bounce with each stride."
       },
     },
     {
@@ -433,6 +433,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Translucent sky-blue body with lighter blue highlights on top and darker blue shadow at the base. Eyes are large and dark with bright white shine spots. A faint inner glow gives it a jewel-like quality.",
       rowGuidance: `
+Gel Slime is a limbless gelatinous blob — no arms, no legs, no skeleton. It moves by squishing and bouncing. All poses show a round, translucent body that compresses and stretches.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Gel Slime sits in a gentle idle wobble facing the viewer, body jiggling slightly. Its large dark eyes blink contentedly with bright white highlights and the tiny curved mouth smiles. The inner glow pulses softly.
@@ -480,6 +481,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Molten orange-red scales with darker crimson underbelly. Bright yellow-orange cracks between scales suggesting inner magma. Horns and claws are dark charcoal. Wing membranes are deep red. Eyes are fierce yellow. Mouth interior glows orange.",
       rowGuidance: `
+Magma Wyrm is a small four-legged dragon with bat-like wings and a spiked tail. It has no arms or hands — its four legs end in charcoal claws used for walking and gripping. Two curved horns crown its head.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Magma Wyrm sits on its haunches facing the viewer, wings twitching at its sides. Thin smoke curls from its nostrils and the fierce yellow eyes watch lazily. The magma cracks pulse with slow heat.
@@ -513,9 +515,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The wyrm hunches low, wings drooping and barely folded. Most magma cracks have cooled to dim orange, the eyes are half-lidded, and only faint smoke rises from its closed mouth.
   Header "Critical Pose" (5,5): Barely standing on trembling claws, the wyrm is mostly cooled grey stone with only a few faint orange cracks remaining. Its eyes are barely yellow slits and the wings drag on the ground.`,
       groupGuidance: {
-        "Walk North Animation Frames": "While walking, the Magma Wyrm's tail swishes from side-to-side, lava dripping from its mouth.",
-        "Walk West Animation Frames": "While walking, the Magma Wyrm's tail swishes from side-to-side, lava dripping from its mouth.",
-        "Walk East Animation Frames": "While walking, the Magma Wyrm's tail swishes from side-to-side, lava dripping from its mouth."
+        "Walk South Animation Frames": "Magma Wyrm lumbers South on all four clawed legs, its spiked tail swishing from side to side and lava dripping from its open mouth. The molten orange-red scales pulse with inner heat and the bat-like wings fold tightly against its flanks.",
+        "Walk North Animation Frames": "Magma Wyrm lumbers North on all four clawed legs, its spiked tail swishing from side to side and lava dripping from its open mouth. The molten orange-red scales pulse with inner heat and the bat-like wings fold tightly against its flanks.",
+        "Walk West Animation Frames": "Magma Wyrm lumbers West on all four clawed legs, its spiked tail swishing from side to side and lava dripping from its open mouth. The molten orange-red scales pulse with inner heat and the bat-like wings fold tightly against its flanks.",
+        "Walk East Animation Frames": "Magma Wyrm lumbers East on all four clawed legs, its spiked tail swishing from side to side and lava dripping from its open mouth. The molten orange-red scales pulse with inner heat and the bat-like wings fold tightly against its flanks."
       },
     },
     {
@@ -526,6 +529,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Body is mottled brown bark with patches of vibrant green moss. Leaves are various greens from bright lime to deep forest green. Eyes glow soft emerald. Flowers are tiny white and pale yellow. Mushrooms are red with white spots. A faint green aura surrounds it.",
       rowGuidance: `
+Mosskin Spirit has short stubby legs and stubby arms ending in leaf-like hands — not standard human proportions. Its rounded bark body is squat and wide, and it waddles rather than walks. Small flowers and red-spotted mushrooms sprout from its shoulders.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Mosskin Spirit sways gently like a tree in a breeze, facing the viewer. The shoulder mushrooms pulse with faint bioluminescence and the large emerald eyes blink slowly and contentedly.
@@ -573,6 +577,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Oily black chitin with iridescent purple-green sheen. Mouth interior is raw pinkish-red. Back sac is translucent milky grey with dark violet fluid. Eye-stalks tip with dull yellow bioluminescent orbs. Hooked legs are dark gunmetal with rust-red tips.",
       rowGuidance: `
+Voidmaw Parasite has no legs or arms. It is a segmented worm-like creature with four hooked appendages on each side (eight total), two vestigial eye-stalks on the head segment, and a lamprey-like circular mouth. It moves by slithering and pulling itself along with its hooks. A pulsing translucent sac rides its back.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Voidmaw Parasite is coiled in a loose spiral facing the viewer, eye-stalks scanning slowly. The back sac pulses with a slow heartbeat rhythm and the hooks are tucked beneath its body. The lamprey mouth is closed to a slit.
@@ -620,6 +625,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Polished chrome body with brushed steel panels. Main lens is bright cyan-blue with a white focal point. Anti-grav fins are matte dark grey with cyan edge lighting. LED ring cycles through soft blue and green. Tool-arms are gunmetal with orange safety markings at the joints.",
       rowGuidance: `
+Fluxbot Drone has no legs — it hovers via two anti-gravity fins on either side. It has three articulated tool-arms (not two human arms) folding underneath its spherical chrome body, and a single large optical lens as its face. It is fully mechanical.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Fluxbot Drone hovers at rest facing the viewer, bobbing gently up and down. The large cyan-blue lens tilts curiously and the LED ring cycles through calm blue-green patterns. The chrome body gleams.
@@ -667,6 +673,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Fleshy pale mauve and grey tendrils with sickly yellow-green veining. Spore pods are swollen dark purple with bright toxic-green tips that glow faintly. Cilia are near-white and shimmer slightly. Underside is wet-looking dark reddish-brown.",
       rowGuidance: `
+Spore Lurker has no limbs, no eyes, and no discernible head. It is a crouching mass of fleshy tendrils topped with a cluster of bulbous spore pods. It senses via fine cilia covering its surface and moves with an undulating crawl, tendrils pulling it along.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Spore Lurker sits in a compact mass facing the viewer, pulsing slowly. The spore pods are dormant with faintly glowing green tips and the cilia wave gently, sensing vibrations.
@@ -714,6 +721,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Bell is translucent pale blue-white with a soft inner glow. Neural filaments pulse between electric blue and bright white. Tentacles are near-transparent with vivid cyan-to-violet electrical arcs running along their length. Outer bell rim has a faint pink-magenta bioluminescent edge.",
       rowGuidance: `
+Arc Jelly has no limbs — it is a jellyfish with a translucent dome-shaped bell and long trailing tentacles that crackle with electrical arcs. It propels itself through rhythmic bell contractions and drifts with trailing tentacles below. A dense cluster of neural filaments pulses inside the bell.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Arc Jelly floats peacefully facing the viewer, the bell gently pulsing. The neural filaments glow with a calm, slow pulse between blue and white. Tentacles sway below with lazy, gentle arcs.
@@ -761,6 +769,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "",
       colorNotes: "Corroded burnt-orange and rust-brown metal plating over sickly grey-green organic tissue. Wiring is faded yellow and red. Camera-eye glows dim red, scanner-eye glows green. Mandibles are dull gunmetal. Legs alternate between rusted mechanical joints and pale fleshy segments. Abdomen has a faint sickly yellow bioluminescence.",
       rowGuidance: `
+Rustback Scavenger is a six-legged insectoid — no human-like arms or hands. Its legs alternate between rusted mechanical joints and pale fleshy segments. Two front legs serve as arms. Its head has scrap-metal mandibles and two mismatched optical sensors (one cracked red camera, one green scanner). A biological abdomen trails behind the corroded metal thorax.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): Rustback Scavenger stands on all six legs facing the viewer, mandibles twitching with constant clicking. Both mismatched eyes scan — the red camera flickering and the green scanner sweeping. Wiring dangles from the thorax.
@@ -841,10 +850,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Baron Brioche leans heavily on the baguette rapier, his pastry body sagging and crumbling at the edges. His monocle is cracked and the croissant mustache hangs limply.
   Header "Critical Pose" (5,5): Barely holding together, the Baron's body is a mess of separated flaky layers. His brioche head is dented, one raisin eye has fallen out, and the baguette rapier is bent — but he still sneers defiantly through his ruined mustache.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Baron Brioche struts South with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body.",
-        "Walk North Animation Frames": "Baron Brioche struts North with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body.",
-        "Walk West Animation Frames": "Baron Brioche struts West with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body.",
-        "Walk East Animation Frames": "Baron Brioche struts East with an aristocratic waddle, his puff-pastry cape fluttering behind him and the baguette rapier swinging at his side. Crumbs and faint flour dust trail from his layered pastry body."
+        "Walk South Animation Frames": "Baron Brioche struts South with an aristocratic waddle, the baguette rapier swinging in his right hand and the sugar monocle perched over his left raisin eye. His puff-pastry cape flutters behind him, the breadbasket shield rides his back, and crumbs and faint flour dust trail from his layered pastry body.",
+        "Walk North Animation Frames": "Baron Brioche struts North with an aristocratic waddle, the baguette rapier swinging in his right hand and the sugar monocle perched over his left raisin eye. His puff-pastry cape flutters behind him, the breadbasket shield rides his back, and crumbs and faint flour dust trail from his layered pastry body.",
+        "Walk West Animation Frames": "Baron Brioche struts West with an aristocratic waddle, the baguette rapier swinging in his right hand and the sugar monocle perched over his left raisin eye. His puff-pastry cape flutters behind him, the breadbasket shield rides his back, and crumbs and faint flour dust trail from his layered pastry body.",
+        "Walk East Animation Frames": "Baron Brioche struts East with an aristocratic waddle, the baguette rapier swinging in his right hand and the sugar monocle perched over his left raisin eye. His puff-pastry cape flutters behind him, the breadbasket shield rides his back, and crumbs and faint flour dust trail from his layered pastry body."
       },
     },
     {
@@ -888,10 +897,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Sriracha's body is covered in hairline cracks, sauce slowly seeping out. The nozzle cannon droops, barely functional. His flame eyes are dim embers and he breathes in labored puffs of steam.
   Header "Critical Pose" (5,5): Barely standing, Sriracha is a shattered mess — body held together by sheer will, sauce pooling at his feet. One flame eye is out, the other gutters weakly. He aims the sputtering nozzle cannon with his last ounce of heat.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Sergeant Sriracha marches South with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body.",
-        "Walk North Animation Frames": "Sergeant Sriracha marches North with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body.",
-        "Walk West Animation Frames": "Sergeant Sriracha marches West with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body.",
-        "Walk East Animation Frames": "Sergeant Sriracha marches East with military precision, the chili-pepper grenade bandolier bouncing with each step. A small heat shimmer radiates from his bright red body."
+        "Walk South Animation Frames": "Sergeant Sriracha marches South with military precision, his right forearm nozzle cannon raised at the ready and his left hand resting on the jalapeño combat knife at his belt. The chili-pepper grenade bandolier bounces across his chest with each step and a small heat shimmer radiates from his bright red body.",
+        "Walk North Animation Frames": "Sergeant Sriracha marches North with military precision, his right forearm nozzle cannon raised at the ready and his left hand resting on the jalapeño combat knife at his belt. The chili-pepper grenade bandolier bounces across his chest with each step and a small heat shimmer radiates from his bright red body.",
+        "Walk West Animation Frames": "Sergeant Sriracha marches West with military precision, his right forearm nozzle cannon raised at the ready and his left hand resting on the jalapeño combat knife at his belt. The chili-pepper grenade bandolier bounces across his chest with each step and a small heat shimmer radiates from his bright red body.",
+        "Walk East Animation Frames": "Sergeant Sriracha marches East with military precision, his right forearm nozzle cannon raised at the ready and his left hand resting on the jalapeño combat knife at his belt. The chili-pepper grenade bandolier bounces across his chest with each step and a small heat shimmer radiates from his bright red body."
       },
     },
     {
@@ -935,10 +944,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Duchess leans on her parasol as a cane, her gelato head drooping and slowly melting. Her frozen skirt is slushy and the wafer wand droops. The sundae familiar flickers in and out of existence.
   Header "Critical Pose" (5,5): Barely a silhouette of her former self — mostly melted, the Duchess holds together by sheer frozen willpower. Her gelato head is a single dripping blob, the corset is cracked, but she still aims the dissolving wand with trembling grace.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Duchess Gelato glides South with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her.",
-        "Walk North Animation Frames": "Duchess Gelato glides North with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her.",
-        "Walk West Animation Frames": "Duchess Gelato glides West with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her.",
-        "Walk East Animation Frames": "Duchess Gelato glides East with regal grace, her frozen cream skirt swirling in elegant ribbons and the sugar cookie parasol resting on her shoulder. A faint trail of frost crystals follows in her wake and the sundae-glass familiar bobs faithfully beside her."
+        "Walk South Animation Frames": "Duchess Gelato glides South with regal grace, the sugar cookie parasol resting on her left shoulder and the wafer-stick wand held loosely in her right hand. Her frozen cream skirt swirls in elegant ribbons, a faint trail of frost crystals follows in her wake, and the sundae-glass familiar bobs faithfully at her right side.",
+        "Walk North Animation Frames": "Duchess Gelato glides North with regal grace, the sugar cookie parasol resting on her left shoulder and the wafer-stick wand held loosely in her right hand. Her frozen cream skirt swirls in elegant ribbons, a faint trail of frost crystals follows in her wake, and the sundae-glass familiar bobs faithfully at her right side.",
+        "Walk West Animation Frames": "Duchess Gelato glides West with regal grace, the sugar cookie parasol resting on her left shoulder and the wafer-stick wand held loosely in her right hand. Her frozen cream skirt swirls in elegant ribbons, a faint trail of frost crystals follows in her wake, and the sundae-glass familiar bobs faithfully at her right side.",
+        "Walk East Animation Frames": "Duchess Gelato glides East with regal grace, the sugar cookie parasol resting on her left shoulder and the wafer-stick wand held loosely in her right hand. Her frozen cream skirt swirls in elegant ribbons, a faint trail of frost crystals follows in her wake, and the sundae-glass familiar bobs faithfully at her right side."
       },
     },
     {
@@ -982,10 +991,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The cauldron is covered in cracks, leaking stew from a dozen wounds. His okra arms are wilted and browning, the sausage legs are sagging, and one ember eye has gone dark. Steam barely trickles from the pot-lid.
   Header "Critical Pose" (5,5): Barely a shell of iron and stew, Gumbo holds together through sheer stubborn villainy. The cauldron is more hole than metal, the roux has dried to a crust, and his remaining ember eye burns with desperate, simmering fury.`,
       groupGuidance: {
-        "Walk South Animation Frames": "General Gumbo lumbers South with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint.",
-        "Walk North Animation Frames": "General Gumbo lumbers North with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint.",
-        "Walk West Animation Frames": "General Gumbo lumbers West with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint.",
-        "Walk East Animation Frames": "General Gumbo lumbers East with heavy sloshing footfalls, his cast-iron cauldron torso creaking and bundled-sausage legs planting wide for balance. Steam billows from his pot-lid head and onion-ring chains rattle across his chest as dark roux drips from every joint."
+        "Walk South Animation Frames": "General Gumbo lumbers South with heavy sloshing footfalls, the massive ladle war-hammer gripped in his right okra hand and his left okra fist clenched at his side. His cast-iron cauldron torso creaks, steam billows from his pot-lid head, onion-ring chains rattle across his chest, and dark roux drips from every joint.",
+        "Walk North Animation Frames": "General Gumbo lumbers North with heavy sloshing footfalls, the massive ladle war-hammer gripped in his right okra hand and his left okra fist clenched at his side. His cast-iron cauldron torso creaks, steam billows from his pot-lid head, onion-ring chains rattle across his chest, and dark roux drips from every joint.",
+        "Walk West Animation Frames": "General Gumbo lumbers West with heavy sloshing footfalls, the massive ladle war-hammer gripped in his right okra hand and his left okra fist clenched at his side. His cast-iron cauldron torso creaks, steam billows from his pot-lid head, onion-ring chains rattle across his chest, and dark roux drips from every joint.",
+        "Walk East Animation Frames": "General Gumbo lumbers East with heavy sloshing footfalls, the massive ladle war-hammer gripped in his right okra hand and his left okra fist clenched at his side. His cast-iron cauldron torso creaks, steam billows from his pot-lid head, onion-ring chains rattle across his chest, and dark roux drips from every joint."
       },
     },
     {
@@ -1029,10 +1038,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Pete is missing large chunks of his pizza body, barely held together by overstretched cheese strings. The crust spine is cracked, the bandana is torn, and he holds one chakram weakly while the other drags on the ground.
   Header "Critical Pose" (5,5): Just a sad, tiny triangle of pizza with a face — most of his body is gone. He clutches one battered chakram with a single stretched cheese-string arm, his last pepperoni cheek barely hanging on. But his mozzarella grin refuses to die.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Pepperoni Pete slinks South in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
-        "Walk North Animation Frames": "Pepperoni Pete slinks North in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
-        "Walk West Animation Frames": "Pepperoni Pete slinks West in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
-        "Walk East Animation Frames": "Pepperoni Pete slinks East in a sneaky crouch, strings of melted mozzarella trailing from his movements and the twin pizza-cutter chakrams clinking at his hips. His mozzarella suction-cup boots stick briefly to the ground with each stealthy step."
+        "Walk South Animation Frames": "Pepperoni Pete slinks South in a sneaky crouch, one pizza-cutter chakram in each hand — the right spinning lazily and the left tucked close. Strings of melted mozzarella trail from his movements and his mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
+        "Walk North Animation Frames": "Pepperoni Pete slinks North in a sneaky crouch, one pizza-cutter chakram in each hand — the right spinning lazily and the left tucked close. Strings of melted mozzarella trail from his movements and his mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
+        "Walk West Animation Frames": "Pepperoni Pete slinks West in a sneaky crouch, one pizza-cutter chakram in each hand — the right spinning lazily and the left tucked close. Strings of melted mozzarella trail from his movements and his mozzarella suction-cup boots stick briefly to the ground with each stealthy step.",
+        "Walk East Animation Frames": "Pepperoni Pete slinks East in a sneaky crouch, one pizza-cutter chakram in each hand — the right spinning lazily and the left tucked close. Strings of melted mozzarella trail from his movements and his mozzarella suction-cup boots stick briefly to the ground with each stealthy step."
       },
     },
     {
@@ -1076,10 +1085,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Umami's body is riddled with rot — enoki fibers browning and wilting, the shiitake crown sagging and cracked. Her bioluminescent eyes are dim and her spore cloud is thin. She clutches the morel scepter for support.
   Header "Critical Pose" (5,5): A crumbling ruin of fungus, Queen Umami barely maintains her form. Her crown is shattered, her cloak is decomposing, and only one bioluminescent eye still glows — but the mycelium beneath the ground still pulses, and her grip on the cracked scepter remains iron.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Queen Umami drifts South with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint.",
-        "Walk North Animation Frames": "Queen Umami drifts North with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint.",
-        "Walk West Animation Frames": "Queen Umami drifts West with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint.",
-        "Walk East Animation Frames": "Queen Umami drifts East with an unsettling sway, her layered portobello-gill cloak rustling like whispers and the gnarled morel scepter dripping dark spore ink in her wake. A cloud of yellow-green spores trails behind her and mycelium threads spread from each footprint."
+        "Walk South Animation Frames": "Queen Umami drifts South with an unsettling sway, the gnarled morel scepter dripping dark spore ink in her right hand and her left hand trailing mycelium threads. Her layered portobello-gill cloak rustles like whispers, a cloud of yellow-green spores trails behind her, and mycelium threads spread from each footprint.",
+        "Walk North Animation Frames": "Queen Umami drifts North with an unsettling sway, the gnarled morel scepter dripping dark spore ink in her right hand and her left hand trailing mycelium threads. Her layered portobello-gill cloak rustles like whispers, a cloud of yellow-green spores trails behind her, and mycelium threads spread from each footprint.",
+        "Walk West Animation Frames": "Queen Umami drifts West with an unsettling sway, the gnarled morel scepter dripping dark spore ink in her right hand and her left hand trailing mycelium threads. Her layered portobello-gill cloak rustles like whispers, a cloud of yellow-green spores trails behind her, and mycelium threads spread from each footprint.",
+        "Walk East Animation Frames": "Queen Umami drifts East with an unsettling sway, the gnarled morel scepter dripping dark spore ink in her right hand and her left hand trailing mycelium threads. Her layered portobello-gill cloak rustles like whispers, a cloud of yellow-green spores trails behind her, and mycelium threads spread from each footprint."
       },
     },
     {
@@ -1123,10 +1132,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): His rice body is thin and loosely packed, grains falling steadily. The nori cloak is more hole than seaweed, the wasabi topknot is drooping, and he uses the sashimi blade as a walking stick. His ginger eyes are faded.
   Header "Critical Pose" (5,5): Barely a fistful of rice held together by a single strip of nori, the Ronin somehow still stands. The sashimi blade trembles in his grip, the wasabi has nearly dissolved, and only one faint ginger eye remains — but his stance is still perfect.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Wasabi Ronin walks South with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face.",
-        "Walk North Animation Frames": "Wasabi Ronin walks North with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face.",
-        "Walk West Animation Frames": "Wasabi Ronin walks West with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face.",
-        "Walk East Animation Frames": "Wasabi Ronin walks East with measured disciplined steps, his nori seaweed cloak swaying slightly and the sashimi blade sheathed at his hip in its bamboo scabbard. A few grains of rice trail from the hem of his cloak and his sharp wasabi topknot juts rigidly above his stoic face."
+        "Walk South Animation Frames": "Wasabi Ronin walks South with measured disciplined steps, his right hand resting on the sashimi blade's hilt at his left hip and his left arm hanging still at his side. His nori seaweed cloak sways slightly, a few grains of rice trail from the hem, and his sharp wasabi topknot juts rigidly above his stoic face.",
+        "Walk North Animation Frames": "Wasabi Ronin walks North with measured disciplined steps, his right hand resting on the sashimi blade's hilt at his left hip and his left arm hanging still at his side. His nori seaweed cloak sways slightly, a few grains of rice trail from the hem, and his sharp wasabi topknot juts rigidly above his stoic face.",
+        "Walk West Animation Frames": "Wasabi Ronin walks West with measured disciplined steps, his right hand resting on the sashimi blade's hilt at his left hip and his left arm hanging still at his side. His nori seaweed cloak sways slightly, a few grains of rice trail from the hem, and his sharp wasabi topknot juts rigidly above his stoic face.",
+        "Walk East Animation Frames": "Wasabi Ronin walks East with measured disciplined steps, his right hand resting on the sashimi blade's hilt at his left hip and his left arm hanging still at his side. His nori seaweed cloak sways slightly, a few grains of rice trail from the hem, and his sharp wasabi topknot juts rigidly above his stoic face."
       },
     },
     {
@@ -1170,10 +1179,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Wanderer leans heavily on the spear as a crutch, one hand clutching his side. The duster is torn and caked with dust, the mask filter is clogged with soot, and the backpack hangs by a single strap.
   Header "Critical Pose" (5,5): Barely standing, the Wanderer grips the spear with trembling hands. The gas mask is cracked and wheezing, the duster is shredded, and his desperate amber lenses scan for any escape route.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Wasteland Wanderer trudges South with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him.",
-        "Walk North Animation Frames": "The Wasteland Wanderer trudges North with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him.",
-        "Walk West Animation Frames": "The Wasteland Wanderer trudges West with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him.",
-        "Walk East Animation Frames": "The Wasteland Wanderer trudges East with a cautious hunched posture, his tattered leather duster swaying and the bulging salvaged backpack bouncing with dangling trinkets. The amber lenses of his gas mask catch the light and the stop-sign spear rises beside him."
+        "Walk South Animation Frames": "The Wasteland Wanderer trudges South with a cautious hunched posture, the stop-sign spear gripped in his right hand at shoulder height and his left hand hooked into a backpack strap. His tattered leather duster sways, the bulging salvaged backpack bounces with dangling trinkets, and the amber lenses of his gas mask catch the light.",
+        "Walk North Animation Frames": "The Wasteland Wanderer trudges North with a cautious hunched posture, the stop-sign spear gripped in his right hand at shoulder height and his left hand hooked into a backpack strap. His tattered leather duster sways, the bulging salvaged backpack bounces with dangling trinkets, and the amber lenses of his gas mask catch the light.",
+        "Walk West Animation Frames": "The Wasteland Wanderer trudges West with a cautious hunched posture, the stop-sign spear gripped in his right hand at shoulder height and his left hand hooked into a backpack strap. His tattered leather duster sways, the bulging salvaged backpack bounces with dangling trinkets, and the amber lenses of his gas mask catch the light.",
+        "Walk East Animation Frames": "The Wasteland Wanderer trudges East with a cautious hunched posture, the stop-sign spear gripped in his right hand at shoulder height and his left hand hooked into a backpack strap. His tattered leather duster sways, the bulging salvaged backpack bounces with dangling trinkets, and the amber lenses of his gas mask catch the light."
       },
     },
     {
@@ -1217,10 +1226,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Vault Dweller hunches over with hands on knees, panting. The jumpsuit is torn and stained, the Pip-Boy screen flickers with warning readouts, and the laser pistol dangles loosely from one hand.
   Header "Critical Pose" (5,5): Barely standing, the Vault Dweller clutches the laser pistol with both hands. The Pip-Boy screen flashes red emergency warnings, the jumpsuit is in tatters, and his blue eyes are wide with terrified determination.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Vault Dweller steps South with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride.",
-        "Walk North Animation Frames": "The Vault Dweller steps North with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride.",
-        "Walk West Animation Frames": "The Vault Dweller steps West with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride.",
-        "Walk East Animation Frames": "The Vault Dweller steps East with cautious upright posture, the bright blue jumpsuit crisp with yellow trim and the chunky Pip-Boy on his left wrist glowing green. The laser pistol rides at his hip and the utility belt pouches bounce with each careful stride."
+        "Walk South Animation Frames": "The Vault Dweller steps South with cautious upright posture, the chunky Pip-Boy on his left wrist glowing green and his right hand hovering near the chrome laser pistol holstered at his right hip. The bright blue jumpsuit is crisp with yellow trim and the utility belt pouches bounce with each careful stride.",
+        "Walk North Animation Frames": "The Vault Dweller steps North with cautious upright posture, the chunky Pip-Boy on his left wrist glowing green and his right hand hovering near the chrome laser pistol holstered at his right hip. The bright blue jumpsuit is crisp with yellow trim and the utility belt pouches bounce with each careful stride.",
+        "Walk West Animation Frames": "The Vault Dweller steps West with cautious upright posture, the chunky Pip-Boy on his left wrist glowing green and his right hand hovering near the chrome laser pistol holstered at his right hip. The bright blue jumpsuit is crisp with yellow trim and the utility belt pouches bounce with each careful stride.",
+        "Walk East Animation Frames": "The Vault Dweller steps East with cautious upright posture, the chunky Pip-Boy on his left wrist glowing green and his right hand hovering near the chrome laser pistol holstered at his right hip. The bright blue jumpsuit is crisp with yellow trim and the utility belt pouches bounce with each careful stride."
       },
     },
     {
@@ -1264,10 +1273,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Warlord hunches forward, chain weapon dragging on the ground. Half his scrap armor is gone, the war paint is faded with dried blood, and the mohawk wilts. He snarls through gritted teeth, refusing to fall.
   Header "Critical Pose" (5,5): Barely standing, the Warlord swings the chain weapon in weak, desperate arcs. His armor is destroyed, the bone necklace is gone, and his body is covered in wounds — but his war-painted eyes still burn with unbroken fury.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Raider Warlord stomps South with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
-        "Walk North Animation Frames": "The Raider Warlord stomps North with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
-        "Walk West Animation Frames": "The Raider Warlord stomps West with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
-        "Walk East Animation Frames": "The Raider Warlord stomps East with aggressive forward-leaning menace, the heavy chain weapon swinging at his side with its spiked ball dragging the ground. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame."
+        "Walk South Animation Frames": "The Raider Warlord stomps South with aggressive forward-leaning menace, the heavy chain weapon gripped in his right fist with the spiked ball dragging the ground and his left fist clenched at his side. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
+        "Walk North Animation Frames": "The Raider Warlord stomps North with aggressive forward-leaning menace, the heavy chain weapon gripped in his right fist with the spiked ball dragging the ground and his left fist clenched at his side. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
+        "Walk West Animation Frames": "The Raider Warlord stomps West with aggressive forward-leaning menace, the heavy chain weapon gripped in his right fist with the spiked ball dragging the ground and his left fist clenched at his side. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame.",
+        "Walk East Animation Frames": "The Raider Warlord stomps East with aggressive forward-leaning menace, the heavy chain weapon gripped in his right fist with the spiked ball dragging the ground and his left fist clenched at his side. His crimson mohawk rises like a war banner above welded scrap-metal armor and his scarred muscular frame."
       },
     },
     {
@@ -1311,10 +1320,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Enforcer leans heavily on the upright super sledge, his massive frame sagging. The green skin is pale and the radiation scars are dim. Chain bracers drag on the ground and his yellow eyes are half-closed, flickering.
   Header "Critical Pose" (5,5): Barely standing, the Enforcer clutches the super sledge handle with both trembling hands. His green skin is almost grey, the radiation scars are completely dark, and his massive body shakes. Only a faint angry glow in his yellow eyes remains.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Mutant Enforcer lumbers South with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
-        "Walk North Animation Frames": "The Mutant Enforcer lumbers North with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
-        "Walk West Animation Frames": "The Mutant Enforcer lumbers West with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
-        "Walk East Animation Frames": "The Mutant Enforcer lumbers East with ground-shaking footfalls, the massive engine-block super sledge dragging at his side and chain bracers clinking on his forearms. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame."
+        "Walk South Animation Frames": "The Mutant Enforcer lumbers South with ground-shaking footfalls, the massive engine-block super sledge dragging in his right hand and his left chain-bracer arm swinging at his side. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
+        "Walk North Animation Frames": "The Mutant Enforcer lumbers North with ground-shaking footfalls, the massive engine-block super sledge dragging in his right hand and his left chain-bracer arm swinging at his side. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
+        "Walk West Animation Frames": "The Mutant Enforcer lumbers West with ground-shaking footfalls, the massive engine-block super sledge dragging in his right hand and his left chain-bracer arm swinging at his side. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame.",
+        "Walk East Animation Frames": "The Mutant Enforcer lumbers East with ground-shaking footfalls, the massive engine-block super sledge dragging in his right hand and his left chain-bracer arm swinging at his side. His sickly green skin shows purple bruising and radiation scars across his top-heavy hunched frame."
       },
     },
     {
@@ -1358,10 +1367,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Trader leans on the rebar staff, the pack harness half-empty and hanging by one strap. The hat droops and the revolver dangles loosely from one hand. Most of his barter goods are lost and his hazel eyes are weary.
   Header "Critical Pose" (5,5): Barely standing amid his scattered goods, the Trader clutches the revolver with his last round. The hat is torn, the harness is destroyed, and he stands guard over what remains of his trade goods with desperate, calculating eyes.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Caravan Trader trudges South with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face.",
-        "Walk North Animation Frames": "The Caravan Trader trudges North with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face.",
-        "Walk West Animation Frames": "The Caravan Trader trudges West with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face.",
-        "Walk East Animation Frames": "The Caravan Trader trudges East with his rebar staff planting in time with each step, barter goods jingling on the pack harness — bottles, ammo boxes, and brass casings clattering softly. The wide-brimmed leather hat shades his weathered face."
+        "Walk South Animation Frames": "The Caravan Trader trudges South with his rebar staff planted in his right hand in time with each step, the worn revolver holstered at his right thigh. Barter goods jingle on the pack harness — bottles, ammo boxes, and brass casings clattering softly — and the wide-brimmed leather hat shades his weathered face.",
+        "Walk North Animation Frames": "The Caravan Trader trudges North with his rebar staff planted in his right hand in time with each step, the worn revolver holstered at his right thigh. Barter goods jingle on the pack harness — bottles, ammo boxes, and brass casings clattering softly — and the wide-brimmed leather hat shades his weathered face.",
+        "Walk West Animation Frames": "The Caravan Trader trudges West with his rebar staff planted in his right hand in time with each step, the worn revolver holstered at his right thigh. Barter goods jingle on the pack harness — bottles, ammo boxes, and brass casings clattering softly — and the wide-brimmed leather hat shades his weathered face.",
+        "Walk East Animation Frames": "The Caravan Trader trudges East with his rebar staff planted in his right hand in time with each step, the worn revolver holstered at his right thigh. Barter goods jingle on the pack harness — bottles, ammo boxes, and brass casings clattering softly — and the wide-brimmed leather hat shades his weathered face."
       },
     },
     {
@@ -1405,10 +1414,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Knight stands with one leg's hydraulics failing, leaning heavily to one side. The gatling laser drags on the ground in a weakening grip. Armor plates are cracked and hanging loose, the fusion core flickers between blue-white and dark, and the amber visor pulses in time with failing power reserves.
   Header "Critical Pose" (5,5): Barely standing, every hydraulic joint sparking and grinding. The gatling laser is braced against the ground as a crutch, barrels bent from impact. The fusion core is exposed and critical — flashing red through the cracked housing. The amber visor is a dying ember behind a shattered helmet plate, but the Knight still faces the enemy.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Power Armor Knight stomps South with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
-        "Walk North Animation Frames": "The Power Armor Knight stomps North with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
-        "Walk West Animation Frames": "The Power Armor Knight stomps West with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
-        "Walk East Animation Frames": "The Power Armor Knight stomps East with ground-cracking footfalls, hydraulic knee pistons hissing and the gatling laser held ready in both armored hands. The back-mounted fusion core glows blue-white and the T-shaped amber visor cuts through dust beneath the bucket helmet."
+        "Walk South Animation Frames": "The Power Armor Knight stomps South with ground-cracking footfalls, the gatling laser held ready in both armored hands with its six barrels angled upward. Hydraulic knee pistons hiss with each step, the back-mounted fusion core glows blue-white, and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
+        "Walk North Animation Frames": "The Power Armor Knight stomps North with ground-cracking footfalls, the gatling laser held ready in both armored hands with its six barrels angled upward. Hydraulic knee pistons hiss with each step, the back-mounted fusion core glows blue-white, and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
+        "Walk West Animation Frames": "The Power Armor Knight stomps West with ground-cracking footfalls, the gatling laser held ready in both armored hands with its six barrels angled upward. Hydraulic knee pistons hiss with each step, the back-mounted fusion core glows blue-white, and the T-shaped amber visor cuts through dust beneath the bucket helmet.",
+        "Walk East Animation Frames": "The Power Armor Knight stomps East with ground-cracking footfalls, the gatling laser held ready in both armored hands with its six barrels angled upward. Hydraulic knee pistons hiss with each step, the back-mounted fusion core glows blue-white, and the T-shaped amber visor cuts through dust beneath the bucket helmet."
       },
     },
     {
@@ -1419,6 +1428,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "Natural weapons only — razor-sharp claws, a bladed tail tip, dorsal tubes running along the back, and a telescoping inner mouth with silver teeth. No artificial equipment.",
       colorNotes: "Obsidian black exoskeleton with dark blue reflective highlights on curved surfaces. Silver metallic teeth on both outer and inner jaws. Dorsal tubes are dark steel grey. Saliva is translucent silver. Tail blade is polished dark steel.",
       rowGuidance: `
+Xenomorph Drone is a tall, gaunt bipedal predator with digitigrade legs, a long segmented tail ending in a blade tip, and clawed hands — not human proportions. Its elongated smooth skull has no visible eyes. A lipless mouth hides a telescoping inner jaw with silver teeth. Dorsal tubes run along the back.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Drone crouches facing the viewer, the elongated skull tilted as if sensing the air. The lipless mouth is closed with silver teeth barely visible. The tail coils loosely behind and the clawed hands rest on the ground in a spider-like stance. Dorsal tubes rise above the shoulders.
@@ -1466,6 +1476,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "Natural weapons — larger, heavier claws, a thicker armored tail with a wider blade tip, reinforced chitinous chest plates, and a more powerful inner jaw. No artificial equipment.",
       colorNotes: "Primary black exoskeleton with dark brown undertones in the chitin plates. Head crest is glossy black with brown ridges. Acid-green blood visible at joints. Teeth are bone-white. Chest plates have a dark brown, almost woody texture.",
       rowGuidance: `
+Xenomorph Warrior is a larger, broader bipedal predator with a distinctive ridged head crest, digitigrade legs, thicker chitinous armor plates, and a heavy armored tail with a wide blade tip. Massive clawed hands, no visible eyes, and a powerful inner jaw. More upright and muscular than the Drone variant.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The Warrior stands nearly upright facing the viewer, the ridged head crest towering above. The chitinous chest plates are displayed prominently and the larger claws hang at its sides. The armored tail coils on the ground and bone-white teeth gleam in a closed-mouth expression.
@@ -1513,6 +1524,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "Natural weapons only — gripping finger-legs for latching, a muscular tail for constriction, and a ventral proboscis for implantation. No artificial equipment.",
       colorNotes: "Pale flesh bodies with pink-grey undersides. Finger-legs are slightly darker flesh tone with visible tendons. Tails are pink-grey and muscular. Ventral side has translucent membranes revealing pulsing internals. Overall wet, organic appearance.",
       rowGuidance: `
+Facehugger Swarm is a group of 3-4 spider-like parasites — each has eight long gripping finger-legs, a muscular whip-like tail, and a ventral proboscis. No arms, no standard head, no bipedal movement. They scuttle as a coordinated unit with pale fleshy bodies low to the ground.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The swarm rests in a loose cluster facing the viewer, finger-legs slowly flexing in place. The lead facehugger raises its front legs periodically as if sensing. Pink-grey undersides are visible and the muscular tails lie in lazy coils. The pale flesh rises and falls with breathing.
@@ -1593,10 +1605,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Entity hunches with failing systems — chrome panels loose and hanging, blade-arms partially extended and sparking. Several tubes are disconnected and leaking dark fluid. The skull-head droops and the vertebral column sags. Only the faintest steam escapes the pipes.
   Header "Critical Pose" (5,5): Barely operational, the Entity stands on locked pistons. Most chrome plates are gone, exposing vulnerable flesh that pulses weakly. The blade-arms twitch and the skull-head hangs by a few cables. A single ribbed pipe still vents thin steam in a last mechanical breath.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Biomechanical Entity strides South with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
-        "Walk North Animation Frames": "The Biomechanical Entity strides North with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
-        "Walk West Animation Frames": "The Biomechanical Entity strides West with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
-        "Walk East Animation Frames": "The Biomechanical Entity strides East with mechanical precision, chrome pistons driving its legs and ribbed pipes venting thin hisses of steam. Dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue."
+        "Walk South Animation Frames": "The Biomechanical Entity strides South with mechanical precision, chrome blade-arms retracted into the forearm housings of both arms and ribbed pipes venting thin hisses of steam from its shoulders. Chrome pistons drive its legs and dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
+        "Walk North Animation Frames": "The Biomechanical Entity strides North with mechanical precision, chrome blade-arms retracted into the forearm housings of both arms and ribbed pipes venting thin hisses of steam from its shoulders. Chrome pistons drive its legs and dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
+        "Walk West Animation Frames": "The Biomechanical Entity strides West with mechanical precision, chrome blade-arms retracted into the forearm housings of both arms and ribbed pipes venting thin hisses of steam from its shoulders. Chrome pistons drive its legs and dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue.",
+        "Walk East Animation Frames": "The Biomechanical Entity strides East with mechanical precision, chrome blade-arms retracted into the forearm housings of both arms and ribbed pipes venting thin hisses of steam from its shoulders. Chrome pistons drive its legs and dark reddish-black fluid traces the seams where chrome panels meet exposed flesh-pink tissue."
       },
     },
     {
@@ -1640,10 +1652,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): The Marine leans on the pulse rifle as a crutch, the amber visor cracked and flickering. The chest lamp is dead, the motion tracker sparks intermittently, and acid scars cover the olive drab armor. He breathes heavily behind the damaged helmet.
   Header "Critical Pose" (5,5): Barely standing, the Marine grips the pulse rifle one-handed, the other arm limp. The amber visor shows critical damage warnings, most armor plates are gone or cracked, and the chest lamp is shattered. His last magazine is loaded and his finger is on the trigger — he will not go quietly.`,
       groupGuidance: {
-        "Walk South Animation Frames": "The Space Marine advances South with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display.",
-        "Walk North Animation Frames": "The Space Marine advances North with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display.",
-        "Walk West Animation Frames": "The Space Marine advances West with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display.",
-        "Walk East Animation Frames": "The Space Marine advances East with a disciplined combat-ready stride, the pulse rifle held steady across his chest and the chest lamp casting a white beam forward. His amber visor glows with HUD data and the motion tracker on his left forearm sweeps with a green display."
+        "Walk South Animation Frames": "The Space Marine advances South with a disciplined combat-ready stride, the pulse rifle held steady across his chest in both hands with the barrel angled right. The motion tracker on his left forearm sweeps with a green display, his amber visor glows with HUD data, and the chest lamp casts a white beam forward.",
+        "Walk North Animation Frames": "The Space Marine advances North with a disciplined combat-ready stride, the pulse rifle held steady across his chest in both hands with the barrel angled right. The motion tracker on his left forearm sweeps with a green display, his amber visor glows with HUD data, and the chest lamp casts a white beam forward.",
+        "Walk West Animation Frames": "The Space Marine advances West with a disciplined combat-ready stride, the pulse rifle held steady across his chest in both hands with the barrel angled right. The motion tracker on his left forearm sweeps with a green display, his amber visor glows with HUD data, and the chest lamp casts a white beam forward.",
+        "Walk East Animation Frames": "The Space Marine advances East with a disciplined combat-ready stride, the pulse rifle held steady across his chest in both hands with the barrel angled right. The motion tracker on his left forearm sweeps with a green display, his amber visor glows with HUD data, and the chest lamp casts a white beam forward."
       },
     },
     {
@@ -1687,10 +1699,10 @@ ROW 5 — KO 3, Victory, Status Poses:
   Header "Weak Pose" (5,4): Pickle Rick kneels on one bone-leg, using the bone-shiv as support. Several ribs on the chest plate are cracked. His pickle skin is dull. Breathing hard but still smirking.
   Header "Critical Pose" (5,5): Barely standing — most bone armor destroyed, pickle body dented and bruised. One bone arm hangs limp. But his beady eyes burn with defiance. He's been through worse.`,
       groupGuidance: {
-        "Walk South Animation Frames": "Pickle Rick strides South with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead.",
-        "Walk North Animation Frames": "Pickle Rick strides North with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead.",
-        "Walk West Animation Frames": "Pickle Rick strides West with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead.",
-        "Walk East Animation Frames": "Pickle Rick strides East with confident bone-leg steps inside his rat-skeleton exosuit, the ribcage chest plate bouncing slightly and his bone arms swinging naturally. His green pickle face keeps its perpetual smirk and his beady eyes scan ahead."
+        "Walk South Animation Frames": "Pickle Rick strides South with confident bone-leg steps inside his rat-skeleton exosuit, a bone-shiv gripped in his right bone-hand and his left bone-arm swinging naturally. The ribcage chest plate bounces slightly, his green pickle face keeps its perpetual smirk, and his beady eyes scan ahead.",
+        "Walk North Animation Frames": "Pickle Rick strides North with confident bone-leg steps inside his rat-skeleton exosuit, a bone-shiv gripped in his right bone-hand and his left bone-arm swinging naturally. The ribcage chest plate bounces slightly, his green pickle face keeps its perpetual smirk, and his beady eyes scan ahead.",
+        "Walk West Animation Frames": "Pickle Rick strides West with confident bone-leg steps inside his rat-skeleton exosuit, a bone-shiv gripped in his right bone-hand and his left bone-arm swinging naturally. The ribcage chest plate bounces slightly, his green pickle face keeps its perpetual smirk, and his beady eyes scan ahead.",
+        "Walk East Animation Frames": "Pickle Rick strides East with confident bone-leg steps inside his rat-skeleton exosuit, a bone-shiv gripped in his right bone-hand and his left bone-arm swinging naturally. The ribcage chest plate bounces slightly, his green pickle face keeps its perpetual smirk, and his beady eyes scan ahead."
       },
     },
     {
@@ -1701,6 +1713,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "None — natural claws and teeth are its weapons.",
       colorNotes: "Dirty brown/gray matted fur, pink hairless tail and inner ears, yellowish teeth, beady red-orange eyes. Pale pink skin visible through thin patches of fur on belly.",
       rowGuidance: `
+Sewer Rat is a quadruped rat standing semi-upright on its hind legs for sprite animation. It has four paws (forepaws used as hands), a long pink hairless tail, pointed snout with whiskers, and bared yellowish teeth. Mangy brown-gray fur covers its body with thin patches on the belly.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The rat stands hunched on hind legs facing the viewer. Paws hang at its sides, claws visible. Beady red eyes stare. Whiskers twitch. Aggressive but still.
@@ -1748,6 +1761,7 @@ ROW 5 — KO 3, Victory, Status Poses:
       equipment: "None — natural mandibles, sharp front leg spines, and hard carapace shell.",
       colorNotes: "Dark reddish-brown glossy carapace/shell, lighter brown-tan underbelly and leg segments, dark brown-black legs, translucent amber wings folded under the shell. Beady black compound eyes.",
       rowGuidance: `
+Sewer Cockroach has six legs — it stands on its four back legs with its two front legs held up as arms with spiny edges. It has a glossy dark reddish-brown carapace shell, mandibles, twitchy antennae, beady black compound eyes, and translucent amber wings folded under the shell. No human-like hands.
 
 ROW 2 — Idle & Battle Idle:
   Header "Idle Down" (2,0): The cockroach stands on hind legs facing the viewer. Front leg-arms rest at its sides. Antennae wave lazily. Compound eyes reflect light. Mandibles click.
