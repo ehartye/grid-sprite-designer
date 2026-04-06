@@ -17,15 +17,8 @@ import {
   type BuildingPreset,
   type TerrainPreset,
   type BackgroundPreset,
-  type HierarchicalGuidance,
 } from '../../context/AppContext';
-import { buildGridFillPrompt, type CharacterConfig } from '../../lib/promptBuilder';
-import { buildBuildingPrompt } from '../../lib/buildingPromptBuilder';
-import { buildTerrainPrompt } from '../../lib/terrainPromptBuilder';
-import { buildBackgroundPrompt } from '../../lib/backgroundPromptBuilder';
-import { getBuildingGridConfig, getTerrainGridConfig, getBackgroundGridConfig } from '../../lib/gridConfig';
-import { EMPTY_GUIDANCE, getPixelizeGuidance } from '../../lib/promptBuilderBase';
-import type { ContentPreset } from '../../types/api';
+import { getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
 import { IMAGE_MODELS, getModel, formatCost, type ImageSize, type ThinkingLevel } from '../../lib/models';
 import '../../styles/run-builder.css';
@@ -253,79 +246,14 @@ export function UnifiedConfigPanel() {
 
 
   const promptPreview = useMemo(() => {
-    let prompt: string;
-    switch (spriteType) {
-      case 'building': {
-        const gc = getBuildingGridConfig(
-          (content as any).gridSize,
-          (content as any).cellLabels,
-        );
-        prompt = buildBuildingPrompt(
-          state.building,
-          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
-          [], gc.cellLabels, gc.cols, gc.rows,
-        );
-        break;
-      }
-      case 'terrain': {
-        const gc = getTerrainGridConfig(
-          (content as any).gridSize,
-          (content as any).cellLabels,
-        );
-        prompt = buildTerrainPrompt(
-          state.terrain,
-          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
-          [], gc.cellLabels, gc.cols, gc.rows,
-        );
-        break;
-      }
-      case 'background': {
-        const gc = getBackgroundGridConfig(
-          (content as any).gridSize,
-          (content as any).cellLabels,
-        );
-        prompt = buildBackgroundPrompt(
-          state.background,
-          EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
-          [], gc.cellLabels, gc.cols, gc.rows,
-        );
-        break;
-      }
-      default: {
-        const selectedPreset = presetList.find(p => p.id === selectedPresetId) as ContentPreset | undefined;
-        const gridLink = selectedGridLinks[0];
-        if (selectedPreset && gridLink) {
-          const presetGuidance: HierarchicalGuidance = {
-            overall: selectedPreset.overallGuidance || '',
-            groups: selectedPreset.groupGuidance || {},
-            cells: selectedPreset.cellGuidance || {},
-          };
-          const charConfig: CharacterConfig = {
-            name: selectedPreset.name,
-            description: selectedPreset.description,
-            equipment: selectedPreset.equipment || '',
-            colorNotes: selectedPreset.colorNotes || '',
-            styleNotes: '',
-          };
-          prompt = buildGridFillPrompt(
-            charConfig,
-            gridLink.gridGuidance, gridLink.linkGuidance, presetGuidance,
-            gridLink.cellGroups, gridLink.cellLabels, gridLink.cols, gridLink.rows,
-          );
-        } else {
-          const defaultLabels = Array.from({ length: 36 }, (_, i) => `Cell ${i}`);
-          prompt = buildGridFillPrompt(
-            state.character,
-            EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE,
-            [], defaultLabels, 6, 6,
-          );
-        }
-      }
-    }
+    const wc = WORKFLOW_CONFIGS[spriteType];
+    const gridLink = selectedGridLinks[0];
+    const gridConfig = wc.buildGridConfig(state, gridLink);
+    let prompt = wc.buildPrompt(state, gridConfig, gridLink);
     const g = getPixelizeGuidance(pixelizeSize);
     if (g) prompt += '\n\n' + g;
     return prompt;
-  }, [spriteType, content, state.character, state.building, state.terrain, state.background, pixelizeSize, selectedPresetId, selectedGridLinks, presetList]);
+  }, [spriteType, state, pixelizeSize, selectedGridLinks]);
 
   // Group presets by genre
   const presetsByGenre = useMemo(
