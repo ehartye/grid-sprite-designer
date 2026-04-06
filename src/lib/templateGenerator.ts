@@ -49,14 +49,17 @@ export function generateTemplate(
   ctx.fillRect(0, 0, canvasW, canvasH);
 
   ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
+
+  const pad = Math.round(fontSize * 0.3);
 
   const totalCells = cols * rows;
   for (let idx = 0; idx < totalCells; idx++) {
     const col = idx % cols;
     const row = Math.floor(idx / cols);
-    const label = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
+    const name = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
+    const label = `${name} (${row},${col})`;
 
     const x0 = offsetX + hGap + col * (cellSize + hGap);
     const y0 = offsetY + vGap + row * (cellH + vGap);
@@ -65,7 +68,7 @@ export function generateTemplate(
     ctx.fillStyle = BLACK;
     ctx.fillRect(x0, y0, cellSize, headerH);
     ctx.fillStyle = WHITE;
-    ctx.fillText(label, x0 + cellSize / 2, y0 + headerH / 2);
+    ctx.fillText(label, x0 + pad, y0 + headerH / 2);
 
     // Content area (1:1 square)
     ctx.fillStyle = CHROMA_PINK;
@@ -120,14 +123,17 @@ export function generateBackgroundTemplate(
   const offsetY = Math.floor((canvasH - gridH) / 2);
 
   ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
+
+  const bgPad = Math.round(fontSize * 0.3);
 
   const totalCells = cols * rows;
   for (let idx = 0; idx < totalCells; idx++) {
     const col = idx % cols;
     const row = Math.floor(idx / cols);
-    const label = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
+    const name = idx < cellLabels.length ? cellLabels[idx] : `Cell ${row},${col}`;
+    const label = `${name} (${row},${col})`;
 
     const x0 = offsetX + border + col * (cellW + border);
     const y0 = offsetY + border + row * (cellH + border);
@@ -135,7 +141,7 @@ export function generateBackgroundTemplate(
     ctx.fillStyle = BLACK;
     ctx.fillRect(x0, y0, cellW, headerH);
     ctx.fillStyle = WHITE;
-    ctx.fillText(label, x0 + cellW / 2, y0 + headerH / 2);
+    ctx.fillText(label, x0 + bgPad, y0 + headerH / 2);
 
     ctx.fillStyle = CHROMA_PINK;
     ctx.fillRect(x0, y0 + headerH, cellW, cellH - headerH);
