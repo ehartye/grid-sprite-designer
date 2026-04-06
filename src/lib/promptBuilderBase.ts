@@ -61,7 +61,7 @@ export function buildGuidanceBlock(
         presetGuidance.cells[label],
       ].map(s => s?.trim()).filter(Boolean);
 
-      const header = `  Cell "${label}" (${row},${col})`;
+      const header = `  (${row},${col}) Cell "${label}"`;
       if (cellGuidanceParts.length) {
         groupLines.push(`${header}:\n    ${cellGuidanceParts.join('\n    ')}`);
       } else {
@@ -86,7 +86,7 @@ export function buildGuidanceBlock(
         linkGuidance.cells[label],
         presetGuidance.cells[label],
       ].map(s => s?.trim()).filter(Boolean);
-      const header = `  Cell "${label}" (${row},${col})`;
+      const header = `  (${row},${col}) Cell "${label}"`;
       return cellGuidanceParts.length
         ? `${header}:\n    ${cellGuidanceParts.join('\n    ')}`
         : header;
