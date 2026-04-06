@@ -8,6 +8,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { GridPreset, CellGroup, SpriteType } from '../../context/AppContext';
 import { CellRangeSelector } from './CellRangeSelector';
 import { GuidanceAccordion } from './GuidanceAccordion';
+import { computeSquareLayout } from '../../lib/computeSquareLayout';
+import { generateTemplate } from '../../lib/templateGenerator';
 
 const SPRITE_TYPES: SpriteType[] = ['character', 'building', 'terrain', 'background'];
 
@@ -198,6 +200,24 @@ export function GridPresetsTab() {
   const handleEditWithCollapse = (preset: GridPreset) => {
     handleEdit(preset);
     if (window.innerWidth < 768) setListCollapsed(true);
+  };
+
+  const handleDownloadTemplate = (size: '2K' | '4K') => {
+    if (!editing) return;
+    const layout = computeSquareLayout(editing.cols, editing.rows, size);
+    const gridConfig = {
+      id: editing.name,
+      label: editing.name,
+      cols: editing.cols,
+      rows: editing.rows,
+      totalCells: editing.cols * editing.rows,
+      cellLabels: editing.cellLabels,
+    };
+    const { base64 } = generateTemplate(layout, gridConfig);
+    const link = document.createElement('a');
+    link.href = `data:image/png;base64,${base64}`;
+    link.download = `template-${editing.name.toLowerCase().replace(/\s+/g, '-')}-${size.toLowerCase()}.png`;
+    link.click();
   };
 
   return (
@@ -485,6 +505,8 @@ export function GridPresetsTab() {
               <button className="btn" onClick={handleSave} disabled={saving || !editing.name.trim()}>
                 {saving ? 'Saving...' : editing.id ? 'Update' : 'Create'}
               </button>
+              <button className="btn btn-sm" onClick={() => handleDownloadTemplate('2K')}>Template 2K</button>
+              <button className="btn btn-sm" onClick={() => handleDownloadTemplate('4K')}>Template 4K</button>
               <button className="btn btn-sm" onClick={() => setEditing(null)}>Cancel</button>
               {editing.id && (
                 <button
