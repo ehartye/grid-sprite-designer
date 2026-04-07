@@ -7,8 +7,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppContext, SpriteType, GridLink } from '../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../lib/spriteExtractor';
-import { gridPresetToConfig } from '../lib/gridConfig';
-import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
+import { fetchContentPreset } from '../lib/promptForType';
+import { buildGenerationRequest } from '../lib/generateRequest';
 import { runGeneratePipeline, WORKFLOW_CONFIGS } from './useGenericWorkflow';
 import { debugLog } from '../lib/debugLog';
 import type { ContentPreset } from '../types/api';
@@ -117,37 +117,26 @@ export function useAddSheet() {
 
       if (abort.signal.aborted) return;
 
-      // Build grid config and prompt
-      const gridConfig = gridPresetToConfig(gridLink, spriteType);
-
       debugLog('[AddSheet] contentPresetId:', contentPresetId);
       debugLog('[AddSheet] contentPreset:', contentPreset.name);
       debugLog('[AddSheet] gridLink:', gridLink.gridName, gridLink.gridSize, '| cellLabels[0..3]:', gridLink.cellLabels.slice(0, 4));
-      // TODO Task 5-7: use gridLink.gridGuidance / linkGuidance for hierarchical guidance
       debugLog('[AddSheet] gridGuidance.overall:', gridLink.gridGuidance?.overall ? gridLink.gridGuidance.overall.slice(0, 80) + '…' : '(empty)');
 
-      // Build prompt (always as subsequent grid since we have a reference)
-      let prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, true);
-
-      if (followUpGuidance?.trim()) {
-        prompt += `\n\nADDITIONAL GUIDANCE:\n${followUpGuidance.trim()}`;
-      }
-
-      // Delegate to shared pipeline
-      await runGeneratePipeline({
-        gridConfig,
-        prompt,
-        model: currentState.model,
-        thinkingLevel: currentState.thinkingLevel,
-        imageSize,
+      const pipelineParams = buildGenerationRequest({
         spriteType,
-        contentName: contentPreset.name,
-        contentDescription: contentPreset.description,
-        cellGroups: gridLink.cellGroups,
+        contentPreset,
+        gridLink,
+        model: currentState.model,
+        imageSize,
+        thinkingLevel: currentState.thinkingLevel,
+        isSubsequentGrid: true,
         referenceImage: { data: refBase64, mimeType: 'image/png' },
+        promptSuffix: followUpGuidance,
         historyExtras: { groupId, contentPresetId },
         sourceContext: { groupId: groupId ?? null, contentPresetId: contentPresetId ?? null },
-      }, dispatch, abort.signal);
+      });
+
+      await runGeneratePipeline(pipelineParams, dispatch, abort.signal);
 
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
