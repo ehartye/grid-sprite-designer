@@ -546,7 +546,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     });
   }, []);
 
-  const handleCellFeedbackClick = useCallback((_cellIndex: number) => {
+  const [focusCellIndex, setFocusCellIndex] = useState<number | null>(null);
+
+  const handleCellFeedbackClick = useCallback((cellIndex: number) => {
+    setFocusCellIndex(cellIndex);
     setFeedbackPanelOpen(true);
   }, []);
 
@@ -1117,13 +1120,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
       <FeedbackPanel
         open={feedbackPanelOpen}
-        onClose={() => setFeedbackPanelOpen(false)}
+        onClose={() => { setFeedbackPanelOpen(false); setFocusCellIndex(null); }}
         feedbackState={feedbackState}
         onFeedbackChange={setFeedbackState}
         cellLabels={dynamicCellLabels ?? []}
         cellGroups={effectiveCellGroups ?? []}
         onRegenerate={handleRegenerate}
         regenerating={regenerating}
+        focusCellIndex={focusCellIndex}
       />
 
       {hasFeedback(feedbackState) && typeof window !== 'undefined' && window.innerWidth < 768 && (
