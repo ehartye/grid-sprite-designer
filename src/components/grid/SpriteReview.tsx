@@ -1076,38 +1076,35 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         {/* ── Actions ── */}
         <SidebarGroup label="Actions" defaultOpen={true}>
         <div className="sidebar-section">
-          <h3>Export</h3>
           <div className="export-bar">
-            <button className="btn btn-success w-full" onClick={handleExportSheet}>
+            <button className="btn btn-primary w-full" onClick={handleExportSheet}>
               Export Sprite Sheet
             </button>
             <button className="btn w-full" onClick={handleExportIndividual}>
               Export Individual PNGs
             </button>
-            <button className="btn btn-primary w-full" onClick={() => setAddSheetOpen(true)}>
-              Add Sheet
-            </button>
-            <button className="btn btn-primary w-full" onClick={() => setFeedbackPanelOpen(true)}>
-              Feedback &amp; Regenerate
-            </button>
-            {hasFeedback(feedbackState) && (
-              <button className="btn btn-accent w-full" onClick={handleRegenerate} disabled={regenerating}>
-                {regenerating ? 'Regenerating...' : 'Regenerate with Feedback'}
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Navigation */}
         <div className="sidebar-section">
           <div className="export-bar">
-            <button
-              className="btn w-full"
-              onClick={() => setStep('configure')}
-            >
-              Back to Configure
+            <button className="btn w-full" onClick={() => setAddSheetOpen(true)}>
+              Add Sheet
+            </button>
+            <button className="btn w-full" onClick={() => setFeedbackPanelOpen(true)}>
+              Feedback &amp; Regenerate
             </button>
           </div>
+        </div>
+
+        <div className="sidebar-section">
+          <button
+            className="btn w-full"
+            style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}
+            onClick={() => setStep('configure')}
+          >
+            &larr; Back to Configure
+          </button>
         </div>
         </SidebarGroup>
 

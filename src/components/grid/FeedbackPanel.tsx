@@ -107,16 +107,17 @@ export function FeedbackPanel({
             })}
           </div>
         </div>
-      </div>
 
-      <div className="feedback-panel-footer">
-        <button
-          className="btn btn-primary w-full"
-          onClick={onRegenerate}
-          disabled={regenerating || !hasFeedback(feedbackState)}
-        >
-          {regenerating ? 'Regenerating...' : 'Regenerate with Feedback'}
-        </button>
+        {/* Regenerate — flows after content, sticks to bottom when scrollable */}
+        <div className="feedback-panel-action">
+          <button
+            className="btn btn-primary w-full"
+            onClick={onRegenerate}
+            disabled={regenerating || !hasFeedback(feedbackState)}
+          >
+            {regenerating ? 'Regenerating...' : 'Regenerate with Feedback'}
+          </button>
+        </div>
       </div>
     </div>
   );

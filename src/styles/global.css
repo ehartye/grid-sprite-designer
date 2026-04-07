@@ -1145,8 +1145,12 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.feedback-panel-footer {
-  padding: 10px 12px;
+.feedback-panel-action {
+  position: sticky;
+  bottom: 0;
+  padding: 10px 0 2px;
+  margin-top: auto;
+  background: var(--bg-base);
   border-top: 1px solid var(--border);
 }
 
