@@ -99,7 +99,7 @@ export function FeedbackPanel({
                   {status === 'approved' && <span className="feedback-cell-tag">Signed Off</span>}
                   {status === 'feedback' && (
                     <span className="feedback-cell-preview" title={cell?.feedback}>
-                      {cell?.feedback?.slice(0, 40)}...
+                      {cell?.feedback && cell.feedback.length > 40 ? cell.feedback.slice(0, 40) + '...' : cell?.feedback}
                     </span>
                   )}
                 </div>
