@@ -210,13 +210,13 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const dynamicAspectRatio = agc?.aspectRatio ?? currentGridLink?.aspectRatio;
 
   // Use cellGroups from props, or from activeGridConfig, or from current grid link
-  const [fetchedCellGroups, setFetchedCellGroups] = useState<CellGroup[] | null>(null);
+  const [fetchedGridLink, setFetchedGridLink] = useState<GridLink | null>(null);
   const localCellGroups = cellGroups ?? agc?.cellGroups ?? currentGridLink?.cellGroups;
 
-  // Fetch cell groups from grid links if not available locally (e.g. session restore)
+  // Fetch grid link if not available locally (e.g. session restore)
   useEffect(() => {
-    if (localCellGroups && localCellGroups.length > 0) {
-      setFetchedCellGroups(null);
+    if (currentGridLink) {
+      setFetchedGridLink(null);
       return;
     }
     const presetId = state.sourceContentPresetId;
@@ -230,15 +230,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       .then((links: GridLink[]) => {
         if (cancelled) return;
         const match = links.find(l => `${l.cols}x${l.rows}` === gridSize);
-        if (match?.cellGroups?.length) {
-          setFetchedCellGroups(match.cellGroups);
-        }
+        if (match) setFetchedGridLink(match);
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [localCellGroups, state.sourceContentPresetId, state.spriteType, agc]);
+  }, [currentGridLink, state.sourceContentPresetId, state.spriteType, agc]);
 
-  const effectiveCellGroups = localCellGroups ?? fetchedCellGroups ?? undefined;
+  const resolvedGridLink = currentGridLink ?? fetchedGridLink;
+  const effectiveCellGroups = localCellGroups ?? resolvedGridLink?.cellGroups ?? undefined;
   const hasAnimGroups = isCharacter || (effectiveCellGroups?.length ?? 0) > 0;
 
 
@@ -582,19 +581,18 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   }, []);
 
   const handleRegenerate = useCallback(async () => {
-    const gridLink = currentGridLink ?? state.activeGridConfig;
-    if (!gridLink) {
-      dispatch({ type: 'SET_STATUS', message: 'No grid configuration available for regeneration', statusType: 'error' });
+    if (!resolvedGridLink) {
+      dispatch({ type: 'SET_STATUS', message: 'No grid configuration available for regeneration. Try reloading.', statusType: 'error' });
       return;
     }
     await regenerate({
-      gridLink: gridLink as GridLink,
+      gridLink: resolvedGridLink,
       imageSize: (state.imageSize as '2K' | '4K') || '2K',
       feedbackState,
     });
     setFeedbackState(createEmptyFeedback());
     setFeedbackPanelOpen(false);
-  }, [regenerate, feedbackState, state, currentGridLink, dispatch]);
+  }, [regenerate, feedbackState, state, resolvedGridLink, dispatch]);
 
   return (
     <div className="review-layout">
