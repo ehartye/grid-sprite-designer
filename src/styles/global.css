@@ -1207,23 +1207,44 @@ button:focus-visible {
   margin-bottom: 6px;
 }
 
-/* Version chain navigation */
-.version-chain {
+/* Version bar — persistent context at sidebar top */
+.version-bar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(200, 255, 0, 0.04);
+  border: 1px solid rgba(200, 255, 0, 0.12);
+  border-radius: var(--radius);
 }
 
 .version-label {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--accent);
-  padding: 2px 8px;
-  background: rgba(200, 255, 0, 0.08);
+}
+
+.version-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.version-nav-btn {
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(200, 255, 0, 0.15);
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.version-nav-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .feedback-panel-action {

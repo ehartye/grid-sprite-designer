@@ -680,6 +680,34 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
       {/* Right: Sidebar */}
       <aside className="review-sidebar">
+        {/* ── Version Bar ── */}
+        {versionInfo && (versionInfo.parentId || versionInfo.childIds.length > 0 || versionInfo.version > 1) && (
+          <div className="version-bar">
+            <span className="version-label">v{versionInfo.version}</span>
+            <div className="version-nav">
+              {versionInfo.parentId && (
+                <button
+                  className="version-nav-btn"
+                  onClick={() => navigateToVersion(versionInfo.parentId!)}
+                  title="Load previous version"
+                >
+                  &larr; prev
+                </button>
+              )}
+              {versionInfo.childIds.map((childId) => (
+                <button
+                  key={childId}
+                  className="version-nav-btn"
+                  onClick={() => navigateToVersion(childId)}
+                  title="Load regenerated version"
+                >
+                  next &rarr;
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Preview & Playback ── */}
         <SidebarGroup label="Preview & Playback" defaultOpen={true}>
           {hasAnimGroups && (
@@ -1168,33 +1196,6 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             </button>
           </div>
         </div>
-
-        {/* Version Chain */}
-        {versionInfo && (versionInfo.parentId || versionInfo.childIds.length > 0 || versionInfo.version > 1) && (
-          <div className="sidebar-section">
-            <h3>Version History</h3>
-            <div className="version-chain">
-              <span className="version-label">v{versionInfo.version}</span>
-              {versionInfo.parentId && (
-                <button
-                  className="btn btn-xs"
-                  onClick={() => navigateToVersion(versionInfo.parentId!)}
-                >
-                  &larr; v{versionInfo.version - 1} (parent)
-                </button>
-              )}
-              {versionInfo.childIds.map((childId, i) => (
-                <button
-                  key={childId}
-                  className="btn btn-xs"
-                  onClick={() => navigateToVersion(childId)}
-                >
-                  v{versionInfo.version + 1 + i} (regen) &rarr;
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="sidebar-section">
           <button
