@@ -86,6 +86,7 @@ export interface GalleryEntry {
   gridSize: string | null;
   groupId: string | null;
   generationVersion: number;
+  gridPresetName: string | null;
   spriteCount: number;
   thumbnailData: string | null;
   thumbnailMime: string | null;

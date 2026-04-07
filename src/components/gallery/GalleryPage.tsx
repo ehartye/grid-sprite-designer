@@ -295,6 +295,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                       }}
                     >
                       <div className="gallery-card-thumb gallery-slideshow">
+                        <span className="gallery-type-chip">{typeLabel(primary.spriteType)}</span>
                         {group.entries.map((e, i) => (
                           e.thumbnailData && (
                             <img
@@ -345,16 +346,13 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                         </div>
                         <div className="gallery-card-info">
                           <div className="gallery-card-name">
-                            {entry.gridSize || typeLabel(entry.spriteType)}
+                            {entry.gridPresetName || entry.gridSize || typeLabel(entry.spriteType)}
                           </div>
-                          <div className="gallery-card-meta">
-                            <span className="gallery-type-badge">{typeLabel(entry.spriteType)}</span>
+                          <div className="gallery-card-preset">
+                            <span className="gallery-version-chip">v{entry.generationVersion}</span>
                             {' '}&middot;{' '}{entry.spriteCount} sprites
                           </div>
                         </div>
-                        {entry.generationVersion > 1 && (
-                          <span className="gallery-version-chip">v{entry.generationVersion}</span>
-                        )}
                         <button
                           className="gallery-card-delete"
                           onClick={(e) => handleDelete(entry.id, e)}
@@ -383,6 +381,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                     }}
                   >
                     <div className="gallery-card-thumb">
+                      <span className="gallery-type-chip">{typeLabel(entry.spriteType)}</span>
                       {entry.thumbnailData && (
                         <img
                           src={`data:${entry.thumbnailMime || 'image/png'};base64,${entry.thumbnailData}`}
@@ -392,12 +391,14 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                     </div>
                     <div className="gallery-card-info">
                       <div className="gallery-card-name">{entry.contentName}</div>
+                      <div className="gallery-card-preset">
+                        {entry.gridPresetName || entry.gridSize || ''}
+                        {' '}<span className="gallery-version-chip">v{entry.generationVersion}</span>
+                      </div>
                       <div className="gallery-card-meta">
-                        <span className="gallery-type-badge">{typeLabel(entry.spriteType)}</span>
-                        {' '}&middot;{' '}{formatDate(entry.createdAt)} &middot; {entry.spriteCount} sprites
+                        {formatDate(entry.createdAt)} &middot; {entry.spriteCount} sprites
                       </div>
                     </div>
-                    <span className="gallery-version-chip">v{entry.generationVersion}</span>
                     <button
                       className="gallery-card-delete"
                       onClick={(e) => handleDelete(entry.id, e)}
