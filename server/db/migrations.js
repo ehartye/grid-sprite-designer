@@ -91,6 +91,47 @@ const MIGRATIONS = [
   { name: '021_add_feedback_json', sql: 'ALTER TABLE generations ADD COLUMN feedback_json TEXT DEFAULT NULL' },
   { name: '022_add_parent_history_id', sql: 'ALTER TABLE generations ADD COLUMN parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id)' },
   { name: '023_add_generation_version', sql: 'ALTER TABLE generations ADD COLUMN generation_version INTEGER NOT NULL DEFAULT 1' },
+  { name: '024_add_grid_preset_name', sql: 'ALTER TABLE generations ADD COLUMN grid_preset_name TEXT DEFAULT NULL' },
+  {
+    name: '025_backfill_grid_preset_name',
+    sql: `
+      UPDATE generations SET grid_preset_name = (
+        SELECT gp.name FROM grid_presets gp
+        JOIN character_grid_links l ON l.grid_preset_id = gp.id
+        WHERE l.character_preset_id = generations.content_preset_id
+          AND gp.grid_size = generations.grid_size
+          AND generations.sprite_type = 'character'
+        LIMIT 1
+      ) WHERE grid_preset_name IS NULL AND content_preset_id IS NOT NULL AND sprite_type = 'character';
+
+      UPDATE generations SET grid_preset_name = (
+        SELECT gp.name FROM grid_presets gp
+        JOIN building_grid_links l ON l.grid_preset_id = gp.id
+        WHERE l.building_preset_id = generations.content_preset_id
+          AND gp.grid_size = generations.grid_size
+          AND generations.sprite_type = 'building'
+        LIMIT 1
+      ) WHERE grid_preset_name IS NULL AND content_preset_id IS NOT NULL AND sprite_type = 'building';
+
+      UPDATE generations SET grid_preset_name = (
+        SELECT gp.name FROM grid_presets gp
+        JOIN terrain_grid_links l ON l.grid_preset_id = gp.id
+        WHERE l.terrain_preset_id = generations.content_preset_id
+          AND gp.grid_size = generations.grid_size
+          AND generations.sprite_type = 'terrain'
+        LIMIT 1
+      ) WHERE grid_preset_name IS NULL AND content_preset_id IS NOT NULL AND sprite_type = 'terrain';
+
+      UPDATE generations SET grid_preset_name = (
+        SELECT gp.name FROM grid_presets gp
+        JOIN background_grid_links l ON l.grid_preset_id = gp.id
+        WHERE l.background_preset_id = generations.content_preset_id
+          AND gp.grid_size = generations.grid_size
+          AND generations.sprite_type = 'background'
+        LIMIT 1
+      ) WHERE grid_preset_name IS NULL AND content_preset_id IS NOT NULL AND sprite_type = 'background';
+    `
+  },
 ];
 
 export function migrateSchema(db) {

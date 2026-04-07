@@ -43,7 +43,10 @@ export function buildPipelineParams(params: GenerationRequestParams): PipelinePa
     contentDescription: contentPreset.description,
     cellGroups: gridLink.cellGroups,
     referenceImage,
-    historyExtras,
+    historyExtras: {
+      ...historyExtras,
+      gridPresetName: gridLink.gridName || null,
+    },
     sourceContext,
   };
 }

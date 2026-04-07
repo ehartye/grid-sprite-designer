@@ -27,11 +27,10 @@ export function createGalleryRouter(db) {
       const total = countRow.total;
 
       const rows = db.prepare(
-        `SELECT g.id, g.content_name, g.content_description, g.model, g.image_size, g.thinking_level, g.created_at, g.sprite_type, g.grid_size, g.group_id, g.generation_version, g.content_preset_id,
+        `SELECT g.id, g.content_name, g.content_description, g.model, g.image_size, g.thinking_level, g.created_at, g.sprite_type, g.grid_size, g.group_id, g.generation_version, g.grid_preset_name,
               (SELECT COUNT(*) FROM sprites WHERE generation_id = g.id) as sprite_count,
               COALESCE(g.thumbnail_image, (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_data,
-              COALESCE(g.thumbnail_mime, (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_mime,
-              (SELECT gp.name FROM grid_presets gp WHERE gp.grid_size = g.grid_size AND gp.sprite_type = g.sprite_type LIMIT 1) as grid_preset_name
+              COALESCE(g.thumbnail_mime, (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_mime
        FROM generations g ${where} ORDER BY g.created_at DESC LIMIT ? OFFSET ?`
       ).all(...params, limit, offset);
 

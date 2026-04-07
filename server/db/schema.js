@@ -19,7 +19,8 @@ export function createSchema(db) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       feedback_json TEXT DEFAULT NULL,
       parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id),
-      generation_version INTEGER NOT NULL DEFAULT 1
+      generation_version INTEGER NOT NULL DEFAULT 1,
+      grid_preset_name TEXT DEFAULT NULL
     );
 
     CREATE TABLE IF NOT EXISTS sprites (

@@ -20,6 +20,7 @@ export interface HistoryExtras {
   contentPresetId?: number | string | null;
   parentHistoryId?: number | null;
   generationVersion?: number;
+  gridPresetName?: string | null;
 }
 
 export interface WorkflowConfig {
@@ -328,7 +329,7 @@ export function useGenericWorkflow(config: WorkflowConfig) {
         contentName: content.name,
         contentDescription: content.description,
         cellGroups: gridLink?.cellGroups,
-        historyExtras: { contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType] },
+        historyExtras: { contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType], gridPresetName: gridLink?.gridName || null },
         sourceContext: { groupId: null, contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType] },
       }, dispatch, abort.signal);
     } catch (err: unknown) {

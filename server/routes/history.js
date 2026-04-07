@@ -70,7 +70,7 @@ export function createHistoryRouter(db) {
       if (!req.body || typeof req.body !== 'object') {
         return res.status(400).json({ error: 'Request body is required' });
       }
-      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId, imageSize, thinkingLevel, parentHistoryId, generationVersion } = req.body;
+      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId, imageSize, thinkingLevel, parentHistoryId, generationVersion, gridPresetName } = req.body;
       if (typeof contentName !== 'string' || contentName.trim() === '') {
         return res.status(400).json({ error: 'contentName is required and must be a non-empty string' });
       }
@@ -83,9 +83,9 @@ export function createHistoryRouter(db) {
       }
 
       const result = db.prepare(
-        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level, parent_history_id, generation_version)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null, parentHistoryId || null, generationVersion || 1);
+        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level, parent_history_id, generation_version, grid_preset_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null, parentHistoryId || null, generationVersion || 1, gridPresetName || null);
 
       res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
