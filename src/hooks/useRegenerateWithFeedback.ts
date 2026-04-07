@@ -4,7 +4,7 @@
  * and injects feedback annotations into the prompt.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import type { GridLink } from '../context/AppContext';
 import type { ContentPreset } from '../types/api';
@@ -22,11 +22,13 @@ export interface RegenerateOptions {
 export function useRegenerateWithFeedback() {
   const { state, dispatch } = useAppContext();
   const abortRef = useRef<AbortController | null>(null);
-  const generatingRef = useRef(false);
+  const isGeneratingRef = useRef(false);
+  const [generating, setGenerating] = useState(false);
 
   const regenerate = useCallback(async (opts: RegenerateOptions) => {
-    if (generatingRef.current) return;
-    generatingRef.current = true;
+    if (isGeneratingRef.current) return;
+    isGeneratingRef.current = true;
+    setGenerating(true);
 
     const abort = new AbortController();
     abortRef.current = abort;
@@ -101,15 +103,17 @@ export function useRegenerateWithFeedback() {
       await runGeneratePipeline(pipelineParams, dispatch, abort.signal);
 
     } finally {
-      generatingRef.current = false;
+      isGeneratingRef.current = false;
+      setGenerating(false);
       abortRef.current = null;
     }
   }, [state, dispatch]);
 
   const cancel = useCallback(() => {
     abortRef.current?.abort();
-    generatingRef.current = false;
+    isGeneratingRef.current = false;
+    setGenerating(false);
   }, []);
 
-  return { regenerate, cancel, generating: generatingRef.current };
+  return { regenerate, cancel, generating };
 }
