@@ -1,1 +1,111 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048"><rect width="2048" height="2048" fill="#000"/><rect x="24" y="2" width="315" height="24" fill="#000"/><text x="181.5" y="14" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Down 1</text><rect x="24" y="26" width="315" height="315" fill="#f0f"/><rect x="361" y="2" width="315" height="24" fill="#000"/><text x="518.5" y="14" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Down 2</text><rect x="361" y="26" width="315" height="315" fill="#f0f"/><rect x="698" y="2" width="315" height="24" fill="#000"/><text x="855.5" y="14" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Down 3</text><rect x="698" y="26" width="315" height="315" fill="#f0f"/><rect x="1035" y="2" width="315" height="24" fill="#000"/><text x="1192.5" y="14" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Up 1</text><rect x="1035" y="26" width="315" height="315" fill="#f0f"/><rect x="1372" y="2" width="315" height="24" fill="#000"/><text x="1529.5" y="14" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Up 2</text><rect x="1372" y="26" width="315" height="315" fill="#f0f"/><rect x="1709" y="2" width="315" height="24" fill="#000"/><text x="1866.5" y="14" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Up 3</text><rect x="1709" y="26" width="315" height="315" fill="#f0f"/><rect x="24" y="343" width="315" height="24" fill="#000"/><text x="181.5" y="355" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Left 1</text><rect x="24" y="367" width="315" height="315" fill="#f0f"/><rect x="361" y="343" width="315" height="24" fill="#000"/><text x="518.5" y="355" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Left 2</text><rect x="361" y="367" width="315" height="315" fill="#f0f"/><rect x="698" y="343" width="315" height="24" fill="#000"/><text x="855.5" y="355" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Left 3</text><rect x="698" y="367" width="315" height="315" fill="#f0f"/><rect x="1035" y="343" width="315" height="24" fill="#000"/><text x="1192.5" y="355" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Right 1</text><rect x="1035" y="367" width="315" height="315" fill="#f0f"/><rect x="1372" y="343" width="315" height="24" fill="#000"/><text x="1529.5" y="355" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Right 2</text><rect x="1372" y="367" width="315" height="315" fill="#f0f"/><rect x="1709" y="343" width="315" height="24" fill="#000"/><text x="1866.5" y="355" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Walk Right 3</text><rect x="1709" y="367" width="315" height="315" fill="#f0f"/><rect x="24" y="684" width="315" height="24" fill="#000"/><text x="181.5" y="696" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Idle Down</text><rect x="24" y="708" width="315" height="315" fill="#f0f"/><rect x="361" y="684" width="315" height="24" fill="#000"/><text x="518.5" y="696" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Idle Up</text><rect x="361" y="708" width="315" height="315" fill="#f0f"/><rect x="698" y="684" width="315" height="24" fill="#000"/><text x="855.5" y="696" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Idle Left</text><rect x="698" y="708" width="315" height="315" fill="#f0f"/><rect x="1035" y="684" width="315" height="24" fill="#000"/><text x="1192.5" y="696" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Idle Right</text><rect x="1035" y="708" width="315" height="315" fill="#f0f"/><rect x="1372" y="684" width="315" height="24" fill="#000"/><text x="1529.5" y="696" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Battle Idle 1</text><rect x="1372" y="708" width="315" height="315" fill="#f0f"/><rect x="1709" y="684" width="315" height="24" fill="#000"/><text x="1866.5" y="696" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Battle Idle 2</text><rect x="1709" y="708" width="315" height="315" fill="#f0f"/><rect x="24" y="1025" width="315" height="24" fill="#000"/><text x="181.5" y="1037" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Battle Idle 3</text><rect x="24" y="1049" width="315" height="315" fill="#f0f"/><rect x="361" y="1025" width="315" height="24" fill="#000"/><text x="518.5" y="1037" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Attack 1</text><rect x="361" y="1049" width="315" height="315" fill="#f0f"/><rect x="698" y="1025" width="315" height="24" fill="#000"/><text x="855.5" y="1037" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Attack 2</text><rect x="698" y="1049" width="315" height="315" fill="#f0f"/><rect x="1035" y="1025" width="315" height="24" fill="#000"/><text x="1192.5" y="1037" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Attack 3</text><rect x="1035" y="1049" width="315" height="315" fill="#f0f"/><rect x="1372" y="1025" width="315" height="24" fill="#000"/><text x="1529.5" y="1037" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Cast 1</text><rect x="1372" y="1049" width="315" height="315" fill="#f0f"/><rect x="1709" y="1025" width="315" height="24" fill="#000"/><text x="1866.5" y="1037" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Cast 2</text><rect x="1709" y="1049" width="315" height="315" fill="#f0f"/><rect x="24" y="1366" width="315" height="24" fill="#000"/><text x="181.5" y="1378" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Cast 3</text><rect x="24" y="1390" width="315" height="315" fill="#f0f"/><rect x="361" y="1366" width="315" height="24" fill="#000"/><text x="518.5" y="1378" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Damage 1</text><rect x="361" y="1390" width="315" height="315" fill="#f0f"/><rect x="698" y="1366" width="315" height="24" fill="#000"/><text x="855.5" y="1378" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Damage 2</text><rect x="698" y="1390" width="315" height="315" fill="#f0f"/><rect x="1035" y="1366" width="315" height="24" fill="#000"/><text x="1192.5" y="1378" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Damage 3</text><rect x="1035" y="1390" width="315" height="315" fill="#f0f"/><rect x="1372" y="1366" width="315" height="24" fill="#000"/><text x="1529.5" y="1378" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">KO 1</text><rect x="1372" y="1390" width="315" height="315" fill="#f0f"/><rect x="1709" y="1366" width="315" height="24" fill="#000"/><text x="1866.5" y="1378" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">KO 2</text><rect x="1709" y="1390" width="315" height="315" fill="#f0f"/><rect x="24" y="1707" width="315" height="24" fill="#000"/><text x="181.5" y="1719" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">KO 3</text><rect x="24" y="1731" width="315" height="315" fill="#f0f"/><rect x="361" y="1707" width="315" height="24" fill="#000"/><text x="518.5" y="1719" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Victory 1</text><rect x="361" y="1731" width="315" height="315" fill="#f0f"/><rect x="698" y="1707" width="315" height="24" fill="#000"/><text x="855.5" y="1719" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Victory 2</text><rect x="698" y="1731" width="315" height="315" fill="#f0f"/><rect x="1035" y="1707" width="315" height="24" fill="#000"/><text x="1192.5" y="1719" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Victory 3</text><rect x="1035" y="1731" width="315" height="315" fill="#f0f"/><rect x="1372" y="1707" width="315" height="24" fill="#000"/><text x="1529.5" y="1719" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Weak Pose</text><rect x="1372" y="1731" width="315" height="315" fill="#f0f"/><rect x="1709" y="1707" width="315" height="24" fill="#000"/><text x="1866.5" y="1719" fill="#fff" font-size="18" font-weight="bold" font-family="Arial" text-anchor="middle" dominant-baseline="central">Critical Pose</text><rect x="1709" y="1731" width="315" height="315" fill="#f0f"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048" viewBox="0 0 2048 2048">
+<rect width="2048" height="2048" fill="#000000"/>
+<rect x="81" y="9" width="311" height="24" fill="#000000"/>
+<text x="236.5" y="29" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk South 1</text>
+<rect x="81" y="33" width="311" height="311" fill="#FF00FF"/>
+<rect x="396" y="9" width="311" height="24" fill="#000000"/>
+<text x="551.5" y="29" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk South 2</text>
+<rect x="396" y="33" width="311" height="311" fill="#FF00FF"/>
+<rect x="711" y="9" width="311" height="24" fill="#000000"/>
+<text x="866.5" y="29" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk South 3</text>
+<rect x="711" y="33" width="311" height="311" fill="#FF00FF"/>
+<rect x="1026" y="9" width="311" height="24" fill="#000000"/>
+<text x="1181.5" y="29" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk North 1</text>
+<rect x="1026" y="33" width="311" height="311" fill="#FF00FF"/>
+<rect x="1341" y="9" width="311" height="24" fill="#000000"/>
+<text x="1496.5" y="29" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk North 2</text>
+<rect x="1341" y="33" width="311" height="311" fill="#FF00FF"/>
+<rect x="1656" y="9" width="311" height="24" fill="#000000"/>
+<text x="1811.5" y="29" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk North 3</text>
+<rect x="1656" y="33" width="311" height="311" fill="#FF00FF"/>
+<rect x="81" y="348" width="311" height="24" fill="#000000"/>
+<text x="236.5" y="368" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk West 1</text>
+<rect x="81" y="372" width="311" height="311" fill="#FF00FF"/>
+<rect x="396" y="348" width="311" height="24" fill="#000000"/>
+<text x="551.5" y="368" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk West 2</text>
+<rect x="396" y="372" width="311" height="311" fill="#FF00FF"/>
+<rect x="711" y="348" width="311" height="24" fill="#000000"/>
+<text x="866.5" y="368" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk West 3</text>
+<rect x="711" y="372" width="311" height="311" fill="#FF00FF"/>
+<rect x="1026" y="348" width="311" height="24" fill="#000000"/>
+<text x="1181.5" y="368" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk East 1</text>
+<rect x="1026" y="372" width="311" height="311" fill="#FF00FF"/>
+<rect x="1341" y="348" width="311" height="24" fill="#000000"/>
+<text x="1496.5" y="368" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk East 2</text>
+<rect x="1341" y="372" width="311" height="311" fill="#FF00FF"/>
+<rect x="1656" y="348" width="311" height="24" fill="#000000"/>
+<text x="1811.5" y="368" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Walk East 3</text>
+<rect x="1656" y="372" width="311" height="311" fill="#FF00FF"/>
+<rect x="81" y="687" width="311" height="24" fill="#000000"/>
+<text x="236.5" y="707" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Idle South</text>
+<rect x="81" y="711" width="311" height="311" fill="#FF00FF"/>
+<rect x="396" y="687" width="311" height="24" fill="#000000"/>
+<text x="551.5" y="707" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Idle North</text>
+<rect x="396" y="711" width="311" height="311" fill="#FF00FF"/>
+<rect x="711" y="687" width="311" height="24" fill="#000000"/>
+<text x="866.5" y="707" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Idle West</text>
+<rect x="711" y="711" width="311" height="311" fill="#FF00FF"/>
+<rect x="1026" y="687" width="311" height="24" fill="#000000"/>
+<text x="1181.5" y="707" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Idle East</text>
+<rect x="1026" y="711" width="311" height="311" fill="#FF00FF"/>
+<rect x="1341" y="687" width="311" height="24" fill="#000000"/>
+<text x="1496.5" y="707" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Critical</text>
+<rect x="1341" y="711" width="311" height="311" fill="#FF00FF"/>
+<rect x="1656" y="687" width="311" height="24" fill="#000000"/>
+<text x="1811.5" y="707" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Weak</text>
+<rect x="1656" y="711" width="311" height="311" fill="#FF00FF"/>
+<rect x="81" y="1026" width="311" height="24" fill="#000000"/>
+<text x="236.5" y="1046" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Attack 1</text>
+<rect x="81" y="1050" width="311" height="311" fill="#FF00FF"/>
+<rect x="396" y="1026" width="311" height="24" fill="#000000"/>
+<text x="551.5" y="1046" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Attack 2</text>
+<rect x="396" y="1050" width="311" height="311" fill="#FF00FF"/>
+<rect x="711" y="1026" width="311" height="24" fill="#000000"/>
+<text x="866.5" y="1046" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Attack 3</text>
+<rect x="711" y="1050" width="311" height="311" fill="#FF00FF"/>
+<rect x="1026" y="1026" width="311" height="24" fill="#000000"/>
+<text x="1181.5" y="1046" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Special 1</text>
+<rect x="1026" y="1050" width="311" height="311" fill="#FF00FF"/>
+<rect x="1341" y="1026" width="311" height="24" fill="#000000"/>
+<text x="1496.5" y="1046" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Special 2</text>
+<rect x="1341" y="1050" width="311" height="311" fill="#FF00FF"/>
+<rect x="1656" y="1026" width="311" height="24" fill="#000000"/>
+<text x="1811.5" y="1046" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Special 3</text>
+<rect x="1656" y="1050" width="311" height="311" fill="#FF00FF"/>
+<rect x="81" y="1365" width="311" height="24" fill="#000000"/>
+<text x="236.5" y="1385" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Damage 1</text>
+<rect x="81" y="1389" width="311" height="311" fill="#FF00FF"/>
+<rect x="396" y="1365" width="311" height="24" fill="#000000"/>
+<text x="551.5" y="1385" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Damage 2</text>
+<rect x="396" y="1389" width="311" height="311" fill="#FF00FF"/>
+<rect x="711" y="1365" width="311" height="24" fill="#000000"/>
+<text x="866.5" y="1385" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Damage 3</text>
+<rect x="711" y="1389" width="311" height="311" fill="#FF00FF"/>
+<rect x="1026" y="1365" width="311" height="24" fill="#000000"/>
+<text x="1181.5" y="1385" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">KO 1</text>
+<rect x="1026" y="1389" width="311" height="311" fill="#FF00FF"/>
+<rect x="1341" y="1365" width="311" height="24" fill="#000000"/>
+<text x="1496.5" y="1385" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">KO 2</text>
+<rect x="1341" y="1389" width="311" height="311" fill="#FF00FF"/>
+<rect x="1656" y="1365" width="311" height="24" fill="#000000"/>
+<text x="1811.5" y="1385" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">KO 3</text>
+<rect x="1656" y="1389" width="311" height="311" fill="#FF00FF"/>
+<rect x="81" y="1704" width="311" height="24" fill="#000000"/>
+<text x="236.5" y="1724" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Battle Idle 1</text>
+<rect x="81" y="1728" width="311" height="311" fill="#FF00FF"/>
+<rect x="396" y="1704" width="311" height="24" fill="#000000"/>
+<text x="551.5" y="1724" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Battle Idle 2</text>
+<rect x="396" y="1728" width="311" height="311" fill="#FF00FF"/>
+<rect x="711" y="1704" width="311" height="24" fill="#000000"/>
+<text x="866.5" y="1724" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Battle Idle 3</text>
+<rect x="711" y="1728" width="311" height="311" fill="#FF00FF"/>
+<rect x="1026" y="1704" width="311" height="24" fill="#000000"/>
+<text x="1181.5" y="1724" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Victory 1</text>
+<rect x="1026" y="1728" width="311" height="311" fill="#FF00FF"/>
+<rect x="1341" y="1704" width="311" height="24" fill="#000000"/>
+<text x="1496.5" y="1724" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Victory 2</text>
+<rect x="1341" y="1728" width="311" height="311" fill="#FF00FF"/>
+<rect x="1656" y="1704" width="311" height="24" fill="#000000"/>
+<text x="1811.5" y="1724" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold" text-anchor="middle">Victory 3</text>
+<rect x="1656" y="1728" width="311" height="311" fill="#FF00FF"/>
+</svg>

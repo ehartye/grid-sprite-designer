@@ -58,60 +58,73 @@ export function AppHeader({ tab, onTabChange }: AppHeaderProps) {
     onTabChange('designer');
   }, [dispatch, onTabChange, state.step, state.historyId]);
 
+  const tabs: { key: AppTab; label: string; icon: string }[] = [
+    { key: 'designer', label: 'Designer', icon: '⬡' },
+    { key: 'gallery', label: 'Gallery', icon: '▦' },
+    { key: 'admin', label: 'Admin', icon: '⚙' },
+  ];
+
   return (
-    <header className="app-header">
-      <div className="header-branding">
-        <h1 className="app-title">Grid Sprite Designer</h1>
+    <>
+      <header className="app-header">
+        <div className="header-branding">
+          <h1 className="app-title">Grid Sprite Designer</h1>
 
-        <nav className="header-tabs">
+          <nav className="header-tabs">
+            {tabs.map(t => (
+              <button
+                key={t.key}
+                className={`header-tab${tab === t.key ? ' active' : ''}`}
+                onClick={() => onTabChange(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="header-controls">
+          {testResult && (
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: testResult.success ? 'var(--success)' : 'var(--error)',
+              }}
+            >
+              {testResult.success ? 'Connected' : testResult.error || 'Failed'}
+            </span>
+          )}
+
           <button
-            className={`header-tab${tab === 'designer' ? ' active' : ''}`}
-            onClick={() => onTabChange('designer')}
+            className="btn btn-sm"
+            onClick={handleTestConnection}
+            disabled={testing}
           >
-            Designer
+            {testing ? 'Testing...' : 'Test Connection'}
           </button>
+
+          {showNewSprite && (
+            <button className="btn btn-sm btn-danger" onClick={handleNewSprite}>
+              New Sprite
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Mobile bottom nav — visible only at ≤640px via CSS */}
+      <nav className="mobile-bottom-nav">
+        {tabs.map(t => (
           <button
-            className={`header-tab${tab === 'gallery' ? ' active' : ''}`}
-            onClick={() => onTabChange('gallery')}
+            key={t.key}
+            className={`mobile-nav-btn${tab === t.key ? ' active' : ''}`}
+            onClick={() => onTabChange(t.key)}
           >
-            Gallery
+            <span className="mobile-nav-icon">{t.icon}</span>
+            <span className="mobile-nav-label">{t.label}</span>
           </button>
-          <button
-            className={`header-tab${tab === 'admin' ? ' active' : ''}`}
-            onClick={() => onTabChange('admin')}
-          >
-            Admin
-          </button>
-        </nav>
-      </div>
-
-      <div className="header-controls">
-        {testResult && (
-          <span
-            style={{
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: testResult.success ? 'var(--success)' : 'var(--error)',
-            }}
-          >
-            {testResult.success ? 'Connected' : testResult.error || 'Failed'}
-          </span>
-        )}
-
-        <button
-          className="btn btn-sm"
-          onClick={handleTestConnection}
-          disabled={testing}
-        >
-          {testing ? 'Testing...' : 'Test Connection'}
-        </button>
-
-        {showNewSprite && (
-          <button className="btn btn-sm btn-danger" onClick={handleNewSprite}>
-            New Sprite
-          </button>
-        )}
-      </div>
-    </header>
+        ))}
+      </nav>
+    </>
   );
 }

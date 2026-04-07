@@ -1820,6 +1820,96 @@ img.sprite-image {
 }
 
 /* ============================================================
+   Mobile Bottom Nav (base styles — hidden by default, shown via media query)
+   ============================================================ */
+
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  height: 56px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  justify-content: space-around;
+  align-items: stretch;
+}
+
+/* Accent line on top — mirrors the header's bottom accent */
+.mobile-bottom-nav::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent-dim) 30%,
+    var(--accent) 50%,
+    var(--accent-dim) 70%,
+    transparent 100%
+  );
+  opacity: 0.35;
+}
+
+.mobile-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.mobile-nav-btn:active {
+  background: rgba(200, 255, 0, 0.04);
+}
+
+.mobile-nav-btn.active {
+  color: var(--accent);
+}
+
+/* Active indicator dot */
+.mobile-nav-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow-strong);
+}
+
+.mobile-nav-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.mobile-nav-label {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
    Responsive
    ============================================================ */
 
@@ -1863,6 +1953,33 @@ img.sprite-image {
   }
 }
 
+/* Mobile nav breakpoint — must match the header-tabs hide point */
+@media (max-width: 768px) {
+  .header-tabs {
+    display: none;
+  }
+
+  /* Hide test-connection on mobile — it's a diagnostic, not a primary action */
+  .header-controls .btn:not(.btn-danger) {
+    display: none;
+  }
+
+  /* Hide the connection status text too */
+  .header-controls > span {
+    display: none;
+  }
+
+  /* Show mobile bottom nav */
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  /* Pad bottom of page so content isn't hidden behind the fixed nav */
+  .app-layout {
+    padding-bottom: 64px;
+  }
+}
+
 @media (max-width: 640px) {
   .sprite-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -1880,10 +1997,6 @@ img.sprite-image {
 
   .app-title {
     font-size: 0.9rem;
-  }
-
-  .header-tabs {
-    display: none;
   }
 
   .gallery-grid {
@@ -1908,6 +2021,7 @@ img.sprite-image {
     padding: 4px;
   }
 }
+
 
 /* ============================================================
    Print
