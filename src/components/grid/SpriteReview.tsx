@@ -20,6 +20,7 @@ import { applyChromaKey, defringeRecolor, snapAlpha, outlineSprite, strikeColors
 import { posterize } from '../../lib/imagePreprocess';
 import { AddSheetModal } from './AddSheetModal';
 import { FeedbackPanel } from './FeedbackPanel';
+import { SidebarGroup } from './SidebarGroup';
 import type { FeedbackState } from '../../types/feedback';
 import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
 import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
@@ -607,81 +608,79 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
       {/* Right: Sidebar */}
       <aside className="review-sidebar">
-        {/* Animation Groups */}
-        {hasAnimGroups && (
+        {/* ── Preview & Playback ── */}
+        <SidebarGroup label="Preview & Playback" defaultOpen={true}>
+          {hasAnimGroups && (
+            <div className="sidebar-section">
+              <h3>Animation</h3>
+              <div className="anim-group-grid">
+                {anim.animations.map((animDef, idx) => (
+                  <button
+                    key={animDef.name}
+                    className={`anim-group-btn ${idx === anim.selectedAnim ? 'active' : ''}`}
+                    onClick={() => anim.setSelectedAnim(idx)}
+                  >
+                    {animDef.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="sidebar-section">
-            <h3>Animation</h3>
-            <div className="anim-group-grid">
-              {anim.animations.map((animDef, idx) => (
-                <button
-                  key={animDef.name}
-                  className={`anim-group-btn ${idx === anim.selectedAnim ? 'active' : ''}`}
-                  onClick={() => anim.setSelectedAnim(idx)}
-                >
-                  {animDef.name}
-                </button>
-              ))}
+            <canvas ref={anim.canvasRef} className="anim-preview-canvas" />
+          </div>
+
+          <div className="sidebar-section">
+            <h3>Speed (ms/frame)</h3>
+            <div className="slider-row">
+              <input
+                type="range"
+                min={50}
+                max={500}
+                value={anim.speed}
+                onChange={(e) => anim.setSpeed(Number(e.target.value))}
+              />
+              <span className="slider-value">{anim.speed}</span>
             </div>
           </div>
-        )}
 
-        {/* Cell Cycling Preview */}
-        <div className="sidebar-section">
-          <h3>Preview</h3>
-          <canvas ref={anim.canvasRef} className="anim-preview-canvas" />
-        </div>
-
-        {/* Speed Slider */}
-        <div className="sidebar-section">
-          <h3>Speed (ms/frame)</h3>
-          <div className="slider-row">
-            <input
-              type="range"
-              min={50}
-              max={500}
-              value={anim.speed}
-              onChange={(e) => anim.setSpeed(Number(e.target.value))}
-            />
-            <span className="slider-value">{anim.speed}</span>
-          </div>
-        </div>
-
-        {/* Scale Slider */}
-        <div className="sidebar-section">
-          <h3>Scale</h3>
-          <div className="slider-row">
-            <input
-              type="range"
-              min={1}
-              max={4}
-              value={anim.scale}
-              onChange={(e) => anim.setScale(Number(e.target.value))}
-            />
-            <span className="slider-value">{anim.scale}x</span>
-          </div>
-        </div>
-
-        {/* Arrow Key Hint (character only) */}
-        {isCharacter && (
           <div className="sidebar-section">
-            <h3>Movement</h3>
-            <div className="arrow-hint">
-              <div className="arrow-hint-row">
-                <div className="arrow-key">^</div>
-              </div>
-              <div className="arrow-hint-row">
-                <div className="arrow-key">&lt;</div>
-                <div className="arrow-key">v</div>
-                <div className="arrow-key">&gt;</div>
-              </div>
-              <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                Arrow keys to walk/idle
-              </span>
+            <h3>Scale</h3>
+            <div className="slider-row">
+              <input
+                type="range"
+                min={1}
+                max={4}
+                value={anim.scale}
+                onChange={(e) => anim.setScale(Number(e.target.value))}
+              />
+              <span className="slider-value">{anim.scale}x</span>
             </div>
           </div>
-        )}
 
-        {/* Posterize */}
+          {isCharacter && (
+            <div className="sidebar-section">
+              <h3>Movement</h3>
+              <div className="arrow-hint">
+                <div className="arrow-hint-row">
+                  <div className="arrow-key">^</div>
+                </div>
+                <div className="arrow-hint-row">
+                  <div className="arrow-key">&lt;</div>
+                  <div className="arrow-key">v</div>
+                  <div className="arrow-key">&gt;</div>
+                </div>
+                <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                  Arrow keys to walk/idle
+                </span>
+              </div>
+            </div>
+          )}
+        </SidebarGroup>
+
+        {/* ── Post-Processing ── */}
+        <SidebarGroup label="Post-Processing" defaultOpen={false}>
         <div className="sidebar-section">
           <h3>
             Posterize
@@ -1072,7 +1071,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           </button>
         </div>
 
-        {/* Export */}
+        </SidebarGroup>
+
+        {/* ── Actions ── */}
+        <SidebarGroup label="Actions" defaultOpen={true}>
         <div className="sidebar-section">
           <h3>Export</h3>
           <div className="export-bar">
@@ -1107,6 +1109,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             </button>
           </div>
         </div>
+        </SidebarGroup>
+
         <AddSheetModal
           open={addSheetOpen}
           onClose={() => setAddSheetOpen(false)}
