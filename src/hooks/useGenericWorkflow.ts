@@ -18,6 +18,8 @@ import type { HistorySaveResponse } from '../types/api';
 export interface HistoryExtras {
   groupId?: number | string | null;
   contentPresetId?: number | string | null;
+  parentHistoryId?: number | null;
+  generationVersion?: number;
 }
 
 export interface WorkflowConfig {
