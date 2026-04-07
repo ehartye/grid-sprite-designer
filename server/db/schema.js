@@ -16,7 +16,10 @@ export function createSchema(db) {
       thumbnail_image TEXT DEFAULT NULL,
       thumbnail_mime TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      feedback_json TEXT DEFAULT NULL,
+      parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id),
+      generation_version INTEGER NOT NULL DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS sprites (

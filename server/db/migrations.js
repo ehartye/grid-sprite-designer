@@ -88,6 +88,9 @@ const MIGRATIONS = [
   },
   { name: '019_add_generation_image_size', sql: 'ALTER TABLE generations ADD COLUMN image_size TEXT DEFAULT NULL' },
   { name: '020_add_generation_thinking_level', sql: 'ALTER TABLE generations ADD COLUMN thinking_level TEXT DEFAULT NULL' },
+  { name: '021_add_feedback_json', sql: 'ALTER TABLE generations ADD COLUMN feedback_json TEXT DEFAULT NULL' },
+  { name: '022_add_parent_history_id', sql: 'ALTER TABLE generations ADD COLUMN parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id)' },
+  { name: '023_add_generation_version', sql: 'ALTER TABLE generations ADD COLUMN generation_version INTEGER NOT NULL DEFAULT 1' },
 ];
 
 export function migrateSchema(db) {
