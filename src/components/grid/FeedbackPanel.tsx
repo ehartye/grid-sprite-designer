@@ -9,6 +9,13 @@ import { useState, useEffect, useRef } from 'react';
 import type { FeedbackState } from '../../types/feedback';
 import { hasFeedback } from '../../types/feedback';
 import type { CellGroup } from '../../context/AppContext';
+import { IMAGE_MODELS, getModel } from '../../lib/models';
+
+export interface RegenSettings {
+  model: string;
+  imageSize: '2K' | '4K';
+  thinkingLevel: 'default' | 'minimal' | 'low' | 'medium' | 'high';
+}
 
 interface FeedbackPanelProps {
   open: boolean;
@@ -21,6 +28,9 @@ interface FeedbackPanelProps {
   regenerating: boolean;
   /** When set, auto-expand and scroll to this cell's feedback input */
   focusCellIndex?: number | null;
+  /** Current generation settings (model, imageSize, thinkingLevel) */
+  regenSettings: RegenSettings;
+  onRegenSettingsChange: (settings: RegenSettings) => void;
 }
 
 export function FeedbackPanel({
@@ -32,6 +42,8 @@ export function FeedbackPanel({
   cellGroups,
   onRegenerate,
   regenerating,
+  regenSettings,
+  onRegenSettingsChange,
   focusCellIndex,
 }: FeedbackPanelProps) {
   const [expandedCell, setExpandedCell] = useState<number | null>(null);
@@ -142,6 +154,54 @@ export function FeedbackPanel({
         })()}
 
         {/* Regenerate — flows after content, sticks to bottom when scrollable */}
+        {/* Generation Settings */}
+        <div className="feedback-section feedback-settings">
+          <h4>Generation Settings</h4>
+          <div className="feedback-settings-grid">
+            <label>Model</label>
+            <select
+              className="feedback-select"
+              value={regenSettings.model}
+              onChange={(e) => onRegenSettingsChange({ ...regenSettings, model: e.target.value })}
+            >
+              {IMAGE_MODELS.map((m) => (
+                <option key={m.id} value={m.id}>{m.label}</option>
+              ))}
+            </select>
+
+            <label>Size</label>
+            <div className="feedback-size-toggle">
+              {(['2K', '4K'] as const).map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  className={`btn btn-xs ${regenSettings.imageSize === size ? 'active' : ''}`}
+                  onClick={() => onRegenSettingsChange({ ...regenSettings, imageSize: size })}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+
+            {getModel(regenSettings.model)?.supportsThinking && (
+              <>
+                <label>Thinking</label>
+                <select
+                  className="feedback-select"
+                  value={regenSettings.thinkingLevel}
+                  onChange={(e) => onRegenSettingsChange({ ...regenSettings, thinkingLevel: e.target.value as RegenSettings['thinkingLevel'] })}
+                >
+                  <option value="default">Default</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </>
+            )}
+          </div>
+        </div>
+
         <div className="feedback-panel-action">
           <button
             className="btn btn-primary w-full"

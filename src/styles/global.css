@@ -1247,6 +1247,40 @@ button:focus-visible {
   border-color: var(--accent);
 }
 
+.feedback-settings-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.feedback-settings-grid label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.feedback-select {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  padding: 3px 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  width: 100%;
+}
+
+.feedback-size-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.feedback-size-toggle .btn-xs.active {
+  background: var(--accent);
+  color: var(--bg-base);
+  border-color: var(--accent);
+}
+
 .feedback-panel-action {
   position: sticky;
   bottom: 0;

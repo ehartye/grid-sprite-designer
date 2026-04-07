@@ -270,6 +270,11 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [feedbackState, setFeedbackState] = useState<FeedbackState>(createEmptyFeedback);
   const [feedbackPanelOpen, setFeedbackPanelOpen] = useState(false);
   const { regenerate, cancel: _cancelRegen, generating: regenerating } = useRegenerateWithFeedback();
+  const [regenSettings, setRegenSettings] = useState({
+    model: state.model,
+    imageSize: state.imageSize as '2K' | '4K',
+    thinkingLevel: state.thinkingLevel,
+  });
 
   // Version chain state
   const [versionInfo, setVersionInfo] = useState<{ version: number; parentId: number | null; childIds: number[] } | null>(null);
@@ -373,6 +378,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     post.resetPosterize();
     setFeedbackState(createEmptyFeedback());
     setFeedbackPanelOpen(false);
+    setRegenSettings({ model: state.model, imageSize: state.imageSize as '2K' | '4K', thinkingLevel: state.thinkingLevel });
 
     Promise.all([
       loadSettings(),
@@ -628,14 +634,20 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       dispatch({ type: 'SET_STATUS', message: 'No grid configuration available for regeneration. Try reloading.', statusType: 'error' });
       return;
     }
+    // Apply settings overrides before regenerating
+    dispatch({ type: 'SET_MODEL', model: regenSettings.model });
+    dispatch({ type: 'SET_IMAGE_SIZE', imageSize: regenSettings.imageSize });
+    dispatch({ type: 'SET_THINKING_LEVEL', thinkingLevel: regenSettings.thinkingLevel });
+    // Allow dispatches to propagate to stateRef in the hook
+    await new Promise(r => setTimeout(r, 0));
     await regenerate({
       gridLink: resolvedGridLink,
-      imageSize: (state.imageSize as '2K' | '4K') || '2K',
+      imageSize: regenSettings.imageSize,
       feedbackState,
     });
     setFeedbackState(createEmptyFeedback());
     setFeedbackPanelOpen(false);
-  }, [regenerate, feedbackState, state, resolvedGridLink, dispatch]);
+  }, [regenerate, feedbackState, regenSettings, resolvedGridLink, dispatch]);
 
   return (
     <div className="review-layout">
@@ -1225,6 +1237,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         onRegenerate={handleRegenerate}
         regenerating={regenerating}
         focusCellIndex={focusCellIndex}
+        regenSettings={regenSettings}
+        onRegenSettingsChange={setRegenSettings}
       />
 
       {hasFeedback(feedbackState) && typeof window !== 'undefined' && window.innerWidth < 768 && (
