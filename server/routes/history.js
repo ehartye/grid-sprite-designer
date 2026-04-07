@@ -51,6 +51,9 @@ export function createHistoryRouter(db) {
         aspectRatio: gen.aspect_ratio || '1:1',
         groupId: gen.group_id || null,
         contentPresetId: gen.content_preset_id || null,
+        parentHistoryId: gen.parent_history_id || null,
+        generationVersion: gen.generation_version || 1,
+        feedbackJson: gen.feedback_json || null,
         thumbnailCellIndex: gen.thumbnail_cell_index,
         sprites: sprites.map(s => ({
           cellIndex: s.cell_index,
@@ -67,7 +70,7 @@ export function createHistoryRouter(db) {
       if (!req.body || typeof req.body !== 'object') {
         return res.status(400).json({ error: 'Request body is required' });
       }
-      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId, imageSize, thinkingLevel } = req.body;
+      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId, imageSize, thinkingLevel, parentHistoryId, generationVersion } = req.body;
       if (typeof contentName !== 'string' || contentName.trim() === '') {
         return res.status(400).json({ error: 'contentName is required and must be a non-empty string' });
       }
@@ -80,9 +83,9 @@ export function createHistoryRouter(db) {
       }
 
       const result = db.prepare(
-        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null);
+        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level, parent_history_id, generation_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null, parentHistoryId || null, generationVersion || 1);
 
       res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }
@@ -213,6 +216,19 @@ export function createHistoryRouter(db) {
         return res.json({ groupId: existing.group_id, alreadySet: true });
       }
       res.json({ groupId, alreadySet: false });
+    } catch (err) { next(err); }
+  });
+
+  router.patch('/:id/feedback', (req, res, next) => {
+    try {
+      const id = parseIntParam(req.params.id);
+      if (id === null) return res.status(400).json({ error: 'Invalid id' });
+      const { feedbackJson } = req.body;
+      if (typeof feedbackJson !== 'string') {
+        return res.status(400).json({ error: 'feedbackJson must be a JSON string' });
+      }
+      db.prepare('UPDATE generations SET feedback_json = ? WHERE id = ?').run(feedbackJson, id);
+      res.json({ success: true });
     } catch (err) { next(err); }
   });
 
