@@ -20,7 +20,7 @@ interface CellContextMenuProps {
 }
 
 export function CellContextMenu({
-  cellIndex: _cellIndex,
+  cellIndex,
   isMirrored,
   isThumbnail,
   isSignedOff,
@@ -35,7 +35,7 @@ export function CellContextMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  // Close on outside click
+  // Close on outside click or Escape key
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -43,8 +43,13 @@ export function CellContextMenu({
         setOpen(false);
       }
     };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [open]);
 
   const handleAction = (action: () => void) => (e: React.MouseEvent) => {
@@ -54,7 +59,7 @@ export function CellContextMenu({
   };
 
   return (
-    <div className="cell-context-menu" ref={menuRef}>
+    <div className="cell-context-menu" ref={menuRef} data-cell={cellIndex}>
       <button
         className={`cell-menu-btn ${open ? 'active' : ''}`}
         onClick={(e) => {
