@@ -9,12 +9,18 @@ export interface HistoryResponse {
   id: number;
   spriteType?: string;
   gridSize?: string;
+  model?: string | null;
+  imageSize?: string | null;
+  thinkingLevel?: string | null;
   filledGridImage?: string;
   filledGridMimeType?: string;
   geminiText?: string;
   aspectRatio?: string;
   groupId?: string | null;
   contentPresetId?: string | null;
+  feedbackJson?: string | null;
+  parentHistoryId?: number | null;
+  generationVersion?: number;
   content?: {
     name?: string;
     description?: string;

@@ -24,6 +24,7 @@ import { SidebarGroup } from './SidebarGroup';
 import type { FeedbackState } from '../../types/feedback';
 import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
 import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
+import { loadGenerationIntoState } from '../../lib/loadGeneration';
 
 type RGB = [number, number, number];
 
@@ -270,6 +271,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [feedbackPanelOpen, setFeedbackPanelOpen] = useState(false);
   const { regenerate, cancel: _cancelRegen, generating: regenerating } = useRegenerateWithFeedback();
 
+  // Version chain state
+  const [versionInfo, setVersionInfo] = useState<{ version: number; parentId: number | null; childIds: number[] } | null>(null);
+
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
 
   const displaySprites = useMemo(
@@ -407,6 +411,33 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       if (histData?.thumbnailCellIndex != null) {
         selection.setThumbnailCell(histData.thumbnailCellIndex);
       }
+      // Restore saved feedback if present
+      if (histData?.feedbackJson) {
+        try {
+          const saved = JSON.parse(histData.feedbackJson);
+          if (saved && typeof saved === 'object') {
+            setFeedbackState({
+              global: saved.global || '',
+              groups: saved.groups || {},
+              cells: saved.cells || {},
+            });
+          }
+        } catch { /* ignore malformed JSON */ }
+      }
+      // Load version chain info
+      const ver = histData?.generationVersion || 1;
+      const parentId = histData?.parentHistoryId || null;
+      // Fetch child generations (versions derived from this one)
+      fetch(`/api/history/${state.historyId}/children`)
+        .then(r => r.ok ? r.json() : [])
+        .then((children: Array<{ id: number }>) => {
+          if (!cancelled) {
+            setVersionInfo({ version: ver, parentId, childIds: children.map(c => c.id) });
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setVersionInfo({ version: ver, parentId, childIds: [] });
+        });
       // Skip the next save cycle so restored values don't trigger a write-back
       skipNextSaveRef.current = true;
       setSettingsLoaded(true);
@@ -579,6 +610,18 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     setFocusCellIndex(cellIndex);
     setFeedbackPanelOpen(true);
   }, []);
+
+  const navigateToVersion = useCallback(async (targetId: number) => {
+    try {
+      const res = await fetch(`/api/history/${targetId}`);
+      if (!res.ok) throw new Error('Not found');
+      const data = await res.json();
+      await loadGenerationIntoState(data, dispatch, { historyId: targetId });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load version';
+      dispatch({ type: 'SET_STATUS', message, statusType: 'error' });
+    }
+  }, [dispatch]);
 
   const handleRegenerate = useCallback(async () => {
     if (!resolvedGridLink) {
@@ -1125,6 +1168,33 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             </button>
           </div>
         </div>
+
+        {/* Version Chain */}
+        {versionInfo && (versionInfo.parentId || versionInfo.childIds.length > 0 || versionInfo.version > 1) && (
+          <div className="sidebar-section">
+            <h3>Version History</h3>
+            <div className="version-chain">
+              <span className="version-label">v{versionInfo.version}</span>
+              {versionInfo.parentId && (
+                <button
+                  className="btn btn-xs"
+                  onClick={() => navigateToVersion(versionInfo.parentId!)}
+                >
+                  &larr; v{versionInfo.version - 1} (parent)
+                </button>
+              )}
+              {versionInfo.childIds.map((childId, i) => (
+                <button
+                  key={childId}
+                  className="btn btn-xs"
+                  onClick={() => navigateToVersion(childId)}
+                >
+                  v{versionInfo.version + 1 + i} (regen) &rarr;
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="sidebar-section">
           <button

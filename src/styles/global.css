@@ -1207,6 +1207,25 @@ button:focus-visible {
   margin-bottom: 6px;
 }
 
+/* Version chain navigation */
+.version-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.version-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 2px 8px;
+  background: rgba(200, 255, 0, 0.08);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(200, 255, 0, 0.15);
+}
+
 .feedback-panel-action {
   position: sticky;
   bottom: 0;

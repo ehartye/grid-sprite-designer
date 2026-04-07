@@ -187,6 +187,12 @@ export async function loadGenerationIntoState(
     historyId: opts.historyId,
     sourceGroupId: data.groupId || null,
     sourceContentPresetId: data.contentPresetId || null,
+    model: data.model || undefined,
+    imageSize: data.imageSize || undefined,
+    thinkingLevel: data.thinkingLevel || undefined,
+    feedbackJson: data.feedbackJson || null,
+    parentHistoryId: data.parentHistoryId || null,
+    generationVersion: data.generationVersion || 1,
   };
 
   dispatch({ type: 'RESTORE_SESSION', payload });

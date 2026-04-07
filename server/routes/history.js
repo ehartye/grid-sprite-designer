@@ -219,6 +219,22 @@ export function createHistoryRouter(db) {
     } catch (err) { next(err); }
   });
 
+  router.get('/:id/children', (req, res, next) => {
+    try {
+      const id = parseIntParam(req.params.id);
+      if (id === null) return res.status(400).json({ error: 'Invalid id' });
+      const children = db.prepare(
+        'SELECT id, content_name, generation_version, created_at FROM generations WHERE parent_history_id = ? ORDER BY generation_version'
+      ).all(id);
+      res.json(children.map(c => ({
+        id: c.id,
+        contentName: c.content_name,
+        version: c.generation_version,
+        createdAt: c.created_at,
+      })));
+    } catch (err) { next(err); }
+  });
+
   router.patch('/:id/feedback', (req, res, next) => {
     try {
       const id = parseIntParam(req.params.id);

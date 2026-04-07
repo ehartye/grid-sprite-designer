@@ -354,6 +354,14 @@ export interface RestoreSessionPayload {
   historyId: number;
   sourceGroupId: string | null;
   sourceContentPresetId: string | null;
+  /** Model/settings used for this generation */
+  model?: string;
+  imageSize?: string;
+  thinkingLevel?: string;
+  /** Feedback and version chain */
+  feedbackJson?: string | null;
+  parentHistoryId?: number | null;
+  generationVersion?: number;
 }
 
 /** Get the default cell label count for a building grid size */
@@ -594,6 +602,9 @@ export function reducer(state: AppState, action: Action): AppState {
         historyId: p.historyId,
         sourceGroupId: p.sourceGroupId,
         sourceContentPresetId: p.sourceContentPresetId,
+        ...(p.model ? { model: p.model } : {}),
+        ...(p.imageSize ? { imageSize: p.imageSize as AppState['imageSize'] } : {}),
+        ...(p.thinkingLevel ? { thinkingLevel: p.thinkingLevel as AppState['thinkingLevel'] } : {}),
         status: `Restored ${p.sprites.length} sprites`,
         statusType: 'success',
         error: null,
