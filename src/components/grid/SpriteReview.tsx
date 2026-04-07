@@ -209,8 +209,36 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const dynamicCellLabels = agc?.cellLabels ?? currentGridLink?.cellLabels;
   const dynamicAspectRatio = agc?.aspectRatio ?? currentGridLink?.aspectRatio;
 
-  // Use cellGroups from props, or from activeGridConfig, or from current grid link, or fall back to default ANIMATIONS
-  const effectiveCellGroups = cellGroups ?? agc?.cellGroups ?? currentGridLink?.cellGroups;
+  // Use cellGroups from props, or from activeGridConfig, or from current grid link
+  const [fetchedCellGroups, setFetchedCellGroups] = useState<CellGroup[] | null>(null);
+  const localCellGroups = cellGroups ?? agc?.cellGroups ?? currentGridLink?.cellGroups;
+
+  // Fetch cell groups from grid links if not available locally (e.g. session restore)
+  useEffect(() => {
+    if (localCellGroups && localCellGroups.length > 0) {
+      setFetchedCellGroups(null);
+      return;
+    }
+    const presetId = state.sourceContentPresetId;
+    const spriteType = state.spriteType;
+    const gridSize = agc ? `${agc.cols}x${agc.rows}` : null;
+    if (!presetId || !gridSize) return;
+
+    let cancelled = false;
+    fetch(`/api/presets/${spriteType}/${presetId}/grid-links`)
+      .then(r => r.ok ? r.json() : [])
+      .then((links: GridLink[]) => {
+        if (cancelled) return;
+        const match = links.find(l => `${l.cols}x${l.rows}` === gridSize);
+        if (match?.cellGroups?.length) {
+          setFetchedCellGroups(match.cellGroups);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [localCellGroups, state.sourceContentPresetId, state.spriteType, agc]);
+
+  const effectiveCellGroups = localCellGroups ?? fetchedCellGroups ?? undefined;
   const hasAnimGroups = isCharacter || (effectiveCellGroups?.length ?? 0) > 0;
 
 
