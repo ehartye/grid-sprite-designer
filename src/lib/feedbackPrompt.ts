@@ -7,6 +7,92 @@
  */
 
 import type { FeedbackState } from '../types/feedback';
+import type { CellGroup } from '../context/AppContext';
+
+/**
+ * Build the complete edit-mode prompt for regeneration.
+ * Targeted feedback only — no subject description, no layout guidance.
+ * Just operational context + structured feedback.
+ */
+export function buildEditPrompt(
+  feedback: FeedbackState,
+  cellLabels: string[],
+  cellGroups: CellGroup[],
+  cols: number,
+): string {
+  const lines: string[] = [
+    'You are editing an existing sprite sheet image. Make ONLY the targeted changes described below.',
+    'Do NOT regenerate the entire image. Preserve all cells that are not mentioned in the feedback.',
+    'Approved cells must remain exactly as they are — do not alter them in any way.',
+    'For cells with feedback, make the minimum changes needed to address the feedback while',
+    'maintaining consistency with the rest of the sheet (art style, proportions, palette).',
+    '',
+  ];
+
+  // Global feedback
+  if (feedback.global.trim()) {
+    lines.push('GLOBAL FEEDBACK (applies to entire sheet):');
+    lines.push(feedback.global.trim());
+    lines.push('');
+  }
+
+  // Group-level feedback
+  const groupedIndices = new Set(cellGroups.flatMap(g => g.cells));
+  for (const group of cellGroups) {
+    const groupFb = feedback.groups[group.name]?.feedback?.trim();
+    const cellLines: string[] = [];
+
+    for (const cellIdx of group.cells) {
+      const label = cellLabels[cellIdx];
+      if (!label) continue;
+      const row = Math.floor(cellIdx / cols);
+      const col = cellIdx % cols;
+      const cell = feedback.cells[cellIdx];
+      const header = `  (${row},${col}) "${label}"`;
+
+      if (cell?.signedOff) {
+        cellLines.push(`${header}: APPROVED — do not change`);
+      } else if (cell?.feedback?.trim()) {
+        cellLines.push(`${header}: CHANGE — ${cell.feedback.trim()}`);
+      }
+    }
+
+    if (groupFb || cellLines.length > 0) {
+      lines.push(`GROUP: ${group.name}`);
+      if (groupFb) lines.push(`  Group feedback: ${groupFb}`);
+      lines.push(...cellLines);
+      lines.push('');
+    }
+  }
+
+  // Ungrouped cells
+  const ungroupedLines: string[] = [];
+  for (let idx = 0; idx < cellLabels.length; idx++) {
+    if (groupedIndices.has(idx)) continue;
+    const label = cellLabels[idx];
+    if (!label) continue;
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const cell = feedback.cells[idx];
+    const header = `(${row},${col}) "${label}"`;
+
+    if (cell?.signedOff) {
+      ungroupedLines.push(`${header}: APPROVED — do not change`);
+    } else if (cell?.feedback?.trim()) {
+      ungroupedLines.push(`${header}: CHANGE — ${cell.feedback.trim()}`);
+    }
+  }
+
+  if (ungroupedLines.length > 0) {
+    lines.push('CELLS:');
+    lines.push(...ungroupedLines);
+    lines.push('');
+  }
+
+  lines.push('Return the complete edited sprite sheet as a single image. Preserve all header text exactly.');
+
+  return lines.join('\n');
+}
 
 /** Preamble prepended before the reference prefix for regeneration */
 export function buildRegenerationPreamble(feedback: FeedbackState): string {

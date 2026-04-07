@@ -219,6 +219,23 @@ export function createHistoryRouter(db) {
     } catch (err) { next(err); }
   });
 
+  router.get('/max-version', (req, res, next) => {
+    try {
+      const { groupId, gridSize } = req.query;
+      if (!groupId) return res.status(400).json({ error: 'groupId is required' });
+      const conditions = ['group_id = ?'];
+      const params = [groupId];
+      if (gridSize) {
+        conditions.push('grid_size = ?');
+        params.push(gridSize);
+      }
+      const row = db.prepare(
+        `SELECT MAX(generation_version) as max_version FROM generations WHERE ${conditions.join(' AND ')}`
+      ).get(...params);
+      res.json({ maxVersion: row?.max_version || 1 });
+    } catch (err) { next(err); }
+  });
+
   router.get('/:id/children', (req, res, next) => {
     try {
       const id = parseIntParam(req.params.id);

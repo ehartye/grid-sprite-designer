@@ -36,6 +36,37 @@ export async function generateGrid(
   return response.json();
 }
 
+/**
+ * Edit an existing grid image with targeted feedback.
+ * Sends only the source image (no template) with a feedback-focused prompt.
+ */
+export async function editGrid(
+  model: string,
+  prompt: string,
+  sourceImage: { data: string; mimeType: string },
+  imageSize: string = '2K',
+  signal?: AbortSignal,
+  aspectRatio: string = '1:1',
+  thinkingLevel?: 'default' | 'minimal' | 'low' | 'medium' | 'high',
+): Promise<GridGenerateResult> {
+  const body: Record<string, unknown> = { model, prompt, sourceImage, imageSize, aspectRatio, mode: 'edit' };
+  if (thinkingLevel && thinkingLevel !== 'default') body.thinkingLevel = thinkingLevel;
+
+  const response = await fetch('/api/generate-grid', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+    throw new Error(err.error || `Edit failed (${response.status})`);
+  }
+
+  return response.json();
+}
+
 export async function testConnection(model: string = 'gemini-3-pro-image-preview'): Promise<{ success: boolean; error?: string }> {
   const response = await fetch('/api/test-connection', {
     method: 'POST',

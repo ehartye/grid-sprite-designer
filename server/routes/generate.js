@@ -69,8 +69,63 @@ export function createGenerateRouter(apiKey) {
    */
   router.post('/generate-grid', generateLimiter, async (req, res) => {
     try {
-      const { model, prompt, templateImage, imageSize = '2K', referenceImage, aspectRatio = '1:1', thinkingLevel } = req.body;
+      const { model, prompt, templateImage, imageSize = '2K', referenceImage, aspectRatio = '1:1', thinkingLevel, mode, sourceImage } = req.body;
 
+      // Edit mode: targeted feedback on an existing image
+      if (mode === 'edit') {
+        if (!model || !prompt || !sourceImage) {
+          return res.status(400).json({ error: 'model, prompt, and sourceImage are required for edit mode' });
+        }
+        if (!ALLOWED_MODELS.includes(model)) {
+          return res.status(400).json({ error: `Invalid model. Allowed models: ${ALLOWED_MODELS.join(', ')}` });
+        }
+        if (sourceImage.mimeType && !ALLOWED_MIME_TYPES.includes(sourceImage.mimeType)) {
+          return res.status(400).json({ error: `Invalid sourceImage mimeType. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}` });
+        }
+        if (thinkingLevel !== undefined && !ALLOWED_THINKING_LEVELS.includes(thinkingLevel)) {
+          return res.status(400).json({ error: `Invalid thinkingLevel. Allowed values: ${ALLOWED_THINKING_LEVELS.join(', ')}` });
+        }
+
+        const parts = [];
+        parts.push({ text: '[SOURCE IMAGE — This is the sprite sheet to edit. Make only the targeted changes described below. Preserve everything else exactly as-is.]' });
+        parts.push({
+          inline_data: {
+            mime_type: sourceImage.mimeType || 'image/png',
+            data: sourceImage.data,
+          },
+        });
+        parts.push({ text: prompt });
+
+        const generationConfig = {
+          responseModalities: ['TEXT', 'IMAGE'],
+          temperature: 1.0,
+          imageConfig: { aspectRatio, imageSize },
+        };
+        if (thinkingLevel) {
+          generationConfig.thinkingConfig = { thinkingLevel };
+        }
+
+        const body = { contents: [{ parts }], generationConfig };
+        const payloadSize = JSON.stringify(body).length;
+        const rid = req.id || '?';
+        console.log(`[Edit:${rid}] payload ~${(payloadSize / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}`);
+
+        const response = await callGemini(apiKey, model, body);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error(`[Edit:${rid}] API error (${response.status}):`, errorData?.error?.message);
+          return res.status(502).json({ error: `Image edit failed (upstream ${response.status})` });
+        }
+        const data = await response.json();
+        const finishReason = data?.candidates?.[0]?.finishReason;
+        if (finishReason === 'SAFETY' || finishReason === 'BLOCKED') {
+          return res.status(400).json({ error: 'Content was filtered by safety settings' });
+        }
+        const result = parseGeminiResponse(data);
+        return res.json(result);
+      }
+
+      // Standard generation mode
       if (!model || !prompt || !templateImage) {
         return res.status(400).json({ error: 'model, prompt, and templateImage are required' });
       }
