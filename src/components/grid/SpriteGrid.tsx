@@ -73,11 +73,17 @@ export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick,
         const sprite = spriteMap.get(idx);
         const isSelected = selectedCell === idx;
         const isMirrored = mirroredCells?.has(idx) ?? false;
+        const cellFeedback = feedbackState?.cells[idx];
+        const cellClasses = ['sprite-cell'];
+        if (!sprite) cellClasses.push('empty');
+        if (isSelected) cellClasses.push('selected');
+        if (cellFeedback?.signedOff) cellClasses.push('signed-off');
+        if (cellFeedback?.feedback?.trim()) cellClasses.push('has-feedback');
 
         return (
           <div
             key={idx}
-            className={`sprite-cell ${sprite ? '' : 'empty'} ${isSelected ? 'selected' : ''} ${feedbackState?.cells[idx]?.signedOff ? 'signed-off' : ''} ${feedbackState?.cells[idx]?.feedback?.trim() ? 'has-feedback' : ''}`}
+            className={cellClasses.join(' ')}
             onClick={() => onCellClick?.(idx)}
             style={isSelected ? { borderColor: 'var(--accent)', boxShadow: '0 0 8px var(--accent-glow)' } : undefined}
             title={label}
@@ -97,8 +103,8 @@ export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick,
                   cellIndex={idx}
                   isMirrored={isMirrored}
                   isThumbnail={thumbnailCell === idx}
-                  isSignedOff={feedbackState?.cells[idx]?.signedOff ?? false}
-                  hasFeedback={!!feedbackState?.cells[idx]?.feedback?.trim()}
+                  isSignedOff={cellFeedback?.signedOff ?? false}
+                  hasFeedback={!!cellFeedback?.feedback?.trim()}
                   onMirrorToggle={() => onMirrorToggle?.(idx)}
                   onThumbnailSet={() => onThumbnailSet?.(idx)}
                   onZoomClick={() => onZoomClick?.(idx)}
