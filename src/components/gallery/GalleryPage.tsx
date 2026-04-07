@@ -81,7 +81,7 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
       if (group.length === 1) {
         result.push(group[0]);
       } else {
-        result.push({ name: group[0].contentName, entries: group });
+        result.push({ key, name: group[0].contentName, entries: group });
       }
     }
     return result;
@@ -278,19 +278,19 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
               if ('entries' in item) {
                 // Multi-sheet group
                 const group = item as GalleryGroup;
-                const isExpanded = expandedGroups.has(group.name);
+                const isExpanded = expandedGroups.has(group.key);
                 const primary = group.entries[0];
                 return (
-                  <React.Fragment key={`group-${group.name}-${primary.id}`}>
+                  <React.Fragment key={`group-${group.key}`}>
                     <div
                       className={`gallery-card gallery-card-group ${isExpanded ? 'expanded' : ''}`}
                       role="button"
                       tabIndex={0}
-                      onClick={() => toggleGroup(group.name)}
+                      onClick={() => toggleGroup(group.key)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          toggleGroup(group.name);
+                          toggleGroup(group.key);
                         }
                       }}
                     >

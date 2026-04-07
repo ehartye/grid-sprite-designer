@@ -94,6 +94,7 @@ export interface GalleryEntry {
 
 /** A group of gallery entries sharing the same name or groupId */
 export interface GalleryGroup {
+  key: string;
   name: string;
   entries: GalleryEntry[];
 }
