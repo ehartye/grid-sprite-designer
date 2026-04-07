@@ -22,6 +22,10 @@ export function buildEditPrompt(
 ): string {
   const lines: string[] = [
     'You are editing an existing sprite sheet image. Make ONLY the targeted changes described below.',
+    'The source image is a grid of labeled cells. Each instruction below references a cell by its',
+    '(row,col) coordinate and the label text visible in the cell header. Use these to locate the',
+    'exact cell that needs changes.',
+    '',
     'Do NOT regenerate the entire image. Preserve all cells that are not mentioned in the feedback.',
     'Approved cells must remain exactly as they are — do not alter them in any way.',
     'For cells with feedback, make the minimum changes needed to address the feedback while',
