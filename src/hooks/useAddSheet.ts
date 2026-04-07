@@ -24,6 +24,8 @@ export interface AddSheetOptions {
   selectedSprites?: ExtractedSprite[];
   /** Optional follow-up guidance appended to the prompt */
   followUpGuidance?: string;
+  /** Optional pixelize target size for prompt guidance */
+  pixelizeSize?: number;
 }
 
 export function useAddSheet() {
@@ -57,7 +59,7 @@ export function useAddSheet() {
     if (isGeneratingRef.current) return;
     isGeneratingRef.current = true;
 
-    const { gridLink, imageSize, referenceMode, selectedSprites, followUpGuidance } = opts;
+    const { gridLink, imageSize, referenceMode, selectedSprites, followUpGuidance, pixelizeSize } = opts;
     const currentState = stateRef.current;
     const spriteType = currentState.spriteType as SpriteType;
     const contentPresetId = currentState.sourceContentPresetId;
@@ -130,6 +132,7 @@ export function useAddSheet() {
         imageSize,
         thinkingLevel: currentState.thinkingLevel,
         isSubsequentGrid: true,
+        pixelizeSize,
         referenceImage: { data: refBase64, mimeType: 'image/png' },
         promptSuffix: followUpGuidance,
         historyExtras: { groupId, contentPresetId },

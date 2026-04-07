@@ -7,6 +7,7 @@ import { useAppContext, SpriteType, GridLink } from '../../context/AppContext';
 import { useAddSheet, AddSheetOptions } from '../../hooks/useAddSheet';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
 import { useModalFocus } from '../../hooks/useModalFocus';
+import { IMAGE_MODELS, getModel, formatCost, type ImageSize } from '../../lib/models';
 
 interface Props {
   open: boolean;
@@ -15,7 +16,7 @@ interface Props {
 }
 
 export function AddSheetModal({ open, onClose, currentSprites }: Props) {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const { generate, cancel, generating } = useAddSheet();
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +29,9 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
   const [selectedSpriteIndices, setSelectedSpriteIndices] = useState<Set<number>>(new Set());
   const [followUpGuidance, setFollowUpGuidance] = useState('');
   const [loading, setLoading] = useState(false);
+  const [model, setModel] = useState(state.model);
+  const [thinkingLevel, setThinkingLevel] = useState(state.thinkingLevel);
+  const [pixelizeSize, setPixelizeSize] = useState<number | undefined>(undefined);
 
   const spriteType = state.spriteType as SpriteType;
   const contentPresetId = state.sourceContentPresetId;
@@ -98,17 +102,22 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
       ? currentSprites.filter((_, i) => selectedSpriteIndices.has(i))
       : undefined;
 
+    dispatch({ type: 'SET_MODEL', model });
+    dispatch({ type: 'SET_THINKING_LEVEL', thinkingLevel });
+    await new Promise(r => setTimeout(r, 0));
+
     const opts: AddSheetOptions = {
       gridLink: effectiveGridLink,
       imageSize,
       referenceMode,
       selectedSprites,
       followUpGuidance: followUpGuidance.trim() || undefined,
+      pixelizeSize,
     };
 
     await generate(opts);
     onClose();
-  }, [gridLinks, selectedLinkIndex, imageSize, referenceMode, selectedSpriteIndices, currentSprites, state.activeGridConfig, followUpGuidance, generate, onClose]);
+  }, [gridLinks, selectedLinkIndex, imageSize, referenceMode, selectedSpriteIndices, currentSprites, state.activeGridConfig, followUpGuidance, model, thinkingLevel, pixelizeSize, generate, onClose]);
 
   const handleCancel = useCallback(() => {
     cancel();
@@ -204,22 +213,87 @@ export function AddSheetModal({ open, onClose, currentSprites }: Props) {
           />
         </div>
 
-        {/* Image Size */}
+        {/* Generation Settings */}
         <div className="add-sheet-section">
+          <label>Model</label>
+          <div className="config-field" style={{ marginBottom: 12 }}>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+            >
+              {IMAGE_MODELS.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label} — {m.tagline}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {getModel(model)?.supportsThinking && (
+            <div className="config-field" style={{ marginBottom: 12 }}>
+              <label>Thinking Level</label>
+              <select
+                value={thinkingLevel}
+                onChange={(e) => setThinkingLevel(e.target.value as typeof thinkingLevel)}
+              >
+                <option value="default">Default (model decides)</option>
+                <option value="minimal">Minimal — fastest, no reasoning</option>
+                <option value="low">Low — light reasoning</option>
+                <option value="medium">Medium — balanced</option>
+                <option value="high">High — deepest reasoning</option>
+              </select>
+            </div>
+          )}
+
           <label>Image Size</label>
           <div className="segmented-control">
             <button
+              type="button"
               className={imageSize === '2K' ? 'active' : ''}
               onClick={() => setImageSize('2K')}
             >
-              2K
+              2K (2048px)
             </button>
             <button
+              type="button"
               className={imageSize === '4K' ? 'active' : ''}
               onClick={() => setImageSize('4K')}
             >
-              4K
+              4K (4096px)
             </button>
+          </div>
+          {(() => {
+            const cost = getModel(model)?.cost[imageSize as ImageSize];
+            if (cost === undefined) return null;
+            return (
+              <p style={{ margin: '6px 0 0', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                Estimated cost: ~{formatCost(cost)} per image
+              </p>
+            );
+          })()}
+        </div>
+
+        {/* Pixelize Target */}
+        <div className="add-sheet-section">
+          <label>Pixelize Target</label>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button
+              type="button"
+              className={`pixel-size-btn ${pixelizeSize === undefined ? 'active' : ''}`}
+              onClick={() => setPixelizeSize(undefined)}
+            >
+              Off
+            </button>
+            {([16, 32, 48, 64, 128] as const).map(size => (
+              <button
+                key={size}
+                type="button"
+                className={`pixel-size-btn ${pixelizeSize === size ? 'active' : ''}`}
+                onClick={() => setPixelizeSize(size)}
+              >
+                {size}
+              </button>
+            ))}
           </div>
         </div>
 
