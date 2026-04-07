@@ -19,6 +19,10 @@ import { debugLog } from '../../lib/debugLog';
 import { applyChromaKey, defringeRecolor, snapAlpha, outlineSprite, strikeColors, detectKeyColor } from '../../lib/chromaKey';
 import { posterize } from '../../lib/imagePreprocess';
 import { AddSheetModal } from './AddSheetModal';
+import { FeedbackPanel } from './FeedbackPanel';
+import type { FeedbackState } from '../../types/feedback';
+import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
+import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
 
 type RGB = [number, number, number];
 
@@ -233,6 +237,11 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [strikeTolerance, setStrikeTolerance] = useState(10);
   const struckKey = JSON.stringify(struckColors);
 
+  // Feedback state and regeneration hook
+  const [feedbackState, setFeedbackState] = useState<FeedbackState>(createEmptyFeedback);
+  const [feedbackPanelOpen, setFeedbackPanelOpen] = useState(false);
+  const { regenerate, cancel: _cancelRegen, generating: regenerating } = useRegenerateWithFeedback();
+
   const { save: saveSettings, load: loadSettings } = useEditorSettings(state.historyId);
 
   const displaySprites = useMemo(
@@ -330,6 +339,8 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     setStruckColors([]);
     setAaInset(3);
     post.resetPosterize();
+    setFeedbackState(createEmptyFeedback());
+    setFeedbackPanelOpen(false);
 
     Promise.all([
       loadSettings(),
@@ -523,6 +534,36 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     );
   }, []);
 
+  // Feedback handlers
+  const handleSignOffToggle = useCallback((cellIndex: number) => {
+    setFeedbackState(prev => {
+      const existing = prev.cells[cellIndex] || { signedOff: false, feedback: '' };
+      return {
+        ...prev,
+        cells: { ...prev.cells, [cellIndex]: { ...existing, signedOff: !existing.signedOff } },
+      };
+    });
+  }, []);
+
+  const handleCellFeedbackClick = useCallback((_cellIndex: number) => {
+    setFeedbackPanelOpen(true);
+  }, []);
+
+  const handleRegenerate = useCallback(async () => {
+    const gridLink = currentGridLink ?? state.activeGridConfig;
+    if (!gridLink) {
+      dispatch({ type: 'SET_STATUS', message: 'No grid configuration available for regeneration', statusType: 'error' });
+      return;
+    }
+    await regenerate({
+      gridLink: gridLink as GridLink,
+      imageSize: (state.imageSize as '2K' | '4K') || '2K',
+      feedbackState,
+    });
+    setFeedbackState(createEmptyFeedback());
+    setFeedbackPanelOpen(false);
+  }, [regenerate, feedbackState, state, currentGridLink, dispatch]);
+
   return (
     <div className="review-layout">
       {/* Left: Sprite Grid */}
@@ -545,6 +586,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           cellLabels={dynamicCellLabels}
           aspectRatio={dynamicAspectRatio}
           pixelizeEnabled={pixelizeEnabled}
+          feedbackState={feedbackState}
+          onSignOffToggle={handleSignOffToggle}
+          onFeedbackClick={handleCellFeedbackClick}
         />
         {selection.isOrderModified && (
           <div style={{ textAlign: 'center', padding: '6px 0' }}>
@@ -1041,6 +1085,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
             <button className="btn btn-primary w-full" onClick={() => setAddSheetOpen(true)}>
               Add Sheet
             </button>
+            <button className="btn btn-primary w-full" onClick={() => setFeedbackPanelOpen(true)}>
+              Feedback &amp; Regenerate
+            </button>
+            {hasFeedback(feedbackState) && (
+              <button className="btn btn-accent w-full" onClick={handleRegenerate} disabled={regenerating}>
+                {regenerating ? 'Regenerating...' : 'Regenerate with Feedback'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -1061,6 +1113,17 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           currentSprites={displaySprites}
         />
       </aside>
+
+      <FeedbackPanel
+        open={feedbackPanelOpen}
+        onClose={() => setFeedbackPanelOpen(false)}
+        feedbackState={feedbackState}
+        onFeedbackChange={setFeedbackState}
+        cellLabels={dynamicCellLabels ?? []}
+        cellGroups={effectiveCellGroups ?? []}
+        onRegenerate={handleRegenerate}
+        regenerating={regenerating}
+      />
 
       {selection.zoomSpriteIndex !== null && (() => {
         const zoomSprite = displaySprites.find((s) => s.cellIndex === selection.zoomSpriteIndex);
