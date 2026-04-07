@@ -3,7 +3,7 @@
  * PipelineParams across all generation flows.
  */
 
-import type { GridLink, CellGroup, SpriteType } from '../context/AppContext';
+import type { GridLink, SpriteType } from '../context/AppContext';
 import type { GridConfig } from './gridConfig';
 import type { ContentPreset } from '../types/api';
 import type { PipelineParams, HistoryExtras } from '../hooks/useGenericWorkflow';

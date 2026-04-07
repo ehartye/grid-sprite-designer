@@ -7,7 +7,6 @@
  */
 
 import type { FeedbackState } from '../types/feedback';
-import type { CellGroup } from '../context/AppContext';
 
 /** Preamble prepended before the reference prefix for regeneration */
 export function buildRegenerationPreamble(feedback: FeedbackState): string {
