@@ -33,6 +33,8 @@ export function CellContextMenu({
 }: CellContextMenuProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   // Close on outside click or Escape key
@@ -58,21 +60,31 @@ export function CellContextMenu({
     setOpen(false);
   };
 
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen(!open);
+  };
+
   return (
     <div className="cell-context-menu" ref={menuRef} data-cell={cellIndex}>
       <button
+        ref={btnRef}
         className={`cell-menu-btn ${open ? 'active' : ''}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen(!open);
-        }}
+        onClick={handleToggle}
         title="Cell actions"
       >
         &#x22EE;
       </button>
 
       {open && (
-        <div className={`cell-menu-dropdown ${isMobile ? 'bottom-sheet' : ''}`}>
+        <div
+          className={`cell-menu-dropdown ${isMobile ? 'bottom-sheet' : ''}`}
+          style={!isMobile && dropdownPos ? { position: 'fixed', top: dropdownPos.top, right: dropdownPos.right, left: 'auto' } : undefined}
+        >
           <button className="cell-menu-item" onClick={handleAction(onZoomClick)}>
             <span className="cell-menu-icon">&#x1F50D;</span>
             Zoom / Inspect
