@@ -29,6 +29,8 @@ export function buildPromptForType(
   _gridConfig: GridConfig,
   isSubsequentGrid: boolean,
   pixelizeSize?: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
 ): string {
   const { gridGuidance, linkGuidance, cellGroups, cellLabels, cols, rows } = gridLink;
 
@@ -52,12 +54,12 @@ export function buildPromptForType(
       if (isSubsequentGrid) {
         prompt = buildGridFillPromptWithReference(
           charConfig, gridGuidance, linkGuidance, presetGuidance,
-          cellGroups, cellLabels, cols, rows,
+          cellGroups, cellLabels, cols, rows, cellAnnotations, groupAnnotations,
         );
       } else {
         prompt = buildGridFillPrompt(
           charConfig, gridGuidance, linkGuidance, presetGuidance,
-          cellGroups, cellLabels, cols, rows,
+          cellGroups, cellLabels, cols, rows, cellAnnotations, groupAnnotations,
         );
       }
       break;
@@ -72,7 +74,7 @@ export function buildPromptForType(
       };
       prompt = buildBuildingPrompt(
         buildingConfig, gridGuidance, linkGuidance, presetGuidance,
-        cellGroups, cellLabels, cols, rows,
+        cellGroups, cellLabels, cols, rows, cellAnnotations, groupAnnotations,
       );
       if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;
@@ -86,7 +88,7 @@ export function buildPromptForType(
       };
       prompt = buildTerrainPrompt(
         terrainConfig, gridGuidance, linkGuidance, presetGuidance,
-        cellGroups, cellLabels, cols, rows,
+        cellGroups, cellLabels, cols, rows, cellAnnotations, groupAnnotations,
       );
       if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;
@@ -101,7 +103,7 @@ export function buildPromptForType(
       };
       prompt = buildBackgroundPrompt(
         bgConfig, gridGuidance, linkGuidance, presetGuidance,
-        cellGroups, cellLabels, cols, rows,
+        cellGroups, cellLabels, cols, rows, cellAnnotations, groupAnnotations,
       );
       if (isSubsequentGrid) prompt = REFERENCE_PREFIX + prompt.replace('The attached image is', 'IMAGE 2 is');
       break;

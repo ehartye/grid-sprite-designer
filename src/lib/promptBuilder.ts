@@ -26,6 +26,8 @@ export function buildGridFillPrompt(
   cellLabels: string[],
   cols: number,
   _rows: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
 ): string {
   const charBlock = [
     `The subject of your divine creation: **${character.name.toUpperCase()}**.`,
@@ -36,7 +38,7 @@ export function buildGridFillPrompt(
     character.styleNotes ? `**Additional style notes:** ${character.styleNotes}` : '',
   ].filter(Boolean).join('\n');
 
-  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols);
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, cellAnnotations, groupAnnotations);
 
   return `\
 Greetings, expert sprite designer! As usual, your chroma-keyed, cell-labeled template is attached. Your mission is to complete the template with the finely-crafted game sprites you've become famous for. A lower level process has seen to the details of the template, ensuring it meets your exact specifications. Keep the magenta (#FF00FF) background intact behind each sprite — it is required for chroma keying.
@@ -75,9 +77,11 @@ export function buildGridFillPromptWithReference(
   cellLabels: string[],
   cols: number,
   rows: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
 ): string {
   const base = buildGridFillPrompt(
-    character, gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, rows,
+    character, gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, rows, cellAnnotations, groupAnnotations,
   ).replace(
     'your chroma-keyed, cell-labeled template is attached',
     'IMAGE 2 is your chroma-keyed, cell-labeled template',

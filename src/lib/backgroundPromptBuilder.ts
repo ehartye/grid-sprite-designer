@@ -28,6 +28,8 @@ export function buildBackgroundPrompt(
   cellLabels: string[],
   cols: number,
   rows: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
 ): string {
   const totalCells = cols * rows;
 
@@ -47,7 +49,7 @@ export function buildBackgroundPrompt(
 
   const modeLabel = bg.bgMode === 'parallax' ? 'layer' : 'scene';
 
-  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols);
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, cellAnnotations, groupAnnotations);
 
   const modeGuidance = bg.bgMode === 'parallax'
     ? `PARALLAX LAYER DESIGN: Each cell is one horizontal layer of a parallax

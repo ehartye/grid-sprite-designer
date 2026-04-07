@@ -26,6 +26,8 @@ export function buildBuildingPrompt(
   cellLabels: string[],
   cols: number,
   rows: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
 ): string {
   const totalCells = cols * rows;
 
@@ -43,7 +45,7 @@ export function buildBuildingPrompt(
     `  \u2022 Each cell shows the SAME building — variations come from the label (e.g. time of day, damage state, animation frame)`,
   ].filter(Boolean).join('\n');
 
-  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols);
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, cellAnnotations, groupAnnotations);
 
   return `\
 You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid

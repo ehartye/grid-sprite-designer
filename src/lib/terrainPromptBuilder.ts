@@ -26,6 +26,8 @@ export function buildTerrainPrompt(
   cellLabels: string[],
   cols: number,
   rows: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
 ): string {
   const totalCells = cols * rows;
 
@@ -42,7 +44,7 @@ export function buildTerrainPrompt(
     `  \u2022 Each cell is one distinct tile variant — base tiles, edges, corners, or transitions as labeled`,
   ].filter(Boolean).join('\n');
 
-  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols);
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, cellAnnotations, groupAnnotations);
 
   return `\
 You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid
