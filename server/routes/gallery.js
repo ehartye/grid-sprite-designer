@@ -27,7 +27,7 @@ export function createGalleryRouter(db) {
       const total = countRow.total;
 
       const rows = db.prepare(
-        `SELECT g.id, g.content_name, g.content_description, g.model, g.image_size, g.thinking_level, g.created_at, g.sprite_type, g.grid_size, g.group_id,
+        `SELECT g.id, g.content_name, g.content_description, g.model, g.image_size, g.thinking_level, g.created_at, g.sprite_type, g.grid_size, g.group_id, g.generation_version,
               (SELECT COUNT(*) FROM sprites WHERE generation_id = g.id) as sprite_count,
               COALESCE(g.thumbnail_image, (SELECT s.image_data FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_data,
               COALESCE(g.thumbnail_mime, (SELECT s.mime_type FROM sprites s WHERE s.generation_id = g.id AND s.cell_index = COALESCE(g.thumbnail_cell_index, 0) LIMIT 1)) as thumb_mime
@@ -47,6 +47,7 @@ export function createGalleryRouter(db) {
           gridSize: r.grid_size,
           groupId: r.group_id,
           spriteCount: r.sprite_count,
+          generationVersion: r.generation_version || 1,
           thumbnailData: r.thumb_data,
           thumbnailMime: r.thumb_mime,
         })),

@@ -1683,6 +1683,18 @@ button:focus-visible {
   text-transform: capitalize;
 }
 
+.gallery-version-chip {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(200, 255, 0, 0.08);
+  border: 1px solid rgba(200, 255, 0, 0.2);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
 .gallery-pagination {
   display: flex;
   align-items: center;

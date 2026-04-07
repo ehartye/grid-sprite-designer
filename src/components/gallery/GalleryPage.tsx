@@ -352,6 +352,9 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                             {' '}&middot;{' '}{entry.spriteCount} sprites
                           </div>
                         </div>
+                        {entry.generationVersion > 1 && (
+                          <span className="gallery-version-chip">v{entry.generationVersion}</span>
+                        )}
                         <button
                           className="gallery-card-delete"
                           onClick={(e) => handleDelete(entry.id, e)}
@@ -394,6 +397,9 @@ export function GalleryPage({ onSwitchToDesigner }: GalleryPageProps) {
                         {' '}&middot;{' '}{formatDate(entry.createdAt)} &middot; {entry.spriteCount} sprites
                       </div>
                     </div>
+                    {entry.generationVersion > 1 && (
+                      <span className="gallery-version-chip">v{entry.generationVersion}</span>
+                    )}
                     <button
                       className="gallery-card-delete"
                       onClick={(e) => handleDelete(entry.id, e)}
