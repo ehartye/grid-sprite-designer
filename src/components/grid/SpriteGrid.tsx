@@ -8,6 +8,8 @@
 import React, { useMemo } from 'react';
 import { CELL_LABELS } from '../../lib/poses';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
+import { CellContextMenu } from './CellContextMenu';
+import type { FeedbackState } from '../../types/feedback';
 
 interface SpriteGridProps {
   sprites: ExtractedSprite[];
@@ -26,9 +28,15 @@ interface SpriteGridProps {
   aspectRatio?: string;
   /** When true, renders sprites with CSS image-rendering: pixelated for crisp upscaling */
   pixelizeEnabled?: boolean;
+  /** Feedback state for sign-off and per-cell feedback indicators */
+  feedbackState?: FeedbackState;
+  /** Callback when a cell's sign-off is toggled */
+  onSignOffToggle?: (cellIndex: number) => void;
+  /** Callback when feedback is requested for a cell */
+  onFeedbackClick?: (cellIndex: number) => void;
 }
 
-export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels, pixelizeEnabled }: SpriteGridProps) {
+export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick, selectedCell, mirroredCells, onMirrorToggle, thumbnailCell, onThumbnailSet, onZoomClick, gridCols, cellLabels, pixelizeEnabled, feedbackState, onSignOffToggle, onFeedbackClick }: SpriteGridProps) {
   const cols = gridCols ?? 6;
   const labels = cellLabels ?? CELL_LABELS;
 
@@ -69,7 +77,7 @@ export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick,
         return (
           <div
             key={idx}
-            className={`sprite-cell ${sprite ? '' : 'empty'} ${isSelected ? 'selected' : ''}`}
+            className={`sprite-cell ${sprite ? '' : 'empty'} ${isSelected ? 'selected' : ''} ${feedbackState?.cells[idx]?.signedOff ? 'signed-off' : ''} ${feedbackState?.cells[idx]?.feedback?.trim() ? 'has-feedback' : ''}`}
             onClick={() => onCellClick?.(idx)}
             style={isSelected ? { borderColor: 'var(--accent)', boxShadow: '0 0 8px var(--accent-glow)' } : undefined}
             title={label}
@@ -85,42 +93,18 @@ export const SpriteGrid = React.memo(function SpriteGrid({ sprites, onCellClick,
                     ...(pixelizeEnabled ? { imageRendering: 'pixelated' as const } : {}),
                   }}
                 />
-                {onMirrorToggle && (
-                  <button
-                    className={`cell-mirror-btn ${isMirrored ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onMirrorToggle(idx);
-                    }}
-                    title={isMirrored ? 'Unmirror' : 'Mirror'}
-                  >
-                    &#x21c4;
-                  </button>
-                )}
-                {onThumbnailSet && (
-                  <button
-                    className={`cell-thumb-btn ${thumbnailCell === idx ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onThumbnailSet(idx);
-                    }}
-                    title={thumbnailCell === idx ? 'Gallery thumbnail' : 'Set as gallery thumbnail'}
-                  >
-                    {thumbnailCell === idx ? '\u2605' : '\u2606'}
-                  </button>
-                )}
-                {onZoomClick && (
-                  <button
-                    className="cell-zoom-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onZoomClick(idx);
-                    }}
-                    title="Zoom / inspect pixels"
-                  >
-                    &#x1F50D;
-                  </button>
-                )}
+                <CellContextMenu
+                  cellIndex={idx}
+                  isMirrored={isMirrored}
+                  isThumbnail={thumbnailCell === idx}
+                  isSignedOff={feedbackState?.cells[idx]?.signedOff ?? false}
+                  hasFeedback={!!feedbackState?.cells[idx]?.feedback?.trim()}
+                  onMirrorToggle={() => onMirrorToggle?.(idx)}
+                  onThumbnailSet={() => onThumbnailSet?.(idx)}
+                  onZoomClick={() => onZoomClick?.(idx)}
+                  onSignOffToggle={() => onSignOffToggle?.(idx)}
+                  onFeedbackClick={() => onFeedbackClick?.(idx)}
+                />
               </>
             ) : null}
             <span className="cell-label">{label}</span>
