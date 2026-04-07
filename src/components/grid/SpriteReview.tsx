@@ -1125,6 +1125,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         regenerating={regenerating}
       />
 
+      {hasFeedback(feedbackState) && typeof window !== 'undefined' && window.innerWidth < 768 && (
+        <div className="regen-sticky-bar">
+          <button className="btn btn-primary w-full" onClick={handleRegenerate} disabled={regenerating}>
+            {regenerating ? 'Regenerating...' : 'Regenerate with Feedback'}
+          </button>
+        </div>
+      )}
+
       {selection.zoomSpriteIndex !== null && (() => {
         const zoomSprite = displaySprites.find((s) => s.cellIndex === selection.zoomSpriteIndex);
         if (!zoomSprite) return null;

@@ -1167,6 +1167,14 @@ button:focus-visible {
   }
 }
 
+.bottom-sheet-handle {
+  width: 32px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 8px auto;
+}
+
 .sprite-cell.empty {
   border-style: dashed;
   border-color: var(--border);

@@ -47,6 +47,7 @@ export function FeedbackPanel({
 
   return (
     <div className={`feedback-panel ${isMobile ? 'bottom-sheet' : 'side-panel'}`}>
+      {isMobile && <div className="bottom-sheet-handle" />}
       <div className="feedback-panel-header">
         <h3>Feedback</h3>
         <button className="btn btn-xs" onClick={onClose}>Close</button>
