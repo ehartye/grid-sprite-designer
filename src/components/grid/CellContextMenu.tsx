@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface CellContextMenuProps {
   cellIndex: number;
@@ -37,11 +38,17 @@ export function CellContextMenu({
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // Close on outside click or Escape key
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        menuRef.current && !menuRef.current.contains(target) &&
+        dropdownRef.current && !dropdownRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
@@ -80,10 +87,11 @@ export function CellContextMenu({
         &#x22EE;
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
+          ref={dropdownRef}
           className={`cell-menu-dropdown ${isMobile ? 'bottom-sheet' : ''}`}
-          style={!isMobile && dropdownPos ? { position: 'fixed', top: dropdownPos.top, right: dropdownPos.right, left: 'auto' } : undefined}
+          style={!isMobile && dropdownPos ? { top: dropdownPos.top, right: dropdownPos.right } : undefined}
         >
           <button className="cell-menu-item" onClick={handleAction(onZoomClick)}>
             <span className="cell-menu-icon">&#x1F50D;</span>
@@ -110,7 +118,8 @@ export function CellContextMenu({
             Add Feedback
             {hasFeedback && <span className="cell-menu-badge">!</span>}
           </button>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
