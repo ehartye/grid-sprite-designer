@@ -21,6 +21,8 @@ export function buildGuidanceBlock(
   cellGroups: CellGroup[],
   cellLabels: string[],
   cols: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
 ): string {
   const parts: string[] = [];
 
@@ -47,6 +49,9 @@ export function buildGuidanceBlock(
     if (groupGuidanceParts.length) {
       groupLines.push(groupGuidanceParts.join('\n'));
     }
+    if (groupAnnotations?.[group.name]) {
+      groupLines.push(groupAnnotations[group.name]);
+    }
 
     // Cells in this group
     for (const cellIdx of group.cells) {
@@ -62,8 +67,11 @@ export function buildGuidanceBlock(
       ].map(s => s?.trim()).filter(Boolean);
 
       const header = `  (${row},${col}) Cell "${label}"`;
-      if (cellGuidanceParts.length) {
-        groupLines.push(`${header}:\n    ${cellGuidanceParts.join('\n    ')}`);
+      const annotation = cellAnnotations?.[label];
+      if (cellGuidanceParts.length || annotation) {
+        const allParts = [...cellGuidanceParts];
+        if (annotation) allParts.push(annotation);
+        groupLines.push(`${header}:\n    ${allParts.join('\n    ')}`);
       } else {
         groupLines.push(header);
       }
@@ -87,9 +95,13 @@ export function buildGuidanceBlock(
         presetGuidance.cells[label],
       ].map(s => s?.trim()).filter(Boolean);
       const header = `  (${row},${col}) Cell "${label}"`;
-      return cellGuidanceParts.length
-        ? `${header}:\n    ${cellGuidanceParts.join('\n    ')}`
-        : header;
+      const annotation = cellAnnotations?.[label];
+      if (cellGuidanceParts.length || annotation) {
+        const allParts = [...cellGuidanceParts];
+        if (annotation) allParts.push(annotation);
+        return `${header}:\n    ${allParts.join('\n    ')}`;
+      }
+      return header;
     });
     parts.push(`UNGROUPED CELLS\n${ungroupedLines.join('\n\n')}`);
   }
