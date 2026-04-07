@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { FeedbackState } from '../../types/feedback';
 import { hasFeedback } from '../../types/feedback';
 import type { CellGroup } from '../../context/AppContext';
-import { IMAGE_MODELS, getModel } from '../../lib/models';
+import { IMAGE_MODELS, getModel, formatCost, type ImageSize } from '../../lib/models';
 
 export interface RegenSettings {
   model: string;
@@ -155,50 +155,66 @@ export function FeedbackPanel({
 
         {/* Regenerate — flows after content, sticks to bottom when scrollable */}
         {/* Generation Settings */}
-        <div className="feedback-section feedback-settings">
+        <div className="feedback-section">
           <h4>Generation Settings</h4>
-          <div className="feedback-settings-grid">
+
+          <div className="config-field" style={{ marginBottom: 12 }}>
             <label>Model</label>
             <select
-              className="feedback-select"
               value={regenSettings.model}
               onChange={(e) => onRegenSettingsChange({ ...regenSettings, model: e.target.value })}
             >
               {IMAGE_MODELS.map((m) => (
-                <option key={m.id} value={m.id}>{m.label}</option>
+                <option key={m.id} value={m.id}>
+                  {m.label} — {m.tagline}
+                </option>
               ))}
             </select>
+          </div>
 
-            <label>Size</label>
-            <div className="feedback-size-toggle">
-              {(['2K', '4K'] as const).map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  className={`btn btn-xs ${regenSettings.imageSize === size ? 'active' : ''}`}
-                  onClick={() => onRegenSettingsChange({ ...regenSettings, imageSize: size })}
-                >
-                  {size}
-                </button>
-              ))}
+          {getModel(regenSettings.model)?.supportsThinking && (
+            <div className="config-field" style={{ marginBottom: 12 }}>
+              <label>Thinking Level</label>
+              <select
+                value={regenSettings.thinkingLevel}
+                onChange={(e) => onRegenSettingsChange({ ...regenSettings, thinkingLevel: e.target.value as RegenSettings['thinkingLevel'] })}
+              >
+                <option value="default">Default (model decides)</option>
+                <option value="minimal">Minimal — fastest, no reasoning</option>
+                <option value="low">Low — light reasoning</option>
+                <option value="medium">Medium — balanced</option>
+                <option value="high">High — deepest reasoning</option>
+              </select>
             </div>
+          )}
 
-            {getModel(regenSettings.model)?.supportsThinking && (
-              <>
-                <label>Thinking</label>
-                <select
-                  className="feedback-select"
-                  value={regenSettings.thinkingLevel}
-                  onChange={(e) => onRegenSettingsChange({ ...regenSettings, thinkingLevel: e.target.value as RegenSettings['thinkingLevel'] })}
-                >
-                  <option value="default">Default</option>
-                  <option value="minimal">Minimal</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </>
-            )}
+          <div className="config-field" style={{ marginBottom: 0 }}>
+            <label>Image Size</label>
+            <div className="segmented-control">
+              <button
+                type="button"
+                className={regenSettings.imageSize === '2K' ? 'active' : ''}
+                onClick={() => onRegenSettingsChange({ ...regenSettings, imageSize: '2K' })}
+              >
+                2K (2048px)
+              </button>
+              <button
+                type="button"
+                className={regenSettings.imageSize === '4K' ? 'active' : ''}
+                onClick={() => onRegenSettingsChange({ ...regenSettings, imageSize: '4K' })}
+              >
+                4K (4096px)
+              </button>
+            </div>
+            {(() => {
+              const cost = getModel(regenSettings.model)?.cost[regenSettings.imageSize as ImageSize];
+              if (cost === undefined) return null;
+              return (
+                <p style={{ margin: '6px 0 0', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  Estimated cost: ~{formatCost(cost)} per image
+                </p>
+              );
+            })()}
           </div>
         </div>
 
