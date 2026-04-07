@@ -9,8 +9,8 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { gridPresetToConfig } from '../lib/gridConfig';
-import { fetchContentPreset, buildPromptForType } from '../lib/promptForType';
+import { fetchContentPreset } from '../lib/promptForType';
+import { buildGenerationRequest } from '../lib/generateRequest';
 import { runGeneratePipeline } from './useGenericWorkflow';
 
 export function useRunWorkflow() {
@@ -52,34 +52,26 @@ export function useRunWorkflow() {
       const contentPreset = await fetchContentPreset(run.spriteType, run.contentPresetId!);
       if (abort.signal.aborted) return;
 
-      const gridConfig = gridPresetToConfig(gridLink, run.spriteType);
       const isSubsequent = run.currentGridIndex > 0 && run.referenceSheet !== null;
-      const prompt = buildPromptForType(run.spriteType, contentPreset, gridLink, gridConfig, isSubsequent, run.pixelizeSize);
-
       const refImage = isSubsequent && run.referenceSheet
         ? { data: run.referenceSheet, mimeType: 'image/png' }
         : undefined;
 
-      const result = await runGeneratePipeline({
-        gridConfig,
-        prompt,
-        model: currentState.model,
-        thinkingLevel: currentState.thinkingLevel,
-        imageSize: run.imageSize,
+      const pipelineParams = buildGenerationRequest({
         spriteType: run.spriteType,
-        contentName: contentPreset.name,
-        contentDescription: contentPreset.description,
-        cellGroups: gridLink.cellGroups,
+        contentPreset,
+        gridLink,
+        model: currentState.model,
+        imageSize: run.imageSize,
+        thinkingLevel: currentState.thinkingLevel,
+        isSubsequentGrid: isSubsequent,
+        pixelizeSize: run.pixelizeSize,
         referenceImage: refImage,
-        historyExtras: {
-          groupId: run.groupId,
-          contentPresetId: run.contentPresetId,
-        },
-        sourceContext: {
-          groupId: run.groupId,
-          contentPresetId: run.contentPresetId,
-        },
-      }, dispatch, abort.signal);
+        historyExtras: { groupId: run.groupId, contentPresetId: run.contentPresetId },
+        sourceContext: { groupId: run.groupId, contentPresetId: run.contentPresetId },
+      });
+
+      const result = await runGeneratePipeline(pipelineParams, dispatch, abort.signal);
 
       // Store as reference sheet for subsequent grids in the run
       if (result?.image) {
