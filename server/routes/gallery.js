@@ -8,13 +8,14 @@ export function createGalleryRouter(db) {
       const page = Math.max(1, parseInt(req.query.page) || 1);
       const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 24));
       const offset = (page - 1) * limit;
-      const search = req.query.search ? `%${req.query.search}%` : null;
+      const rawSearch = req.query.search || '';
+      const search = rawSearch ? `%${rawSearch.replace(/[%_]/g, '\\$&')}%` : null;
       const spriteType = req.query.spriteType || null;
 
       const conditions = [];
       const params = [];
       if (search) {
-        conditions.push('g.content_name LIKE ?');
+        conditions.push("g.content_name LIKE ? ESCAPE '\\'");
         params.push(search);
       }
       if (spriteType) {
