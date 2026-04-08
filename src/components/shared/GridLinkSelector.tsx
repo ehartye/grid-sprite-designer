@@ -4,7 +4,7 @@
  * and the separate Run Builder page.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { GridLink } from '../../context/AppContext';
 
 interface GridLinkSelectorProps {
@@ -17,12 +17,14 @@ export function GridLinkSelector({ spriteType, presetId, onSelectionChange }: Gr
   const [gridLinks, setGridLinks] = useState<GridLink[]>([]);
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
+  const onSelectionChangeRef = useRef(onSelectionChange);
+  onSelectionChangeRef.current = onSelectionChange;
 
   useEffect(() => {
     if (!presetId) {
       setGridLinks([]);
       setCheckedIds(new Set());
-      onSelectionChange([]);
+      onSelectionChangeRef.current([]);
       return;
     }
 
@@ -34,16 +36,16 @@ export function GridLinkSelector({ spriteType, presetId, onSelectionChange }: Gr
         // Check first by default
         const firstId = data.length > 0 ? new Set([data[0].id]) : new Set<number>();
         setCheckedIds(firstId);
-        onSelectionChange(data.filter((l) => firstId.has(l.id)));
+        onSelectionChangeRef.current(data.filter((l) => firstId.has(l.id)));
       })
       .catch((err) => {
         console.error('Failed to load grid links:', err);
         setGridLinks([]);
         setCheckedIds(new Set());
-        onSelectionChange([]);
+        onSelectionChangeRef.current([]);
       })
       .finally(() => setLoading(false));
-  }, [spriteType, presetId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [spriteType, presetId]);
 
   const toggleCheck = useCallback((id: number) => {
     const next = new Set(checkedIds);
