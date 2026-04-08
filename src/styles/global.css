@@ -2585,3 +2585,25 @@ img.sprite-image {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Prompt Debug Panel ── */
+.prompt-debug-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.prompt-debug-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  width: 720px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}

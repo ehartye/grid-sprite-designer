@@ -16,6 +16,7 @@ import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
 import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { debugLog } from '../../lib/debugLog';
+import { assemblePrompt, assembleEditPrompt, fetchContentPreset } from '../../lib/promptForType';
 import { processSprite, detectPalette, detectChromaKeyColor } from '../../lib/spriteProcessor';
 import type { ProcessSpriteOptions } from '../../lib/spriteProcessor';
 import { AddSheetModal } from './AddSheetModal';
@@ -23,6 +24,8 @@ import { FeedbackPanel } from './FeedbackPanel';
 import { PostProcessingSidebar } from './PostProcessingSidebar';
 import { ReviewActions } from './ReviewActions';
 import { SidebarGroup } from './SidebarGroup';
+import { PromptDebugPanel } from './PromptDebugPanel';
+import type { StructuredPrompt } from '../../types/prompt';
 import type { FeedbackState } from '../../types/feedback';
 import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
 import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
@@ -105,6 +108,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     imageSize: state.imageSize as '2K' | '4K',
     thinkingLevel: state.thinkingLevel,
   });
+
+  // Prompt debug panel state
+  const [lastPrompt, setLastPrompt] = useState<StructuredPrompt | null>(null);
+  const [promptDebugOpen, setPromptDebugOpen] = useState(false);
 
   // Version chain state
   const [versionInfo, setVersionInfo] = useState<{ version: number; parentId: number | null; childIds: number[] } | null>(null);
@@ -496,6 +503,37 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     setFeedbackPanelOpen(false);
   }, [regenerate, feedbackState, regenSettings, resolvedGridLink, dispatch]);
 
+  const handleViewPrompt = useCallback(async () => {
+    if (!resolvedGridLink) return;
+    try {
+      const presetId = state.sourceContentPresetId;
+      if (!presetId) {
+        // Build edit prompt with current feedback if no preset
+        const prompt = assembleEditPrompt({
+          feedbackState,
+          cellLabels: resolvedGridLink.cellLabels,
+          cellGroups: resolvedGridLink.cellGroups || [],
+          cols: resolvedGridLink.cols,
+          sourceImage: { data: '', mimeType: 'image/png' },
+        });
+        setLastPrompt(prompt);
+      } else {
+        const preset = await fetchContentPreset(state.spriteType, presetId);
+        const prompt = assemblePrompt({
+          spriteType: state.spriteType,
+          contentPreset: preset,
+          gridLink: resolvedGridLink,
+          isSubsequentGrid: false,
+          feedbackState: hasFeedback(feedbackState) ? feedbackState : undefined,
+        });
+        setLastPrompt(prompt);
+      }
+      setPromptDebugOpen(true);
+    } catch (err) {
+      debugLog('[PromptDebug] Failed to build prompt:', err);
+    }
+  }, [resolvedGridLink, state.sourceContentPresetId, state.spriteType, feedbackState]);
+
   return (
     <div className="review-layout">
       {/* Left: Sprite Grid */}
@@ -548,6 +586,12 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           onFeedbackOpen={() => setFeedbackPanelOpen(true)}
           onBack={() => setStep('configure')}
         />
+
+        <SidebarGroup label="Debug" defaultOpen={false}>
+          <button className="btn btn-sm w-full" onClick={handleViewPrompt} disabled={!resolvedGridLink}>
+            View Prompt
+          </button>
+        </SidebarGroup>
 
         {/* ── Post-Processing ── */}
         <PostProcessingSidebar
@@ -636,6 +680,12 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           currentSprites={displaySprites}
         />
       </aside>
+
+      <PromptDebugPanel
+        prompt={lastPrompt}
+        open={promptDebugOpen}
+        onClose={() => setPromptDebugOpen(false)}
+      />
 
       <FeedbackPanel
         open={feedbackPanelOpen}
