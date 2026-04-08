@@ -26,14 +26,12 @@ import '../../styles/run-builder.css';
 // ── Per-type configuration ──────────────────────────────────────────────────
 
 type SetPresetsAction = 'SET_CHARACTER_PRESETS' | 'SET_BUILDING_PRESETS' | 'SET_TERRAIN_PRESETS' | 'SET_BACKGROUND_PRESETS';
-type LoadPresetAction = 'LOAD_CHARACTER_PRESET' | 'LOAD_BUILDING_PRESET' | 'LOAD_TERRAIN_PRESET' | 'LOAD_BACKGROUND_PRESET';
 type SetContentAction = 'SET_CHARACTER' | 'SET_BUILDING' | 'SET_TERRAIN' | 'SET_BACKGROUND';
 
 interface SpriteTypeConfig {
   label: string;
   presetFetchUrl: string;
   setPresetsAction: SetPresetsAction;
-  loadPresetAction: LoadPresetAction;
   contentStateKey: 'character' | 'building' | 'terrain' | 'background';
   presetsStateKey: 'characterPresets' | 'buildingPresets' | 'terrainPresets' | 'backgroundPresets';
   setContentAction: SetContentAction;
@@ -64,7 +62,6 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     label: 'Character',
     presetFetchUrl: '/api/presets?type=character',
     setPresetsAction: 'SET_CHARACTER_PRESETS',
-    loadPresetAction: 'LOAD_CHARACTER_PRESET',
     contentStateKey: 'character',
     presetsStateKey: 'characterPresets',
     setContentAction: 'SET_CHARACTER',
@@ -87,7 +84,6 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     label: 'Building',
     presetFetchUrl: '/api/presets?type=building',
     setPresetsAction: 'SET_BUILDING_PRESETS',
-    loadPresetAction: 'LOAD_BUILDING_PRESET',
     contentStateKey: 'building',
     presetsStateKey: 'buildingPresets',
     setContentAction: 'SET_BUILDING',
@@ -110,7 +106,6 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     label: 'Terrain',
     presetFetchUrl: '/api/presets?type=terrain',
     setPresetsAction: 'SET_TERRAIN_PRESETS',
-    loadPresetAction: 'LOAD_TERRAIN_PRESET',
     contentStateKey: 'terrain',
     presetsStateKey: 'terrainPresets',
     setContentAction: 'SET_TERRAIN',
@@ -131,7 +126,6 @@ const SPRITE_TYPE_CONFIGS: Record<SpriteType, SpriteTypeConfig> = {
     label: 'Background',
     presetFetchUrl: '/api/presets?type=background',
     setPresetsAction: 'SET_BACKGROUND_PRESETS',
-    loadPresetAction: 'LOAD_BACKGROUND_PRESET',
     contentStateKey: 'background',
     presetsStateKey: 'backgroundPresets',
     setContentAction: 'SET_BACKGROUND',
@@ -236,7 +230,7 @@ export function UnifiedConfigPanel() {
       }
       const preset = presetList.find((p) => p.id === presetId);
       if (preset) {
-        dispatch({ type: config.loadPresetAction, preset } as Action);
+        dispatch({ type: 'LOAD_CONTENT_PRESET', preset } as Action);
       }
     },
     [presetList, dispatch, config, content, spriteType],

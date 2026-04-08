@@ -556,6 +556,95 @@ describe('appReducer', () => {
     });
   });
 
+  // ── LOAD_CONTENT_PRESET (generic) ──────────────────────────────────────
+
+  describe('LOAD_CONTENT_PRESET', () => {
+    it('loads a character preset via generic action', () => {
+      const preset: CharacterPreset = {
+        id: 'char-g1',
+        spriteType: 'character',
+        name: 'Mage',
+        genre: 'fantasy',
+        description: 'A powerful mage',
+        equipment: 'Staff, robes',
+        colorNotes: 'Blue and gold',
+        overallGuidance: 'Cast spells',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.character).toBe('char-g1');
+      expect(result.character.name).toBe('Mage');
+      expect(result.character.equipment).toBe('Staff, robes');
+      expect(result.character.styleNotes).toBe('');
+    });
+
+    it('loads a building preset via generic action', () => {
+      const preset: BuildingPreset = {
+        id: 'bld-g1',
+        spriteType: 'building',
+        name: 'Tower',
+        genre: 'fantasy',
+        description: 'A tower',
+        details: 'tall',
+        colorNotes: '',
+        gridSize: '3x3',
+        cellLabels: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.building).toBe('bld-g1');
+      expect(result.building.name).toBe('Tower');
+      expect(result.building.details).toBe('tall');
+      expect(result.building.cellLabels).toHaveLength(9);
+    });
+
+    it('loads a terrain preset via generic action with label padding', () => {
+      const preset: TerrainPreset = {
+        id: 'ter-g1',
+        spriteType: 'terrain',
+        name: 'Forest',
+        genre: 'nature',
+        gridSize: '4x4',
+        description: 'Dense forest',
+        colorNotes: 'Green',
+        tileLabels: ['tree'],
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.terrain).toBe('ter-g1');
+      expect(result.terrain.name).toBe('Forest');
+      expect(result.terrain.cellLabels).toHaveLength(16);
+      expect(result.terrain.cellLabels[0]).toBe('tree');
+      expect(result.terrain.cellLabels[1]).toBe('');
+    });
+
+    it('loads a background preset via generic action with bgMode', () => {
+      const preset: BackgroundPreset = {
+        id: 'bg-g1',
+        spriteType: 'background',
+        name: 'Mountains',
+        genre: 'nature',
+        gridSize: '1x4',
+        bgMode: 'parallax',
+        description: 'Mountain range',
+        colorNotes: 'Grey, white',
+        layerLabels: ['sky', 'peaks', 'foothills', 'ground'],
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.background).toBe('bg-g1');
+      expect(result.background.bgMode).toBe('parallax');
+      expect(result.background.cellLabels).toHaveLength(4);
+    });
+  });
+
   // ── SET_CHARACTER_PRESETS / SET_*_PRESETS / SET_GRID_PRESETS ─────────────
 
   describe('SET_CHARACTER_PRESETS', () => {
