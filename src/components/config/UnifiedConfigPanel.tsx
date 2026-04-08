@@ -211,16 +211,13 @@ export function UnifiedConfigPanel() {
       if (presetId === '') {
         // Reset to defaults, preserving grid-related fields for non-character types
         const resetContent = { ...config.defaultContent };
-        if (spriteType === 'building') {
-          (resetContent as any).gridSize = (content as any).gridSize;
-          (resetContent as any).cellLabels = [];
-        } else if (spriteType === 'terrain') {
-          (resetContent as any).gridSize = (content as any).gridSize;
-          (resetContent as any).cellLabels = [];
+        if (spriteType === 'building' || spriteType === 'terrain') {
+          resetContent.gridSize = content.gridSize;
+          resetContent.cellLabels = [];
         } else if (spriteType === 'background') {
-          (resetContent as any).bgMode = (content as any).bgMode;
-          (resetContent as any).gridSize = (content as any).gridSize;
-          (resetContent as any).cellLabels = [];
+          resetContent.bgMode = content.bgMode;
+          resetContent.gridSize = content.gridSize;
+          resetContent.cellLabels = [];
         }
         dispatch({
           type: config.setContentAction,
