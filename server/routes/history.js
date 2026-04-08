@@ -267,6 +267,8 @@ export function createHistoryRouter(db) {
       if (typeof feedbackJson !== 'string') {
         return res.status(400).json({ error: 'feedbackJson must be a JSON string' });
       }
+      try { JSON.parse(feedbackJson); }
+      catch { return res.status(400).json({ error: 'feedbackJson must be valid JSON' }); }
       db.prepare('UPDATE generations SET feedback_json = ? WHERE id = ?').run(feedbackJson, id);
       res.json({ success: true });
     } catch (err) { next(err); }
