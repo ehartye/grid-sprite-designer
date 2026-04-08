@@ -1,3 +1,9 @@
+/** Safely parse JSON from a DB column, returning fallback on failure. */
+export function safeJsonParse(str, fallback = {}) {
+  try { return JSON.parse(str); }
+  catch { return fallback; }
+}
+
 /** Parse a route :id param as a positive integer. Returns null if invalid. */
 export function parseIntParam(val) {
   const n = Number(val);
@@ -19,7 +25,7 @@ export function mapPresetRow(row, columns) {
   const obj = { id: row.id };
   for (const { field, column, default: defaultVal, json } of columns) {
     obj[field] = json
-      ? JSON.parse(row[column] || JSON.stringify(defaultVal ?? []))
+      ? safeJsonParse(row[column] || JSON.stringify(defaultVal ?? []), defaultVal ?? [])
       : (row[column] ?? defaultVal ?? '');
   }
   return obj;

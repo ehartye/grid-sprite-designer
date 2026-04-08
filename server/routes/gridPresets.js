@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { parseIntParam } from '../utils.js';
+import { parseIntParam, safeJsonParse } from '../utils.js';
 
 
 export function createGridPresetsRouter(db) {
@@ -22,11 +22,11 @@ export function createGridPresetsRouter(db) {
         gridSize: r.grid_size,
         cols: r.cols,
         rows: r.rows,
-        cellLabels: JSON.parse(r.cell_labels),
-        cellGroups: JSON.parse(r.cell_groups),
+        cellLabels: safeJsonParse(r.cell_labels, []),
+        cellGroups: safeJsonParse(r.cell_groups, []),
         overallGuidance: r.overall_guidance || '',
-        groupGuidance: JSON.parse(r.group_guidance || '{}'),
-        cellGuidance: JSON.parse(r.cell_guidance || '{}'),
+        groupGuidance: safeJsonParse(r.group_guidance || '{}'),
+        cellGuidance: safeJsonParse(r.cell_guidance || '{}'),
         bgMode: r.bg_mode,
         aspectRatio: r.aspect_ratio || '1:1',
         tileShape: r.tile_shape || 'square',

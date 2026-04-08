@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { parseIntParam, extractPresetValues, mapPresetRow } from '../utils.js';
+import { parseIntParam, extractPresetValues, mapPresetRow, safeJsonParse } from '../utils.js';
 import { PRESET_TABLES } from '../presetTables.js';
 import { validatePresetType } from '../middleware.js';
 
@@ -127,21 +127,21 @@ export function createPresetsRouter(db) {
         gridPresetId: l.grid_preset_id,
         gridGuidance: {
           overall: l.grid_overall_guidance || '',
-          groups: JSON.parse(l.grid_group_guidance || '{}'),
-          cells: JSON.parse(l.grid_cell_guidance || '{}'),
+          groups: safeJsonParse(l.grid_group_guidance || '{}'),
+          cells: safeJsonParse(l.grid_cell_guidance || '{}'),
         },
         linkGuidance: {
           overall: l.link_overall_guidance || '',
-          groups: JSON.parse(l.link_group_guidance || '{}'),
-          cells: JSON.parse(l.link_cell_guidance || '{}'),
+          groups: safeJsonParse(l.link_group_guidance || '{}'),
+          cells: safeJsonParse(l.link_cell_guidance || '{}'),
         },
         sortOrder: l.sort_order,
         gridName: l.grid_name,
         gridSize: l.grid_size,
         cols: l.cols,
         rows: l.rows,
-        cellLabels: JSON.parse(l.cell_labels),
-        cellGroups: JSON.parse(l.cell_groups),
+        cellLabels: safeJsonParse(l.cell_labels, []),
+        cellGroups: safeJsonParse(l.cell_groups, []),
         bgMode: l.bg_mode,
         aspectRatio: l.aspect_ratio || '1:1',
         tileShape: l.tile_shape || 'square',
