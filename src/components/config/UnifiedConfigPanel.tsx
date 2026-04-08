@@ -18,6 +18,7 @@ import {
   type TerrainPreset,
   type BackgroundPreset,
 } from '../../context/AppContext';
+import { assemblePrompt } from '../../lib/promptForType';
 import { getPixelizeGuidance } from '../../lib/promptBuilderBase';
 import { GridLinkSelector } from '../shared/GridLinkSelector';
 import { IMAGE_MODELS, getModel, formatCost, type ImageSize, type ThinkingLevel } from '../../lib/models';
@@ -237,14 +238,25 @@ export function UnifiedConfigPanel() {
 
 
   const promptPreview = useMemo(() => {
-    const wc = WORKFLOW_CONFIGS[spriteType];
     const gridLink = selectedGridLinks[0];
-    const gridConfig = wc.buildGridConfig(state, gridLink);
-    let prompt = wc.buildPrompt(state, gridConfig, gridLink);
-    const g = getPixelizeGuidance(pixelizeSize);
-    if (g) prompt += '\n\n' + g;
-    return prompt;
-  }, [spriteType, state, pixelizeSize, selectedGridLinks]);
+    if (!gridLink) return '(Select a grid preset to preview prompt)';
+    const contentPreset = content as any;
+    try {
+      const structured = assemblePrompt({
+        spriteType,
+        contentPreset,
+        gridLink,
+        isSubsequentGrid: false,
+        pixelizeSize,
+      });
+      return structured.parts
+        .filter(p => p.type === 'text')
+        .map(p => (p as any).content)
+        .join('\n\n');
+    } catch {
+      return '(Unable to preview prompt)';
+    }
+  }, [spriteType, content, pixelizeSize, selectedGridLinks]);
 
   // Group presets by genre
   const presetsByGenre = useMemo(

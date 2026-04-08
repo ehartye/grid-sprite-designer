@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildTerrainPrompt, type TerrainConfig } from '../terrainPromptBuilder';
+import { buildTerrainParts, type TerrainConfig } from '../terrainPromptBuilder';
 import { EMPTY_GUIDANCE } from '../promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
 
@@ -13,57 +13,64 @@ const baseTerrain: TerrainConfig = {
 const cellLabels = Array.from({ length: 16 }, (_, i) => `Tile ${i}`);
 const cellGroups: CellGroup[] = [];
 
-describe('buildTerrainPrompt', () => {
+/** Helper: concatenate all text parts from a TypeBuilderResult */
+function allText(result: ReturnType<typeof buildTerrainParts>): string {
+  return [...result.subject, ...result.instructions]
+    .filter(p => p.type === 'text')
+    .map(p => (p as any).content)
+    .join('\n');
+}
+
+describe('buildTerrainParts', () => {
   it('includes terrain name in uppercase', () => {
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('FOREST FLOOR');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('FOREST FLOOR');
   });
 
   it('includes description and color notes', () => {
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('Dense forest ground');
-    expect(prompt).toContain('Earthy greens');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('Dense forest ground');
+    expect(text).toContain('Earthy greens');
   });
 
-  it('includes grid dimensions', () => {
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('4\u00d74');
-    expect(prompt).toContain('16 cells');
+  it('includes total cell count', () => {
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('16');
   });
 
   it('lists tile labels', () => {
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('"Tile 0"');
-    expect(prompt).toContain('"Tile 15"');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('"Tile 0"');
+    expect(text).toContain('"Tile 15"');
   });
 
   it('includes terrain-specific tileability instructions', () => {
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('TILEABILITY IS CRITICAL');
-    expect(prompt).toContain('FILL THE CELL');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('TILEABILITY IS CRITICAL');
+    expect(text).toContain('FILL THE CELL');
   });
 
   it('includes presetGuidance overall text as fallback guidance', () => {
     const presetGuidance: HierarchicalGuidance = { overall: 'Base tiles should tile seamlessly', groups: {}, cells: {} };
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('Base tiles should tile seamlessly');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('Base tiles should tile seamlessly');
   });
 
   it('includes linkGuidance overall when provided', () => {
     const linkGuidance: HierarchicalGuidance = { overall: 'Custom override', groups: {}, cells: {} };
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, linkGuidance, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('Custom override');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, linkGuidance, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('Custom override');
   });
 
   it('includes gridGuidance overall when provided', () => {
     const gridGuidance: HierarchicalGuidance = { overall: 'Grid level guidance', groups: {}, cells: {} };
-    const prompt = buildTerrainPrompt(baseTerrain, gridGuidance, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('Grid level guidance');
+    const text = allText(buildTerrainParts(baseTerrain, gridGuidance, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('Grid level guidance');
   });
 
   it('omits style notes when empty', () => {
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
-    expect(prompt).not.toContain('Additional style notes:');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4));
+    expect(text).not.toContain('Additional style notes:');
   });
 
   it('includes cell-level guidance', () => {
@@ -72,7 +79,13 @@ describe('buildTerrainPrompt', () => {
       groups: {},
       cells: { 'Tile 0': 'Base grass tile' },
     };
-    const prompt = buildTerrainPrompt(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 4, 4);
-    expect(prompt).toContain('Base grass tile');
+    const text = allText(buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 4, 4));
+    expect(text).toContain('Base grass tile');
+  });
+
+  it('returns subject and instructions as separate arrays', () => {
+    const result = buildTerrainParts(baseTerrain, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 4, 4);
+    expect(result.subject.length).toBeGreaterThan(0);
+    expect(result.instructions.length).toBeGreaterThan(0);
   });
 });

@@ -24,7 +24,7 @@ export function PostProcessingSidebar({
   const { pixelize, outline, alphaSnap, struckColors, strikeTolerance, showRareColors, aaInset } = postState;
 
   return (
-    <SidebarGroup label="Post-Processing" defaultOpen={false}>
+    <SidebarGroup label="Post-Processing" defaultOpen={true}>
       <div className="sidebar-section">
         <h3>
           Posterize

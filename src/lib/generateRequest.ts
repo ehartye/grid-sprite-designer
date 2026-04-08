@@ -17,7 +17,7 @@ export interface GenerationRequestParams {
   contentPreset: ContentPreset;
   gridLink: GridLink;
   gridConfig: GridConfig;
-  prompt: string | StructuredPrompt;
+  prompt: StructuredPrompt;
   model: string;
   imageSize: '2K' | '4K';
   thinkingLevel?: 'default' | 'minimal' | 'low' | 'medium' | 'high';

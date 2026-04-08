@@ -17,11 +17,11 @@ import type { WorkflowConfig } from '../useGenericWorkflow';
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
-// Capture the AbortSignal passed to generateGrid so we can assert on it.
+// Capture the AbortSignal passed to the API call so we can assert on it.
 let capturedSignal: AbortSignal | null = null;
 
 function mockApiCall(_model: string, _promptOrStruct: unknown, _sizeOrSignal: unknown, signal?: AbortSignal) {
-  // Handle both generateGrid (5th arg is signal) and generateFromStructuredPrompt (4th arg is signal)
+  // Handle generateFromStructuredPrompt (4th arg is signal)
   const actualSignal = signal instanceof AbortSignal ? signal : (_sizeOrSignal instanceof AbortSignal ? _sizeOrSignal : undefined);
   if (actualSignal) capturedSignal = actualSignal;
   return new Promise((_resolve, reject) => {
@@ -37,9 +37,6 @@ function mockApiCall(_model: string, _promptOrStruct: unknown, _sizeOrSignal: un
 }
 
 vi.mock('../../api/geminiClient', () => ({
-  generateGrid: vi.fn(
-    (_model: string, _prompt: string, _template: unknown, _size: string, signal: AbortSignal) => mockApiCall(_model, _prompt, _size, signal),
-  ),
   generateFromStructuredPrompt: vi.fn(
     (_model: string, _prompt: unknown, _size: string, signal: AbortSignal) => mockApiCall(_model, _prompt, signal),
   ),
@@ -93,7 +90,6 @@ const testWorkflowConfig: WorkflowConfig = {
   validationLabel: 'character',
   getContent: () => ({ name: 'Test Character', description: 'A test character' }),
   buildGridConfig: () => mockGridConfig,
-  buildPrompt: () => 'Generate test sprites',
   getReExtractGridConfig: () => null,
 };
 
@@ -128,7 +124,7 @@ describe('useGenericWorkflow abort behavior', () => {
       { wrapper },
     );
 
-    // Start generation — the async pipeline will hang on the mocked generateGrid
+    // Start generation — the async pipeline will hang on the mocked API call
     act(() => {
       result.current.generate();
     });

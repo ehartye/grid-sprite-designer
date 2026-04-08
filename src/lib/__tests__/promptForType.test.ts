@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPromptForType, REFERENCE_PREFIX } from '../promptForType';
-import type { GridConfig } from '../gridConfig';
+import { assemblePrompt } from '../promptForType';
 
 // Minimal GridLink-like object for testing
 function makeGridLink(overrides: Record<string, any> = {}) {
@@ -22,82 +21,87 @@ function makeGridLink(overrides: Record<string, any> = {}) {
   };
 }
 
-function makeGridConfig(overrides: Partial<GridConfig> = {}): GridConfig {
-  return {
-    id: 'test-grid',
-    label: 'Test Grid',
-    cols: 3,
-    rows: 3,
-    totalCells: 9,
-    cellLabels: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
-    templates: {
-      '2K': { cellW: 680, cellH: 680, headerH: 22, border: 2, fontSize: 14 },
-      '4K': { cellW: 1360, cellH: 1360, headerH: 36, border: 4, fontSize: 22 },
-    },
-    ...overrides,
-  };
+/** Helper: extract all text content from a StructuredPrompt */
+function allText(prompt: ReturnType<typeof assemblePrompt>): string {
+  return prompt.parts
+    .filter(p => p.type === 'text')
+    .map(p => (p as any).content)
+    .join('\n');
 }
 
-describe('buildPromptForType', () => {
-  it('builds character prompt', () => {
+describe('assemblePrompt', () => {
+  it('assembles character prompt with name in uppercase', () => {
     const preset = { name: 'Knight', description: 'A noble knight', equipment: 'Sword', colorNotes: '', overallGuidance: '' };
-    const prompt = buildPromptForType('character', preset, makeGridLink(), makeGridConfig(), false);
-    expect(prompt).toContain('KNIGHT');
-    expect(prompt).toContain('A noble knight');
+    const result = assemblePrompt({ spriteType: 'character', contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: false });
+    expect(allText(result)).toContain('KNIGHT');
+    expect(allText(result)).toContain('A noble knight');
   });
 
-  it('builds character prompt with reference prefix for subsequent grids', () => {
+  it('includes reference section for subsequent character grids', () => {
     const preset = { name: 'Knight', description: 'A noble knight', equipment: '', colorNotes: '', overallGuidance: '' };
-    const prompt = buildPromptForType('character', preset, makeGridLink(), makeGridConfig(), true);
-    expect(prompt).toContain('IMAGE 1');
-    expect(prompt).toContain('IMAGE 2');
+    const ref = { data: 'base64data', mimeType: 'image/png' };
+    const result = assemblePrompt({ spriteType: 'character', contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: true, referenceImage: ref });
+    expect(result.meta.hasReference).toBe(true);
+    const hasImagePart = result.parts.some(p => p.type === 'image');
+    expect(hasImagePart).toBe(true);
   });
 
-  it('builds building prompt', () => {
+  it('assembles building prompt', () => {
     const preset = { name: 'Castle', description: 'A grand castle', details: 'Towers', colorNotes: '', overallGuidance: '' };
-    const prompt = buildPromptForType('building', preset, makeGridLink(), makeGridConfig(), false);
-    expect(prompt).toContain('CASTLE');
-    expect(prompt).toContain('A grand castle');
+    const result = assemblePrompt({ spriteType: 'building', contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: false });
+    expect(allText(result)).toContain('CASTLE');
+    expect(allText(result)).toContain('A grand castle');
   });
 
-  it('adds reference prefix for subsequent building grids', () => {
-    const preset = { name: 'Castle', description: 'A grand castle', details: '', colorNotes: '', overallGuidance: '' };
-    const prompt = buildPromptForType('building', preset, makeGridLink(), makeGridConfig(), true);
-    expect(prompt.startsWith(REFERENCE_PREFIX)).toBe(true);
-  });
-
-  it('builds terrain prompt', () => {
+  it('assembles terrain prompt', () => {
     const preset = { name: 'Desert', description: 'Sandy desert', colorNotes: 'Warm yellows', overallGuidance: '' };
-    const prompt = buildPromptForType('terrain', preset, makeGridLink(), makeGridConfig(), false);
-    expect(prompt).toContain('DESERT');
-    expect(prompt).toContain('Sandy desert');
+    const result = assemblePrompt({ spriteType: 'terrain', contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: false });
+    expect(allText(result)).toContain('DESERT');
+    expect(allText(result)).toContain('Sandy desert');
   });
 
-  it('builds background prompt in parallax mode', () => {
+  it('assembles background prompt in parallax mode', () => {
     const preset = { name: 'Forest', description: 'Dense forest', colorNotes: '', overallGuidance: '', bgMode: 'parallax' as const };
     const link = makeGridLink({ bgMode: 'parallax' });
-    const prompt = buildPromptForType('background', preset, link, makeGridConfig(), false);
-    expect(prompt).toContain('FOREST');
-    expect(prompt).toContain('parallax');
+    const result = assemblePrompt({ spriteType: 'background', contentPreset: preset, gridLink: link, isSubsequentGrid: false });
+    expect(allText(result)).toContain('FOREST');
+    expect(allText(result)).toContain('parallax');
   });
 
-  it('builds background prompt in scene mode', () => {
+  it('assembles background prompt in scene mode', () => {
     const preset = { name: 'Village', description: 'A village', colorNotes: '', overallGuidance: '', bgMode: 'scene' as const };
     const link = makeGridLink({ bgMode: 'scene' });
-    const prompt = buildPromptForType('background', preset, link, makeGridConfig(), false);
-    expect(prompt).toContain('VILLAGE');
-    expect(prompt).toContain('SCENE VARIATION');
+    const result = assemblePrompt({ spriteType: 'background', contentPreset: preset, gridLink: link, isSubsequentGrid: false });
+    expect(allText(result)).toContain('VILLAGE');
+    expect(allText(result)).toContain('SCENE VARIATION');
   });
 
   it('throws for unknown sprite type', () => {
     const preset = { name: 'X', description: 'X' };
-    expect(() => buildPromptForType('unknown' as any, preset, makeGridLink(), makeGridConfig(), false))
+    expect(() => assemblePrompt({ spriteType: 'unknown' as any, contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: false }))
       .toThrow('Unknown sprite type: unknown');
   });
 
-  it('adds reference prefix for subsequent terrain grids', () => {
+  it('includes reference image for subsequent terrain grids', () => {
     const preset = { name: 'Snow', description: 'Snowy terrain', colorNotes: '', overallGuidance: '' };
-    const prompt = buildPromptForType('terrain', preset, makeGridLink(), makeGridConfig(), true);
-    expect(prompt.startsWith(REFERENCE_PREFIX)).toBe(true);
+    const ref = { data: 'base64data', mimeType: 'image/png' };
+    const result = assemblePrompt({ spriteType: 'terrain', contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: true, referenceImage: ref });
+    expect(result.meta.hasReference).toBe(true);
+  });
+
+  it('populates meta.spriteType correctly', () => {
+    const preset = { name: 'Knight', description: 'A knight', equipment: '', colorNotes: '', overallGuidance: '' };
+    const result = assemblePrompt({ spriteType: 'character', contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: false });
+    expect(result.meta.spriteType).toBe('character');
+  });
+
+  it('includes sectionBreakdown in meta', () => {
+    const preset = { name: 'Knight', description: 'A knight', equipment: '', colorNotes: '', overallGuidance: '' };
+    const result = assemblePrompt({ spriteType: 'character', contentPreset: preset, gridLink: makeGridLink(), isSubsequentGrid: false });
+    const sectionNames = result.meta.sectionBreakdown.map(s => s.name);
+    expect(sectionNames).toContain('role');
+    expect(sectionNames).toContain('subject');
+    expect(sectionNames).toContain('instructions');
+    expect(sectionNames).toContain('canvas');
   });
 });

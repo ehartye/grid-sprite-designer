@@ -9,7 +9,7 @@ import { useAppContext, useAbortControllerRef, type AppState, type GridLink, typ
 import { generateTemplate, generateBackgroundTemplate } from '../lib/templateGenerator';
 import { computeSquareLayout } from '../lib/computeSquareLayout';
 import { extractSprites } from '../lib/spriteExtractor';
-import { generateGrid, generateFromStructuredPrompt } from '../api/geminiClient';
+import { generateFromStructuredPrompt } from '../api/geminiClient';
 import { debugLog } from '../lib/debugLog';
 import type { GridConfig } from '../lib/gridConfig';
 import type { HistorySaveResponse, ContentPreset } from '../types/api';
@@ -34,8 +34,6 @@ export interface WorkflowConfig {
   getContent: (state: AppState) => { name: string; description: string };
   /** Build the grid config from state and optional grid link */
   buildGridConfig: (state: AppState, gridLink?: GridLink) => GridConfig;
-  /** Build the prompt from content state, grid config, and optional grid link */
-  buildPrompt: (state: AppState, gridConfig: GridConfig, gridLink?: GridLink) => string;
   /** Build grid config for re-extraction from current state */
   getReExtractGridConfig: (state: AppState) => {
     cols: number;
@@ -48,7 +46,7 @@ export interface WorkflowConfig {
 /** Parameters for the shared generate pipeline */
 export interface PipelineParams {
   gridConfig: GridConfig;
-  prompt: string | StructuredPrompt;
+  prompt: StructuredPrompt;
   model: string;
   thinkingLevel?: 'default' | 'minimal' | 'low' | 'medium' | 'high';
   imageSize: '2K' | '4K';
@@ -72,7 +70,7 @@ export async function runGeneratePipeline(
   dispatch: Dispatch<Action>,
   signal: AbortSignal,
 ) {
-  const { gridConfig, prompt, model, thinkingLevel, imageSize, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
+  const { gridConfig, prompt, model, thinkingLevel, imageSize, spriteType, contentName, contentDescription, cellGroups, historyExtras, sourceContext } = params;
 
   // 1. Generate template grid
   const isBackground = spriteType === 'background';
@@ -102,35 +100,17 @@ export async function runGeneratePipeline(
     },
   });
 
-  // 2. Call Gemini API
-  let result;
-  if (typeof prompt === 'string') {
-    // Legacy string path — used by useGenericWorkflow.generate() until migrated
-    debugLog('[Gemini Prompt]\n' + prompt);
-    result = await generateGrid(
-      model,
-      prompt,
-      { data: template.base64, mimeType: 'image/png' },
-      imageSize,
-      signal,
-      referenceImage,
-      aspectRatio,
-      thinkingLevel,
-    );
+  // 2. Call Gemini API — inject template image at the canvas section
+  const finalParts = [...prompt.parts];
+  const canvasIdx = prompt.meta.sectionBreakdown.find(s => s.name === 'canvas')?.partIndex;
+  if (canvasIdx !== undefined) {
+    finalParts.splice(canvasIdx + 1, 0, { type: 'image', data: template.base64, mimeType: 'image/png', label: 'template' });
   } else {
-    // Structured prompt path — inject template image at the canvas section
-    const finalParts = [...prompt.parts];
-    const canvasIdx = prompt.meta.sectionBreakdown.find(s => s.name === 'canvas')?.partIndex;
-    if (canvasIdx !== undefined) {
-      // Template image goes right after the canvas text part
-      finalParts.splice(canvasIdx + 1, 0, { type: 'image', data: template.base64, mimeType: 'image/png', label: 'template' });
-    } else {
-      finalParts.push({ type: 'image', data: template.base64, mimeType: 'image/png', label: 'template' });
-    }
-    const finalPrompt = { ...prompt, parts: finalParts };
-    debugLog('[Gemini Structured Prompt] parts:', finalPrompt.parts.length, 'sections:', finalPrompt.meta.sectionBreakdown.map(s => s.name));
-    result = await generateFromStructuredPrompt(model, finalPrompt, imageSize, signal, aspectRatio, thinkingLevel);
+    finalParts.push({ type: 'image', data: template.base64, mimeType: 'image/png', label: 'template' });
   }
+  const finalPrompt = { ...prompt, parts: finalParts };
+  debugLog('[Gemini Structured Prompt] parts:', finalPrompt.parts.length, 'sections:', finalPrompt.meta.sectionBreakdown.map(s => s.name));
+  const result = await generateFromStructuredPrompt(model, finalPrompt, imageSize, signal, aspectRatio, thinkingLevel);
 
   if (signal.aborted) return null;
 
@@ -184,9 +164,7 @@ export async function runGeneratePipeline(
     mimeType: s.mimeType,
   }));
 
-  const promptForHistory = typeof prompt === 'string'
-    ? prompt
-    : prompt.parts.filter(p => p.type === 'text').map(p => (p as { type: 'text'; content: string }).content).join('\n\n');
+  const promptForHistory = prompt.parts.filter(p => p.type === 'text').map(p => p.content).join('\n\n');
 
   try {
     const histResp = await fetch('/api/history', {
