@@ -45,7 +45,14 @@ export function createHistoryRouter(db) {
       const id = parseIntParam(req.params.id);
       if (id === null) return res.status(400).json({ error: 'Invalid id' });
 
-      const gen = db.prepare('SELECT * FROM generations WHERE id = ?').get(id);
+      const gen = db.prepare(`
+        SELECT id, content_name, content_description, model, image_size, thinking_level,
+               prompt, filled_grid_image, thumbnail_cell_index, thumbnail_image, thumbnail_mime,
+               sprite_type, grid_size, aspect_ratio, group_id, content_preset_id,
+               grid_preset_name, feedback_json, parent_history_id, generation_version,
+               created_at, updated_at
+        FROM generations WHERE id = ?
+      `).get(id);
       if (!gen) return res.status(404).json({ error: 'Not found' });
 
       const sprites = db.prepare(
