@@ -7,6 +7,7 @@
 import type { BackgroundMode } from './gridConfig';
 import { buildGuidanceBlock, CLOSING_INSTRUCTION } from './promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../context/AppContext';
+import type { TypeBuilderResult, PromptPart } from '../types/prompt';
 
 export interface BackgroundConfig {
   name: string;
@@ -102,4 +103,88 @@ CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):
 
 ${guidanceBlock}
 ${CLOSING_INSTRUCTION}`;
+}
+
+/**
+ * Build background prompt parts for the structured assembler.
+ * Returns subject + instructions as PromptPart arrays.
+ * Role intro (grid intro), reference handling, and closing instruction are handled by the assembler.
+ */
+export function buildBackgroundParts(
+  bg: BackgroundConfig,
+  gridGuidance: HierarchicalGuidance,
+  linkGuidance: HierarchicalGuidance,
+  presetGuidance: HierarchicalGuidance,
+  cellGroups: CellGroup[],
+  cellLabels: string[],
+  cols: number,
+  rows: number,
+  cellAnnotations?: Record<string, string>,
+  groupAnnotations?: Record<string, string>,
+): TypeBuilderResult {
+  const totalCells = cols * rows;
+
+  const subjectText = [
+    `Fill every pink cell area with a pixel-art background`,
+    bg.bgMode === 'parallax'
+      ? `layer for a ${bg.name.toUpperCase()} parallax scrolling background.`
+      : `scene variant of ${bg.name.toUpperCase()}.`,
+    ``,
+    `Background description: ${bg.description}`,
+    bg.colorNotes ? `Color palette: ${bg.colorNotes}` : '',
+    bg.styleNotes ? `Additional style notes: ${bg.styleNotes}` : '',
+    ``,
+    `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger background art (SNES 16-bit)`,
+    `  \u2022 Consistent palette and art style across ALL ${totalCells} cells`,
+  ].filter(Boolean).join('\n');
+
+  const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, cellAnnotations, groupAnnotations);
+
+  const subject: PromptPart[] = [{ type: 'text', content: subjectText }];
+
+  const chromaText = `CHROMA BACKGROUND IS SACRED: The magenta #FF00FF background areas
+MUST remain pure, unmodified magenta (#FF00FF). This is a chroma-key
+background used for transparency \u2014 it is NOT part of the scene. Do NOT tint, shade,
+darken, or blend the magenta background under any circumstances, even if the cell
+depicts nighttime, darkness, fog, or other atmospheric conditions.
+Do NOT draw outside the cell boundaries or over the black grid lines.`;
+
+  const modeGuidance = bg.bgMode === 'parallax'
+    ? `PARALLAX LAYER DESIGN: Each cell is one horizontal layer of a parallax
+scrolling background. Layers are ordered top-to-bottom from farthest (sky)
+to nearest (ground). Design rules:
+  \u2022 Each layer must tile HORIZONTALLY \u2014 the left and right edges should connect seamlessly
+  \u2022 Far layers (sky, distant features): simpler detail, lighter/hazier colors, atmospheric perspective
+  \u2022 Near layers (foreground, ground): more detail, stronger colors, larger elements
+  \u2022 Each layer should have transparent areas (magenta background) where layers below show through
+  \u2022 The topmost layer (sky) should fill the entire cell with no magenta visible
+  \u2022 Lower layers should have magenta at the top where the sky shows through
+
+FILL HORIZONTALLY: Each layer should span the full width of the cell.
+The layer content fills from the bottom up, with magenta background above
+where the sky or farther layers would show through.`
+    : `SCENE VARIATION DESIGN: Each cell is a complete standalone background scene.
+All scenes depict the SAME location \u2014 only the conditions change (time of day,
+weather, season, mood). Design rules:
+  \u2022 Same composition, layout, and structural elements across all scenes
+  \u2022 Horizon line, major landmarks, and proportions must be identical
+  \u2022 Only lighting, color temperature, weather effects, and atmospheric conditions change
+  \u2022 Each scene should fill the ENTIRE cell \u2014 no magenta background should be visible
+  \u2022 Maintain consistent art style and level of detail across all variants
+
+FILL THE CELL: Scene backgrounds should fill the entire cell content area
+edge-to-edge (below the header strip). There should be NO magenta background
+visible \u2014 the scene IS the background.`;
+
+  const consistencyText = `CONSISTENCY: All ${bg.bgMode === 'parallax' ? 'layers' : 'scenes'} must share the same art style and color palette.
+They are parts of one unified background ${bg.bgMode === 'parallax' ? 'system' : 'set'}.`;
+
+  const instructions: PromptPart[] = [
+    { type: 'text', content: chromaText },
+    { type: 'text', content: modeGuidance },
+    { type: 'text', content: consistencyText },
+    { type: 'text', content: `CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):\n\n${guidanceBlock}` },
+  ];
+
+  return { subject, instructions };
 }
