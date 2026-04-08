@@ -25,8 +25,7 @@ import type { FeedbackState } from '../../types/feedback';
 import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
 import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
 import { loadGenerationIntoState } from '../../lib/loadGeneration';
-
-type RGB = [number, number, number];
+import type { RGB } from '../../types/color';
 
 async function processSprite(
   sprite: ExtractedSprite,

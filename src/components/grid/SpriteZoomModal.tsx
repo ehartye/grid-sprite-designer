@@ -6,8 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ExtractedSprite } from '../../lib/spriteExtractor';
 import { useModalFocus } from '../../hooks/useModalFocus';
-
-type RGB = [number, number, number];
+import type { RGB } from '../../types/color';
 
 type Tool = 'eyedropper' | 'eraser';
 

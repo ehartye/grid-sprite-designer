@@ -4,8 +4,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-
-type RGB = [number, number, number];
+import type { RGB } from '../types/color';
 
 export interface EditorSettings {
   chromaEnabled: boolean;
