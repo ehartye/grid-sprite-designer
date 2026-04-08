@@ -22,6 +22,8 @@ export const ALLOWED_MODELS = [
   'gemini-1.5-pro',
 ];
 
+// ── Gemini API client ──
+
 async function callGemini(apiKey, model, body, retries = 0) {
   const url = `${GEMINI_BASE}/${model}:generateContent`;
   console.log(`[Gemini] ${model} -> ${url} (attempt ${retries + 1})`);
@@ -47,210 +49,195 @@ async function callGemini(apiKey, model, body, retries = 0) {
   return response;
 }
 
+// ── Validation helpers ──
+
+function validateModel(model) {
+  if (!model || !ALLOWED_MODELS.includes(model)) {
+    return `Invalid model. Allowed models: ${ALLOWED_MODELS.join(', ')}`;
+  }
+  return null;
+}
+
+function validateImageMime(mimeType, label) {
+  if (mimeType && !ALLOWED_MIME_TYPES.includes(mimeType)) {
+    return `Invalid ${label} mimeType. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}`;
+  }
+  return null;
+}
+
+function validateEnum(value, allowed, label) {
+  if (value !== undefined && !allowed.includes(value)) {
+    return `Invalid ${label}. Allowed values: ${allowed.join(', ')}`;
+  }
+  return null;
+}
+
+function firstError(...checks) {
+  for (const msg of checks) {
+    if (msg) return msg;
+  }
+  return null;
+}
+
+// ── Gemini request/response builders ──
+
+function buildGenerationConfig(aspectRatio, imageSize, thinkingLevel) {
+  const config = {
+    responseModalities: ['TEXT', 'IMAGE'],
+    temperature: 1.0,
+    imageConfig: { aspectRatio, imageSize },
+  };
+  if (thinkingLevel) {
+    config.thinkingConfig = { thinkingLevel };
+  }
+  return config;
+}
+
+function imagePart(imageData) {
+  return {
+    inline_data: {
+      mime_type: imageData.mimeType || 'image/png',
+      data: imageData.data,
+    },
+  };
+}
+
+function buildEditParts(sourceImage, prompt) {
+  return [
+    { text: '[SOURCE IMAGE — This is the sprite sheet to edit. Make only the targeted changes described below. Preserve everything else exactly as-is.]' },
+    imagePart(sourceImage),
+    { text: prompt },
+  ];
+}
+
+function buildGenerateParts(templateImage, prompt, referenceImage) {
+  const parts = [];
+
+  if (referenceImage) {
+    parts.push({ text: '[IMAGE 1 — REFERENCE ONLY: use this image solely to match art style, color palette, proportions, and character identity. Do NOT replicate its layout, cell arrangement, or poses.]' });
+    parts.push(imagePart(referenceImage));
+  }
+
+  parts.push({ text: '[IMAGE 2 — TEMPLATE TO FILL: this is the blank sprite sheet grid you must complete. Your output image must be a completed version of this exact template.]' });
+  parts.push(imagePart(templateImage));
+  parts.push({ text: prompt });
+
+  return parts;
+}
+
+// ── Response handling ──
+
+async function handleGeminiResponse(response, rid, label) {
+  if (response.status === 401 || response.status === 403) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error(`[${label}:${rid}] Auth error:`, errorData?.error?.message);
+    return { status: 401, body: { error: 'Invalid or unauthorized API key' } };
+  }
+
+  if (response.status === 429) {
+    console.warn(`[${label}:${rid}] Rate limited (429)`);
+    return { status: 429, body: { error: 'Rate limited — try again in a moment' } };
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error(`[${label}:${rid}] API error (${response.status}):`, errorData?.error?.message);
+    return { status: 502, body: { error: `${label} failed (upstream ${response.status})` } };
+  }
+
+  const data = await response.json();
+  const finishReason = data?.candidates?.[0]?.finishReason;
+
+  if (finishReason && finishReason !== 'STOP') {
+    console.warn(`[${label}:${rid}] finishReason=${finishReason}`, {
+      candidateCount: data?.candidates?.length,
+      partTypes: (data?.candidates?.[0]?.content?.parts ?? []).map(p => p.text ? 'text' : p.inlineData ? 'image' : 'unknown'),
+    });
+  }
+
+  if (finishReason === 'SAFETY' || finishReason === 'BLOCKED') {
+    return { status: 400, body: { error: 'Content was filtered by safety settings' } };
+  }
+  if (finishReason === 'MAX_TOKENS') {
+    return { status: 400, body: { error: 'Response truncated: max tokens reached' } };
+  }
+  if (finishReason === 'RECITATION') {
+    return { status: 400, body: { error: 'Response blocked: recitation policy' } };
+  }
+
+  return { status: 200, body: parseGeminiResponse(data) };
+}
+
+// ── Router ──
+
 export function createGenerateRouter(apiKey) {
   const router = Router();
 
   const generateLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 10,             // 10 requests per minute per IP
+    windowMs: 60 * 1000,
+    max: 10,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many generation requests. Please wait before trying again.' },
   });
 
-  /**
-   * POST /api/generate-grid
-   * Body: { model, prompt, templateImage: { data, mimeType }, imageSize,
-   *         referenceImage?: { data, mimeType } }
-   *
-   * Sends the template grid image + prompt to Gemini and returns the filled grid.
-   * When referenceImage is provided (multi-grid runs), it is sent as the first
-   * image part so subsequent grids maintain visual consistency with the first.
-   */
   router.post('/generate-grid', generateLimiter, async (req, res) => {
+    const rid = req.id || '?';
     try {
       const { model, prompt, templateImage, imageSize = '2K', referenceImage, aspectRatio = '1:1', thinkingLevel, mode, sourceImage } = req.body;
 
-      // Edit mode: targeted feedback on an existing image
+      // ── Edit mode ──
       if (mode === 'edit') {
-        if (!model || !prompt || !sourceImage) {
+        if (!prompt || !sourceImage) {
           return res.status(400).json({ error: 'model, prompt, and sourceImage are required for edit mode' });
         }
-        if (!ALLOWED_MODELS.includes(model)) {
-          return res.status(400).json({ error: `Invalid model. Allowed models: ${ALLOWED_MODELS.join(', ')}` });
-        }
-        if (sourceImage.mimeType && !ALLOWED_MIME_TYPES.includes(sourceImage.mimeType)) {
-          return res.status(400).json({ error: `Invalid sourceImage mimeType. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}` });
-        }
-        if (thinkingLevel !== undefined && !ALLOWED_THINKING_LEVELS.includes(thinkingLevel)) {
-          return res.status(400).json({ error: `Invalid thinkingLevel. Allowed values: ${ALLOWED_THINKING_LEVELS.join(', ')}` });
-        }
+        const err = firstError(
+          validateModel(model),
+          validateImageMime(sourceImage?.mimeType, 'sourceImage'),
+          validateEnum(thinkingLevel, ALLOWED_THINKING_LEVELS, 'thinkingLevel'),
+        );
+        if (err) return res.status(400).json({ error: err });
 
-        const parts = [];
-        parts.push({ text: '[SOURCE IMAGE — This is the sprite sheet to edit. Make only the targeted changes described below. Preserve everything else exactly as-is.]' });
-        parts.push({
-          inline_data: {
-            mime_type: sourceImage.mimeType || 'image/png',
-            data: sourceImage.data,
-          },
-        });
-        parts.push({ text: prompt });
-
-        const generationConfig = {
-          responseModalities: ['TEXT', 'IMAGE'],
-          temperature: 1.0,
-          imageConfig: { aspectRatio, imageSize },
-        };
-        if (thinkingLevel) {
-          generationConfig.thinkingConfig = { thinkingLevel };
-        }
-
-        const body = { contents: [{ parts }], generationConfig };
-        const payloadSize = JSON.stringify(body).length;
-        const rid = req.id || '?';
-        console.log(`[Edit:${rid}] payload ~${(payloadSize / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}`);
+        const parts = buildEditParts(sourceImage, prompt);
+        const body = { contents: [{ parts }], generationConfig: buildGenerationConfig(aspectRatio, imageSize, thinkingLevel) };
+        console.log(`[Edit:${rid}] payload ~${(JSON.stringify(body).length / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}`);
 
         const response = await callGemini(apiKey, model, body);
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error(`[Edit:${rid}] API error (${response.status}):`, errorData?.error?.message);
-          return res.status(502).json({ error: `Image edit failed (upstream ${response.status})` });
-        }
-        const data = await response.json();
-        const finishReason = data?.candidates?.[0]?.finishReason;
-        if (finishReason === 'SAFETY' || finishReason === 'BLOCKED') {
-          return res.status(400).json({ error: 'Content was filtered by safety settings' });
-        }
-        const result = parseGeminiResponse(data);
-        return res.json(result);
+        const result = await handleGeminiResponse(response, rid, 'Edit');
+        return res.status(result.status).json(result.body);
       }
 
-      // Standard generation mode
-      if (!model || !prompt || !templateImage) {
+      // ── Generate mode ──
+      if (!prompt || !templateImage) {
         return res.status(400).json({ error: 'model, prompt, and templateImage are required' });
       }
+      const err = firstError(
+        validateModel(model),
+        validateEnum(imageSize, ALLOWED_IMAGE_SIZES, 'imageSize'),
+        validateEnum(aspectRatio, ALLOWED_ASPECT_RATIOS, 'aspectRatio'),
+        validateImageMime(templateImage?.mimeType, 'templateImage'),
+        validateImageMime(referenceImage?.mimeType, 'referenceImage'),
+        validateEnum(thinkingLevel, ALLOWED_THINKING_LEVELS, 'thinkingLevel'),
+      );
+      if (err) return res.status(400).json({ error: err });
 
-      if (!ALLOWED_MODELS.includes(model)) {
-        return res.status(400).json({ error: `Invalid model. Allowed models: ${ALLOWED_MODELS.join(', ')}` });
-      }
-
-      if (!ALLOWED_IMAGE_SIZES.includes(imageSize)) {
-        return res.status(400).json({ error: `Invalid imageSize. Allowed values: ${ALLOWED_IMAGE_SIZES.join(', ')}` });
-      }
-
-      if (!ALLOWED_ASPECT_RATIOS.includes(aspectRatio)) {
-        return res.status(400).json({ error: `Invalid aspectRatio. Allowed values: ${ALLOWED_ASPECT_RATIOS.join(', ')}` });
-      }
-
-      if (templateImage.mimeType && !ALLOWED_MIME_TYPES.includes(templateImage.mimeType)) {
-        return res.status(400).json({ error: `Invalid templateImage mimeType. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}` });
-      }
-
-      if (referenceImage?.mimeType && !ALLOWED_MIME_TYPES.includes(referenceImage.mimeType)) {
-        return res.status(400).json({ error: `Invalid referenceImage mimeType. Allowed values: ${ALLOWED_MIME_TYPES.join(', ')}` });
-      }
-
-      if (thinkingLevel !== undefined && !ALLOWED_THINKING_LEVELS.includes(thinkingLevel)) {
-        return res.status(400).json({ error: `Invalid thinkingLevel. Allowed values: ${ALLOWED_THINKING_LEVELS.join(', ')}` });
-      }
-
-      const parts = [];
-
-      // If reference image provided (subsequent runs in multi-grid), add it first
-      if (referenceImage) {
-        parts.push({ text: '[IMAGE 1 — REFERENCE ONLY: use this image solely to match art style, color palette, proportions, and character identity. Do NOT replicate its layout, cell arrangement, or poses.]' });
-        parts.push({
-          inline_data: {
-            mime_type: referenceImage.mimeType || 'image/png',
-            data: referenceImage.data,
-          },
-        });
-      }
-
-      // Template image (always present)
-      parts.push({ text: '[IMAGE 2 — TEMPLATE TO FILL: this is the blank sprite sheet grid you must complete. Your output image must be a completed version of this exact template.]' });
-      parts.push({
-        inline_data: {
-          mime_type: templateImage.mimeType,
-          data: templateImage.data,
-        },
-      });
-
-      // Prompt text
-      parts.push({ text: prompt });
-
-      const generationConfig = {
-        responseModalities: ['TEXT', 'IMAGE'],
-        temperature: 1.0,
-        imageConfig: {
-          aspectRatio,
-          imageSize,
-        },
-      };
-
-      if (thinkingLevel) {
-        generationConfig.thinkingConfig = { thinkingLevel };
-      }
-
-      const body = {
-        contents: [{ parts }],
-        generationConfig,
-      };
-
-      const payloadSize = JSON.stringify(body).length;
-      const rid = req.id || '?';
-      console.log(`[Generate:${rid}] payload ~${(payloadSize / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}`);
+      const parts = buildGenerateParts(templateImage, prompt, referenceImage);
+      const body = { contents: [{ parts }], generationConfig: buildGenerationConfig(aspectRatio, imageSize, thinkingLevel) };
+      console.log(`[Generate:${rid}] payload ~${(JSON.stringify(body).length / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}`);
 
       const response = await callGemini(apiKey, model, body);
+      const result = await handleGeminiResponse(response, rid, 'Generate');
+      return res.status(result.status).json(result.body);
 
-      if (response.status === 401 || response.status === 403) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error(`[Generate:${rid}] Auth error:`, errorData?.error?.message);
-        return res.status(401).json({ error: 'Invalid or unauthorized API key' });
-      }
-
-      if (response.status === 429) {
-        console.warn(`[Generate:${rid}] Rate limited (429)`);
-        return res.status(429).json({ error: 'Rate limited — try again in a moment' });
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error(`[Generate:${rid}] API error (${response.status}):`, errorData?.error?.message);
-        return res.status(502).json({ error: `Image generation failed (upstream ${response.status})` });
-      }
-
-      const data = await response.json();
-
-      const finishReason = data?.candidates?.[0]?.finishReason;
-      if (finishReason && finishReason !== 'STOP') {
-        console.warn(`[Generate:${rid}] finishReason=${finishReason}`, {
-          candidateCount: data?.candidates?.length,
-          partTypes: (data?.candidates?.[0]?.content?.parts ?? []).map(p => p.text ? 'text' : p.inlineData ? 'image' : 'unknown'),
-        });
-      }
-
-      if (finishReason === 'SAFETY' || finishReason === 'BLOCKED') {
-        return res.status(400).json({ error: 'Content was filtered by safety settings' });
-      }
-      if (finishReason === 'MAX_TOKENS') {
-        return res.status(400).json({ error: 'Response truncated: max tokens reached' });
-      }
-      if (finishReason === 'RECITATION') {
-        return res.status(400).json({ error: 'Response blocked: recitation policy' });
-      }
-
-      const result = parseGeminiResponse(data);
-      return res.json(result);
     } catch (err) {
-      console.error(`[Generate:${req.id || '?'}] Generate grid error:`, err);
+      console.error(`[Generate:${rid}] error:`, err);
       return res.status(502).json({ error: 'Image generation failed unexpectedly' });
     }
   });
 
   const testConnectionLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 5,              // 5 requests per minute per IP
+    windowMs: 60 * 1000,
+    max: 5,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many connection test requests. Please wait before trying again.' },
@@ -260,9 +247,8 @@ export function createGenerateRouter(apiKey) {
     try {
       const { model = 'gemini-3-pro-image-preview' } = req.body || {};
 
-      if (!ALLOWED_MODELS.includes(model)) {
-        return res.status(400).json({ error: `Invalid model. Allowed models: ${ALLOWED_MODELS.join(', ')}` });
-      }
+      const err = validateModel(model);
+      if (err) return res.status(400).json({ error: err });
 
       const body = {
         contents: [{ parts: [{ text: 'Respond with "ok".' }] }],
