@@ -4,8 +4,8 @@
  * Each sprite type provides a small config object to customize behavior.
  */
 
-import { useCallback, useEffect, useRef, useMemo, type Dispatch } from 'react';
-import { useAppContext, type AppState, type GridLink, type SpriteType, type Action, type CellGroup } from '../context/AppContext';
+import { useCallback, useEffect, useRef, useMemo, type Dispatch, type MutableRefObject } from 'react';
+import { useAppContext, useAbortControllerRef, type AppState, type GridLink, type SpriteType, type Action, type CellGroup } from '../context/AppContext';
 import { generateTemplate, generateBackgroundTemplate } from '../lib/templateGenerator';
 import { computeSquareLayout } from '../lib/computeSquareLayout';
 import { extractSprites } from '../lib/spriteExtractor';
@@ -249,53 +249,50 @@ export async function runGeneratePipeline(
 }
 
 /**
- * Module-level pointer to the active AbortController. Updated by whichever
- * useGenericWorkflow instance starts a generation, read by cancelActiveGeneration
- * so App.tsx can cancel without holding a hook reference.
- */
-let sharedAbortController: AbortController | null = null;
-
-/**
  * Cancel the active single-grid generation (if any).
- * Safe to call from any component — reads the module-level pointer.
+ * Uses the shared abort controller ref from AppContext.
  */
-export function cancelActiveGeneration(dispatch: Dispatch<Action>) {
-  if (sharedAbortController) {
-    sharedAbortController.abort();
-    sharedAbortController = null;
+export function cancelActiveGeneration(
+  dispatch: Dispatch<Action>,
+  abortRef: MutableRefObject<AbortController | null>,
+) {
+  if (abortRef.current) {
+    abortRef.current.abort();
+    abortRef.current = null;
   }
   dispatch({ type: 'RESET' });
 }
 
 export function useGenericWorkflow(config: WorkflowConfig) {
   const { state, dispatch } = useAppContext();
+  const sharedAbortRef = useAbortControllerRef();
 
   const stateRef = useRef(state);
   stateRef.current = state;
   const configRef = useRef(config);
   configRef.current = config;
 
-  const abortRef = useRef<AbortController | null>(null);
+  const localAbortRef = useRef<AbortController | null>(null);
   const isGeneratingRef = useRef(false);
 
   // Cleanup: abort on unmount only if NOT actively generating.
   // When generating, the async pipeline still owns the controller and
-  // cancelActiveGeneration() can cancel via the module-level sharedAbortController.
+  // cancelActiveGeneration() can cancel via the shared context ref.
   useEffect(() => () => {
-    if (abortRef.current && !isGeneratingRef.current) {
-      abortRef.current.abort();
-      if (sharedAbortController === abortRef.current) {
-        sharedAbortController = null;
+    if (localAbortRef.current && !isGeneratingRef.current) {
+      localAbortRef.current.abort();
+      if (sharedAbortRef.current === localAbortRef.current) {
+        sharedAbortRef.current = null;
       }
-      abortRef.current = null;
+      localAbortRef.current = null;
     }
-  }, []);
+  }, [sharedAbortRef]);
 
   const cancelGeneration = useCallback(() => {
-    cancelActiveGeneration(dispatch);
-    abortRef.current = null;
+    cancelActiveGeneration(dispatch, sharedAbortRef);
+    localAbortRef.current = null;
     isGeneratingRef.current = false;
-  }, [dispatch]);
+  }, [dispatch, sharedAbortRef]);
 
   const generate = useCallback(async (gridLink?: GridLink, promptSuffix?: string) => {
     const currentState = stateRef.current;
@@ -309,10 +306,10 @@ export function useGenericWorkflow(config: WorkflowConfig) {
     if (isGeneratingRef.current) return;
     isGeneratingRef.current = true;
 
-    abortRef.current?.abort();
+    localAbortRef.current?.abort();
     const abort = new AbortController();
-    abortRef.current = abort;
-    sharedAbortController = abort;
+    localAbortRef.current = abort;
+    sharedAbortRef.current = abort;
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
@@ -338,12 +335,12 @@ export function useGenericWorkflow(config: WorkflowConfig) {
       dispatch({ type: 'GENERATE_ERROR', error: message });
     } finally {
       isGeneratingRef.current = false;
-      abortRef.current = null;
-      if (sharedAbortController === abort) {
-        sharedAbortController = null;
+      localAbortRef.current = null;
+      if (sharedAbortRef.current === abort) {
+        sharedAbortRef.current = null;
       }
     }
-  }, [dispatch]);
+  }, [dispatch, sharedAbortRef]);
 
   const reExtract = useCallback(async (overrides?: {
     aaInset?: number;

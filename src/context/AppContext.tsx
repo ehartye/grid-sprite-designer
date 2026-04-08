@@ -3,7 +3,7 @@
  * Manages the full workflow: configure → generate → extract → review → export
  */
 
-import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, type MutableRefObject } from 'react';
 import { ExtractedSprite } from '../lib/spriteExtractor';
 import type { TerrainGridSize, BackgroundGridSize, BackgroundMode } from '../lib/gridConfig';
 import { TERRAIN_GRIDS, BACKGROUND_GRIDS } from '../lib/gridConfig';
@@ -603,10 +603,12 @@ export function reducer(state: AppState, action: Action): AppState {
 
 const AppStateContext = createContext<AppState | null>(null);
 const AppDispatchContext = createContext<React.Dispatch<Action> | null>(null);
+const AbortControllerRefContext = createContext<MutableRefObject<AbortController | null> | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const prevHistoryIdRef = useRef<number | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Sync historyId changes to the server (moved out of reducer to avoid side effects)
   useEffect(() => {
@@ -630,7 +632,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppStateContext.Provider value={state}>
       <AppDispatchContext.Provider value={dispatch}>
-        {children}
+        <AbortControllerRefContext.Provider value={abortControllerRef}>
+          {children}
+        </AbortControllerRefContext.Provider>
       </AppDispatchContext.Provider>
     </AppStateContext.Provider>
   );
@@ -648,6 +652,13 @@ export function useAppDispatch(): React.Dispatch<Action> {
   const dispatch = useContext(AppDispatchContext);
   if (!dispatch) throw new Error('useAppDispatch must be used within AppProvider');
   return dispatch;
+}
+
+/** Shared abort controller ref for generation cancellation */
+export function useAbortControllerRef(): MutableRefObject<AbortController | null> {
+  const ref = useContext(AbortControllerRefContext);
+  if (!ref) throw new Error('useAbortControllerRef must be used within AppProvider');
+  return ref;
 }
 
 /** Backward-compatible hook returning both state and dispatch */

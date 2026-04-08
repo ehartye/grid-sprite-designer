@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { AppProvider, useAppContext } from './context/AppContext';
+import { AppProvider, useAppContext, useAbortControllerRef } from './context/AppContext';
 import { AppHeader, AppTab } from './components/layout/AppHeader';
 import { UnifiedConfigPanel } from './components/config/UnifiedConfigPanel';
 import { SpriteReview } from './components/grid/SpriteReview';
@@ -22,6 +22,7 @@ import { loadGenerationIntoState } from './lib/loadGeneration';
 
 function AppContent() {
   const { state, dispatch } = useAppContext();
+  const abortRef = useAbortControllerRef();
   const [tab, setTab] = useState<AppTab>('designer');
   const restoredRef = useRef(false);
 
@@ -76,9 +77,9 @@ function AppContent() {
     if (run) {
       cancelRun();
     } else {
-      cancelActiveGeneration(dispatch);
+      cancelActiveGeneration(dispatch, abortRef);
     }
-  }, [run, cancelRun, dispatch]);
+  }, [run, cancelRun, dispatch, abortRef]);
 
   // Auto-switch to designer tab when a run becomes active
   useEffect(() => {
