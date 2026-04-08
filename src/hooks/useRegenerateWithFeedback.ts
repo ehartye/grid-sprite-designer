@@ -10,10 +10,9 @@ import { useAppContext } from '../context/AppContext';
 import type { GridLink } from '../context/AppContext';
 import type { ContentPreset } from '../types/api';
 import type { FeedbackState } from '../types/feedback';
-import { editGrid } from '../api/geminiClient';
+import { generateFromStructuredPrompt } from '../api/geminiClient';
 import { extractSprites, type ExtractedSprite } from '../lib/spriteExtractor';
-import { buildEditPrompt } from '../lib/feedbackPrompt';
-import { fetchContentPreset } from '../lib/promptForType';
+import { assembleEditPrompt, fetchContentPreset } from '../lib/promptForType';
 import { debugLog } from '../lib/debugLog';
 
 export interface RegenerateOptions {
@@ -59,13 +58,16 @@ export function useRegenerateWithFeedback() {
         });
       }
 
-      // 2. Build edit prompt (feedback only, no full subject/layout prompt)
-      const cellLabels = gridLink.cellLabels;
-      const cellGroups = gridLink.cellGroups || [];
-      const cols = gridLink.cols;
-      const prompt = buildEditPrompt(feedbackState, cellLabels, cellGroups, cols);
+      // 2. Build structured edit prompt
+      const structuredPrompt = assembleEditPrompt({
+        feedbackState,
+        cellLabels: gridLink.cellLabels,
+        cellGroups: gridLink.cellGroups || [],
+        cols: gridLink.cols,
+        sourceImage: { data: filledGridImage, mimeType: filledGridMimeType || 'image/png' },
+      });
 
-      debugLog('[Regen Edit Prompt]\n' + prompt);
+      debugLog('[Regen Edit Prompt] parts:', structuredPrompt.parts.length);
 
       // 3. Dispatch generating state
       dispatch({
@@ -80,11 +82,10 @@ export function useRegenerateWithFeedback() {
         },
       });
 
-      // 4. Call edit API — source image only, no template
-      const result = await editGrid(
+      // 4. Call structured API — source image is embedded in the structured prompt
+      const result = await generateFromStructuredPrompt(
         currentState.model,
-        prompt,
-        { data: filledGridImage, mimeType: filledGridMimeType || 'image/png' },
+        structuredPrompt,
         imageSize,
         abort.signal,
         gridLink.aspectRatio || '1:1',
@@ -146,7 +147,7 @@ export function useRegenerateWithFeedback() {
             model: currentState.model,
             imageSize,
             thinkingLevel: currentState.thinkingLevel !== 'default' ? currentState.thinkingLevel : null,
-            prompt,
+            prompt: structuredPrompt.parts.filter(p => p.type === 'text').map(p => p.content).join('\n\n'),
             filledGridImage: result.image.data,
             spriteType,
             gridSize: `${gridLink.cols}x${gridLink.rows}`,

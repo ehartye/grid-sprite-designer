@@ -3,8 +3,9 @@
  * Combines template structure instructions with building-specific details.
  */
 
-import { buildGuidanceBlock, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import { buildGuidanceBlock } from './promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../context/AppContext';
+import type { TypeBuilderResult, PromptPart } from '../types/prompt';
 
 export interface BuildingConfig {
   name: string;
@@ -15,9 +16,11 @@ export interface BuildingConfig {
 }
 
 /**
- * Build the full prompt that tells Gemini how to fill a building grid template.
+ * Build building prompt parts for the structured assembler.
+ * Returns subject + instructions as PromptPart arrays.
+ * Role intro (grid intro), reference handling, and closing instruction are handled by the assembler.
  */
-export function buildBuildingPrompt(
+export function buildBuildingParts(
   building: BuildingConfig,
   gridGuidance: HierarchicalGuidance,
   linkGuidance: HierarchicalGuidance,
@@ -28,10 +31,10 @@ export function buildBuildingPrompt(
   rows: number,
   cellAnnotations?: Record<string, string>,
   groupAnnotations?: Record<string, string>,
-): string {
+): TypeBuilderResult {
   const totalCells = cols * rows;
 
-  const charBlock = [
+  const subjectText = [
     `Fill every pink cell area with a pixel-art sprite of a`,
     `${building.name.toUpperCase()} building/structure.`,
     ``,
@@ -42,27 +45,20 @@ export function buildBuildingPrompt(
     ``,
     `  \u2022 Default style reference: Final Fantasy VI / Chrono Trigger overworld buildings and structures (SNES 16-bit)`,
     `  \u2022 Consistent proportions, perspective, and palette across ALL ${totalCells} cells`,
-    `  \u2022 Each cell shows the SAME building — variations come from the label (e.g. time of day, damage state, animation frame)`,
+    `  \u2022 Each cell shows the SAME building \u2014 variations come from the label (e.g. time of day, damage state, animation frame)`,
   ].filter(Boolean).join('\n');
 
   const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, cellAnnotations, groupAnnotations);
 
-  return `\
-You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid
-(${totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
-a thin black header strip with white text labeling the variant. You MUST preserve
-every header strip and its text exactly as-is \u2014 do not erase, move, or redraw
-them.
+  const subject: PromptPart[] = [{ type: 'text', content: subjectText }];
 
-${charBlock}
-
-CHROMA BACKGROUND IS SACRED: The magenta #FF00FF background behind each sprite
+  const rulesText = `CHROMA BACKGROUND IS SACRED: The magenta #FF00FF background behind each sprite
 MUST remain pure, unmodified magenta (#FF00FF) at all times. This is a chroma-key
-background used for transparency — it is NOT part of the scene. Do NOT tint, shade,
+background used for transparency \u2014 it is NOT part of the scene. Do NOT tint, shade,
 darken, or blend the magenta background under any circumstances, even if the cell
 depicts nighttime, darkness, fog, underwater, smoke, fire glow, or any other
 environmental condition. Night scenes, dark moods, and atmospheric effects apply
-ONLY to the building sprite itself — the background stays bright magenta.
+ONLY to the building sprite itself \u2014 the background stays bright magenta.
 Do NOT draw outside the cell boundaries or over the black grid lines.
 
 CENTERING IS CRITICAL: Every sprite must be precisely centered both
@@ -81,10 +77,12 @@ fully contained within the cell.
 CONSISTENCY: The building must be recognizably the SAME structure across all
 cells. Proportions, perspective angle, and architectural details should be
 identical \u2014 only the aspects indicated by each cell's label should change
-(e.g. lighting, damage level, animation frame).
+(e.g. lighting, damage level, animation frame).`;
 
-CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):
+  const instructions: PromptPart[] = [
+    { type: 'text', content: rulesText },
+    { type: 'text', content: `CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):\n\n${guidanceBlock}` },
+  ];
 
-${guidanceBlock}
-${CLOSING_INSTRUCTION}`;
+  return { subject, instructions };
 }

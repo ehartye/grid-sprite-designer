@@ -9,10 +9,13 @@ import { useAppContext, useAbortControllerRef, type AppState, type GridLink, typ
 import { generateTemplate, generateBackgroundTemplate } from '../lib/templateGenerator';
 import { computeSquareLayout } from '../lib/computeSquareLayout';
 import { extractSprites } from '../lib/spriteExtractor';
-import { generateGrid } from '../api/geminiClient';
+import { generateFromStructuredPrompt } from '../api/geminiClient';
 import { debugLog } from '../lib/debugLog';
 import type { GridConfig } from '../lib/gridConfig';
-import type { HistorySaveResponse } from '../types/api';
+import type { HistorySaveResponse, ContentPreset } from '../types/api';
+import type { StructuredPrompt } from '../types/prompt';
+import { EMPTY_GUIDANCE } from '../lib/promptBuilderBase';
+import { buildGenerationRequest } from '../lib/generateRequest';
 
 /** Extra fields merged into the /api/history POST body */
 export interface HistoryExtras {
@@ -31,8 +34,6 @@ export interface WorkflowConfig {
   getContent: (state: AppState) => { name: string; description: string };
   /** Build the grid config from state and optional grid link */
   buildGridConfig: (state: AppState, gridLink?: GridLink) => GridConfig;
-  /** Build the prompt from content state, grid config, and optional grid link */
-  buildPrompt: (state: AppState, gridConfig: GridConfig, gridLink?: GridLink) => string;
   /** Build grid config for re-extraction from current state */
   getReExtractGridConfig: (state: AppState) => {
     cols: number;
@@ -45,7 +46,7 @@ export interface WorkflowConfig {
 /** Parameters for the shared generate pipeline */
 export interface PipelineParams {
   gridConfig: GridConfig;
-  prompt: string;
+  prompt: StructuredPrompt;
   model: string;
   thinkingLevel?: 'default' | 'minimal' | 'low' | 'medium' | 'high';
   imageSize: '2K' | '4K';
@@ -69,7 +70,7 @@ export async function runGeneratePipeline(
   dispatch: Dispatch<Action>,
   signal: AbortSignal,
 ) {
-  const { gridConfig, prompt, model, thinkingLevel, imageSize, spriteType, contentName, contentDescription, cellGroups, referenceImage, historyExtras, sourceContext } = params;
+  const { gridConfig, prompt, model, thinkingLevel, imageSize, spriteType, contentName, contentDescription, cellGroups, historyExtras, sourceContext } = params;
 
   // 1. Generate template grid
   const isBackground = spriteType === 'background';
@@ -99,18 +100,17 @@ export async function runGeneratePipeline(
     },
   });
 
-  // 2. Call Gemini API
-  debugLog('[Gemini Prompt]\n' + prompt);
-  const result = await generateGrid(
-    model,
-    prompt,
-    { data: template.base64, mimeType: 'image/png' },
-    imageSize,
-    signal,
-    referenceImage,
-    aspectRatio,
-    thinkingLevel,
-  );
+  // 2. Call Gemini API — inject template image at the canvas section
+  const finalParts = [...prompt.parts];
+  const canvasIdx = prompt.meta.sectionBreakdown.find(s => s.name === 'canvas')?.partIndex;
+  if (canvasIdx !== undefined) {
+    finalParts.splice(canvasIdx + 1, 0, { type: 'image', data: template.base64, mimeType: 'image/png', label: 'template' });
+  } else {
+    finalParts.push({ type: 'image', data: template.base64, mimeType: 'image/png', label: 'template' });
+  }
+  const finalPrompt = { ...prompt, parts: finalParts };
+  debugLog('[Gemini Structured Prompt] parts:', finalPrompt.parts.length, 'sections:', finalPrompt.meta.sectionBreakdown.map(s => s.name));
+  const result = await generateFromStructuredPrompt(model, finalPrompt, imageSize, signal, aspectRatio, thinkingLevel);
 
   if (signal.aborted) return null;
 
@@ -164,6 +164,8 @@ export async function runGeneratePipeline(
     mimeType: s.mimeType,
   }));
 
+  const promptForHistory = prompt.parts.filter(p => p.type === 'text').map(p => p.content).join('\n\n');
+
   try {
     const histResp = await fetch('/api/history', {
       method: 'POST',
@@ -174,7 +176,7 @@ export async function runGeneratePipeline(
         model,
         imageSize,
         thinkingLevel: thinkingLevel && thinkingLevel !== 'default' ? thinkingLevel : null,
-        prompt,
+        prompt: promptForHistory,
         filledGridImage: result.image.data,
         spriteType,
         gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
@@ -313,22 +315,52 @@ export function useGenericWorkflow(config: WorkflowConfig) {
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
-      const basePrompt = currentConfig.buildPrompt(currentState, gridConfig, gridLink);
-      const prompt = promptSuffix ? basePrompt + '\n\n' + promptSuffix : basePrompt;
 
-      await runGeneratePipeline({
-        gridConfig,
-        prompt,
-        model: currentState.model,
-        thinkingLevel: currentState.thinkingLevel,
-        imageSize: currentState.imageSize,
+      // Build ContentPreset from state fields
+      const stateFields = currentState[currentConfig.spriteType];
+      const contentPreset: ContentPreset = {
+        name: stateFields.name,
+        description: stateFields.description,
+        ...('equipment' in stateFields ? { equipment: stateFields.equipment } : {}),
+        ...('details' in stateFields ? { details: stateFields.details } : {}),
+        ...('bgMode' in stateFields ? { bgMode: (stateFields as { bgMode?: 'parallax' | 'scene' }).bgMode } : {}),
+        colorNotes: 'colorNotes' in stateFields ? (stateFields as { colorNotes: string }).colorNotes : undefined,
+        overallGuidance: 'overallGuidance' in stateFields ? (stateFields as { overallGuidance: string }).overallGuidance : undefined,
+        groupGuidance: 'groupGuidance' in stateFields ? (stateFields as { groupGuidance: Record<string, string> }).groupGuidance : undefined,
+        cellGuidance: 'cellGuidance' in stateFields ? (stateFields as { cellGuidance: Record<string, string> }).cellGuidance : undefined,
+      };
+
+      // Build a synthetic GridLink when none is provided
+      const effectiveGridLink: GridLink = gridLink ?? {
+        id: 0,
+        gridPresetId: 0,
+        gridGuidance: EMPTY_GUIDANCE,
+        linkGuidance: EMPTY_GUIDANCE,
+        sortOrder: 0,
+        gridName: '',
+        gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
+        cols: gridConfig.cols,
+        rows: gridConfig.rows,
+        cellLabels: gridConfig.cellLabels,
+        cellGroups: [],
+        aspectRatio: gridConfig.aspectRatio || '1:1',
+        tileShape: 'square' as const,
+      };
+
+      const pipelineParams = buildGenerationRequest({
         spriteType: currentConfig.spriteType,
-        contentName: content.name,
-        contentDescription: content.description,
-        cellGroups: gridLink?.cellGroups,
+        contentPreset,
+        gridLink: effectiveGridLink,
+        model: currentState.model,
+        imageSize: currentState.imageSize,
+        thinkingLevel: currentState.thinkingLevel,
+        isSubsequentGrid: false,
+        promptSuffix,
         historyExtras: { contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType], gridPresetName: gridLink?.gridName || null },
         sourceContext: { groupId: null, contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType] },
-      }, dispatch, abort.signal);
+      });
+
+      await runGeneratePipeline(pipelineParams, dispatch, abort.signal);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
       const message = err instanceof Error ? err.message : 'Generation failed';

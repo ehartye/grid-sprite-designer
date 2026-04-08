@@ -125,6 +125,16 @@ function buildGenerateParts(templateImage, prompt, referenceImage) {
   return parts;
 }
 
+// ── Structured prompt conversion ──
+
+function structuredPartsToGemini(parts) {
+  return parts.map(part =>
+    part.type === 'text'
+      ? { text: part.content }
+      : { inline_data: { mime_type: part.mimeType || 'image/png', data: part.data } }
+  );
+}
+
 // ── Response handling ──
 
 async function handleGeminiResponse(response, rid, label) {
@@ -204,6 +214,26 @@ export function createGenerateRouter(apiKey) {
 
         const response = await callGemini(apiKey, model, body);
         const result = await handleGeminiResponse(response, rid, 'Edit');
+        return res.status(result.status).json(result.body);
+      }
+
+      // ── Structured parts mode ──
+      if (req.body.structuredParts) {
+        const { structuredParts, imageSize = '2K', aspectRatio = '1:1', thinkingLevel } = req.body;
+        const err = firstError(
+          validateModel(model),
+          validateEnum(imageSize, ALLOWED_IMAGE_SIZES, 'imageSize'),
+          validateEnum(aspectRatio, ALLOWED_ASPECT_RATIOS, 'aspectRatio'),
+          validateEnum(thinkingLevel, ALLOWED_THINKING_LEVELS, 'thinkingLevel'),
+        );
+        if (err) return res.status(400).json({ error: err });
+
+        const parts = structuredPartsToGemini(structuredParts);
+        const body = { contents: [{ parts }], generationConfig: buildGenerationConfig(aspectRatio, imageSize, thinkingLevel) };
+        console.log(`[Generate:${rid}] structured payload ~${(JSON.stringify(body).length / 1024 / 1024).toFixed(2)}MB, imageSize: ${imageSize}, parts: ${parts.length}`);
+
+        const response = await callGemini(apiKey, model, body);
+        const result = await handleGeminiResponse(response, rid, 'Generate');
         return res.status(result.status).json(result.body);
       }
 

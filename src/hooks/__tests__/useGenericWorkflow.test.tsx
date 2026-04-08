@@ -17,26 +17,28 @@ import type { WorkflowConfig } from '../useGenericWorkflow';
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
-// Capture the AbortSignal passed to generateGrid so we can assert on it.
+// Capture the AbortSignal passed to the API call so we can assert on it.
 let capturedSignal: AbortSignal | null = null;
 
+function mockApiCall(_model: string, _promptOrStruct: unknown, _sizeOrSignal: unknown, signal?: AbortSignal) {
+  // Handle generateFromStructuredPrompt (4th arg is signal)
+  const actualSignal = signal instanceof AbortSignal ? signal : (_sizeOrSignal instanceof AbortSignal ? _sizeOrSignal : undefined);
+  if (actualSignal) capturedSignal = actualSignal;
+  return new Promise((_resolve, reject) => {
+    if (actualSignal?.aborted) {
+      reject(new DOMException('The operation was aborted.', 'AbortError'));
+      return;
+    }
+    actualSignal?.addEventListener('abort', () => {
+      reject(new DOMException('The operation was aborted.', 'AbortError'));
+    });
+    // Never resolves — simulates a long-running API call
+  });
+}
+
 vi.mock('../../api/geminiClient', () => ({
-  generateGrid: vi.fn(
-    (_model: string, _prompt: string, _template: unknown, _size: string, signal: AbortSignal) => {
-      capturedSignal = signal;
-      return new Promise((_resolve, reject) => {
-        // If signal is already aborted, reject immediately
-        if (signal?.aborted) {
-          reject(new DOMException('The operation was aborted.', 'AbortError'));
-          return;
-        }
-        // Otherwise reject on abort (like real fetch does)
-        signal?.addEventListener('abort', () => {
-          reject(new DOMException('The operation was aborted.', 'AbortError'));
-        });
-        // Never resolves — simulates a long-running API call
-      });
-    },
+  generateFromStructuredPrompt: vi.fn(
+    (_model: string, _prompt: unknown, _size: string, signal: AbortSignal) => mockApiCall(_model, _prompt, signal),
   ),
 }));
 
@@ -88,7 +90,6 @@ const testWorkflowConfig: WorkflowConfig = {
   validationLabel: 'character',
   getContent: () => ({ name: 'Test Character', description: 'A test character' }),
   buildGridConfig: () => mockGridConfig,
-  buildPrompt: () => 'Generate test sprites',
   getReExtractGridConfig: () => null,
 };
 
@@ -123,7 +124,7 @@ describe('useGenericWorkflow abort behavior', () => {
       { wrapper },
     );
 
-    // Start generation — the async pipeline will hang on the mocked generateGrid
+    // Start generation — the async pipeline will hang on the mocked API call
     act(() => {
       result.current.generate();
     });

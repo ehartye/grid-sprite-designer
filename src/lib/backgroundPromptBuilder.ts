@@ -5,8 +5,9 @@
  */
 
 import type { BackgroundMode } from './gridConfig';
-import { buildGuidanceBlock, CLOSING_INSTRUCTION } from './promptBuilderBase';
+import { buildGuidanceBlock } from './promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../context/AppContext';
+import type { TypeBuilderResult, PromptPart } from '../types/prompt';
 
 export interface BackgroundConfig {
   name: string;
@@ -17,9 +18,11 @@ export interface BackgroundConfig {
 }
 
 /**
- * Build the full prompt that tells Gemini how to fill a background grid template.
+ * Build background prompt parts for the structured assembler.
+ * Returns subject + instructions as PromptPart arrays.
+ * Role intro (grid intro), reference handling, and closing instruction are handled by the assembler.
  */
-export function buildBackgroundPrompt(
+export function buildBackgroundParts(
   bg: BackgroundConfig,
   gridGuidance: HierarchicalGuidance,
   linkGuidance: HierarchicalGuidance,
@@ -30,10 +33,10 @@ export function buildBackgroundPrompt(
   rows: number,
   cellAnnotations?: Record<string, string>,
   groupAnnotations?: Record<string, string>,
-): string {
+): TypeBuilderResult {
   const totalCells = cols * rows;
 
-  const descBlock = [
+  const subjectText = [
     `Fill every pink cell area with a pixel-art background`,
     bg.bgMode === 'parallax'
       ? `layer for a ${bg.name.toUpperCase()} parallax scrolling background.`
@@ -47,9 +50,16 @@ export function buildBackgroundPrompt(
     `  \u2022 Consistent palette and art style across ALL ${totalCells} cells`,
   ].filter(Boolean).join('\n');
 
-  const modeLabel = bg.bgMode === 'parallax' ? 'layer' : 'scene';
-
   const guidanceBlock = buildGuidanceBlock(gridGuidance, linkGuidance, presetGuidance, cellGroups, cellLabels, cols, cellAnnotations, groupAnnotations);
+
+  const subject: PromptPart[] = [{ type: 'text', content: subjectText }];
+
+  const chromaText = `CHROMA BACKGROUND IS SACRED: The magenta #FF00FF background areas
+MUST remain pure, unmodified magenta (#FF00FF). This is a chroma-key
+background used for transparency \u2014 it is NOT part of the scene. Do NOT tint, shade,
+darken, or blend the magenta background under any circumstances, even if the cell
+depicts nighttime, darkness, fog, or other atmospheric conditions.
+Do NOT draw outside the cell boundaries or over the black grid lines.`;
 
   const modeGuidance = bg.bgMode === 'parallax'
     ? `PARALLAX LAYER DESIGN: Each cell is one horizontal layer of a parallax
@@ -78,28 +88,15 @@ FILL THE CELL: Scene backgrounds should fill the entire cell content area
 edge-to-edge (below the header strip). There should be NO magenta background
 visible \u2014 the scene IS the background.`;
 
-  return `\
-You are filling in a sprite sheet template. The attached image is a ${cols}\u00d7${rows} grid
-(${totalCells} cells) on a bright magenta (#FF00FF) chroma-key background. Each cell has
-a thin black header strip with white text labeling the ${modeLabel}. You MUST preserve
-every header strip and its text exactly as-is \u2014 do not erase, move, or redraw them.
+  const consistencyText = `CONSISTENCY: All ${bg.bgMode === 'parallax' ? 'layers' : 'scenes'} must share the same art style and color palette.
+They are parts of one unified background ${bg.bgMode === 'parallax' ? 'system' : 'set'}.`;
 
-${descBlock}
+  const instructions: PromptPart[] = [
+    { type: 'text', content: chromaText },
+    { type: 'text', content: modeGuidance },
+    { type: 'text', content: consistencyText },
+    { type: 'text', content: `CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):\n\n${guidanceBlock}` },
+  ];
 
-CHROMA BACKGROUND IS SACRED: The magenta #FF00FF background areas
-MUST remain pure, unmodified magenta (#FF00FF). This is a chroma-key
-background used for transparency \u2014 it is NOT part of the scene. Do NOT tint, shade,
-darken, or blend the magenta background under any circumstances, even if the cell
-depicts nighttime, darkness, fog, or other atmospheric conditions.
-Do NOT draw outside the cell boundaries or over the black grid lines.
-
-${modeGuidance}
-
-CONSISTENCY: All ${bg.bgMode === 'parallax' ? 'layers' : 'scenes'} must share the same art style and color palette.
-They are parts of one unified background ${bg.bgMode === 'parallax' ? 'system' : 'set'}.
-
-CELL LAYOUT (${cols}\u00d7${rows} grid, 0-indexed):
-
-${guidanceBlock}
-${CLOSING_INSTRUCTION}`;
+  return { subject, instructions };
 }

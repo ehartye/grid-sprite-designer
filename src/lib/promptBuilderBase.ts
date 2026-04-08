@@ -109,9 +109,6 @@ export function buildGuidanceBlock(
   return parts.join('\n\n---\n\n');
 }
 
-/** The closing instruction shared by all prompt builders. */
-export const CLOSING_INSTRUCTION = 'Return the completed sprite sheet as a single image. Preserve ALL header text exactly.';
-
 const PIXELIZE_GUIDANCE: Record<number, string> = {
   16:  'TARGET PIXEL SIZE: 16×16 — Design for extreme pixel art resolution. Use 2–4 flat colors, bold silhouettes, no gradients, no fine detail. Every pixel counts; prioritize readable shape over surface detail.',
   32:  'TARGET PIXEL SIZE: 32×32 — Design for classic pixel art (NES/early SNES era). Limited palette of 4–8 colors, clean shapes, minimal shading. Sprites should read clearly as strong silhouettes.',
@@ -125,13 +122,3 @@ export function getPixelizeGuidance(targetSize: number | undefined): string {
   return PIXELIZE_GUIDANCE[targetSize] ?? '';
 }
 
-/** Prefix for multi-grid reference image prompts, shared by all sprite types. */
-export const REFERENCE_PREFIX = `\
-You are given two images.
-IMAGE 1 is a previously completed sprite sheet — use it ONLY as a visual
-reference to maintain consistent proportions, color palette, art style, and
-character identity. Do NOT replicate IMAGE 1's layout or poses.
-IMAGE 2 is the blank template grid you must fill in. Your output image must
-complete IMAGE 2. All layout instructions below describe IMAGE 2.
-
-`;

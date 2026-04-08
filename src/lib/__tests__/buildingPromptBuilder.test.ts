@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildBuildingPrompt, type BuildingConfig } from '../buildingPromptBuilder';
+import { buildBuildingParts, type BuildingConfig } from '../buildingPromptBuilder';
 import { EMPTY_GUIDANCE } from '../promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
 
@@ -14,59 +14,66 @@ const baseBuilding: BuildingConfig = {
 const cellLabels = ['Day', 'Night', 'Dawn', 'Damaged', 'Ruined', 'Snow', 'Rain', 'Fog', 'Fire'];
 const cellGroups: CellGroup[] = [];
 
-describe('buildBuildingPrompt', () => {
+/** Helper: concatenate all text parts from a TypeBuilderResult */
+function allText(result: ReturnType<typeof buildBuildingParts>): string {
+  return [...result.subject, ...result.instructions]
+    .filter(p => p.type === 'text')
+    .map(p => (p as any).content)
+    .join('\n');
+}
+
+describe('buildBuildingParts', () => {
   it('includes building name in uppercase', () => {
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('MEDIEVAL INN');
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('MEDIEVAL INN');
   });
 
   it('includes description and details', () => {
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('A cozy two-story stone inn');
-    expect(prompt).toContain('Chimney on the right');
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('A cozy two-story stone inn');
+    expect(text).toContain('Chimney on the right');
   });
 
-  it('includes grid dimensions', () => {
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('3\u00d73');
-    expect(prompt).toContain('9 cells');
+  it('includes total cell count', () => {
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('9');
   });
 
   it('lists cell labels in the layout', () => {
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('"Day"');
-    expect(prompt).toContain('"Night"');
-    expect(prompt).toContain('"Fire"');
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('"Day"');
+    expect(text).toContain('"Night"');
+    expect(text).toContain('"Fire"');
   });
 
   it('includes gridGuidance overall text when provided', () => {
     const gridGuidance: HierarchicalGuidance = { overall: 'Custom generic guidance', groups: {}, cells: {} };
-    const prompt = buildBuildingPrompt(baseBuilding, gridGuidance, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('Custom generic guidance');
+    const text = allText(buildBuildingParts(baseBuilding, gridGuidance, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('Custom generic guidance');
   });
 
   it('includes presetGuidance overall text when provided', () => {
     const presetGuidance: HierarchicalGuidance = { overall: 'Cells show day/night variations', groups: {}, cells: {} };
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('Cells show day/night variations');
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('Cells show day/night variations');
   });
 
   it('includes linkGuidance overall text when provided', () => {
     const linkGuidance: HierarchicalGuidance = { overall: 'Override guidance', groups: {}, cells: {} };
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, linkGuidance, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('Override guidance');
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, linkGuidance, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('Override guidance');
   });
 
   it('includes chroma key instructions', () => {
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('#FF00FF');
-    expect(prompt).toContain('CHROMA BACKGROUND IS SACRED');
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('#FF00FF');
+    expect(text).toContain('CHROMA BACKGROUND IS SACRED');
   });
 
   it('omits details line when empty', () => {
     const building = { ...baseBuilding, details: '' };
-    const prompt = buildBuildingPrompt(building, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
-    expect(prompt).not.toContain('Structural details:');
+    const text = allText(buildBuildingParts(building, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3));
+    expect(text).not.toContain('Structural details:');
   });
 
   it('includes cell-level guidance in output', () => {
@@ -75,8 +82,8 @@ describe('buildBuildingPrompt', () => {
       groups: {},
       cells: { 'Day': 'Bright sunny day scene' },
     };
-    const prompt = buildBuildingPrompt(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 3, 3);
-    expect(prompt).toContain('Bright sunny day scene');
+    const text = allText(buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, cellLabels, 3, 3));
+    expect(text).toContain('Bright sunny day scene');
   });
 
   it('includes group-level guidance in output', () => {
@@ -86,8 +93,14 @@ describe('buildBuildingPrompt', () => {
       groups: { 'Lighting': 'All lighting variations' },
       cells: {},
     };
-    const prompt = buildBuildingPrompt(baseBuilding, gridGuidance, EMPTY_GUIDANCE, EMPTY_GUIDANCE, groups, cellLabels, 3, 3);
-    expect(prompt).toContain('All lighting variations');
-    expect(prompt).toContain('GROUP: Lighting');
+    const text = allText(buildBuildingParts(baseBuilding, gridGuidance, EMPTY_GUIDANCE, EMPTY_GUIDANCE, groups, cellLabels, 3, 3));
+    expect(text).toContain('All lighting variations');
+    expect(text).toContain('GROUP: Lighting');
+  });
+
+  it('returns subject and instructions as separate arrays', () => {
+    const result = buildBuildingParts(baseBuilding, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, cellLabels, 3, 3);
+    expect(result.subject.length).toBeGreaterThan(0);
+    expect(result.instructions.length).toBeGreaterThan(0);
   });
 });

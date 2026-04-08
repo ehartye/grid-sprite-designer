@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildBackgroundPrompt, type BackgroundConfig } from '../backgroundPromptBuilder';
+import { buildBackgroundParts, type BackgroundConfig } from '../backgroundPromptBuilder';
 import { EMPTY_GUIDANCE } from '../promptBuilderBase';
 import type { HierarchicalGuidance, CellGroup } from '../../context/AppContext';
 
@@ -23,77 +23,80 @@ const parallaxLabels = ['Sky', 'Mountains', 'Trees', 'Ground'];
 const sceneLabels = ['Day', 'Night', 'Dawn', 'Dusk'];
 const cellGroups: CellGroup[] = [];
 
-describe('buildBackgroundPrompt - parallax mode', () => {
+/** Helper: concatenate all text parts from a TypeBuilderResult */
+function allText(result: ReturnType<typeof buildBackgroundParts>): string {
+  return [...result.subject, ...result.instructions]
+    .filter(p => p.type === 'text')
+    .map(p => (p as any).content)
+    .join('\n');
+}
+
+describe('buildBackgroundParts - parallax mode', () => {
   it('includes background name in uppercase', () => {
-    const prompt = buildBackgroundPrompt(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('SUNSET MOUNTAINS');
+    const text = allText(buildBackgroundParts(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4));
+    expect(text).toContain('SUNSET MOUNTAINS');
   });
 
   it('mentions parallax scrolling', () => {
-    const prompt = buildBackgroundPrompt(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('parallax scrolling background');
+    const text = allText(buildBackgroundParts(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4));
+    expect(text).toContain('parallax scrolling background');
   });
 
   it('includes parallax-specific design rules', () => {
-    const prompt = buildBackgroundPrompt(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('PARALLAX LAYER DESIGN');
-    expect(prompt).toContain('tile HORIZONTALLY');
+    const text = allText(buildBackgroundParts(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4));
+    expect(text).toContain('PARALLAX LAYER DESIGN');
+    expect(text).toContain('tile HORIZONTALLY');
   });
 
-  it('labels header with "layer"', () => {
-    const prompt = buildBackgroundPrompt(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('labeling the layer');
-  });
-
-  it('includes grid dimensions', () => {
-    const prompt = buildBackgroundPrompt(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('1\u00d74');
-    expect(prompt).toContain('4 cells');
+  it('includes total cell count', () => {
+    const text = allText(buildBackgroundParts(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4));
+    expect(text).toContain('4');
   });
 });
 
-describe('buildBackgroundPrompt - scene mode', () => {
+describe('buildBackgroundParts - scene mode', () => {
   it('mentions scene variant', () => {
-    const prompt = buildBackgroundPrompt(baseScene, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, sceneLabels, 2, 2);
-    expect(prompt).toContain('scene variant of VILLAGE SQUARE');
+    const text = allText(buildBackgroundParts(baseScene, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, sceneLabels, 2, 2));
+    expect(text).toContain('scene variant of VILLAGE SQUARE');
   });
 
   it('includes scene-specific design rules', () => {
-    const prompt = buildBackgroundPrompt(baseScene, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, sceneLabels, 2, 2);
-    expect(prompt).toContain('SCENE VARIATION DESIGN');
-    expect(prompt).toContain('Same composition');
-  });
-
-  it('labels header with "scene"', () => {
-    const prompt = buildBackgroundPrompt(baseScene, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, sceneLabels, 2, 2);
-    expect(prompt).toContain('labeling the scene');
+    const text = allText(buildBackgroundParts(baseScene, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, sceneLabels, 2, 2));
+    expect(text).toContain('SCENE VARIATION DESIGN');
+    expect(text).toContain('Same composition');
   });
 
   it('lists cell labels', () => {
-    const prompt = buildBackgroundPrompt(baseScene, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, sceneLabels, 2, 2);
-    expect(prompt).toContain('"Day"');
-    expect(prompt).toContain('"Dusk"');
+    const text = allText(buildBackgroundParts(baseScene, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, sceneLabels, 2, 2));
+    expect(text).toContain('"Day"');
+    expect(text).toContain('"Dusk"');
   });
 });
 
-describe('buildBackgroundPrompt - guidance', () => {
+describe('buildBackgroundParts - guidance', () => {
   it('includes presetGuidance overall as fallback guidance', () => {
     const presetGuidance: HierarchicalGuidance = { overall: 'Sky at top, ground at bottom', groups: {}, cells: {} };
-    const prompt = buildBackgroundPrompt(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('Sky at top, ground at bottom');
+    const text = allText(buildBackgroundParts(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, presetGuidance, cellGroups, parallaxLabels, 1, 4));
+    expect(text).toContain('Sky at top, ground at bottom');
   });
 
   it('includes linkGuidance overall when provided', () => {
     const linkGuidance: HierarchicalGuidance = { overall: 'Custom override', groups: {}, cells: {} };
-    const prompt = buildBackgroundPrompt(baseParallax, EMPTY_GUIDANCE, linkGuidance, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('Custom override');
+    const text = allText(buildBackgroundParts(baseParallax, EMPTY_GUIDANCE, linkGuidance, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4));
+    expect(text).toContain('Custom override');
   });
 
   it('combines gridGuidance and linkGuidance in output', () => {
     const gridGuidance: HierarchicalGuidance = { overall: 'Generic notes', groups: {}, cells: {} };
     const linkGuidance: HierarchicalGuidance = { overall: 'Specific notes', groups: {}, cells: {} };
-    const prompt = buildBackgroundPrompt(baseParallax, gridGuidance, linkGuidance, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
-    expect(prompt).toContain('Generic notes');
-    expect(prompt).toContain('Specific notes');
+    const text = allText(buildBackgroundParts(baseParallax, gridGuidance, linkGuidance, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4));
+    expect(text).toContain('Generic notes');
+    expect(text).toContain('Specific notes');
+  });
+
+  it('returns subject and instructions as separate arrays', () => {
+    const result = buildBackgroundParts(baseParallax, EMPTY_GUIDANCE, EMPTY_GUIDANCE, EMPTY_GUIDANCE, cellGroups, parallaxLabels, 1, 4);
+    expect(result.subject.length).toBeGreaterThan(0);
+    expect(result.instructions.length).toBeGreaterThan(0);
   });
 });
