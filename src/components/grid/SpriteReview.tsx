@@ -26,7 +26,7 @@ import { SidebarGroup } from './SidebarGroup';
 import type { FeedbackState } from '../../types/feedback';
 import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
 import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
-import type { PostProcessingState, PostProcessingAction } from '../../hooks/usePostProcessingState';
+import { usePostProcessingState } from '../../hooks/usePostProcessingState';
 import { loadGenerationIntoState } from '../../lib/loadGeneration';
 import type { RGB } from '../../types/color';
 
@@ -92,55 +92,9 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
   const [processedSprites, setProcessedSprites] = useState<ExtractedSprite[]>(sprites);
   const [palette, setPalette] = useState<RGB[]>([]);
-  const [struckColors, setStruckColors] = useState<RGB[]>([]);
-  const [showRareColors, setShowRareColors] = useState(false);
-  const [aaInset, setAaInset] = useState(3);
+  const { state: postState, dispatch: postDispatch } = usePostProcessingState();
   const [addSheetOpen, setAddSheetOpen] = useState(false);
-  const [pixelizeEnabled, setPixelizeEnabled] = useState(false);
-  const [pixelizeSize, setPixelizeSize] = useState(32);
-  const [outlineEnabled, setOutlineEnabled] = useState(false);
-  const [outlineOutDepth, setOutlineOutDepth] = useState(1);
-  const [outlineInDepth, setOutlineInDepth] = useState(0);
-  const [outlineColor, setOutlineColor] = useState<RGB>([0, 0, 0]);
-  const [alphaSnapEnabled, setAlphaSnapEnabled] = useState(false);
-  const [alphaSnapThreshold, setAlphaSnapThreshold] = useState(128);
-  const [eraserBrushW, setEraserBrushW] = useState(1);
-  const [eraserBrushH, setEraserBrushH] = useState(1);
-  const [strikeTolerance, setStrikeTolerance] = useState(10);
-  const struckKey = JSON.stringify(struckColors);
-
-  // Bridge: construct PostProcessingState from individual useState values
-  // (will be replaced by usePostProcessingState() in task 9)
-  const postState: PostProcessingState = useMemo(() => ({
-    pixelize: { enabled: pixelizeEnabled, size: pixelizeSize },
-    outline: { enabled: outlineEnabled, outDepth: outlineOutDepth, inDepth: outlineInDepth, color: outlineColor },
-    alphaSnap: { enabled: alphaSnapEnabled, threshold: alphaSnapThreshold },
-    struckColors,
-    strikeTolerance,
-    showRareColors,
-    aaInset,
-    eraserBrushW,
-    eraserBrushH,
-  }), [pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, struckColors, strikeTolerance, showRareColors, aaInset, eraserBrushW, eraserBrushH]);
-
-  const postDispatch = useCallback((action: PostProcessingAction) => {
-    switch (action.type) {
-      case 'SET_PIXELIZE': setPixelizeEnabled(action.enabled); if (action.size !== undefined) setPixelizeSize(action.size); break;
-      case 'SET_PIXELIZE_SIZE': setPixelizeSize(action.size); break;
-      case 'SET_OUTLINE': setOutlineEnabled(action.enabled); break;
-      case 'SET_OUTLINE_DEPTH': if (action.outDepth !== undefined) setOutlineOutDepth(action.outDepth); if (action.inDepth !== undefined) setOutlineInDepth(action.inDepth); break;
-      case 'SET_OUTLINE_COLOR': setOutlineColor(action.color); break;
-      case 'SET_ALPHA_SNAP': setAlphaSnapEnabled(action.enabled); if (action.threshold !== undefined) setAlphaSnapThreshold(action.threshold); break;
-      case 'SET_ALPHA_SNAP_THRESHOLD': setAlphaSnapThreshold(action.threshold); break;
-      case 'SET_STRIKE_TOLERANCE': setStrikeTolerance(action.tolerance); break;
-      case 'STRIKE_COLOR': setStruckColors(prev => prev.some(c => c[0] === action.color[0] && c[1] === action.color[1] && c[2] === action.color[2]) ? prev : [...prev, action.color]); break;
-      case 'UNSTRIKE_COLOR': setStruckColors(prev => prev.filter(c => c[0] !== action.color[0] || c[1] !== action.color[1] || c[2] !== action.color[2])); break;
-      case 'CLEAR_STRUCK_COLORS': setStruckColors([]); break;
-      case 'SET_SHOW_RARE_COLORS': setShowRareColors(action.show); break;
-      case 'SET_AA_INSET': setAaInset(action.inset); break;
-      case 'SET_ERASER_BRUSH': if (action.w !== undefined) setEraserBrushW(action.w); if (action.h !== undefined) setEraserBrushH(action.h); break;
-    }
-  }, []);
+  const struckKey = JSON.stringify(postState.struckColors);
 
   // Feedback state and regeneration hook
   const [feedbackState, setFeedbackState] = useState<FeedbackState>(createEmptyFeedback);
@@ -200,7 +154,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
   // Process sprites through posterization + chroma key + color strikes + erasures + pixelize
   useEffect(() => {
-    if (!post.posterizeOutput && !chroma.chromaEnabled && struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled && !alphaSnapEnabled) {
+    if (!post.posterizeOutput && !chroma.chromaEnabled && postState.struckColors.length === 0 && selection.erasedPixels.size === 0 && !chroma.edgeRecolorPasses && !postState.pixelize.enabled && !postState.outline.enabled && !postState.alphaSnap.enabled) {
       setProcessedSprites(sprites);
       return;
     }
@@ -223,10 +177,10 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           edgeRecolorPasses: chroma.edgeRecolorPasses,
           recolorSensitivity: chroma.recolorSensitivity,
         },
-        pixelize: { enabled: pixelizeEnabled, size: pixelizeSize },
-        outline: { enabled: outlineEnabled, outDepth: outlineOutDepth, inDepth: outlineInDepth, color: outlineColor },
-        alphaSnap: { enabled: alphaSnapEnabled, threshold: alphaSnapThreshold },
-        colorStrike: { colors: struckColors, tolerance: strikeTolerance },
+        pixelize: postState.pixelize,
+        outline: postState.outline,
+        alphaSnap: postState.alphaSnap,
+        colorStrike: { colors: postState.struckColors, tolerance: postState.strikeTolerance },
         chromaKeyColor,
       };
 
@@ -237,7 +191,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     })();
 
     return () => { cancelled = true; };
-  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, strikeTolerance]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, postState]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
   // Guard: skip the first save effect after load completes to prevent
@@ -258,8 +212,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     // Reset to defaults immediately
     selection.resetSelection();
     chroma.resetChromaKey();
-    setStruckColors([]);
-    setAaInset(3);
+    postDispatch({ type: 'RESET' });
     post.resetPosterize();
     setFeedbackState(createEmptyFeedback());
     setFeedbackPanelOpen(false);
@@ -278,26 +231,31 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           recolorSensitivity: settings.recolorSensitivity ?? 50,
           defringeCore: settings.defringeCore ?? 240,
         });
-        setStruckColors(settings.struckColors);
         selection.restoreSelection({
           mirroredCells: settings.mirroredCells,
           cellOrder: settings.cellOrder,
           erasedPixels: settings.erasedPixels,
         });
-        setAaInset(settings.aaInset);
         post.restorePosterize({
           posterizeBits: settings.posterizeBits,
           posterizeOutput: settings.posterizeOutput,
         });
-        setPixelizeEnabled(settings.pixelizeEnabled ?? false);
-        setPixelizeSize(settings.pixelizeSize ?? 32);
-        setOutlineEnabled(settings.outlineEnabled ?? false);
-        setOutlineOutDepth(settings.outlineOutDepth ?? 1);
-        setOutlineInDepth(settings.outlineInDepth ?? 0);
-        setOutlineColor(settings.outlineColor ?? [0, 0, 0]);
-        setAlphaSnapEnabled(settings.alphaSnapEnabled ?? false);
-        setAlphaSnapThreshold(settings.alphaSnapThreshold ?? 128);
-        setStrikeTolerance(settings.strikeTolerance ?? 10);
+        postDispatch({
+          type: 'RESTORE',
+          settings: {
+            pixelizeEnabled: settings.pixelizeEnabled ?? false,
+            pixelizeSize: settings.pixelizeSize ?? 32,
+            outlineEnabled: settings.outlineEnabled ?? false,
+            outlineOutDepth: settings.outlineOutDepth ?? 1,
+            outlineInDepth: settings.outlineInDepth ?? 0,
+            outlineColor: settings.outlineColor ?? [0, 0, 0],
+            alphaSnapEnabled: settings.alphaSnapEnabled ?? false,
+            alphaSnapThreshold: settings.alphaSnapThreshold ?? 128,
+            strikeTolerance: settings.strikeTolerance ?? 10,
+            struckColors: settings.struckColors,
+            aaInset: settings.aaInset,
+          },
+        });
       }
       if (histData?.thumbnailCellIndex != null) {
         selection.setThumbnailCell(histData.thumbnailCellIndex);
@@ -353,27 +311,27 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     saveSettings({
       chromaEnabled: chroma.chromaEnabled,
       chromaTolerance: chroma.chromaTolerance,
-      struckColors,
+      struckColors: postState.struckColors,
       mirroredCells: Array.from(selection.mirroredCells),
       cellOrder: selection.displayOrder,
-      aaInset,
+      aaInset: postState.aaInset,
       posterizeBits: post.posterizeBits,
       posterizeOutput: post.posterizeOutput,
       edgeRecolorPasses: chroma.edgeRecolorPasses,
       recolorSensitivity: chroma.recolorSensitivity,
       defringeCore: chroma.defringeCore,
       erasedPixels: serializedErased,
-      pixelizeEnabled,
-      pixelizeSize,
-      outlineEnabled,
-      outlineOutDepth,
-      outlineInDepth,
-      outlineColor,
-      alphaSnapEnabled,
-      alphaSnapThreshold,
-      strikeTolerance,
+      pixelizeEnabled: postState.pixelize.enabled,
+      pixelizeSize: postState.pixelize.size,
+      outlineEnabled: postState.outline.enabled,
+      outlineOutDepth: postState.outline.outDepth,
+      outlineInDepth: postState.outline.inDepth,
+      outlineColor: postState.outline.color,
+      alphaSnapEnabled: postState.alphaSnap.enabled,
+      alphaSnapThreshold: postState.alphaSnap.threshold,
+      strikeTolerance: postState.strikeTolerance,
     });
-  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, aaInset, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, strikeTolerance, saveSettings]);
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, postState, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -472,17 +430,12 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   }, [state.historyId, displaySprites, selection.mirroredCells, flipSpriteHorizontally, selection.setThumbnailCell, dispatch]);
 
   const handleZoomStrikeColor = useCallback((color: RGB) => {
-    setStruckColors((prev) => {
-      if (prev.some((c) => c[0] === color[0] && c[1] === color[1] && c[2] === color[2])) return prev;
-      return [...prev, color];
-    });
-  }, []);
+    postDispatch({ type: 'STRIKE_COLOR', color });
+  }, [postDispatch]);
 
   const handleZoomUnstrikeColor = useCallback((color: RGB) => {
-    setStruckColors((prev) =>
-      prev.filter((c) => c[0] !== color[0] || c[1] !== color[1] || c[2] !== color[2]),
-    );
-  }, []);
+    postDispatch({ type: 'UNSTRIKE_COLOR', color });
+  }, [postDispatch]);
 
   // Feedback handlers
   const handleSignOffToggle = useCallback((cellIndex: number) => {
@@ -555,7 +508,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           gridCols={dynamicCols}
           cellLabels={dynamicCellLabels}
           aspectRatio={dynamicAspectRatio}
-          pixelizeEnabled={pixelizeEnabled}
+          pixelizeEnabled={postState.pixelize.enabled}
           feedbackState={feedbackState}
           onSignOffToggle={handleSignOffToggle}
           onFeedbackClick={handleCellFeedbackClick}
@@ -703,15 +656,15 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         return (
           <SpriteZoomModal
             sprite={zoomSprite}
-            struckColors={struckColors}
+            struckColors={postState.struckColors}
             onStrikeColor={handleZoomStrikeColor}
             onUnstrikeColor={handleZoomUnstrikeColor}
             onErasePixel={selection.handleErasePixel}
             onClose={() => selection.setZoomSpriteIndex(null)}
-            brushW={eraserBrushW}
-            brushH={eraserBrushH}
-            onBrushWChange={setEraserBrushW}
-            onBrushHChange={setEraserBrushH}
+            brushW={postState.eraserBrushW}
+            brushH={postState.eraserBrushH}
+            onBrushWChange={(w: number) => postDispatch({ type: 'SET_ERASER_BRUSH', w })}
+            onBrushHChange={(h: number) => postDispatch({ type: 'SET_ERASER_BRUSH', h })}
             onUndoErase={selection.undoErase}
             canUndoErase={selection.canUndoErase}
           />
