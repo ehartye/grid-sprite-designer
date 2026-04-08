@@ -14,10 +14,10 @@ import { useAnimationLoop } from '../../hooks/useAnimationLoop';
 import { useSpriteSelection } from '../../hooks/useSpriteSelection';
 import { SpriteGrid } from './SpriteGrid';
 import { SpriteZoomModal } from './SpriteZoomModal';
-import { composeSpriteSheet, ExtractedSprite, pixelizeSprite } from '../../lib/spriteExtractor';
+import { composeSpriteSheet, ExtractedSprite } from '../../lib/spriteExtractor';
 import { debugLog } from '../../lib/debugLog';
-import { applyChromaKey, defringeRecolor, snapAlpha, outlineSprite, strikeColors, detectKeyColor } from '../../lib/chromaKey';
-import { posterize } from '../../lib/imagePreprocess';
+import { processSprite, detectPalette, detectChromaKeyColor } from '../../lib/spriteProcessor';
+import type { ProcessSpriteOptions } from '../../lib/spriteProcessor';
 import { AddSheetModal } from './AddSheetModal';
 import { FeedbackPanel } from './FeedbackPanel';
 import { SidebarGroup } from './SidebarGroup';
@@ -26,165 +26,6 @@ import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
 import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
 import { loadGenerationIntoState } from '../../lib/loadGeneration';
 import type { RGB } from '../../types/color';
-
-async function processSprite(
-  sprite: ExtractedSprite,
-  posterizeOutput: boolean,
-  posterizeBits: number,
-  chromaEnabled: boolean,
-  chromaTolerance: number,
-  struckColors: RGB[],
-  erasedPixels?: Set<string>,
-  edgeRecolorPasses = 0,
-  recolorSensitivity = 50,
-  defringeCore = 240,
-  keyR = 255,
-  keyG = 0,
-  keyB = 255,
-  pixelizeEnabled = false,
-  pixelizeSize = 32,
-  outlineEnabled = false,
-  outlineOutDepth = 1,
-  outlineInDepth = 0,
-  outlineColor: RGB = [0, 0, 0],
-  alphaSnapEnabled = false,
-  alphaSnapThreshold = 128,
-  strikeTolerance = 10,
-): Promise<ExtractedSprite> {
-  const hasErasure = erasedPixels && erasedPixels.size > 0;
-  if (!posterizeOutput && !chromaEnabled && struckColors.length === 0 && !hasErasure && !edgeRecolorPasses && !pixelizeEnabled && !outlineEnabled && !alphaSnapEnabled) return sprite;
-
-  const img = new Image();
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error('Failed to load sprite'));
-    img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
-  });
-
-  const canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(img, 0, 0);
-
-  let imageData = ctx.getImageData(0, 0, img.width, img.height);
-  if (posterizeOutput) imageData = posterize(imageData, posterizeBits);
-  if (chromaEnabled) imageData = applyChromaKey(imageData, chromaTolerance, defringeCore, keyR, keyG, keyB);
-  if (edgeRecolorPasses > 0) imageData = defringeRecolor(imageData, keyR, keyG, keyB, edgeRecolorPasses, recolorSensitivity);
-  if (alphaSnapEnabled) imageData = snapAlpha(imageData, alphaSnapThreshold);
-  if (struckColors.length > 0) imageData = strikeColors(imageData, struckColors, strikeTolerance);
-
-  ctx.putImageData(imageData, 0, 0);
-
-  // Pixelize pass — runs before erasure and outline so all operate at final resolution
-  let workingSprite: ExtractedSprite;
-  if (pixelizeEnabled) {
-    const dataUrl = canvas.toDataURL('image/png');
-    const intermediate: ExtractedSprite = { ...sprite, imageData: dataUrl.split(',')[1], mimeType: 'image/png' };
-    workingSprite = await pixelizeSprite(intermediate, pixelizeSize);
-  } else {
-    const dataUrl = canvas.toDataURL('image/png');
-    workingSprite = { ...sprite, imageData: dataUrl.split(',')[1], mimeType: 'image/png' };
-  }
-
-  // Erasure pass — after pixelization so coordinates match the zoom view
-  if (hasErasure) {
-    const imgE = new Image();
-    await new Promise<void>((resolve, reject) => {
-      imgE.onload = () => resolve();
-      imgE.onerror = () => reject(new Error('Failed to load sprite for erasure'));
-      imgE.src = `data:${workingSprite.mimeType};base64,${workingSprite.imageData}`;
-    });
-    const cE = document.createElement('canvas');
-    cE.width = imgE.width;
-    cE.height = imgE.height;
-    const ctxE = cE.getContext('2d')!;
-    ctxE.drawImage(imgE, 0, 0);
-    const idE = ctxE.getImageData(0, 0, imgE.width, imgE.height);
-    // Erase coordinates were captured in the original sprite's pixel space.
-    // Scale them to the current canvas dimensions (which may be smaller after pixelization).
-    const scaleX = imgE.width / sprite.width;
-    const scaleY = imgE.height / sprite.height;
-    for (const key of erasedPixels!) {
-      const sep = key.indexOf(',');
-      const ex = parseInt(key.substring(0, sep), 10);
-      const ey = parseInt(key.substring(sep + 1), 10);
-      const sx = Math.round(ex * scaleX);
-      const sy = Math.round(ey * scaleY);
-      if (sx >= 0 && sy >= 0 && sx < imgE.width && sy < imgE.height) {
-        idE.data[(sy * imgE.width + sx) * 4 + 3] = 0;
-      }
-    }
-    ctxE.putImageData(idE, 0, 0);
-    workingSprite = { ...workingSprite, imageData: cE.toDataURL('image/png').split(',')[1], mimeType: 'image/png' };
-  }
-
-  // Outline pass — runs last, on pixelized dimensions when pixelize is enabled
-  if (outlineEnabled) {
-    const img2 = new Image();
-    await new Promise<void>((resolve, reject) => {
-      img2.onload = () => resolve();
-      img2.onerror = () => reject(new Error('Failed to load sprite for outline'));
-      img2.src = `data:${workingSprite.mimeType};base64,${workingSprite.imageData}`;
-    });
-    const c2 = document.createElement('canvas');
-    c2.width = img2.width;
-    c2.height = img2.height;
-    const ctx2 = c2.getContext('2d')!;
-    ctx2.drawImage(img2, 0, 0);
-    let id2 = ctx2.getImageData(0, 0, img2.width, img2.height);
-    id2 = outlineSprite(id2, outlineOutDepth, outlineInDepth, outlineColor[0], outlineColor[1], outlineColor[2]);
-    ctx2.putImageData(id2, 0, 0);
-    return { ...workingSprite, imageData: c2.toDataURL('image/png').split(',')[1], mimeType: 'image/png' };
-  }
-
-  return workingSprite;
-}
-
-/** Detect distinct colors from sprites using 4-bit quantization. */
-async function detectPalette(sprites: ExtractedSprite[], maxColors = 144): Promise<RGB[]> {
-  const counts = new Map<number, { r: number; g: number; b: number; n: number }>();
-
-  // Sample from up to 12 sprites for broader coverage
-  for (const sprite of sprites.slice(0, 12)) {
-    const img = new Image();
-    await new Promise<void>((resolve) => {
-      img.onload = () => resolve();
-      img.src = `data:${sprite.mimeType};base64,${sprite.imageData}`;
-    });
-
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d')!;
-    ctx.drawImage(img, 0, 0);
-    const data = ctx.getImageData(0, 0, img.width, img.height).data;
-
-    // Sample every 2nd pixel for speed
-    for (let i = 0; i < data.length; i += 8) {
-      if (data[i + 3] === 0) continue;
-      // 4-bit quantization: 16 values per channel = finer color separation
-      const qr = data[i] >> 4;
-      const qg = data[i + 1] >> 4;
-      const qb = data[i + 2] >> 4;
-      const key = (qr << 8) | (qg << 4) | qb;
-      const entry = counts.get(key);
-      if (entry) {
-        entry.r += data[i];
-        entry.g += data[i + 1];
-        entry.b += data[i + 2];
-        entry.n++;
-      } else {
-        counts.set(key, { r: data[i], g: data[i + 1], b: data[i + 2], n: 1 });
-      }
-    }
-  }
-
-  return Array.from(counts.values())
-    .sort((a, b) => b.n - a.n)
-    .slice(0, maxColors)
-    .map((e) => [Math.round(e.r / e.n), Math.round(e.g / e.n), Math.round(e.b / e.n)]);
-}
 
 interface SpriteReviewProps {
   cellGroups?: CellGroup[];
@@ -301,7 +142,14 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     let cancelled = false;
 
     const sourcePromise = post.posterizeOutput
-      ? Promise.all(sprites.map(s => processSprite(s, true, post.posterizeBits, false, 0, [])))
+      ? Promise.all(sprites.map(s => processSprite(s, {
+          posterize: { enabled: true, bits: post.posterizeBits },
+          chroma: { enabled: false, tolerance: 0, defringeCore: 0, edgeRecolorPasses: 0, recolorSensitivity: 0 },
+          pixelize: { enabled: false, size: 32 },
+          outline: { enabled: false, outDepth: 0, inDepth: 0, color: [0, 0, 0] },
+          alphaSnap: { enabled: false, threshold: 128 },
+          colorStrike: { colors: [], tolerance: 0 },
+        })))
       : Promise.resolve(sprites);
 
     sourcePromise.then(source => {
@@ -324,28 +172,30 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     let cancelled = false;
 
     (async () => {
-      // Auto-detect key color from the first sprite when chroma is enabled
-      let keyR = 255, keyG = 0, keyB = 255;
+      let chromaKeyColor: RGB | undefined;
       if (chroma.chromaEnabled && sprites.length > 0) {
-        const first = sprites[0];
-        const img = new Image();
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = () => reject(new Error('Failed to load sprite for key detection'));
-          img.src = `data:${first.mimeType};base64,${first.imageData}`;
-        });
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d')!;
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, img.width, img.height);
-        [keyR, keyG, keyB] = detectKeyColor(imageData);
-        debugLog(`[ChromaKey] Auto-detected key color: rgb(${keyR}, ${keyG}, ${keyB})`);
+        chromaKeyColor = await detectChromaKeyColor(sprites);
+        debugLog(`[ChromaKey] Auto-detected key color: rgb(${chromaKeyColor.join(', ')})`);
       }
 
+      const opts: ProcessSpriteOptions = {
+        posterize: { enabled: post.posterizeOutput, bits: post.posterizeBits },
+        chroma: {
+          enabled: chroma.chromaEnabled,
+          tolerance: chroma.chromaTolerance,
+          defringeCore: chroma.defringeCore,
+          edgeRecolorPasses: chroma.edgeRecolorPasses,
+          recolorSensitivity: chroma.recolorSensitivity,
+        },
+        pixelize: { enabled: pixelizeEnabled, size: pixelizeSize },
+        outline: { enabled: outlineEnabled, outDepth: outlineOutDepth, inDepth: outlineInDepth, color: outlineColor },
+        alphaSnap: { enabled: alphaSnapEnabled, threshold: alphaSnapThreshold },
+        colorStrike: { colors: struckColors, tolerance: strikeTolerance },
+        chromaKeyColor,
+      };
+
       const result = await Promise.all(sprites.map((s) =>
-        processSprite(s, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckColors, selection.erasedPixels.get(s.cellIndex), chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, keyR, keyG, keyB, pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, strikeTolerance),
+        processSprite(s, { ...opts, erasedPixels: selection.erasedPixels.get(s.cellIndex) }),
       ));
       if (!cancelled) setProcessedSprites(result);
     })();
