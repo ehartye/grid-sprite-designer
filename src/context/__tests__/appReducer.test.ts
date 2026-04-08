@@ -369,9 +369,9 @@ describe('appReducer', () => {
     });
   });
 
-  // ── LOAD_CHARACTER_PRESET ───────────────────────────────────────────────
+  // ── LOAD_CONTENT_PRESET (character) ─────────────────────────────────────
 
-  describe('LOAD_CHARACTER_PRESET', () => {
+  describe('LOAD_CONTENT_PRESET (character)', () => {
     it('loads character preset into character config', () => {
       const preset: CharacterPreset = {
         id: 'char-1',
@@ -385,7 +385,7 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_CHARACTER_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       expect(result.activeContentPresetIds.character).toBe('char-1');
       expect(result.character.name).toBe('Knight');
       expect(result.character.description).toBe('A noble knight');
@@ -396,9 +396,9 @@ describe('appReducer', () => {
     });
   });
 
-  // ── LOAD_BUILDING_PRESET ────────────────────────────────────────────────
+  // ── LOAD_CONTENT_PRESET (building) ──────────────────────────────────────
 
-  describe('LOAD_BUILDING_PRESET', () => {
+  describe('LOAD_CONTENT_PRESET (building)', () => {
     it('loads building preset with correct cell count for 3x3', () => {
       const preset: BuildingPreset = {
         id: 'bld-1',
@@ -414,7 +414,7 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_BUILDING_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       expect(result.activeContentPresetIds.building).toBe('bld-1');
       expect(result.building.cellLabels).toHaveLength(9);
       expect(result.building.gridSize).toBe('3x3');
@@ -435,7 +435,7 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_BUILDING_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       expect(result.building.cellLabels).toHaveLength(6);
       expect(result.building.cellLabels[0]).toBe('front');
       expect(result.building.cellLabels[1]).toBe('side');
@@ -457,14 +457,14 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_BUILDING_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       expect(result.building.cellLabels).toHaveLength(4);
     });
   });
 
-  // ── LOAD_TERRAIN_PRESET ─────────────────────────────────────────────────
+  // ── LOAD_CONTENT_PRESET (terrain) ───────────────────────────────────────
 
-  describe('LOAD_TERRAIN_PRESET', () => {
+  describe('LOAD_CONTENT_PRESET (terrain)', () => {
     it('loads terrain preset and pads labels to grid cell count', () => {
       const preset: TerrainPreset = {
         id: 'ter-1',
@@ -479,7 +479,7 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_TERRAIN_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       expect(result.activeContentPresetIds.terrain).toBe('ter-1');
       expect(result.terrain.name).toBe('Grasslands');
       expect(result.terrain.gridSize).toBe('4x4');
@@ -503,15 +503,15 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_TERRAIN_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       // 3x3 = 9 cells
       expect(result.terrain.cellLabels).toHaveLength(9);
     });
   });
 
-  // ── LOAD_BACKGROUND_PRESET ──────────────────────────────────────────────
+  // ── LOAD_CONTENT_PRESET (background) ────────────────────────────────────
 
-  describe('LOAD_BACKGROUND_PRESET', () => {
+  describe('LOAD_CONTENT_PRESET (background)', () => {
     it('loads background preset with bgMode', () => {
       const preset: BackgroundPreset = {
         id: 'bg-1',
@@ -527,7 +527,7 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_BACKGROUND_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       expect(result.activeContentPresetIds.background).toBe('bg-1');
       expect(result.background.bgMode).toBe('parallax');
       expect(result.background.gridSize).toBe('1x4');
@@ -549,10 +549,99 @@ describe('appReducer', () => {
         groupGuidance: {},
         cellGuidance: {},
       };
-      const result = reducer(initialState, { type: 'LOAD_BACKGROUND_PRESET', preset });
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
       expect(result.background.cellLabels).toHaveLength(3);
       expect(result.background.cellLabels[0]).toBe('stars');
       expect(result.background.cellLabels[1]).toBe('');
+    });
+  });
+
+  // ── LOAD_CONTENT_PRESET (generic) ──────────────────────────────────────
+
+  describe('LOAD_CONTENT_PRESET', () => {
+    it('loads a character preset via generic action', () => {
+      const preset: CharacterPreset = {
+        id: 'char-g1',
+        spriteType: 'character',
+        name: 'Mage',
+        genre: 'fantasy',
+        description: 'A powerful mage',
+        equipment: 'Staff, robes',
+        colorNotes: 'Blue and gold',
+        overallGuidance: 'Cast spells',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.character).toBe('char-g1');
+      expect(result.character.name).toBe('Mage');
+      expect(result.character.equipment).toBe('Staff, robes');
+      expect(result.character.styleNotes).toBe('');
+    });
+
+    it('loads a building preset via generic action', () => {
+      const preset: BuildingPreset = {
+        id: 'bld-g1',
+        spriteType: 'building',
+        name: 'Tower',
+        genre: 'fantasy',
+        description: 'A tower',
+        details: 'tall',
+        colorNotes: '',
+        gridSize: '3x3',
+        cellLabels: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.building).toBe('bld-g1');
+      expect(result.building.name).toBe('Tower');
+      expect(result.building.details).toBe('tall');
+      expect(result.building.cellLabels).toHaveLength(9);
+    });
+
+    it('loads a terrain preset via generic action with label padding', () => {
+      const preset: TerrainPreset = {
+        id: 'ter-g1',
+        spriteType: 'terrain',
+        name: 'Forest',
+        genre: 'nature',
+        gridSize: '4x4',
+        description: 'Dense forest',
+        colorNotes: 'Green',
+        tileLabels: ['tree'],
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.terrain).toBe('ter-g1');
+      expect(result.terrain.name).toBe('Forest');
+      expect(result.terrain.cellLabels).toHaveLength(16);
+      expect(result.terrain.cellLabels[0]).toBe('tree');
+      expect(result.terrain.cellLabels[1]).toBe('');
+    });
+
+    it('loads a background preset via generic action with bgMode', () => {
+      const preset: BackgroundPreset = {
+        id: 'bg-g1',
+        spriteType: 'background',
+        name: 'Mountains',
+        genre: 'nature',
+        gridSize: '1x4',
+        bgMode: 'parallax',
+        description: 'Mountain range',
+        colorNotes: 'Grey, white',
+        layerLabels: ['sky', 'peaks', 'foothills', 'ground'],
+        overallGuidance: '',
+        groupGuidance: {},
+        cellGuidance: {},
+      };
+      const result = reducer(initialState, { type: 'LOAD_CONTENT_PRESET', preset });
+      expect(result.activeContentPresetIds.background).toBe('bg-g1');
+      expect(result.background.bgMode).toBe('parallax');
+      expect(result.background.cellLabels).toHaveLength(4);
     });
   });
 

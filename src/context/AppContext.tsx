@@ -322,15 +322,12 @@ type Action =
   | { type: 'SET_HISTORY_ID'; id: number }
   | { type: 'SET_SOURCE_CONTEXT'; groupId: string | null; contentPresetId: string | null }
   | { type: 'SET_CHARACTER_PRESETS'; presets: CharacterPreset[] }
-  | { type: 'LOAD_CHARACTER_PRESET'; preset: CharacterPreset }
   | { type: 'SET_BUILDING_PRESETS'; presets: BuildingPreset[] }
-  | { type: 'LOAD_BUILDING_PRESET'; preset: BuildingPreset }
   | { type: 'SET_TERRAIN'; terrain: AppState['terrain'] }
   | { type: 'SET_BACKGROUND'; background: AppState['background'] }
   | { type: 'SET_TERRAIN_PRESETS'; presets: TerrainPreset[] }
-  | { type: 'LOAD_TERRAIN_PRESET'; preset: TerrainPreset }
   | { type: 'SET_BACKGROUND_PRESETS'; presets: BackgroundPreset[] }
-  | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
+  | { type: 'LOAD_CONTENT_PRESET'; preset: AnyPreset }
   | { type: 'SET_GRID_PRESETS'; presets: GridPreset[] }
   | { type: 'SET_ACTIVE_GRID_CONFIG'; gridConfig: AppState['activeGridConfig'] }
   | { type: 'START_RUN'; payload: { contentPresetId: string; spriteType: SpriteType; gridLinks: GridLink[]; imageSize: '2K' | '4K'; groupId?: string; pixelizeSize?: number } }
@@ -370,6 +367,57 @@ function gridSizeToCellCount(gridSize: BuildingGridSize): number {
     case '3x3': return 9;
     case '2x3': return 6;
     case '2x2': return 4;
+  }
+}
+
+function padLabels(labels: string[], targetCount: number): string[] {
+  const out = labels.slice(0, targetCount);
+  while (out.length < targetCount) out.push('');
+  return out;
+}
+
+function loadContentPreset(state: AppState, preset: AnyPreset): AppState {
+  const shared = {
+    name: preset.name,
+    description: preset.description,
+    colorNotes: preset.colorNotes,
+    styleNotes: '',
+    overallGuidance: preset.overallGuidance,
+    groupGuidance: preset.groupGuidance,
+    cellGuidance: preset.cellGuidance,
+  };
+
+  switch (preset.spriteType) {
+    case 'character':
+      return {
+        ...state,
+        activeContentPresetIds: { ...state.activeContentPresetIds, character: preset.id },
+        character: { ...shared, equipment: preset.equipment },
+      };
+    case 'building': {
+      const cellCount = gridSizeToCellCount(preset.gridSize);
+      return {
+        ...state,
+        activeContentPresetIds: { ...state.activeContentPresetIds, building: preset.id },
+        building: { ...shared, details: preset.details, gridSize: preset.gridSize, cellLabels: padLabels(preset.cellLabels, cellCount) },
+      };
+    }
+    case 'terrain': {
+      const tGrid = TERRAIN_GRIDS[preset.gridSize];
+      return {
+        ...state,
+        activeContentPresetIds: { ...state.activeContentPresetIds, terrain: preset.id },
+        terrain: { ...shared, gridSize: preset.gridSize, cellLabels: padLabels(preset.tileLabels, tGrid?.totalCells ?? 16) },
+      };
+    }
+    case 'background': {
+      const bGrid = BACKGROUND_GRIDS[preset.gridSize];
+      return {
+        ...state,
+        activeContentPresetIds: { ...state.activeContentPresetIds, background: preset.id },
+        background: { ...shared, bgMode: preset.bgMode, gridSize: preset.gridSize, cellLabels: padLabels(preset.layerLabels, bGrid?.totalCells ?? 4) },
+      };
+    }
   }
 }
 
@@ -451,93 +499,18 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, sourceGroupId: action.groupId, sourceContentPresetId: action.contentPresetId };
     case 'SET_CHARACTER_PRESETS':
       return { ...state, characterPresets: action.presets };
-    case 'LOAD_CHARACTER_PRESET':
-      return {
-        ...state,
-        activeContentPresetIds: { ...state.activeContentPresetIds, character: action.preset.id },
-        character: {
-          name: action.preset.name,
-          description: action.preset.description,
-          equipment: action.preset.equipment,
-          colorNotes: action.preset.colorNotes,
-          styleNotes: '',
-          overallGuidance: action.preset.overallGuidance,
-          groupGuidance: action.preset.groupGuidance,
-          cellGuidance: action.preset.cellGuidance,
-        },
-      };
+    case 'LOAD_CONTENT_PRESET':
+      return loadContentPreset(state, action.preset);
     case 'SET_BUILDING_PRESETS':
       return { ...state, buildingPresets: action.presets };
-    case 'LOAD_BUILDING_PRESET': {
-      const cellCount = gridSizeToCellCount(action.preset.gridSize);
-      const labels = action.preset.cellLabels.slice(0, cellCount);
-      while (labels.length < cellCount) labels.push('');
-      return {
-        ...state,
-        activeContentPresetIds: { ...state.activeContentPresetIds, building: action.preset.id },
-        building: {
-          name: action.preset.name,
-          description: action.preset.description,
-          details: action.preset.details,
-          colorNotes: action.preset.colorNotes,
-          styleNotes: '',
-          overallGuidance: action.preset.overallGuidance,
-          groupGuidance: action.preset.groupGuidance,
-          cellGuidance: action.preset.cellGuidance,
-          gridSize: action.preset.gridSize,
-          cellLabels: labels,
-        },
-      };
-    }
     case 'SET_TERRAIN':
       return { ...state, terrain: action.terrain };
     case 'SET_BACKGROUND':
       return { ...state, background: action.background };
     case 'SET_TERRAIN_PRESETS':
       return { ...state, terrainPresets: action.presets };
-    case 'LOAD_TERRAIN_PRESET': {
-      const tGrid = TERRAIN_GRIDS[action.preset.gridSize];
-      const tLabels = action.preset.tileLabels.slice(0, tGrid?.totalCells ?? 16);
-      while (tLabels.length < (tGrid?.totalCells ?? 16)) tLabels.push('');
-      return {
-        ...state,
-        activeContentPresetIds: { ...state.activeContentPresetIds, terrain: action.preset.id },
-        terrain: {
-          name: action.preset.name,
-          description: action.preset.description,
-          colorNotes: action.preset.colorNotes,
-          styleNotes: '',
-          overallGuidance: action.preset.overallGuidance,
-          groupGuidance: action.preset.groupGuidance,
-          cellGuidance: action.preset.cellGuidance,
-          gridSize: action.preset.gridSize,
-          cellLabels: tLabels,
-        },
-      };
-    }
     case 'SET_BACKGROUND_PRESETS':
       return { ...state, backgroundPresets: action.presets };
-    case 'LOAD_BACKGROUND_PRESET': {
-      const bGrid = BACKGROUND_GRIDS[action.preset.gridSize];
-      const bLabels = action.preset.layerLabels.slice(0, bGrid?.totalCells ?? 4);
-      while (bLabels.length < (bGrid?.totalCells ?? 4)) bLabels.push('');
-      return {
-        ...state,
-        activeContentPresetIds: { ...state.activeContentPresetIds, background: action.preset.id },
-        background: {
-          name: action.preset.name,
-          description: action.preset.description,
-          colorNotes: action.preset.colorNotes,
-          styleNotes: '',
-          overallGuidance: action.preset.overallGuidance,
-          groupGuidance: action.preset.groupGuidance,
-          cellGuidance: action.preset.cellGuidance,
-          bgMode: action.preset.bgMode,
-          gridSize: action.preset.gridSize,
-          cellLabels: bLabels,
-        },
-      };
-    }
     case 'SET_GRID_PRESETS':
       return { ...state, gridPresets: action.presets };
     case 'SET_ACTIVE_GRID_CONFIG':

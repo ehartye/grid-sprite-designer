@@ -106,11 +106,3 @@ export interface GalleryResponse {
   page: number;
   totalPages: number;
 }
-
-/** Grid config override for extraction */
-export interface GridOverride {
-  cols: number;
-  rows: number;
-  totalCells: number;
-  cellLabels: string[];
-}
