@@ -8,16 +8,16 @@ import type { GridConfig } from './gridConfig';
 import type { ContentPreset } from '../types/api';
 import type { PipelineParams, HistoryExtras } from '../hooks/useGenericWorkflow';
 import type { FeedbackState } from '../types/feedback';
-import { buildPromptForType } from './promptForType';
+import type { StructuredPrompt } from '../types/prompt';
+import { assemblePrompt } from './promptForType';
 import { gridPresetToConfig } from './gridConfig';
-import { buildRegenerationPreamble, buildCellFeedbackAnnotations, buildGroupFeedbackAnnotations } from './feedbackPrompt';
 
 export interface GenerationRequestParams {
   spriteType: SpriteType;
   contentPreset: ContentPreset;
   gridLink: GridLink;
   gridConfig: GridConfig;
-  prompt: string;
+  prompt: string | StructuredPrompt;
   model: string;
   imageSize: '2K' | '4K';
   thinkingLevel?: 'default' | 'minimal' | 'low' | 'medium' | 'high';
@@ -73,22 +73,17 @@ export function buildGenerationRequest(opts: {
   const { spriteType, contentPreset, gridLink, model, imageSize, thinkingLevel, isSubsequentGrid, pixelizeSize, referenceImage, promptSuffix, historyExtras, sourceContext } = opts;
 
   const gridConfig = gridPresetToConfig(gridLink, spriteType);
-  let prompt: string;
 
-  if (opts.feedbackState) {
-    const cellAnnotations = buildCellFeedbackAnnotations(opts.feedbackState, gridLink.cellLabels);
-    const groupAnnotations = buildGroupFeedbackAnnotations(opts.feedbackState);
-    prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, isSubsequentGrid, pixelizeSize, cellAnnotations, groupAnnotations);
-    if (promptSuffix?.trim()) {
-      prompt += '\n\n' + promptSuffix.trim();
-    }
-    prompt = buildRegenerationPreamble(opts.feedbackState) + prompt;
-  } else {
-    prompt = buildPromptForType(spriteType, contentPreset, gridLink, gridConfig, isSubsequentGrid, pixelizeSize);
-    if (promptSuffix?.trim()) {
-      prompt += '\n\n' + promptSuffix.trim();
-    }
-  }
+  const prompt = assemblePrompt({
+    spriteType,
+    contentPreset,
+    gridLink,
+    isSubsequentGrid,
+    pixelizeSize,
+    referenceImage,
+    feedbackState: opts.feedbackState,
+    promptSuffix,
+  });
 
   return buildPipelineParams({
     spriteType,
