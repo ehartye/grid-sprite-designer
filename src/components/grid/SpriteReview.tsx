@@ -26,6 +26,7 @@ import { SidebarGroup } from './SidebarGroup';
 import type { FeedbackState } from '../../types/feedback';
 import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
 import { useRegenerateWithFeedback } from '../../hooks/useRegenerateWithFeedback';
+import type { PostProcessingState, PostProcessingAction } from '../../hooks/usePostProcessingState';
 import { loadGenerationIntoState } from '../../lib/loadGeneration';
 import type { RGB } from '../../types/color';
 
@@ -107,6 +108,39 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
   const [eraserBrushH, setEraserBrushH] = useState(1);
   const [strikeTolerance, setStrikeTolerance] = useState(10);
   const struckKey = JSON.stringify(struckColors);
+
+  // Bridge: construct PostProcessingState from individual useState values
+  // (will be replaced by usePostProcessingState() in task 9)
+  const postState: PostProcessingState = useMemo(() => ({
+    pixelize: { enabled: pixelizeEnabled, size: pixelizeSize },
+    outline: { enabled: outlineEnabled, outDepth: outlineOutDepth, inDepth: outlineInDepth, color: outlineColor },
+    alphaSnap: { enabled: alphaSnapEnabled, threshold: alphaSnapThreshold },
+    struckColors,
+    strikeTolerance,
+    showRareColors,
+    aaInset,
+    eraserBrushW,
+    eraserBrushH,
+  }), [pixelizeEnabled, pixelizeSize, outlineEnabled, outlineOutDepth, outlineInDepth, outlineColor, alphaSnapEnabled, alphaSnapThreshold, struckColors, strikeTolerance, showRareColors, aaInset, eraserBrushW, eraserBrushH]);
+
+  const postDispatch = useCallback((action: PostProcessingAction) => {
+    switch (action.type) {
+      case 'SET_PIXELIZE': setPixelizeEnabled(action.enabled); if (action.size !== undefined) setPixelizeSize(action.size); break;
+      case 'SET_PIXELIZE_SIZE': setPixelizeSize(action.size); break;
+      case 'SET_OUTLINE': setOutlineEnabled(action.enabled); break;
+      case 'SET_OUTLINE_DEPTH': if (action.outDepth !== undefined) setOutlineOutDepth(action.outDepth); if (action.inDepth !== undefined) setOutlineInDepth(action.inDepth); break;
+      case 'SET_OUTLINE_COLOR': setOutlineColor(action.color); break;
+      case 'SET_ALPHA_SNAP': setAlphaSnapEnabled(action.enabled); if (action.threshold !== undefined) setAlphaSnapThreshold(action.threshold); break;
+      case 'SET_ALPHA_SNAP_THRESHOLD': setAlphaSnapThreshold(action.threshold); break;
+      case 'SET_STRIKE_TOLERANCE': setStrikeTolerance(action.tolerance); break;
+      case 'STRIKE_COLOR': setStruckColors(prev => prev.some(c => c[0] === action.color[0] && c[1] === action.color[1] && c[2] === action.color[2]) ? prev : [...prev, action.color]); break;
+      case 'UNSTRIKE_COLOR': setStruckColors(prev => prev.filter(c => c[0] !== action.color[0] || c[1] !== action.color[1] || c[2] !== action.color[2])); break;
+      case 'CLEAR_STRUCK_COLORS': setStruckColors([]); break;
+      case 'SET_SHOW_RARE_COLORS': setShowRareColors(action.show); break;
+      case 'SET_AA_INSET': setAaInset(action.inset); break;
+      case 'SET_ERASER_BRUSH': if (action.w !== undefined) setEraserBrushW(action.w); if (action.h !== undefined) setEraserBrushH(action.h); break;
+    }
+  }, []);
 
   // Feedback state and regeneration hook
   const [feedbackState, setFeedbackState] = useState<FeedbackState>(createEmptyFeedback);
@@ -626,34 +660,12 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
         {/* ── Post-Processing ── */}
         <PostProcessingSidebar
+          postState={postState}
+          postDispatch={postDispatch}
           chroma={chroma}
           posterize={post}
           palette={palette}
           reExtract={reExtract}
-          pixelizeEnabled={pixelizeEnabled}
-          setPixelizeEnabled={setPixelizeEnabled}
-          pixelizeSize={pixelizeSize}
-          setPixelizeSize={setPixelizeSize}
-          outlineEnabled={outlineEnabled}
-          setOutlineEnabled={setOutlineEnabled}
-          outlineOutDepth={outlineOutDepth}
-          setOutlineOutDepth={setOutlineOutDepth}
-          outlineInDepth={outlineInDepth}
-          setOutlineInDepth={setOutlineInDepth}
-          outlineColor={outlineColor}
-          setOutlineColor={setOutlineColor}
-          alphaSnapEnabled={alphaSnapEnabled}
-          setAlphaSnapEnabled={setAlphaSnapEnabled}
-          alphaSnapThreshold={alphaSnapThreshold}
-          setAlphaSnapThreshold={setAlphaSnapThreshold}
-          struckColors={struckColors}
-          setStruckColors={setStruckColors}
-          showRareColors={showRareColors}
-          setShowRareColors={setShowRareColors}
-          strikeTolerance={strikeTolerance}
-          setStrikeTolerance={setStrikeTolerance}
-          aaInset={aaInset}
-          setAaInset={setAaInset}
         />
 
         <AddSheetModal

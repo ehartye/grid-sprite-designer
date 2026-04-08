@@ -1,69 +1,28 @@
 import type { RGB } from '../../types/color';
 import type { ChromaKeySettings, ChromaKeyActions } from '../../hooks/useChromaKeySettings';
 import type { PosterizeSettings, PosterizeActions } from '../../hooks/usePosterizeSettings';
+import type { PostProcessingState, PostProcessingAction } from '../../hooks/usePostProcessingState';
 import { SidebarGroup } from './SidebarGroup';
 
 export interface PostProcessingSidebarProps {
+  postState: PostProcessingState;
+  postDispatch: React.Dispatch<PostProcessingAction>;
   chroma: ChromaKeySettings & ChromaKeyActions;
   posterize: PosterizeSettings & PosterizeActions;
   palette: RGB[];
   reExtract: (opts: { aaInset: number; posterizeBits: number }) => void;
-  pixelizeEnabled: boolean;
-  setPixelizeEnabled: (v: boolean) => void;
-  pixelizeSize: number;
-  setPixelizeSize: (v: number) => void;
-  outlineEnabled: boolean;
-  setOutlineEnabled: (v: boolean) => void;
-  outlineOutDepth: number;
-  setOutlineOutDepth: (v: number) => void;
-  outlineInDepth: number;
-  setOutlineInDepth: (v: number) => void;
-  outlineColor: RGB;
-  setOutlineColor: (v: RGB) => void;
-  alphaSnapEnabled: boolean;
-  setAlphaSnapEnabled: (v: boolean) => void;
-  alphaSnapThreshold: number;
-  setAlphaSnapThreshold: (v: number) => void;
-  struckColors: RGB[];
-  setStruckColors: (fn: (prev: RGB[]) => RGB[]) => void;
-  showRareColors: boolean;
-  setShowRareColors: (fn: (prev: boolean) => boolean) => void;
-  strikeTolerance: number;
-  setStrikeTolerance: (v: number) => void;
-  aaInset: number;
-  setAaInset: (v: number) => void;
 }
 
 export function PostProcessingSidebar({
+  postState,
+  postDispatch,
   chroma,
   posterize: post,
   palette,
   reExtract,
-  pixelizeEnabled,
-  setPixelizeEnabled,
-  pixelizeSize,
-  setPixelizeSize,
-  outlineEnabled,
-  setOutlineEnabled,
-  outlineOutDepth,
-  setOutlineOutDepth,
-  outlineInDepth,
-  setOutlineInDepth,
-  outlineColor,
-  setOutlineColor,
-  alphaSnapEnabled,
-  setAlphaSnapEnabled,
-  alphaSnapThreshold,
-  setAlphaSnapThreshold,
-  struckColors,
-  setStruckColors,
-  showRareColors,
-  setShowRareColors,
-  strikeTolerance,
-  setStrikeTolerance,
-  aaInset,
-  setAaInset,
 }: PostProcessingSidebarProps) {
+  const { pixelize, outline, alphaSnap, struckColors, strikeTolerance, showRareColors, aaInset } = postState;
+
   return (
     <SidebarGroup label="Post-Processing" defaultOpen={false}>
       <div className="sidebar-section">
@@ -120,25 +79,25 @@ export function PostProcessingSidebar({
         </h3>
         <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
           <button
-            className={`anim-group-btn ${!pixelizeEnabled ? 'active' : ''}`}
-            onClick={() => setPixelizeEnabled(false)}
+            className={`anim-group-btn ${!pixelize.enabled ? 'active' : ''}`}
+            onClick={() => postDispatch({ type: 'SET_PIXELIZE', enabled: false })}
           >
             Off
           </button>
           <button
-            className={`anim-group-btn ${pixelizeEnabled ? 'active' : ''}`}
-            onClick={() => setPixelizeEnabled(true)}
+            className={`anim-group-btn ${pixelize.enabled ? 'active' : ''}`}
+            onClick={() => postDispatch({ type: 'SET_PIXELIZE', enabled: true })}
           >
             On
           </button>
         </div>
-        {pixelizeEnabled && (
+        {pixelize.enabled && (
           <div className="pixelize-size-row" style={{ display: 'flex', gap: 4, marginTop: 6 }}>
             {([16, 32, 48, 64, 128] as const).map(size => (
               <button
                 key={size}
-                className={`pixel-size-btn ${pixelizeSize === size ? 'active' : ''}`}
-                onClick={() => setPixelizeSize(size)}
+                className={`pixel-size-btn ${pixelize.size === size ? 'active' : ''}`}
+                onClick={() => postDispatch({ type: 'SET_PIXELIZE_SIZE', size })}
               >
                 {size}
               </button>
@@ -154,41 +113,41 @@ export function PostProcessingSidebar({
           <span title="Paint a pixel outline around sprites. Outward adds pixels into the transparent area; Inward recolors the outermost opaque ring." style={{ cursor: 'help', marginLeft: 4, fontSize: '0.7rem', color: 'var(--text-muted)' }}>&#9432;</span>
         </h3>
         <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-          <button className={`anim-group-btn ${!outlineEnabled ? 'active' : ''}`} onClick={() => setOutlineEnabled(false)}>Off</button>
-          <button className={`anim-group-btn ${outlineEnabled ? 'active' : ''}`} onClick={() => setOutlineEnabled(true)}>On</button>
+          <button className={`anim-group-btn ${!outline.enabled ? 'active' : ''}`} onClick={() => postDispatch({ type: 'SET_OUTLINE', enabled: false })}>Off</button>
+          <button className={`anim-group-btn ${outline.enabled ? 'active' : ''}`} onClick={() => postDispatch({ type: 'SET_OUTLINE', enabled: true })}>On</button>
         </div>
-        {outlineEnabled && (
+        {outline.enabled && (
           <>
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Out</label>
-                  <span className="slider-value">{outlineOutDepth}</span>
+                  <span className="slider-value">{outline.outDepth}</span>
                 </div>
-                <input type="range" min={0} max={8} value={outlineOutDepth} onChange={(e) => setOutlineOutDepth(Number(e.target.value))} style={{ width: '100%' }} />
+                <input type="range" min={0} max={8} value={outline.outDepth} onChange={(e) => postDispatch({ type: 'SET_OUTLINE_DEPTH', outDepth: Number(e.target.value) })} style={{ width: '100%' }} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>In</label>
-                  <span className="slider-value">{outlineInDepth}</span>
+                  <span className="slider-value">{outline.inDepth}</span>
                 </div>
-                <input type="range" min={0} max={8} value={outlineInDepth} onChange={(e) => setOutlineInDepth(Number(e.target.value))} style={{ width: '100%' }} />
+                <input type="range" min={0} max={8} value={outline.inDepth} onChange={(e) => postDispatch({ type: 'SET_OUTLINE_DEPTH', inDepth: Number(e.target.value) })} style={{ width: '100%' }} />
               </div>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
               {([[0,0,0],[255,255,255]] as RGB[]).map(([cr, cg, cb], idx) => {
-                const isSelected = outlineColor[0] === cr && outlineColor[1] === cg && outlineColor[2] === cb;
+                const isSelected = outline.color[0] === cr && outline.color[1] === cg && outline.color[2] === cb;
                 return (
-                  <button key={idx} onClick={() => setOutlineColor([cr, cg, cb])}
+                  <button key={idx} onClick={() => postDispatch({ type: 'SET_OUTLINE_COLOR', color: [cr, cg, cb] })}
                     title={idx === 0 ? 'Black' : 'White'}
                     style={{ width: 24, height: 24, backgroundColor: `rgb(${cr},${cg},${cb})`, border: isSelected ? '2px solid var(--accent)' : '2px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}
                   />
                 );
               })}
               {palette.slice(0, 10).map(([cr, cg, cb], i) => {
-                const isSelected = outlineColor[0] === cr && outlineColor[1] === cg && outlineColor[2] === cb;
+                const isSelected = outline.color[0] === cr && outline.color[1] === cg && outline.color[2] === cb;
                 return (
-                  <button key={i + 2} onClick={() => setOutlineColor([cr, cg, cb])}
+                  <button key={i + 2} onClick={() => postDispatch({ type: 'SET_OUTLINE_COLOR', color: [cr, cg, cb] })}
                     title={`rgb(${cr}, ${cg}, ${cb})`}
                     style={{ width: 24, height: 24, backgroundColor: `rgb(${cr},${cg},${cb})`, border: isSelected ? '2px solid var(--accent)' : '2px solid var(--border)', borderRadius: 4, cursor: 'pointer' }}
                   />
@@ -297,29 +256,29 @@ export function PostProcessingSidebar({
                   Hard Edges
                   <span title="Snap partial-alpha fringe pixels to fully opaque or fully transparent. Eliminates semi-transparent edge artifacts from chroma key. Threshold controls the cutoff: pixels above become opaque, below become transparent." style={{ cursor: 'help', marginLeft: 4 }}>&#9432;</span>
                 </label>
-                <span className="slider-value">{alphaSnapEnabled ? alphaSnapThreshold : 'off'}</span>
+                <span className="slider-value">{alphaSnap.enabled ? alphaSnap.threshold : 'off'}</span>
               </div>
-              <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: alphaSnapEnabled ? 4 : 0 }}>
+              <div className="anim-group-grid" style={{ gridTemplateColumns: '1fr 1fr', marginBottom: alphaSnap.enabled ? 4 : 0 }}>
                 <button
-                  className={`anim-group-btn ${!alphaSnapEnabled ? 'active' : ''}`}
-                  onClick={() => setAlphaSnapEnabled(false)}
+                  className={`anim-group-btn ${!alphaSnap.enabled ? 'active' : ''}`}
+                  onClick={() => postDispatch({ type: 'SET_ALPHA_SNAP', enabled: false })}
                 >
                   Off
                 </button>
                 <button
-                  className={`anim-group-btn ${alphaSnapEnabled ? 'active' : ''}`}
-                  onClick={() => setAlphaSnapEnabled(true)}
+                  className={`anim-group-btn ${alphaSnap.enabled ? 'active' : ''}`}
+                  onClick={() => postDispatch({ type: 'SET_ALPHA_SNAP', enabled: true })}
                 >
                   On
                 </button>
               </div>
-              {alphaSnapEnabled && (
+              {alphaSnap.enabled && (
                 <input
                   type="range"
                   min={1}
                   max={254}
-                  value={alphaSnapThreshold}
-                  onChange={(e) => setAlphaSnapThreshold(Number(e.target.value))}
+                  value={alphaSnap.threshold}
+                  onChange={(e) => postDispatch({ type: 'SET_ALPHA_SNAP_THRESHOLD', threshold: Number(e.target.value) })}
                   style={{ width: '100%' }}
                 />
               )}
@@ -341,11 +300,11 @@ export function PostProcessingSidebar({
                 <button
                   key={i}
                   onClick={() => {
-                    setStruckColors((prev) =>
-                      isStruck
-                        ? prev.filter((c) => c[0] !== r || c[1] !== g || c[2] !== b)
-                        : [...prev, [r, g, b]],
-                    );
+                    if (isStruck) {
+                      postDispatch({ type: 'UNSTRIKE_COLOR', color: [r, g, b] });
+                    } else {
+                      postDispatch({ type: 'STRIKE_COLOR', color: [r, g, b] });
+                    }
                   }}
                   title={`rgb(${r}, ${g}, ${b})`}
                   style={{
@@ -367,7 +326,7 @@ export function PostProcessingSidebar({
               <button
                 className="btn btn-sm w-full"
                 style={{ marginTop: 6 }}
-                onClick={() => setShowRareColors((v) => !v)}
+                onClick={() => postDispatch({ type: 'SET_SHOW_RARE_COLORS', show: !showRareColors })}
               >
                 {showRareColors ? 'Hide' : 'More Colors'} ({palette.length - 72})
               </button>
@@ -381,11 +340,11 @@ export function PostProcessingSidebar({
                       <button
                         key={i + 72}
                         onClick={() => {
-                          setStruckColors((prev) =>
-                            isStruck
-                              ? prev.filter((c) => c[0] !== r || c[1] !== g || c[2] !== b)
-                              : [...prev, [r, g, b]],
-                          );
+                          if (isStruck) {
+                            postDispatch({ type: 'UNSTRIKE_COLOR', color: [r, g, b] });
+                          } else {
+                            postDispatch({ type: 'STRIKE_COLOR', color: [r, g, b] });
+                          }
                         }}
                         title={`rgb(${r}, ${g}, ${b})`}
                         style={{
@@ -415,7 +374,7 @@ export function PostProcessingSidebar({
               min={0}
               max={50}
               value={strikeTolerance}
-              onChange={(e) => setStrikeTolerance(Number(e.target.value))}
+              onChange={(e) => postDispatch({ type: 'SET_STRIKE_TOLERANCE', tolerance: Number(e.target.value) })}
               style={{ width: '100%' }}
             />
           </div>
@@ -423,7 +382,7 @@ export function PostProcessingSidebar({
             <button
               className="btn btn-sm w-full"
               style={{ marginTop: 6 }}
-              onClick={() => setStruckColors(() => [])}
+              onClick={() => postDispatch({ type: 'CLEAR_STRUCK_COLORS' })}
             >
               Clear All ({struckColors.length})
             </button>
@@ -437,7 +396,7 @@ export function PostProcessingSidebar({
           <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Edge inset</label>
           <select
             value={aaInset}
-            onChange={(e) => setAaInset(Number(e.target.value))}
+            onChange={(e) => postDispatch({ type: 'SET_AA_INSET', inset: Number(e.target.value) })}
             className="btn btn-sm"
             style={{ width: 'auto', padding: '2px 6px' }}
           >
