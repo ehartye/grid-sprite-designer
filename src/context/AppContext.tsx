@@ -322,15 +322,11 @@ type Action =
   | { type: 'SET_HISTORY_ID'; id: number }
   | { type: 'SET_SOURCE_CONTEXT'; groupId: string | null; contentPresetId: string | null }
   | { type: 'SET_CHARACTER_PRESETS'; presets: CharacterPreset[] }
-  | { type: 'LOAD_CHARACTER_PRESET'; preset: CharacterPreset }
   | { type: 'SET_BUILDING_PRESETS'; presets: BuildingPreset[] }
-  | { type: 'LOAD_BUILDING_PRESET'; preset: BuildingPreset }
   | { type: 'SET_TERRAIN'; terrain: AppState['terrain'] }
   | { type: 'SET_BACKGROUND'; background: AppState['background'] }
   | { type: 'SET_TERRAIN_PRESETS'; presets: TerrainPreset[] }
-  | { type: 'LOAD_TERRAIN_PRESET'; preset: TerrainPreset }
   | { type: 'SET_BACKGROUND_PRESETS'; presets: BackgroundPreset[] }
-  | { type: 'LOAD_BACKGROUND_PRESET'; preset: BackgroundPreset }
   | { type: 'LOAD_CONTENT_PRESET'; preset: AnyPreset }
   | { type: 'SET_GRID_PRESETS'; presets: GridPreset[] }
   | { type: 'SET_ACTIVE_GRID_CONFIG'; gridConfig: AppState['activeGridConfig'] }
@@ -503,10 +499,6 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, sourceGroupId: action.groupId, sourceContentPresetId: action.contentPresetId };
     case 'SET_CHARACTER_PRESETS':
       return { ...state, characterPresets: action.presets };
-    case 'LOAD_CHARACTER_PRESET':
-    case 'LOAD_BUILDING_PRESET':
-    case 'LOAD_TERRAIN_PRESET':
-    case 'LOAD_BACKGROUND_PRESET':
     case 'LOAD_CONTENT_PRESET':
       return loadContentPreset(state, action.preset);
     case 'SET_BUILDING_PRESETS':
