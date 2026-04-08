@@ -911,14 +911,15 @@ button:focus-visible {
   overflow: hidden;
 }
 
-.cell-menu-dropdown.bottom-sheet {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: auto;
-  border-radius: var(--radius) var(--radius) 0 0;
-  margin-top: 0;
+@media (max-width: 767px) {
+  .cell-menu-dropdown {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto !important;
+    border-radius: var(--radius) var(--radius) 0 0;
+    margin-top: 0;
+  }
 }
 
 .cell-menu-item {
@@ -1027,23 +1028,31 @@ button:focus-visible {
   background: var(--bg-base);
   border-left: 1px solid var(--border);
   overflow-y: auto;
-}
-
-.feedback-panel.side-panel {
   width: 320px;
   max-height: 100%;
 }
 
-.feedback-panel.bottom-sheet {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-height: 80vh;
-  border-top: 1px solid var(--border);
-  border-left: none;
-  border-radius: var(--radius) var(--radius) 0 0;
-  z-index: 50;
+.feedback-panel > .bottom-sheet-handle {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .feedback-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: 80vh;
+    border-top: 1px solid var(--border);
+    border-left: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    z-index: 50;
+  }
+
+  .feedback-panel > .bottom-sheet-handle {
+    display: block;
+  }
 }
 
 .feedback-panel-header {
@@ -1257,9 +1266,14 @@ button:focus-visible {
   border-top: 1px solid var(--border);
 }
 
-/* Mobile sticky regenerate bar */
+/* Mobile sticky regenerate bar — hidden on desktop, shown on mobile */
+.regen-sticky-bar {
+  display: none;
+}
+
 @media (max-width: 767px) {
   .regen-sticky-bar {
+    display: block;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -1326,7 +1340,7 @@ button:focus-visible {
 }
 
 .review-sidebar {
-  width: 260px;
+  width: 310px;
   flex-shrink: 0;
   padding: 12px;
   background: var(--bg-panel);

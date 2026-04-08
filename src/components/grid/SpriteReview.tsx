@@ -162,36 +162,40 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
     let cancelled = false;
 
     (async () => {
-      let chromaKeyColor: RGB | undefined;
-      if (chroma.chromaEnabled && sprites.length > 0) {
-        chromaKeyColor = await detectChromaKeyColor(sprites);
-        debugLog(`[ChromaKey] Auto-detected key color: rgb(${chromaKeyColor.join(', ')})`);
+      try {
+        let chromaKeyColor: RGB | undefined;
+        if (chroma.chromaEnabled && sprites.length > 0) {
+          chromaKeyColor = await detectChromaKeyColor(sprites);
+          debugLog(`[ChromaKey] Auto-detected key color: rgb(${chromaKeyColor.join(', ')})`);
+        }
+
+        const opts: ProcessSpriteOptions = {
+          posterize: { enabled: post.posterizeOutput, bits: post.posterizeBits },
+          chroma: {
+            enabled: chroma.chromaEnabled,
+            tolerance: chroma.chromaTolerance,
+            defringeCore: chroma.defringeCore,
+            edgeRecolorPasses: chroma.edgeRecolorPasses,
+            recolorSensitivity: chroma.recolorSensitivity,
+          },
+          pixelize: postState.pixelize,
+          outline: postState.outline,
+          alphaSnap: postState.alphaSnap,
+          colorStrike: { colors: postState.struckColors, tolerance: postState.strikeTolerance },
+          chromaKeyColor,
+        };
+
+        const result = await Promise.all(sprites.map((s) =>
+          processSprite(s, { ...opts, erasedPixels: selection.erasedPixels.get(s.cellIndex) }),
+        ));
+        if (!cancelled) setProcessedSprites(result);
+      } catch (err) {
+        console.error('[ProcessEffect] Error in processing pipeline:', err);
       }
-
-      const opts: ProcessSpriteOptions = {
-        posterize: { enabled: post.posterizeOutput, bits: post.posterizeBits },
-        chroma: {
-          enabled: chroma.chromaEnabled,
-          tolerance: chroma.chromaTolerance,
-          defringeCore: chroma.defringeCore,
-          edgeRecolorPasses: chroma.edgeRecolorPasses,
-          recolorSensitivity: chroma.recolorSensitivity,
-        },
-        pixelize: postState.pixelize,
-        outline: postState.outline,
-        alphaSnap: postState.alphaSnap,
-        colorStrike: { colors: postState.struckColors, tolerance: postState.strikeTolerance },
-        chromaKeyColor,
-      };
-
-      const result = await Promise.all(sprites.map((s) =>
-        processSprite(s, { ...opts, erasedPixels: selection.erasedPixels.get(s.cellIndex) }),
-      ));
-      if (!cancelled) setProcessedSprites(result);
     })();
 
     return () => { cancelled = true; };
-  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, postState]);
+  }, [sprites, post.posterizeOutput, post.posterizeBits, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.erasedKey, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, postState.pixelize.enabled, postState.pixelize.size, postState.outline.enabled, postState.outline.outDepth, postState.outline.inDepth, postState.outline.color, postState.alphaSnap.enabled, postState.alphaSnap.threshold, postState.strikeTolerance]);
 
   const [settingsLoaded, setSettingsLoaded] = useState(!state.historyId);
   // Guard: skip the first save effect after load completes to prevent
@@ -206,6 +210,11 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       setSettingsLoaded(true);
       return;
     }
+    // Immediately block the save effect so it can't write stale data from the
+    // previous generation to this historyId.  setSettingsLoaded(false) is a
+    // state update that won't take effect until the next render — but the save
+    // effect runs in THIS render cycle, so the ref is the only synchronous gate.
+    skipNextSaveRef.current = true;
     setSettingsLoaded(false);
     let cancelled = false;
 
@@ -331,7 +340,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
       alphaSnapThreshold: postState.alphaSnap.threshold,
       strikeTolerance: postState.strikeTolerance,
     });
-  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, postState, saveSettings]);
+  }, [settingsLoaded, chroma.chromaEnabled, chroma.chromaTolerance, struckKey, selection.mirroredCells, selection.displayOrder, post.posterizeBits, post.posterizeOutput, chroma.edgeRecolorPasses, chroma.recolorSensitivity, chroma.defringeCore, selection.erasedKey, postState.struckColors, postState.aaInset, postState.pixelize.enabled, postState.pixelize.size, postState.outline.enabled, postState.outline.outDepth, postState.outline.inDepth, postState.outline.color, postState.alphaSnap.enabled, postState.alphaSnap.threshold, postState.strikeTolerance, saveSettings]);
 
   // Apply mirror flip to a sprite's image data (returns new base64)
   const flipSpriteHorizontally = useCallback(async (sprite: ExtractedSprite): Promise<ExtractedSprite> => {
@@ -540,8 +549,18 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           onBack={() => setStep('configure')}
         />
 
+        {/* ── Post-Processing ── */}
+        <PostProcessingSidebar
+          postState={postState}
+          postDispatch={postDispatch}
+          chroma={chroma}
+          posterize={post}
+          palette={palette}
+          reExtract={reExtract}
+        />
+
         {/* ── Preview & Playback ── */}
-        <SidebarGroup label="Preview & Playback" defaultOpen={true}>
+        <SidebarGroup label="Preview & Playback" defaultOpen={false}>
           {hasAnimGroups && (
             <div className="sidebar-section">
               <h3>Animation</h3>
@@ -611,16 +630,6 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           )}
         </SidebarGroup>
 
-        {/* ── Post-Processing ── */}
-        <PostProcessingSidebar
-          postState={postState}
-          postDispatch={postDispatch}
-          chroma={chroma}
-          posterize={post}
-          palette={palette}
-          reExtract={reExtract}
-        />
-
         <AddSheetModal
           open={addSheetOpen}
           onClose={() => setAddSheetOpen(false)}
@@ -642,7 +651,7 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
         onRegenSettingsChange={setRegenSettings}
       />
 
-      {hasFeedback(feedbackState) && typeof window !== 'undefined' && window.innerWidth < 768 && (
+      {hasFeedback(feedbackState) && (
         <div className="regen-sticky-bar">
           <button className="btn btn-primary w-full" onClick={handleRegenerate} disabled={regenerating}>
             {regenerating ? 'Regenerating...' : 'Regenerate with Feedback'}

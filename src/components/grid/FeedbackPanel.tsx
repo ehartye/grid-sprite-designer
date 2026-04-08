@@ -63,8 +63,6 @@ export function FeedbackPanel({
 
   if (!open) return null;
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
   const updateGlobal = (value: string) => {
     onFeedbackChange({ ...feedbackState, global: value });
   };
@@ -96,8 +94,8 @@ export function FeedbackPanel({
   const groupedIndices = new Set(cellGroups.flatMap(g => g.cells));
 
   return (
-    <div className={`feedback-panel ${isMobile ? 'bottom-sheet' : 'side-panel'}`}>
-      {isMobile && <div className="bottom-sheet-handle" />}
+    <div className="feedback-panel">
+      <div className="bottom-sheet-handle" />
       <div className="feedback-panel-header">
         <h3>Feedback</h3>
         <button className="btn btn-xs" onClick={onClose}>Close</button>

@@ -36,7 +36,6 @@ export function CellContextMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -90,8 +89,8 @@ export function CellContextMenu({
       {open && createPortal(
         <div
           ref={dropdownRef}
-          className={`cell-menu-dropdown ${isMobile ? 'bottom-sheet' : ''}`}
-          style={!isMobile && dropdownPos ? { top: dropdownPos.top, right: dropdownPos.right } : undefined}
+          className="cell-menu-dropdown"
+          style={dropdownPos ? { top: dropdownPos.top, right: dropdownPos.right } : undefined}
         >
           <button className="cell-menu-item" onClick={handleAction(onZoomClick)}>
             <span className="cell-menu-icon">&#x1F50D;</span>
