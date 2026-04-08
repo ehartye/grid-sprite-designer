@@ -21,6 +21,7 @@ import type { ProcessSpriteOptions } from '../../lib/spriteProcessor';
 import { AddSheetModal } from './AddSheetModal';
 import { FeedbackPanel } from './FeedbackPanel';
 import { PostProcessingSidebar } from './PostProcessingSidebar';
+import { ReviewActions } from './ReviewActions';
 import { SidebarGroup } from './SidebarGroup';
 import type { FeedbackState } from '../../types/feedback';
 import { createEmptyFeedback, hasFeedback } from '../../types/feedback';
@@ -542,33 +543,15 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
 
       {/* Right: Sidebar */}
       <aside className="review-sidebar">
-        {/* ── Version Bar ── */}
-        {versionInfo && (versionInfo.parentId || versionInfo.childIds.length > 0 || versionInfo.version > 1) && (
-          <div className="version-bar">
-            <span className="version-label">v{versionInfo.version}</span>
-            <div className="version-nav">
-              {versionInfo.parentId && (
-                <button
-                  className="version-nav-btn"
-                  onClick={() => navigateToVersion(versionInfo.parentId!)}
-                  title="Load previous version"
-                >
-                  &larr; prev
-                </button>
-              )}
-              {versionInfo.childIds.map((childId) => (
-                <button
-                  key={childId}
-                  className="version-nav-btn"
-                  onClick={() => navigateToVersion(childId)}
-                  title="Load regenerated version"
-                >
-                  next &rarr;
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <ReviewActions
+          versionInfo={versionInfo}
+          onNavigateVersion={navigateToVersion}
+          onExportSheet={handleExportSheet}
+          onExportIndividual={handleExportIndividual}
+          onAddSheet={() => setAddSheetOpen(true)}
+          onFeedbackOpen={() => setFeedbackPanelOpen(true)}
+          onBack={() => setStep('configure')}
+        />
 
         {/* ── Preview & Playback ── */}
         <SidebarGroup label="Preview & Playback" defaultOpen={true}>
@@ -672,41 +655,6 @@ export function SpriteReview({ cellGroups }: SpriteReviewProps = {}) {
           aaInset={aaInset}
           setAaInset={setAaInset}
         />
-
-        {/* ── Actions ── */}
-        <SidebarGroup label="Actions" defaultOpen={true}>
-        <div className="sidebar-section">
-          <div className="export-bar">
-            <button className="btn btn-primary w-full" onClick={handleExportSheet}>
-              Export Sprite Sheet
-            </button>
-            <button className="btn w-full" onClick={handleExportIndividual}>
-              Export Individual PNGs
-            </button>
-          </div>
-        </div>
-
-        <div className="sidebar-section">
-          <div className="export-bar">
-            <button className="btn w-full" onClick={() => setAddSheetOpen(true)}>
-              Add Sheet
-            </button>
-            <button className="btn w-full" onClick={() => setFeedbackPanelOpen(true)}>
-              Feedback &amp; Regenerate
-            </button>
-          </div>
-        </div>
-
-        <div className="sidebar-section">
-          <button
-            className="btn w-full"
-            style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}
-            onClick={() => setStep('configure')}
-          >
-            &larr; Back to Configure
-          </button>
-        </div>
-        </SidebarGroup>
 
         <AddSheetModal
           open={addSheetOpen}
