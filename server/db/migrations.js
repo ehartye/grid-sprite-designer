@@ -132,6 +132,49 @@ const MIGRATIONS = [
       ) WHERE grid_preset_name IS NULL AND content_preset_id IS NOT NULL AND sprite_type = 'background';
     `
   },
+  {
+    name: '026_fix_parent_history_fk',
+    sql: `
+      CREATE TABLE generations_new AS SELECT * FROM generations;
+      DROP TABLE generations;
+      CREATE TABLE generations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content_name TEXT NOT NULL,
+        content_description TEXT NOT NULL DEFAULT '',
+        content_preset_id TEXT,
+        model TEXT NOT NULL DEFAULT 'gemini-3-pro-image-preview',
+        image_size TEXT DEFAULT NULL,
+        thinking_level TEXT DEFAULT NULL,
+        prompt TEXT NOT NULL DEFAULT '',
+        template_image TEXT NOT NULL DEFAULT '',
+        filled_grid_image TEXT NOT NULL DEFAULT '',
+        thumbnail_cell_index INTEGER DEFAULT NULL,
+        thumbnail_image TEXT DEFAULT NULL,
+        thumbnail_mime TEXT DEFAULT NULL,
+        sprite_type TEXT NOT NULL DEFAULT 'character',
+        grid_size TEXT DEFAULT NULL,
+        aspect_ratio TEXT DEFAULT '1:1',
+        group_id TEXT DEFAULT NULL,
+        grid_preset_name TEXT DEFAULT NULL,
+        feedback_json TEXT DEFAULT NULL,
+        parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id) ON DELETE SET NULL,
+        generation_version INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO generations SELECT
+        id, content_name, content_description, content_preset_id,
+        model, image_size, thinking_level, prompt, template_image,
+        filled_grid_image, thumbnail_cell_index, thumbnail_image,
+        thumbnail_mime, sprite_type, grid_size, aspect_ratio,
+        group_id, grid_preset_name, feedback_json, parent_history_id,
+        generation_version, created_at, updated_at
+      FROM generations_new;
+      DROP TABLE generations_new;
+      CREATE INDEX IF NOT EXISTS idx_generations_sprite_type ON generations(sprite_type);
+      CREATE INDEX IF NOT EXISTS idx_generations_type_created ON generations(sprite_type, created_at DESC);
+    `
+  },
 ];
 
 /** Check if a table has a specific column */

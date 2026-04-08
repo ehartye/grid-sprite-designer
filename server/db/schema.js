@@ -4,8 +4,7 @@ export function createSchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       content_name TEXT NOT NULL,
       content_description TEXT NOT NULL DEFAULT '',
-      character_preset_id TEXT,
-      custom_instructions TEXT DEFAULT '',
+      content_preset_id TEXT,
       model TEXT NOT NULL DEFAULT 'gemini-3-pro-image-preview',
       image_size TEXT DEFAULT NULL,
       thinking_level TEXT DEFAULT NULL,
@@ -15,13 +14,20 @@ export function createSchema(db) {
       thumbnail_cell_index INTEGER DEFAULT NULL,
       thumbnail_image TEXT DEFAULT NULL,
       thumbnail_mime TEXT DEFAULT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      sprite_type TEXT NOT NULL DEFAULT 'character',
+      grid_size TEXT DEFAULT NULL,
+      aspect_ratio TEXT DEFAULT '1:1',
+      group_id TEXT DEFAULT NULL,
+      grid_preset_name TEXT DEFAULT NULL,
       feedback_json TEXT DEFAULT NULL,
-      parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id),
+      parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id) ON DELETE SET NULL,
       generation_version INTEGER NOT NULL DEFAULT 1,
-      grid_preset_name TEXT DEFAULT NULL
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE INDEX IF NOT EXISTS idx_generations_sprite_type ON generations(sprite_type);
+    CREATE INDEX IF NOT EXISTS idx_generations_type_created ON generations(sprite_type, created_at DESC);
 
     CREATE TABLE IF NOT EXISTS sprites (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
