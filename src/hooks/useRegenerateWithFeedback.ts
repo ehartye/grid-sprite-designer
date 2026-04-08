@@ -143,8 +143,10 @@ export function useRegenerateWithFeedback() {
       }
 
       // 8. Fetch content preset name for history
-      let contentName = currentState.character?.name || currentState.building?.name || '';
-      let contentDescription = '';
+      const { WORKFLOW_CONFIGS } = await import('./useGenericWorkflow');
+      const fallbackContent = WORKFLOW_CONFIGS[spriteType].getContent(currentState);
+      let contentName = fallbackContent.name;
+      let contentDescription = fallbackContent.description;
       if (contentPresetId) {
         try {
           const preset: ContentPreset = await fetchContentPreset(spriteType, contentPresetId);
