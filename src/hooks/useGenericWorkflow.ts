@@ -12,8 +12,10 @@ import { extractSprites } from '../lib/spriteExtractor';
 import { generateGrid, generateFromStructuredPrompt } from '../api/geminiClient';
 import { debugLog } from '../lib/debugLog';
 import type { GridConfig } from '../lib/gridConfig';
-import type { HistorySaveResponse } from '../types/api';
+import type { HistorySaveResponse, ContentPreset } from '../types/api';
 import type { StructuredPrompt } from '../types/prompt';
+import { EMPTY_GUIDANCE } from '../lib/promptBuilderBase';
+import { buildGenerationRequest } from '../lib/generateRequest';
 
 /** Extra fields merged into the /api/history POST body */
 export interface HistoryExtras {
@@ -335,22 +337,52 @@ export function useGenericWorkflow(config: WorkflowConfig) {
 
     try {
       const gridConfig = currentConfig.buildGridConfig(currentState, gridLink);
-      const basePrompt = currentConfig.buildPrompt(currentState, gridConfig, gridLink);
-      const prompt = promptSuffix ? basePrompt + '\n\n' + promptSuffix : basePrompt;
 
-      await runGeneratePipeline({
-        gridConfig,
-        prompt,
-        model: currentState.model,
-        thinkingLevel: currentState.thinkingLevel,
-        imageSize: currentState.imageSize,
+      // Build ContentPreset from state fields
+      const stateFields = currentState[currentConfig.spriteType];
+      const contentPreset: ContentPreset = {
+        name: stateFields.name,
+        description: stateFields.description,
+        ...('equipment' in stateFields ? { equipment: stateFields.equipment } : {}),
+        ...('details' in stateFields ? { details: stateFields.details } : {}),
+        ...('bgMode' in stateFields ? { bgMode: (stateFields as { bgMode?: 'parallax' | 'scene' }).bgMode } : {}),
+        colorNotes: 'colorNotes' in stateFields ? (stateFields as { colorNotes: string }).colorNotes : undefined,
+        overallGuidance: 'overallGuidance' in stateFields ? (stateFields as { overallGuidance: string }).overallGuidance : undefined,
+        groupGuidance: 'groupGuidance' in stateFields ? (stateFields as { groupGuidance: Record<string, string> }).groupGuidance : undefined,
+        cellGuidance: 'cellGuidance' in stateFields ? (stateFields as { cellGuidance: Record<string, string> }).cellGuidance : undefined,
+      };
+
+      // Build a synthetic GridLink when none is provided
+      const effectiveGridLink: GridLink = gridLink ?? {
+        id: 0,
+        gridPresetId: 0,
+        gridGuidance: EMPTY_GUIDANCE,
+        linkGuidance: EMPTY_GUIDANCE,
+        sortOrder: 0,
+        gridName: '',
+        gridSize: `${gridConfig.cols}x${gridConfig.rows}`,
+        cols: gridConfig.cols,
+        rows: gridConfig.rows,
+        cellLabels: gridConfig.cellLabels,
+        cellGroups: [],
+        aspectRatio: gridConfig.aspectRatio || '1:1',
+        tileShape: 'square' as const,
+      };
+
+      const pipelineParams = buildGenerationRequest({
         spriteType: currentConfig.spriteType,
-        contentName: content.name,
-        contentDescription: content.description,
-        cellGroups: gridLink?.cellGroups,
+        contentPreset,
+        gridLink: effectiveGridLink,
+        model: currentState.model,
+        imageSize: currentState.imageSize,
+        thinkingLevel: currentState.thinkingLevel,
+        isSubsequentGrid: false,
+        promptSuffix,
         historyExtras: { contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType], gridPresetName: gridLink?.gridName || null },
         sourceContext: { groupId: null, contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType] },
-      }, dispatch, abort.signal);
+      });
+
+      await runGeneratePipeline(pipelineParams, dispatch, abort.signal);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
       const message = err instanceof Error ? err.message : 'Generation failed';
