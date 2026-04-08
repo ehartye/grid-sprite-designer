@@ -106,10 +106,19 @@ export function createHistoryRouter(db) {
         return res.status(400).json({ error: `Invalid sprite_type: ${effectiveSpriteType}` });
       }
 
+      // Compute version server-side when parentHistoryId is provided without an explicit version
+      let effectiveVersion = generationVersion || 1;
+      if (parentHistoryId && !generationVersion) {
+        const maxRow = db.prepare(
+          'SELECT MAX(generation_version) as mv FROM generations WHERE group_id = ? AND grid_size = ?'
+        ).get(groupId || null, gridSize || null);
+        effectiveVersion = (maxRow?.mv || 1) + 1;
+      }
+
       const result = db.prepare(
         `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level, parent_history_id, generation_version, grid_preset_name)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null, parentHistoryId || null, generationVersion || 1, gridPresetName || null);
+      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null, parentHistoryId || null, effectiveVersion, gridPresetName || null);
 
       res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }

@@ -59,27 +59,7 @@ export function useRegenerateWithFeedback() {
         });
       }
 
-      // 2. Determine next version number (handles branching)
-      let nextVersion = 2;
-      if (groupId) {
-        try {
-          const resp = await fetch(`/api/history/max-version?groupId=${encodeURIComponent(groupId)}&gridSize=${gridLink.cols}x${gridLink.rows}`, { signal: abort.signal });
-          if (resp.ok) {
-            const data = await resp.json();
-            nextVersion = (data.maxVersion || 1) + 1;
-          }
-        } catch { /* default to 2 */ }
-      } else if (historyId) {
-        try {
-          const resp = await fetch(`/api/history/${historyId}`, { signal: abort.signal });
-          if (resp.ok) {
-            const data = await resp.json();
-            nextVersion = (data.generationVersion || 1) + 1;
-          }
-        } catch { /* default to 2 */ }
-      }
-
-      // 3. Build edit prompt (feedback only, no full subject/layout prompt)
+      // 2. Build edit prompt (feedback only, no full subject/layout prompt)
       const cellLabels = gridLink.cellLabels;
       const cellGroups = gridLink.cellGroups || [];
       const cols = gridLink.cols;
@@ -87,7 +67,7 @@ export function useRegenerateWithFeedback() {
 
       debugLog('[Regen Edit Prompt]\n' + prompt);
 
-      // 4. Dispatch generating state
+      // 3. Dispatch generating state
       dispatch({
         type: 'GENERATE_START',
         templateImage: filledGridImage, // show source as "template" in UI
@@ -100,7 +80,7 @@ export function useRegenerateWithFeedback() {
         },
       });
 
-      // 5. Call edit API — source image only, no template
+      // 4. Call edit API — source image only, no template
       const result = await editGrid(
         currentState.model,
         prompt,
@@ -116,7 +96,7 @@ export function useRegenerateWithFeedback() {
         return;
       }
 
-      // 6. Update state with result
+      // 5. Update state with result
       dispatch({
         type: 'GENERATE_COMPLETE',
         filledGridImage: result.image.data,
@@ -124,7 +104,7 @@ export function useRegenerateWithFeedback() {
         geminiText: result.text,
       });
 
-      // 7. Extract sprites
+      // 6. Extract sprites
       let sprites: ExtractedSprite[];
       try {
         sprites = await extractSprites(result.image.data, result.image.mimeType, {
@@ -142,7 +122,7 @@ export function useRegenerateWithFeedback() {
         sprites = [];
       }
 
-      // 8. Fetch content preset name for history
+      // 7. Fetch content preset name for history
       const { WORKFLOW_CONFIGS } = await import('./useGenericWorkflow');
       const fallbackContent = WORKFLOW_CONFIGS[spriteType].getContent(currentState);
       let contentName = fallbackContent.name;
@@ -155,7 +135,7 @@ export function useRegenerateWithFeedback() {
         } catch { /* use state fallback */ }
       }
 
-      // 9. Save to history
+      // 8. Save to history
       try {
         const histResp = await fetch('/api/history', {
           method: 'POST',
@@ -174,7 +154,6 @@ export function useRegenerateWithFeedback() {
             groupId: groupId ?? null,
             contentPresetId: contentPresetId ?? null,
             parentHistoryId: historyId,
-            generationVersion: nextVersion,
             gridPresetName: gridLink.gridName || null,
           }),
           signal: abort.signal,
