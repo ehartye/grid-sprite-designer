@@ -134,6 +134,18 @@ const MIGRATIONS = [
   },
 ];
 
+/** Check if a table has a specific column */
+function hasColumn(db, table, column) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  return cols.some(c => c.name === column);
+}
+
+/** Parse simple "ALTER TABLE <table> ADD COLUMN <col>" statements */
+function parseAddColumn(sql) {
+  const match = sql.trim().match(/^ALTER\s+TABLE\s+(\w+)\s+ADD\s+COLUMN\s+(\w+)/i);
+  return match ? { table: match[1], column: match[2] } : null;
+}
+
 export function migrateSchema(db) {
   // Ensure migrations table exists (for databases created before version tracking)
   db.exec(`
@@ -153,14 +165,23 @@ export function migrateSchema(db) {
   for (const { name, sql } of MIGRATIONS) {
     if (applied.has(name)) continue;
 
+    // For simple ADD COLUMN migrations, check if the column already exists
+    const addCol = parseAddColumn(sql);
+    if (addCol && hasColumn(db, addCol.table, addCol.column)) {
+      record.run(name);
+      console.log(`[Migration] Recorded (column ${addCol.column} already exists): ${name}`);
+      continue;
+    }
+
     try {
       db.exec(sql);
       record.run(name);
       console.log(`[Migration] Applied: ${name}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      // Migration may already be applied on databases that predate version tracking
-      if (msg.includes('duplicate column') || msg.includes('already exists') || msg.includes('no such column') || msg.includes('no such table')) {
+      // Complex multi-statement migrations may already be partially/fully applied
+      // on databases that predate version tracking
+      if (msg.includes('duplicate column') || msg.includes('already exists')) {
         record.run(name);
         console.log(`[Migration] Recorded (already applied): ${name}`);
       } else {
