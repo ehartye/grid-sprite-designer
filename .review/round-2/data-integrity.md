@@ -1,59 +1,129 @@
-# Data Integrity -- Round 2 Reactions
+# Data Integrity -- Round 2 Cross-Pollination
 
-## Reactions
-
-### Maintainer Finding 1 (Stale type definitions create a parallel naming universe)
-
-This directly overlaps with my Finding 1. The Maintainer frames it as a readability/comprehension problem for new developers. From a Data Integrity standpoint, this is not just confusing -- it is a **runtime data loss bug**. The reducer reads `action.preset.rowGuidance` which resolves to `undefined` because the API returns `overallGuidance`. The guidance data physically exists in the API response but is discarded at the reducer boundary. The Maintainer notes it "works by accident because the prompt builders now pull guidance from HierarchicalGuidance on GridLink rather than from the per-type preset state." This is a critical nuance I should have explored further in Round 1: the `promptForType.ts` path fetches the preset via `fetchContentPreset` and reads `overallGuidance` directly from the `ContentPreset` type, bypassing the broken reducer entirely. So the **generation pipeline is not broken** -- it works because it never touches the stale AppState. What IS broken is the config panel's prompt preview (which may read from AppState) and the `loadGeneration.ts` session restore (which writes the stale fields into state). The data loss is real but scoped to the UI display layer, not the prompt sent to Gemini.
-
-### Maintainer Finding 2 (Two incompatible preset type systems coexist)
-
-From a Data Integrity standpoint, this is more critical than it appears as a maintainability issue. The coexistence of `CharacterPreset` (old shape) and `ContentPreset` (new shape) means there are two different "truths" about what a preset looks like. Code that casts between them (the `as ContentPreset` at UnifiedConfigPanel line 297) is performing an unsafe boundary crossing -- the compiler cannot verify that the runtime object matches the target type. This is exactly the kind of implicit shape assumption that lets data corruption propagate silently. Any code path that receives a per-type preset and assumes it has `overallGuidance` (because it was cast to `ContentPreset`) will work at runtime only because the API response includes that field even though the per-type TypeScript interface doesn't declare it.
-
-### Maintainer Finding 9 (No validation that cell guidance keys match actual cell labels)
-
-From a Data Integrity standpoint, this is actually more critical than it appears as a UX concern. Orphaned guidance keys are a form of **silent data rot**. The guidance data is stored permanently in the database, occupying the `cell_guidance` JSON column, but never surfaces in any prompt. Over time, edits and label renames accumulate orphaned entries. Worse: if a cell label is renamed in a grid preset (e.g., "Cast 1" to "Special 1" -- which already happened via `RPG_FULL_RENAME`), the corresponding cell guidance entries on all linked presets become orphaned unless a migration explicitly renames those keys. The `RPG_FULL_RENAME` map handles this for the initial seed decomposition but does nothing for user-created guidance entries on existing links.
-
-### Conventions Finding F3 (Inconsistent naming -- `cellGuidance` means two different things)
-
-From a Data Integrity standpoint, this naming collision is a direct hazard for data corruption at storage boundaries. If someone writes code that passes `AppState.building.cellGuidance` (a `string`) into a function expecting `Record<string, string>`, the JSON.stringify on the storage path will wrap the string in quotes, producing `"\"some text\""` rather than `{"key": "value"}`. When read back, `JSON.parse` will succeed (returning the bare string), but `buildGuidanceBlock` will try to access `.cells[label]` on a string, getting `undefined` for every key. This is a type-shape mismatch that the current loose typing cannot catch. The Conventions perspective correctly identifies the naming collision; from my lens, the consequence is corrupted guidance that silently produces empty prompts.
-
-### Conventions Finding F10 (GenericPresetsTab uses `Record<string, unknown>`)
-
-From a Data Integrity standpoint, this matters because `GenericPresetsTab` is the admin CRUD interface -- it is a **write path to the database**. When the admin saves a preset, the data flows from `Record<string, unknown>` state through `extractPresetValues` into a SQL INSERT/UPDATE. The `Record<string, unknown>` typing means there is no compile-time guarantee that the saved data matches the schema. Combined with my Finding 4 (`||` vs `??` in `extractPresetValues`), this is a double gap: the types don't enforce the shape, and the runtime doesn't enforce the values. A field typo in the admin UI config would result in `undefined` reaching `extractPresetValues`, which would silently use the default, and the user's intended data would be lost.
-
-### Conventions Finding F11 (decomposeGuidance.js is untyped)
-
-From a Data Integrity standpoint, this is particularly concerning because the function is a **data transformation at a critical boundary** -- it converts the old blob format into the new structured format during seeding. If the output shape drifts from what `buildGuidanceBlock` expects (e.g., someone changes the return to use `cellEntries` instead of `cells`), the guidance data would be stored in the wrong key and silently ignored at prompt time. The lack of a shared type contract between the server-side decomposition and the frontend consumption is a structural integrity gap.
-
-### Maintainer Finding 6 (decomposeGuidanceBlob regex tightly coupled to seed format)
-
-From a Data Integrity standpoint, the fragility of the parser has a specific consequence I want to highlight: **silent data misclassification**. If a seed blob has a line like `  Header "Walk Down 1" (0,0): text` with 9 leading spaces (one more than the 8-space max in the regex), that entire cell's guidance silently becomes part of the `overall` text rather than the `cells` map. The data isn't lost -- it's misrouted. The prompt will include the guidance text but in the wrong section (overall preamble instead of cell-specific), producing a subtly different prompt that the user would never notice without comparing raw prompt output.
+My Round 1 findings are locked. Below are reactions to the other perspectives' Round 1 findings, viewed through a data integrity lens.
 
 ---
 
-## Tensions
+## Reaction to Maintainer Finding 2 + Design Principles Finding 1 + Conventions Finding 5: Duplicated Save Pipeline
 
-### Tension 1: "Dead field" vs. "Data loss bug"
+All three perspectives independently flagged the duplicated save-to-history + archive pipeline between `runGeneratePipeline` and `useRegenerateWithFeedback`. From a data integrity angle, I want to amplify with specifics:
 
-Both the Maintainer (Finding 1) and Conventions (Finding F2) characterize the stale `rowGuidance` / `cellGuidance` / etc. fields as "dead" -- implying they are unused baggage. My Finding 1 characterizes them as a "data loss bug" where guidance is silently dropped. The tension exists because both are partially correct: the fields ARE dead in the sense that the generation pipeline doesn't use AppState guidance (it uses ContentPreset fetched directly from the API). But they ARE a data loss bug in the sense that the reducer actively reads these fields from the API response, gets `undefined`, and stores empty strings -- which means the UI state (config panel, prompt preview, session restore) lacks guidance data even though the backend has it. Whether this is "dead code" or "broken code" depends on whether you consider the UI state to be a source of truth or just a display cache.
+The divergence is worse than noted. I traced the concrete field differences:
 
-### Tension 2: Fixing types vs. removing fields
+1. **Archive payload omits `poseId`** in `useRegenerateWithFeedback.ts:194` -- regeneration archives use `poseName` but not `poseId`, while `runGeneratePipeline` includes both. Archive files from regeneration have different sprite metadata than archive files from generation.
 
-The Maintainer suggests "complete the rename" (update `rowGuidance` to `overallGuidance` everywhere). The Conventions perspective suggests "remove `rowGuidance` from CharacterPreset." My perspective agrees with the Maintainer's approach: the fields should be renamed and their types updated to match the new hierarchical shape, because the `loadGeneration.ts` session-restore path and the `UnifiedConfigPanel` prompt preview both need actual guidance data in AppState. Simply removing the fields would leave those code paths without guidance data at all. The right fix is to update the shape, not delete it.
+2. **Extraction failure creates different database states.** In `runGeneratePipeline`, extraction failure dispatches `EXTRACTION_COMPLETE` with empty sprites AND `SET_STATUS` (lines 149-151), transitioning the UI to review with a warning. In `useRegenerateWithFeedback`, extraction failure dispatches only `SET_STATUS` (line 122) -- no `EXTRACTION_COMPLETE`. But the history+sprite save still proceeds with `sprites = []`. This means a regeneration with extraction failure saves a generation record with zero sprites, AND the UI doesn't transition to review -- the user sees a stuck state with no way to retry extraction, while an incomplete record exists in the database.
+
+3. **My Finding 7 (non-atomic save) compounds this.** Both duplicated pipelines independently implement the same two-step save vulnerability. Extracting a shared `saveGenerationResult()` function (as all three perspectives suggest) would fix the atomicity gap in one place.
+
+**Combined recommendation:** Extract `saveGenerationResult()` first, then address atomicity within that single function. Highest correctness/effort ratio.
 
 ---
 
-## New Insights
+## Reaction to Maintainer Finding 3: Stale Content Name in Regeneration Fallback
 
-### Insight 1: The generation pipeline is accidentally resilient
+The Maintainer identified that `useRegenerateWithFeedback` falls back to `WORKFLOW_CONFIGS[spriteType].getContent(currentState)` for content name when `contentPresetId` is null, and that the state slice may contain stale data.
 
-Reading the Maintainer's observation that the prompt builders "pull guidance from HierarchicalGuidance on GridLink rather than from the per-type preset state" prompted me to re-trace the actual generation flow. The `useRunWorkflow` / `promptForType.ts` path calls `fetchContentPreset(spriteType, presetId)` which hits `GET /api/presets/:type/:id`, which uses `mapPresetRow` with the correct column config, returning `overallGuidance` / `groupGuidance` / `cellGuidance` in the correct shape. This response is consumed by `buildPromptForType` which constructs `presetGuidance` from these fields. **The AppState is never consulted for guidance during generation.** This means my Round 1 Finding 1, while correct about the data loss in the UI layer, overstated the severity -- the prompt sent to Gemini is correct. The regression is limited to: (a) the prompt preview in UnifiedConfigPanel showing no guidance, (b) the session-restore path in loadGeneration.ts not restoring guidance state, and (c) the config panel state not reflecting the selected preset's guidance.
+From a data integrity lens, the impact chain is:
 
-### Insight 2: `INSERT OR IGNORE` + label renames = double data divergence
+1. The fallback reads the sprite-type-specific state slice (e.g., `state.terrain`)
+2. If the state was populated by `loadGenerationIntoState`, the correct type's slice IS set
+3. But if `contentPresetId` is null (legacy entry) AND the state slice wasn't populated (edge case), the history record gets an empty or wrong `content_name`
+4. This wrong name is stored permanently in the `generations` table
 
-The Maintainer's Finding 9 about orphaned guidance keys, combined with my Finding 3 about `INSERT OR IGNORE` not refreshing existing data, reveals a compounding problem. On a migrated database: (1) the migration renames `row_guidance` to `overall_guidance`, leaving the old monolithic blob in the renamed column; (2) `INSERT OR IGNORE` skips re-seeding, so the blob is never decomposed; (3) if someone later renames cell labels in a grid preset (as happened with Cast/Special), any user-created cell guidance entries on links become orphaned with no automated cleanup. There are now three sources of guidance key drift: initial migration, label renames, and manual edits -- none of which have reconciliation mechanisms.
+Combined with my Round 1 Finding 3 (dangling `content_preset_id`): when the preset ID is stale AND the fallback reads from the wrong state, the generation gets wrong metadata from two independent failure paths. The database accumulates records with misleading `content_name` values that can never be automatically corrected.
 
-### Insight 3: The `confirm()` vs `window.confirm()` inconsistency (Conventions F6) has a data integrity angle
+---
 
-In test environments where `confirm` is not globally defined (e.g., jsdom without explicit mocking), a bare `confirm()` call in delete handlers could throw a ReferenceError, preventing the delete from executing but also preventing the UI from showing an error (since the throw happens before the API call). This is unlikely in practice but represents an unguarded path in destructive operations.
+## Reaction to Maintainer Finding 4: Per-Type Table Multiplication
+
+The Maintainer suggested consolidating 4 preset + 4 link tables into a single table with a `sprite_type` discriminator.
+
+From a data integrity perspective, the current design has a genuine advantage: **FK constraints are type-safe at the database level.** `character_grid_links.character_preset_id` can ONLY reference `character_presets(id)`, enforced by the engine. A consolidated `content_grid_links` junction would need application-level logic (or CHECK constraints with triggers) to prevent linking a character preset to a building-type grid preset. The `grid_presets.sprite_type` CHECK constraint exists but cross-table type consistency (link's preset type must match the grid preset's sprite type) requires enforcement beyond what simple FKs provide.
+
+The migration pain is real (migration 018 touched all 8 tables). A hybrid approach could work: consolidate the LINK tables (identical schemas minus the FK column name) while keeping per-type preset tables. This reduces migration surface while preserving type-safe FK references for the preset side.
+
+**Data integrity verdict:** The table multiplication provides genuine FK safety guarantees that a consolidated schema would sacrifice. I'd keep per-type preset tables unless triggers/CHECK constraints can replicate the type safety.
+
+---
+
+## Reaction to Maintainer Finding 7: Schema/Migration Sync Has No Automated Verification
+
+The Maintainer proposed a test comparing two databases (fresh schema vs. empty + all migrations). This is the correct fix for the drift I noted in my Round 1 Finding 6 (stale migration test assertion).
+
+I want to add: the comparison should include `PRAGMA index_list` and `PRAGMA foreign_key_list` for each table, not just `table_info`. Migration 026 rebuilds the `generations` table specifically to fix an FK constraint -- if the rebuild had missed an index, only an `index_list` comparison would catch it.
+
+Also, my Finding 6 (stale test asserting last migration is `020` when it's actually `026`) is a symptom of this same gap. The one test that should catch drift is itself broken.
+
+---
+
+## Reaction to Design Principles Finding 2: Fragile `.replace()` Prompt Hack
+
+The `.replace('The attached image is', 'IMAGE 2 is')` pattern in `promptForType.ts` has a secondary data integrity angle: the generated prompt is stored in `generations.prompt`. If the replace is a no-op (because the source string changed), the stored prompt has incorrect reference-image instructions. This means:
+
+1. Gemini receives ambiguous instructions (functional bug)
+2. The stored prompt in the DB doesn't accurately reflect what was intended (data integrity bug)
+3. Reviewing the stored prompt in the UI would show the un-replaced text, making it look correct when it's actually broken
+
+This is a case where a prompt-building bug creates misleading historical data.
+
+---
+
+## Reaction to Conventions Finding 3: `as Action` Casts in Dynamic Dispatch
+
+From a data integrity perspective, the `as Action` casts in `UnifiedConfigPanel` could create malformed state that eventually gets persisted. The flow:
+
+1. `UnifiedConfigPanel` builds an action with `as Action` (bypassing type safety)
+2. The reducer processes it (or silently drops unknown fields)
+3. State is used to build the history POST body
+4. The server has no type guards on incoming request bodies (Conventions Finding 4)
+5. The value is written to the database
+
+If a cast produces a malformed action that sets `state.character.name` to an unexpected type, this flows through fetch to the server to the INSERT. The combination of unsafe casts on the client + untyped server creates an end-to-end path where type errors can reach the database.
+
+**Severity:** Low in practice -- the reducer would need to mishandle the cast AND the value would need to survive serialization. But it's a principled concern about the trust chain from UI to storage.
+
+---
+
+## Reaction to Design Principles Finding 9 / Maintainer Finding 5: AppState Mixing Persistent and Transient State
+
+Both perspectives flagged AppState mixing persistent domain data with transient UI state. From a data integrity view, this creates a specific risk in `RESTORE_SESSION`.
+
+The reducer's `RESTORE_SESSION` does `return { ...state, ...action.payload }` with `as` casts. If session data contains stale keys that overlap with domain data (e.g., a preset array field), the restore overwrites fresh preset data with stale session data. The monolithic state shape has no boundary between "restorable fields" and "never-restore fields."
+
+The suggestion to split into `PresetsContext` and `WorkflowContext` naturally eliminates this class of bug -- session restore only touches workflow context, presets are independently managed.
+
+---
+
+## Reaction to Conventions Finding 9: Unstable Array Reference in Dependency Array
+
+The unstable `outline.color` array reference causing unnecessary processing pipeline re-runs is primarily a performance concern. But there's a subtle data integrity angle: if the processing is triggered repeatedly and the user saves sprites between re-runs, the saved sprites could reflect a processing state that was immediately superseded. In practice the processing is deterministic so the results are identical, but it's worth noting if non-deterministic processing (e.g., dithering) is ever added.
+
+---
+
+## New Compound Insights from Cross-Pollination
+
+### Insight 1: Systematically Corrupted Non-Character Regeneration Chains
+
+My Round 1 analysis revealed that the server-side version computation at `history.js:112-115` computes version when `parentHistoryId` is provided without explicit `generationVersion`. Combined with Maintainer Finding 3 (wrong content name for non-character types), every non-character regeneration chain risks entries with: (a) potentially wrong `content_name` from stale state fallback, and (b) correct `parent_history_id` but version numbers that depend on group_id matching correctly. The version chain is traversable via `parent_history_id`, but the metadata displayed in gallery (name, version number) may be incorrect for all non-character regeneration operations.
+
+### Insight 2: Duplicated Save Pipeline = Duplicated Validation Gap
+
+Both save paths validate `histId` is finite before saving sprites. But neither path cleans up a partially-saved history entry if sprite saving fails. And the regeneration path has a weaker check: it checks `histResp.ok` then `Number.isFinite(histId)`, while the main pipeline also logs explicit error messages. Consolidation would unify the validation, closing this gap.
+
+### Insight 3: Save Pipeline Extraction Is a Data Integrity Requirement, Not Just DRY
+
+The combination of (a) duplicated save logic, (b) wrong content name in one path, (c) different extraction failure handling in each path, and (d) non-atomic saves in both paths means the save pipeline extraction is not merely a code quality improvement. It's a **data integrity requirement** -- two independent paths to the database, each with different bugs, each producing differently-corrupted records. A single shared function would have one set of bugs to fix.
+
+---
+
+## Summary: Cross-Perspective Priority Matrix
+
+| Priority | Issue | Sources |
+|----------|-------|---------|
+| **High** | Duplicated save pipeline creates two independent paths for incorrect data to enter the DB. Extraction failure in regen saves zero-sprite records with no UI recovery. | Maintainer F2, DP F1, Conv F5, my F7 |
+| **High** | Stale content name from wrong state slice gets permanently saved to DB during regeneration | Maintainer F3, combined with my F3/F9 |
+| **Medium** | Schema/migration drift has no automated detection; existing migration test is stale | Maintainer F7, my F6 |
+| **Medium** | Per-type table multiplication is annoying but provides genuine FK type safety; consolidation would lose DB-level guarantees | Maintainer F4 |
+| **Low** | `as Action` casts + untyped server = end-to-end path for type errors to reach DB | Conv F3, Conv F4 |
+| **Low** | `.replace()` prompt hack stores misleading prompt history in DB when it's a no-op | DP F2 |
