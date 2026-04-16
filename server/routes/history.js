@@ -49,14 +49,15 @@ export function createHistoryRouter(db) {
         SELECT id, content_name, content_description, model, image_size, thinking_level,
                prompt, filled_grid_image, thumbnail_cell_index, thumbnail_image, thumbnail_mime,
                sprite_type, grid_size, aspect_ratio, group_id, content_preset_id,
-               grid_preset_name, feedback_json, parent_history_id, generation_version,
+               grid_preset_name, grid_preset_id, grid_snapshot,
+               feedback_json, parent_history_id, generation_version,
                created_at, updated_at
         FROM generations WHERE id = ?
       `).get(id);
       if (!gen) return res.status(404).json({ error: 'Not found' });
 
       const sprites = db.prepare(
-        'SELECT * FROM sprites WHERE generation_id = ? ORDER BY cell_index'
+        'SELECT cell_index, pose_name, image_data, mime_type FROM sprites WHERE generation_id = ? ORDER BY cell_index'
       ).all(id);
 
       res.json({
@@ -75,6 +76,8 @@ export function createHistoryRouter(db) {
         aspectRatio: gen.aspect_ratio || '1:1',
         groupId: gen.group_id || null,
         contentPresetId: gen.content_preset_id || null,
+        gridPresetId: gen.grid_preset_id || null,
+        gridSnapshot: gen.grid_snapshot ? JSON.parse(gen.grid_snapshot) : null,
         parentHistoryId: gen.parent_history_id || null,
         generationVersion: gen.generation_version || 1,
         feedbackJson: gen.feedback_json || null,
@@ -94,7 +97,7 @@ export function createHistoryRouter(db) {
       if (!req.body || typeof req.body !== 'object') {
         return res.status(400).json({ error: 'Request body is required' });
       }
-      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId, imageSize, thinkingLevel, parentHistoryId, generationVersion, gridPresetName } = req.body;
+      const { contentName, contentDescription, model, prompt, templateImage, filledGridImage, spriteType, gridSize, aspectRatio, groupId, contentPresetId, imageSize, thinkingLevel, parentHistoryId, generationVersion, gridPresetName, gridPresetId, gridSnapshot } = req.body;
       if (typeof contentName !== 'string' || contentName.trim() === '') {
         return res.status(400).json({ error: 'contentName is required and must be a non-empty string' });
       }
@@ -116,9 +119,9 @@ export function createHistoryRouter(db) {
       }
 
       const result = db.prepare(
-        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level, parent_history_id, generation_version, grid_preset_name)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null, parentHistoryId || null, effectiveVersion, gridPresetName || null);
+        `INSERT INTO generations (content_name, content_description, model, prompt, template_image, filled_grid_image, sprite_type, grid_size, aspect_ratio, group_id, content_preset_id, image_size, thinking_level, parent_history_id, generation_version, grid_preset_name, grid_preset_id, grid_snapshot)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(contentName, contentDescription, model, prompt, templateImage || '', filledGridImage || '', effectiveSpriteType, gridSize || null, aspectRatio || '1:1', groupId || null, contentPresetId || null, imageSize || null, thinkingLevel || null, parentHistoryId || null, effectiveVersion, gridPresetName || null, gridPresetId || null, gridSnapshot ? JSON.stringify(gridSnapshot) : null);
 
       res.status(201).json({ id: Number(result.lastInsertRowid) });
     } catch (err) { next(err); }

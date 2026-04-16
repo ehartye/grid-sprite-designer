@@ -47,13 +47,7 @@ function AppContent() {
         }
         const data = await res.json();
 
-        let savedSettings: { aaInset?: number; posterizeBits?: number } | null = null;
-        try {
-          const settingsRes = await fetch(`/api/history/${id}/settings`);
-          savedSettings = await settingsRes.json();
-        } catch { /* non-fatal */ }
-
-        await loadGenerationIntoState(data, dispatch, { historyId: id, editorSettings: savedSettings });
+        await loadGenerationIntoState(data, dispatch, { historyId: id });
       } catch (_err) {
         dispatch({ type: 'SET_STATUS', message: 'Failed to restore last session', statusType: 'warning' });
       }

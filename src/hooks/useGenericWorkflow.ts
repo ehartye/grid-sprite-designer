@@ -15,7 +15,7 @@ import type { GridConfig } from '../lib/gridConfig';
 import type { HistorySaveResponse, ContentPreset } from '../types/api';
 import type { StructuredPrompt } from '../types/prompt';
 import { EMPTY_GUIDANCE } from '../lib/promptBuilderBase';
-import { buildGenerationRequest } from '../lib/generateRequest';
+import { buildGenerationRequest, buildGridSnapshot } from '../lib/generateRequest';
 
 /** Extra fields merged into the /api/history POST body */
 export interface HistoryExtras {
@@ -24,6 +24,8 @@ export interface HistoryExtras {
   parentHistoryId?: number | null;
   generationVersion?: number;
   gridPresetName?: string | null;
+  gridPresetId?: number | null;
+  gridSnapshot?: Record<string, unknown> | null;
 }
 
 export interface WorkflowConfig {
@@ -356,7 +358,12 @@ export function useGenericWorkflow(config: WorkflowConfig) {
         thinkingLevel: currentState.thinkingLevel,
         isSubsequentGrid: false,
         promptSuffix,
-        historyExtras: { contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType], gridPresetName: gridLink?.gridName || null },
+        historyExtras: {
+          contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType],
+          gridPresetName: gridLink?.gridName || null,
+          gridPresetId: gridLink?.gridPresetId || null,
+          gridSnapshot: gridLink ? buildGridSnapshot(gridLink) : null,
+        },
         sourceContext: { groupId: null, contentPresetId: currentState.activeContentPresetIds[currentConfig.spriteType] },
       });
 

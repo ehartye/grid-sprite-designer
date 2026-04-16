@@ -12,6 +12,17 @@ import type { StructuredPrompt } from '../types/prompt';
 import { assemblePrompt } from './promptForType';
 import { gridPresetToConfig } from './gridConfig';
 
+/** Build a grid snapshot from a GridLink for history persistence. */
+export function buildGridSnapshot(gridLink: GridLink): Record<string, unknown> {
+  return {
+    cols: gridLink.cols,
+    rows: gridLink.rows,
+    cellLabels: gridLink.cellLabels,
+    cellGroups: gridLink.cellGroups || [],
+    aspectRatio: gridLink.aspectRatio || '1:1',
+  };
+}
+
 export interface GenerationRequestParams {
   spriteType: SpriteType;
   contentPreset: ContentPreset;

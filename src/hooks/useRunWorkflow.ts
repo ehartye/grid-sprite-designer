@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { fetchContentPreset } from '../lib/promptForType';
-import { buildGenerationRequest } from '../lib/generateRequest';
+import { buildGenerationRequest, buildGridSnapshot } from '../lib/generateRequest';
 import { runGeneratePipeline } from './useGenericWorkflow';
 
 export function useRunWorkflow() {
@@ -67,7 +67,7 @@ export function useRunWorkflow() {
         isSubsequentGrid: isSubsequent,
         pixelizeSize: run.pixelizeSize,
         referenceImage: refImage,
-        historyExtras: { groupId: run.groupId, contentPresetId: run.contentPresetId },
+        historyExtras: { groupId: run.groupId, contentPresetId: run.contentPresetId, gridPresetId: gridLink.gridPresetId, gridSnapshot: buildGridSnapshot(gridLink) },
         sourceContext: { groupId: run.groupId, contentPresetId: run.contentPresetId },
       });
 

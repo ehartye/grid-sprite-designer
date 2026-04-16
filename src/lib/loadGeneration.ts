@@ -2,36 +2,22 @@
  * Shared logic for loading a saved generation into app state.
  * Used by both App.tsx (session restore) and GalleryPage.tsx (gallery load).
  *
- * Computes all derived state (config, grid dimensions, sprites) first,
- * then dispatches a single RESTORE_SESSION action for atomic state update.
+ * Grid layout comes from the stored grid_snapshot (snapshotted at generation time).
+ * Sprites come from the DB sprites table. No re-extraction, no fallback logic.
  */
 
 import type { Dispatch } from 'react';
-import { extractSprites, type ExtractedSprite } from './spriteExtractor';
-import {
-  getBuildingGridConfig,
-  getTerrainGridConfig,
-  getBackgroundGridConfig,
-  BUILDING_GRIDS,
-  TERRAIN_GRIDS,
-  BACKGROUND_GRIDS,
-  type BuildingGridSize,
-  type TerrainGridSize,
-  type BackgroundGridSize,
-} from './gridConfig';
+import type { ExtractedSprite } from './spriteExtractor';
 import type { SpriteType, Action, AppState, RestoreSessionPayload } from '../context/AppContext';
 import type { HistoryResponse } from '../types/api';
 
 interface LoadOptions {
   /** History entry ID */
   historyId: number;
-  /** Saved editor settings for extraction overrides */
-  editorSettings?: { aaInset?: number; posterizeBits?: number } | null;
 }
 
 /**
  * Load a generation's data into app state via a single RESTORE_SESSION dispatch.
- * Handles sprite-type branching, grid config inference, extraction, and state restoration.
  */
 export async function loadGenerationIntoState(
   data: HistoryResponse,
@@ -39,138 +25,78 @@ export async function loadGenerationIntoState(
   opts: LoadOptions,
 ): Promise<void> {
   const spriteType = (data.spriteType || 'character') as SpriteType;
-  const spriteLabels = data.sprites?.map(s => s.label) || [];
 
-  // 1. Build config state based on sprite type
+  // 1. Grid layout from snapshot (the authoritative source)
+  const snapshot = data.gridSnapshot;
+  const gridCols = snapshot?.cols ?? (data.gridSize ? parseInt(data.gridSize.split('x')[0], 10) || 6 : 6);
+  const gridRows = snapshot?.rows ?? (data.gridSize ? parseInt(data.gridSize.split('x')[1], 10) || 6 : 6);
+  const cellLabels = snapshot?.cellLabels ?? [];
+  const cellGroups = snapshot?.cellGroups ?? [];
+  const aspectRatio = snapshot?.aspectRatio ?? data.aspectRatio ?? '1:1';
+
+  // 2. Build config state based on sprite type
   let character: AppState['character'] | undefined;
   let building: AppState['building'] | undefined;
   let terrain: AppState['terrain'] | undefined;
   let background: AppState['background'] | undefined;
 
-  if (spriteType === 'building' && data.gridSize) {
-    if (!(data.gridSize in BUILDING_GRIDS)) {
-      console.warn(`Invalid building gridSize "${data.gridSize}", skipping grid override`);
-    } else {
-      building = {
-        name: data.content?.name || '',
-        description: data.content?.description || '',
-        details: '',
-        colorNotes: '',
-        styleNotes: '',
-        overallGuidance: '',
-        groupGuidance: {},
-        cellGuidance: {},
-        gridSize: data.gridSize as BuildingGridSize,
-        cellLabels: spriteLabels,
-      };
-    }
-  } else if (spriteType === 'terrain' && data.gridSize) {
-    if (!(data.gridSize in TERRAIN_GRIDS)) {
-      console.warn(`Invalid terrain gridSize "${data.gridSize}", skipping grid override`);
-    } else {
-      terrain = {
-        name: data.content?.name || '',
-        description: data.content?.description || '',
-        colorNotes: '',
-        styleNotes: '',
-        overallGuidance: '',
-        groupGuidance: {},
-        cellGuidance: {},
-        gridSize: data.gridSize as TerrainGridSize,
-        cellLabels: spriteLabels,
-      };
-    }
-  } else if (spriteType === 'background' && data.gridSize) {
-    if (!(data.gridSize in BACKGROUND_GRIDS)) {
-      console.warn(`Invalid background gridSize "${data.gridSize}", skipping grid override`);
-    } else {
-      background = {
-        name: data.content?.name || '',
-        description: data.content?.description || '',
-        colorNotes: '',
-        styleNotes: '',
-        overallGuidance: '',
-        groupGuidance: {},
-        cellGuidance: {},
-        bgMode: data.gridSize.startsWith('1x') ? 'parallax' : 'scene',
-        gridSize: data.gridSize as BackgroundGridSize,
-        cellLabels: spriteLabels,
-      };
-    }
-  } else if (data.content) {
+  if (spriteType === 'building') {
+    building = {
+      name: data.content?.name || '',
+      description: data.content?.description || '',
+      details: '',
+      colorNotes: '',
+      styleNotes: '',
+      overallGuidance: '',
+      groupGuidance: {},
+      cellGuidance: {},
+      gridSize: data.gridSize as AppState['building']['gridSize'],
+      cellLabels,
+    };
+  } else if (spriteType === 'terrain') {
+    terrain = {
+      name: data.content?.name || '',
+      description: data.content?.description || '',
+      colorNotes: '',
+      styleNotes: '',
+      overallGuidance: '',
+      groupGuidance: {},
+      cellGuidance: {},
+      gridSize: data.gridSize as AppState['terrain']['gridSize'],
+      cellLabels,
+    };
+  } else if (spriteType === 'background') {
+    background = {
+      name: data.content?.name || '',
+      description: data.content?.description || '',
+      colorNotes: '',
+      styleNotes: '',
+      overallGuidance: '',
+      groupGuidance: {},
+      cellGuidance: {},
+      bgMode: data.gridSize?.startsWith('1x') ? 'parallax' : 'scene',
+      gridSize: data.gridSize as AppState['background']['gridSize'],
+      cellLabels,
+    };
+  } else {
     character = {
-      name: data.content.name || '',
-      description: data.content.description || '',
-      equipment: data.content.equipment || '',
-      colorNotes: data.content.colorNotes || '',
-      styleNotes: data.content.styleNotes || '',
+      name: data.content?.name || '',
+      description: data.content?.description || '',
+      equipment: data.content?.equipment || '',
+      colorNotes: data.content?.colorNotes || '',
+      styleNotes: data.content?.styleNotes || '',
       overallGuidance: '',
       groupGuidance: {},
       cellGuidance: {},
     };
   }
 
-  // 2. Infer grid dimensions
-  let gridCols: number;
-  let gridRows: number;
-  if (data.gridSize) {
-    const [colStr, rowStr] = data.gridSize.split('x');
-    gridCols = parseInt(colStr, 10) || 6;
-    gridRows = parseInt(rowStr, 10) || 6;
-  } else if (spriteLabels.length > 0 && spriteLabels.length !== 36) {
-    const total = spriteLabels.length;
-    gridCols = [8, 6, 5, 4, 3, 2, 1].find(c => total % c === 0 && total / c >= 1) || 6;
-    gridRows = Math.ceil(total / gridCols);
-  } else {
-    gridCols = 6;
-    gridRows = 6;
-  }
-
-  // 3. Extract sprites or restore from history
-  const mimeType = data.filledGridMimeType || 'image/png';
-  let sprites: ExtractedSprite[] = [];
-
-  if (data.filledGridImage) {
-    // Build extraction config
-    const extractionConfig: Parameters<typeof extractSprites>[2] = {
-      ...(opts.editorSettings?.aaInset != null ? { aaInset: opts.editorSettings.aaInset } : {}),
-      ...(opts.editorSettings?.posterizeBits != null ? { posterizeBits: opts.editorSettings.posterizeBits } : {}),
-    };
-
-    if (spriteType === 'building' && data.gridSize && data.gridSize in BUILDING_GRIDS) {
-      const gridConfig = getBuildingGridConfig(data.gridSize as BuildingGridSize, spriteLabels);
-      extractionConfig.gridOverride = {
-        cols: gridConfig.cols, rows: gridConfig.rows,
-        totalCells: gridConfig.totalCells, cellLabels: gridConfig.cellLabels,
-      };
-    } else if (spriteType === 'terrain' && data.gridSize && data.gridSize in TERRAIN_GRIDS) {
-      const gridConfig = getTerrainGridConfig(data.gridSize as TerrainGridSize, spriteLabels);
-      extractionConfig.gridOverride = {
-        cols: gridConfig.cols, rows: gridConfig.rows,
-        totalCells: gridConfig.totalCells, cellLabels: gridConfig.cellLabels,
-      };
-    } else if (spriteType === 'background' && data.gridSize && data.gridSize in BACKGROUND_GRIDS) {
-      const gridConfig = getBackgroundGridConfig(data.gridSize as BackgroundGridSize, spriteLabels);
-      extractionConfig.gridOverride = {
-        cols: gridConfig.cols, rows: gridConfig.rows,
-        totalCells: gridConfig.totalCells, cellLabels: gridConfig.cellLabels,
-      };
-    } else if (gridCols !== 6 || gridRows !== 6) {
-      extractionConfig.gridOverride = {
-        cols: gridCols, rows: gridRows,
-        totalCells: gridCols * gridRows, cellLabels: spriteLabels,
-      };
-    }
-
-    sprites = await extractSprites(data.filledGridImage, mimeType, extractionConfig);
-  } else if (data.sprites && data.sprites.length > 0) {
-    // Sprites loaded from history may lack width/height; default to 0
-    sprites = data.sprites.map(s => ({
-      ...s,
-      width: s.width ?? 0,
-      height: s.height ?? 0,
-    }));
-  }
+  // 3. Sprites from DB — no re-extraction
+  const sprites: ExtractedSprite[] = (data.sprites || []).map(s => ({
+    ...s,
+    width: s.width ?? 0,
+    height: s.height ?? 0,
+  }));
 
   // 4. Dispatch single atomic state update
   const payload: RestoreSessionPayload = {
@@ -179,9 +105,9 @@ export async function loadGenerationIntoState(
     ...(building ? { building } : {}),
     ...(terrain ? { terrain } : {}),
     ...(background ? { background } : {}),
-    activeGridConfig: { cols: gridCols, rows: gridRows, cellLabels: spriteLabels, aspectRatio: data.aspectRatio },
+    activeGridConfig: { cols: gridCols, rows: gridRows, cellLabels, cellGroups, aspectRatio },
     filledGridImage: data.filledGridImage || null,
-    filledGridMimeType: mimeType,
+    filledGridMimeType: data.filledGridMimeType || 'image/png',
     geminiText: data.geminiText || '',
     sprites,
     historyId: opts.historyId,

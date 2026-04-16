@@ -30,7 +30,6 @@ export interface AssemblePromptOptions {
   isSubsequentGrid: boolean;
   pixelizeSize?: number;
   referenceImage?: { data: string; mimeType: string };
-  templateImage?: { data: string; mimeType: string };
   feedbackState?: FeedbackState;
   promptSuffix?: string;
 }
@@ -49,7 +48,7 @@ function buildRoleIntro(spriteType: SpriteType, cols: number, rows: number): str
  * Composes: feedback preamble → role intro → subject → reference image → instructions → canvas/template.
  */
 export function assemblePrompt(opts: AssemblePromptOptions): StructuredPrompt {
-  const { spriteType, contentPreset, gridLink, isSubsequentGrid, pixelizeSize, referenceImage, templateImage, feedbackState, promptSuffix } = opts;
+  const { spriteType, contentPreset, gridLink, isSubsequentGrid, pixelizeSize, referenceImage, feedbackState, promptSuffix } = opts;
   const { gridGuidance, linkGuidance, cellGroups, cellLabels, cols, rows } = gridLink;
 
   const presetGuidance: HierarchicalGuidance = {
@@ -133,12 +132,9 @@ export function assemblePrompt(opts: AssemblePromptOptions): StructuredPrompt {
   // Prompt suffix (follow-up guidance from add-sheet)
   if (promptSuffix?.trim()) parts.push({ type: 'text', content: promptSuffix.trim() });
 
-  // 6. Canvas (template adherence + template image)
+  // 6. Canvas (template adherence — template image is injected at runtime by runGeneratePipeline)
   sections.push({ name: 'canvas', partIndex: parts.length });
   parts.push({ type: 'text', content: 'Return the completed sprite sheet as a single image. Preserve ALL header text exactly.' });
-  if (templateImage) {
-    parts.push({ type: 'image', data: templateImage.data, mimeType: templateImage.mimeType, label: 'template' });
-  }
 
   return {
     parts,

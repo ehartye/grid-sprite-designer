@@ -175,6 +175,46 @@ const MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_generations_type_created ON generations(sprite_type, created_at DESC);
     `
   },
+  {
+    name: '027_add_grid_preset_id_and_snapshot',
+    sql: `
+      ALTER TABLE generations ADD COLUMN grid_preset_id INTEGER DEFAULT NULL REFERENCES grid_presets(id) ON DELETE SET NULL;
+      ALTER TABLE generations ADD COLUMN grid_snapshot TEXT DEFAULT NULL;
+    `,
+    // Backfill grid_preset_id from grid_preset_name + sprite_type + grid_size
+    postMigrate(db) {
+      const gens = db.prepare(
+        'SELECT id, grid_preset_name, sprite_type, grid_size FROM generations WHERE grid_preset_name IS NOT NULL AND grid_preset_id IS NULL'
+      ).all();
+
+      const findPreset = db.prepare(
+        'SELECT id, cell_labels, cell_groups, cols, rows, aspect_ratio, overall_guidance, group_guidance, cell_guidance FROM grid_presets WHERE name = ? AND sprite_type = ? AND grid_size = ?'
+      );
+      const update = db.prepare(
+        'UPDATE generations SET grid_preset_id = ?, grid_snapshot = ? WHERE id = ?'
+      );
+
+      let filled = 0;
+      for (const g of gens) {
+        const gp = findPreset.get(g.grid_preset_name, g.sprite_type, g.grid_size);
+        if (gp) {
+          const snapshot = JSON.stringify({
+            cols: gp.cols,
+            rows: gp.rows,
+            cellLabels: JSON.parse(gp.cell_labels || '[]'),
+            cellGroups: JSON.parse(gp.cell_groups || '[]'),
+            aspectRatio: gp.aspect_ratio,
+            overallGuidance: gp.overall_guidance || '',
+            groupGuidance: JSON.parse(gp.group_guidance || '{}'),
+            cellGuidance: JSON.parse(gp.cell_guidance || '{}'),
+          });
+          update.run(gp.id, snapshot, g.id);
+          filled++;
+        }
+      }
+      console.log(`[Migration 027] Backfilled grid_preset_id + snapshot for ${filled}/${gens.length} generations`);
+    },
+  },
 ];
 
 /** Check if a table has a specific column */
@@ -205,13 +245,14 @@ export function migrateSchema(db) {
 
   const record = db.prepare('INSERT INTO migrations (name) VALUES (?)');
 
-  for (const { name, sql } of MIGRATIONS) {
+  for (const { name, sql, postMigrate } of MIGRATIONS) {
     if (applied.has(name)) continue;
 
     // For simple ADD COLUMN migrations, check if the column already exists
     const addCol = parseAddColumn(sql);
     if (addCol && hasColumn(db, addCol.table, addCol.column)) {
       record.run(name);
+      if (postMigrate) postMigrate(db);
       console.log(`[Migration] Recorded (column ${addCol.column} already exists): ${name}`);
       continue;
     }
@@ -220,12 +261,14 @@ export function migrateSchema(db) {
       db.exec(sql);
       record.run(name);
       console.log(`[Migration] Applied: ${name}`);
+      if (postMigrate) postMigrate(db);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       // Complex multi-statement migrations may already be partially/fully applied
       // on databases that predate version tracking
       if (msg.includes('duplicate column') || msg.includes('already exists')) {
         record.run(name);
+        if (postMigrate) postMigrate(db);
         console.log(`[Migration] Recorded (already applied): ${name}`);
       } else {
         console.error(`[Migration] Failed: ${name}\n  ${msg}`);

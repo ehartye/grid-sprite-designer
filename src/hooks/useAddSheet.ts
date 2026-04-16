@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppContext, SpriteType, GridLink } from '../context/AppContext';
 import { composeSpriteSheet, ExtractedSprite } from '../lib/spriteExtractor';
 import { fetchContentPreset } from '../lib/promptForType';
-import { buildGenerationRequest } from '../lib/generateRequest';
+import { buildGenerationRequest, buildGridSnapshot } from '../lib/generateRequest';
 import { runGeneratePipeline, WORKFLOW_CONFIGS } from './useGenericWorkflow';
 import { debugLog } from '../lib/debugLog';
 import type { ContentPreset } from '../types/api';
@@ -135,7 +135,7 @@ export function useAddSheet() {
         pixelizeSize,
         referenceImage: { data: refBase64, mimeType: 'image/png' },
         promptSuffix: followUpGuidance,
-        historyExtras: { groupId, contentPresetId },
+        historyExtras: { groupId, contentPresetId, gridPresetId: gridLink.gridPresetId, gridSnapshot: buildGridSnapshot(gridLink) },
         sourceContext: { groupId: groupId ?? null, contentPresetId: contentPresetId ?? null },
       });
 

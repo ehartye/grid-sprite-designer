@@ -39,14 +39,16 @@ describe('assemblePrompt', () => {
     expect(result.meta.hasReference).toBe(true);
   });
 
-  it('includes template image part when provided', () => {
+  it('has canvas section for template injection by pipeline', () => {
     const result = assemblePrompt({
       spriteType: 'building', contentPreset: { name: 'Castle', description: 'A castle', details: '' },
       gridLink: makeGridLink(), isSubsequentGrid: false,
-      templateImage: { data: 'base64tmpl', mimeType: 'image/png' },
     });
+    const canvasSection = result.meta.sectionBreakdown.find(s => s.name === 'canvas');
+    expect(canvasSection).toBeDefined();
+    // No image parts — template is injected at runtime by runGeneratePipeline
     const imageParts = result.parts.filter(p => p.type === 'image');
-    expect(imageParts.length).toBe(1); // template
+    expect(imageParts.length).toBe(0);
   });
 
   it('section breakdown includes expected sections', () => {

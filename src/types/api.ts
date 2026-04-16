@@ -18,6 +18,17 @@ export interface HistoryResponse {
   aspectRatio?: string;
   groupId?: string | null;
   contentPresetId?: string | null;
+  gridPresetId?: number | null;
+  gridSnapshot?: {
+    cols: number;
+    rows: number;
+    cellLabels: string[];
+    cellGroups: Array<{ name: string; cells: number[] }>;
+    aspectRatio: string;
+    overallGuidance?: string;
+    groupGuidance?: Record<string, string>;
+    cellGuidance?: Record<string, string>;
+  } | null;
   feedbackJson?: string | null;
   parentHistoryId?: number | null;
   generationVersion?: number;

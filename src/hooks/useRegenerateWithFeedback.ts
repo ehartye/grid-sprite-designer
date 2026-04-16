@@ -156,6 +156,14 @@ export function useRegenerateWithFeedback() {
             contentPresetId: contentPresetId ?? null,
             parentHistoryId: historyId,
             gridPresetName: gridLink.gridName || null,
+            gridPresetId: gridLink.gridPresetId || null,
+            gridSnapshot: {
+              cols: gridLink.cols,
+              rows: gridLink.rows,
+              cellLabels: gridLink.cellLabels,
+              cellGroups: gridLink.cellGroups || [],
+              aspectRatio: gridLink.aspectRatio || '1:1',
+            },
           }),
           signal: abort.signal,
         });

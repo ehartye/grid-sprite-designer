@@ -19,6 +19,8 @@ export function createSchema(db) {
       aspect_ratio TEXT DEFAULT '1:1',
       group_id TEXT DEFAULT NULL,
       grid_preset_name TEXT DEFAULT NULL,
+      grid_preset_id INTEGER DEFAULT NULL REFERENCES grid_presets(id) ON DELETE SET NULL,
+      grid_snapshot TEXT DEFAULT NULL,
       feedback_json TEXT DEFAULT NULL,
       parent_history_id INTEGER DEFAULT NULL REFERENCES generations(id) ON DELETE SET NULL,
       generation_version INTEGER NOT NULL DEFAULT 1,
