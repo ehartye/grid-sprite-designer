@@ -11,6 +11,7 @@ npm run typecheck    # TypeScript type checking
 npm run lint         # ESLint (src + server)
 npm test             # Playwright e2e tests
 npm run test:unit    # Vitest unit tests
+npm run db:backup    # Back up SQLite DB (safe while server runs)
 ```
 
 ## Environment
@@ -52,12 +53,27 @@ Requires `GEMINI_API_KEY` in `.env.local`. Copy `.env.example` to start.
 - `GET /api/presets/:type/:id/grid-links` — Grid links for a preset
 - `GET /api/gallery` — Paginated gallery with search/filter
 
+## Database Backup — DO THIS FIRST
+
+**Before ANY migration or schema change, back up the database:**
+
+```bash
+npm run db:backup                # -> data/backups/grid-sprite_20260409-143022.db
+npm run db:backup pre-migration  # -> data/backups/grid-sprite_pre-migration.db
+```
+
+Uses SQLite's online backup API — safe while the server is running. Backups go to `data/backups/` (gitignored).
+
+**Why this matters:** Migration 026 wiped all sprites and editor settings via `ON DELETE CASCADE` when it dropped and recreated the generations table. This data was unrecoverable. Always back up before destructive migrations.
+
 ## Database Gotchas
 
+- **NEVER `DROP TABLE` with `foreign_keys = ON`** — child tables with `ON DELETE CASCADE` will lose all data. Disable FKs first: `PRAGMA foreign_keys = OFF` before drop, re-enable after.
 - Migrations in `server/db/migrations.js` — append-only array, run idempotently on startup
 - Schema in `server/db/schema.js` — must match migrations for new DBs
 - Seed data in `server/db/seeds/` — re-seeded on startup if missing
 - `generations.filled_grid_image` stores full base64 — rows can be large
+- Both `sprites` and `editor_settings` tables use `ON DELETE CASCADE` on `generation_id`
 
 ## CSS
 

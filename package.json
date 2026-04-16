@@ -18,6 +18,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src server",
     "test:unit": "vitest run",
+    "db:backup": "node scripts/backup-db.js",
     "test:coverage": "vitest run --coverage",
     "test:export-fixtures": "npx tsx scripts/export-fixtures-from-db.ts && npx tsx scripts/generate-fixture-index.ts"
   },
